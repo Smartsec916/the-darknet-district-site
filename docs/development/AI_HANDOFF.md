@@ -1,5 +1,11 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — #419 Corporate District and Temple scene hooks
+
+- Made characters can be placed on the open ground of the Corporate District and Zen Zephyr Temple. Stored coordinates are shifted so they cannot land on a city pavement. In those scenes the figures use the scene’s own metres. Reverie, Lace and the street cat stay off both scenes, and off the city side of the gates.
+- The District bar, VR play area, arcade, Milked reception and NULL floor keep their existing adult-made placement. Reverie and Lace still carry the same 16 native clips, including the seated wave.
+- The scene builders start and dispose the made-character runtime with the area. Draft play can enter either scene.
+
 ## 22 Nov 2026 — #495 room-dialogue release candidate
 
 - Room-aware ordinary NPC dialogue now checks walking TALK positions, registered room boundaries, closed-door collision solids, mission priority and per-player transition timing. It supports entry, exit, short/long visits, independent cooldowns and exact recording preservation. Desktop includes the actual tea room; mobile has matching room dialogue fields and private draft-only synchronization. No existing dialogue, saves, publishing privileges or NPC eligibility changed.

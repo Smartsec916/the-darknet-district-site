@@ -1375,7 +1375,9 @@
           "port",
           "district",
           "milked",
-          "underground"
+          "underground",
+          "corporate",
+          "temple"
         ],
         "ledges": [
           {
@@ -2047,7 +2049,9 @@
           "port",
           "district",
           "milked",
-          "underground"
+          "underground",
+          "corporate",
+          "temple"
         ],
         "ledges": [
           {
@@ -2594,7 +2598,9 @@
           "port",
           "district",
           "milked",
-          "underground"
+          "underground",
+          "corporate",
+          "temple"
         ],
         "ledges": [
           {
@@ -3036,7 +3042,9 @@
           "port",
           "district",
           "milked",
-          "underground"
+          "underground",
+          "corporate",
+          "temple"
         ],
         "ledges": [
           {
@@ -14150,6 +14158,712 @@
             ]
           ],
           "posts": []
+        },
+        {
+          "id": "corporate",
+          "name": "The Corporate District",
+          "scene": "corporate",
+          "quarter": null,
+          "walk": [
+            [
+              -95.55,
+              95.55,
+              208.45,
+              231.55
+            ],
+            [
+              -95.55,
+              95.55,
+              232.45,
+              245.55
+            ],
+            [
+              -95.55,
+              95.55,
+              194.45,
+              207.55
+            ],
+            [
+              -57.55,
+              -44.45,
+              246.45,
+              307.55
+            ],
+            [
+              -7.55,
+              7.55,
+              246.45,
+              307.55
+            ],
+            [
+              52.45,
+              65.55,
+              246.45,
+              307.55
+            ],
+            [
+              -95.55,
+              95.55,
+              308.45,
+              315.55
+            ],
+            [
+              -61.55,
+              -58.45,
+              132.45,
+              193.55
+            ],
+            [
+              30.45,
+              33.55,
+              132.45,
+              193.55
+            ],
+            [
+              62.45,
+              65.55,
+              132.45,
+              193.55
+            ],
+            [
+              -19.55,
+              -8.45,
+              132.45,
+              193.55
+            ],
+            [
+              -95.55,
+              95.55,
+              124.45,
+              131.55
+            ]
+          ],
+          "adultWalk": [],
+          "floors": [
+            [
+              -95.55,
+              95.55,
+              208.45,
+              231.55
+            ],
+            [
+              -95.55,
+              95.55,
+              232.45,
+              245.55
+            ],
+            [
+              -95.55,
+              95.55,
+              194.45,
+              207.55
+            ],
+            [
+              -57.55,
+              -44.45,
+              246.45,
+              307.55
+            ],
+            [
+              -7.55,
+              7.55,
+              246.45,
+              307.55
+            ],
+            [
+              52.45,
+              65.55,
+              246.45,
+              307.55
+            ],
+            [
+              -95.55,
+              95.55,
+              308.45,
+              315.55
+            ],
+            [
+              -61.55,
+              -58.45,
+              132.45,
+              193.55
+            ],
+            [
+              30.45,
+              33.55,
+              132.45,
+              193.55
+            ],
+            [
+              62.45,
+              65.55,
+              132.45,
+              193.55
+            ],
+            [
+              -19.55,
+              -8.45,
+              132.45,
+              193.55
+            ],
+            [
+              -95.55,
+              95.55,
+              124.45,
+              131.55
+            ]
+          ],
+          "roads": [],
+          "gates": [],
+          "no": [
+            {
+              "rect": [
+                -95.55,
+                95.55,
+                124.45,
+                315.55
+              ],
+              "why": "That is The Corporate District (only a character made in the editor may stand on its open ground).",
+              "rule": true,
+              "cast": "made"
+            }
+          ],
+          "obstacles": [
+            [
+              -96,
+              -58,
+              246,
+              308
+            ],
+            [
+              -44,
+              -8,
+              246,
+              308
+            ],
+            [
+              8,
+              52,
+              246,
+              308
+            ],
+            [
+              66,
+              96,
+              246,
+              308
+            ],
+            [
+              -96,
+              -62,
+              132,
+              194
+            ],
+            [
+              -58,
+              -20,
+              132,
+              194
+            ],
+            [
+              -8,
+              30,
+              132,
+              194
+            ],
+            [
+              34,
+              62,
+              132,
+              194
+            ],
+            [
+              66,
+              96,
+              132,
+              194
+            ],
+            [
+              -73.5,
+              -70.5,
+              124.60000000000001,
+              126.2
+            ],
+            [
+              -27.5,
+              -24.5,
+              124.60000000000001,
+              126.2
+            ],
+            [
+              16.5,
+              19.5,
+              124.60000000000001,
+              126.2
+            ],
+            [
+              56.5,
+              59.5,
+              124.60000000000001,
+              126.2
+            ],
+            [
+              -52.9,
+              -51.1,
+              128.89999999999998,
+              130.7
+            ],
+            [
+              3.1,
+              4.9,
+              127.69999999999999,
+              129.5
+            ],
+            [
+              42.8,
+              45.2,
+              128.8,
+              130.39999999999998
+            ],
+            [
+              -87,
+              -85,
+              127.8,
+              129.8
+            ],
+            [
+              75.1,
+              76.9,
+              127.1,
+              128.9
+            ],
+            [
+              -60.1,
+              -58.699999999999996,
+              177.3,
+              178.7
+            ],
+            [
+              -61.4,
+              -59.800000000000004,
+              154.8,
+              157.2
+            ],
+            [
+              30.3,
+              31.7,
+              169.2,
+              170.8
+            ],
+            [
+              63.8,
+              65.39999999999999,
+              160.8,
+              163.2
+            ],
+            [
+              -32.5,
+              -27.5,
+              235.3,
+              236.7
+            ],
+            [
+              -32.5,
+              -27.5,
+              203.3,
+              204.7
+            ],
+            [
+              19.5,
+              24.5,
+              203.3,
+              204.7
+            ],
+            [
+              57.5,
+              62.5,
+              235.3,
+              236.7
+            ],
+            [
+              -10.5,
+              -5.5,
+              235.3,
+              236.7
+            ],
+            [
+              67.5,
+              72.5,
+              203.3,
+              204.7
+            ],
+            [
+              -45.1,
+              -42.9,
+              226.9,
+              229.1
+            ],
+            [
+              44.9,
+              47.1,
+              210.9,
+              213.1
+            ],
+            [
+              -15.5,
+              -12.5,
+              237.1,
+              237.9
+            ],
+            [
+              12.5,
+              15.5,
+              202.1,
+              202.9
+            ],
+            [
+              -8,
+              -4.6,
+              262.5,
+              266.5
+            ],
+            [
+              -4.6,
+              4.5,
+              263.8,
+              264.2
+            ],
+            [
+              25.7,
+              26.3,
+              239.7,
+              240.3
+            ],
+            [
+              33.7,
+              34.3,
+              239.7,
+              240.3
+            ],
+            [
+              27,
+              33,
+              245.8,
+              246.2
+            ],
+            [
+              -79,
+              -75,
+              245.8,
+              246.2
+            ],
+            [
+              -90,
+              -82,
+              131.8,
+              132.2
+            ],
+            [
+              -76,
+              -68,
+              131.8,
+              132.2
+            ],
+            [
+              -41.2,
+              -38.8,
+              131.8,
+              132.2
+            ],
+            [
+              48,
+              56,
+              131.8,
+              132.2
+            ],
+            [
+              -100,
+              100,
+              316,
+              320
+            ],
+            [
+              -100,
+              100,
+              120,
+              124
+            ],
+            [
+              -100,
+              -96,
+              120,
+              320
+            ],
+            [
+              96,
+              100,
+              120,
+              320
+            ]
+          ],
+          "posts": []
+        },
+        {
+          "id": "temple",
+          "name": "Zen Zephyr Temple",
+          "scene": "temple",
+          "quarter": null,
+          "walk": [
+            [
+              250.45,
+              309.55,
+              -46.55,
+              -31.45
+            ],
+            [
+              277.45,
+              282.55,
+              -30.55,
+              -6.45
+            ],
+            [
+              260.45,
+              299.55,
+              -29.55,
+              -6.45
+            ],
+            [
+              314.45,
+              326.55,
+              -29.55,
+              -10.45
+            ],
+            [
+              262.85,
+              297.15,
+              -5.1499999999999995,
+              33.15
+            ]
+          ],
+          "adultWalk": [],
+          "floors": [
+            [
+              250.45,
+              309.55,
+              -46.55,
+              -31.45
+            ],
+            [
+              277.45,
+              282.55,
+              -30.55,
+              -6.45
+            ],
+            [
+              260.45,
+              299.55,
+              -29.55,
+              -6.45
+            ],
+            [
+              314.45,
+              326.55,
+              -29.55,
+              -10.45
+            ],
+            [
+              262.85,
+              297.15,
+              -5.1499999999999995,
+              33.15
+            ]
+          ],
+          "roads": [],
+          "gates": [],
+          "no": [
+            {
+              "rect": [
+                250.45,
+                326.55,
+                -46.55,
+                33.15
+              ],
+              "why": "That is Zen Zephyr Temple (only a character made in the editor may stand on its open ground).",
+              "rule": true,
+              "cast": "made"
+            }
+          ],
+          "obstacles": [
+            [
+              268.1,
+              269.9,
+              1.1,
+              2.9
+            ],
+            [
+              290.1,
+              291.9,
+              1.1,
+              2.9
+            ],
+            [
+              268.1,
+              269.9,
+              11.1,
+              12.9
+            ],
+            [
+              290.1,
+              291.9,
+              11.1,
+              12.9
+            ],
+            [
+              268.1,
+              269.9,
+              21.1,
+              22.9
+            ],
+            [
+              290.1,
+              291.9,
+              21.1,
+              22.9
+            ],
+            [
+              268.1,
+              269.9,
+              29.1,
+              30.9
+            ],
+            [
+              290.1,
+              291.9,
+              29.1,
+              30.9
+            ],
+            [
+              276.4,
+              283.6,
+              18.4,
+              25.6
+            ],
+            [
+              272.4,
+              273.6,
+              11.4,
+              12.6
+            ],
+            [
+              286.4,
+              287.6,
+              11.4,
+              12.6
+            ],
+            [
+              272.4,
+              273.6,
+              27.4,
+              28.6
+            ],
+            [
+              286.4,
+              287.6,
+              27.4,
+              28.6
+            ],
+            [
+              273.55,
+              274.45,
+              -2.45,
+              -1.55
+            ],
+            [
+              285.55,
+              286.45,
+              -2.45,
+              -1.55
+            ],
+            [
+              270.5,
+              271.5,
+              -14.5,
+              -13.5
+            ],
+            [
+              288.5,
+              289.5,
+              -14.5,
+              -13.5
+            ],
+            [
+              270.5,
+              271.5,
+              -24.5,
+              -23.5
+            ],
+            [
+              288.5,
+              289.5,
+              -24.5,
+              -23.5
+            ],
+            [
+              274.75,
+              275.65,
+              -30.45,
+              -29.55
+            ],
+            [
+              284.35,
+              285.25,
+              -30.45,
+              -29.55
+            ],
+            [
+              248.5,
+              251.5,
+              -38.4,
+              -37.6
+            ],
+            [
+              308.5,
+              311.5,
+              -38.4,
+              -37.6
+            ],
+            [
+              321.75,
+              322.25,
+              -27,
+              -13
+            ],
+            [
+              231.5,
+              328.5,
+              47.5,
+              48.5
+            ],
+            [
+              231.5,
+              328.5,
+              -48.5,
+              -47.5
+            ],
+            [
+              231.5,
+              232.5,
+              -48.5,
+              48.5
+            ],
+            [
+              327.5,
+              328.5,
+              -48.5,
+              48.5
+            ]
+          ],
+          "posts": []
         }
       ]
     },
@@ -14275,7 +14989,9 @@
           ],
           "district": [],
           "milked": [],
-          "underground": []
+          "underground": [],
+          "corporate": [],
+          "temple": []
         },
         "cab": true,
         "into": true,
@@ -14346,6 +15062,12 @@
             "outskirts",
             "port",
             "underground"
+          ],
+          "corporate": [
+            "corporate"
+          ],
+          "temple": [
+            "temple"
           ]
         }
       },
@@ -14399,7 +15121,9 @@
           ],
           "district": [],
           "milked": [],
-          "underground": []
+          "underground": [],
+          "corporate": [],
+          "temple": []
         },
         "cab": true,
         "into": true,
@@ -14470,6 +15194,12 @@
             "outskirts",
             "port",
             "underground"
+          ],
+          "corporate": [
+            "corporate"
+          ],
+          "temple": [
+            "temple"
           ]
         }
       },
@@ -14483,7 +15213,9 @@
           "port": [],
           "district": [],
           "milked": [],
-          "underground": []
+          "underground": [],
+          "corporate": [],
+          "temple": []
         },
         "cab": false,
         "into": false,
@@ -14532,6 +15264,12 @@
           ],
           "underground": [
             "underground"
+          ],
+          "corporate": [
+            "corporate"
+          ],
+          "temple": [
+            "temple"
           ]
         }
       },
@@ -14545,7 +15283,9 @@
           "port": [],
           "district": [],
           "milked": [],
-          "underground": []
+          "underground": [],
+          "corporate": [],
+          "temple": []
         },
         "cab": false,
         "into": true,
@@ -14616,6 +15356,12 @@
             "outskirts",
             "port",
             "underground"
+          ],
+          "corporate": [
+            "corporate"
+          ],
+          "temple": [
+            "temple"
           ]
         }
       }
@@ -16261,7 +17007,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -16332,6 +17080,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -16685,7 +17439,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -16756,6 +17512,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -17008,7 +17770,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -17079,6 +17843,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -17438,7 +18208,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -17509,6 +18281,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -17676,7 +18454,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -17747,6 +18527,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -17973,7 +18759,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -18044,6 +18832,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -18122,7 +18916,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -18193,6 +18989,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -18272,7 +19074,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -18343,6 +19147,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -18607,7 +19417,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -18678,6 +19490,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -19055,7 +19873,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -19126,6 +19946,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -19386,7 +20212,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -19457,6 +20285,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -19832,7 +20666,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -19903,6 +20739,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -19968,7 +20810,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -20039,6 +20883,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -20099,7 +20949,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -20170,6 +21022,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -20308,7 +21166,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -20379,6 +21239,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -20566,7 +21432,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -20637,6 +21505,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -20700,7 +21574,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -20771,6 +21647,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -20831,7 +21713,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -20902,6 +21786,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -21118,7 +22008,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -21189,6 +22081,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -21500,7 +22398,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -21571,6 +22471,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -21759,7 +22665,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -21830,6 +22738,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -22086,7 +23000,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -22157,6 +23073,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -22387,7 +23309,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -22458,6 +23382,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -22789,7 +23719,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -22860,6 +23792,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -23078,7 +24016,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -23149,6 +24089,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -23458,7 +24404,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -23529,6 +24477,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -23733,7 +24687,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -23804,6 +24760,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -24077,7 +25039,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -24148,6 +25112,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -24204,7 +25174,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -24275,6 +25247,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -24326,7 +25304,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -24397,6 +25377,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -24637,7 +25623,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -24708,6 +25696,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -25057,7 +26051,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -25128,6 +26124,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -25199,7 +26201,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -25270,6 +26274,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -25348,7 +26358,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -25419,6 +26431,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -25597,7 +26615,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -25668,6 +26688,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -25915,7 +26941,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -25986,6 +27014,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -26099,7 +27133,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -26170,6 +27206,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -26315,7 +27357,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -26386,6 +27430,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -26612,7 +27662,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -26683,6 +27735,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -27000,7 +28058,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -27071,6 +28131,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -27313,7 +28379,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -27384,6 +28452,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -27725,7 +28799,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -27796,6 +28872,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -28022,7 +29104,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -28093,6 +29177,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -28416,7 +29506,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -28487,6 +29579,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -28739,7 +29837,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -28810,6 +29910,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -29158,7 +30264,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -29229,6 +30337,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -29453,7 +30567,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -29524,6 +30640,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -29847,7 +30969,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -29918,6 +31042,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -30012,7 +31142,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -30083,6 +31215,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -30195,7 +31333,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -30266,6 +31406,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -30409,7 +31555,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -30480,6 +31628,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -30659,7 +31813,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -30730,6 +31886,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -31002,7 +32164,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -31073,6 +32237,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -31446,7 +32616,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -31517,6 +32689,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -31771,7 +32949,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -31842,6 +33022,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -32203,7 +33389,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -32274,6 +33462,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -32355,7 +33549,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -32426,6 +33622,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -32514,7 +33716,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -32585,6 +33789,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -32692,7 +33902,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -32763,6 +33975,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -32900,7 +34118,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -32971,6 +34191,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -33213,7 +34439,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -33284,6 +34512,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -33621,7 +34855,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -33692,6 +34928,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -33804,7 +35046,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -33875,6 +35119,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -34021,7 +35271,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -34092,6 +35344,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -34308,7 +35566,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -34379,6 +35639,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -34684,7 +35950,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -34755,6 +36023,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -34895,7 +36169,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -34966,6 +36242,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         }
@@ -35015,7 +36297,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -35086,6 +36370,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -35131,7 +36421,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -35202,6 +36494,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -35448,7 +36746,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -35519,6 +36819,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         }
@@ -35773,7 +37079,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -35844,6 +37152,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -36216,7 +37530,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -36287,6 +37603,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -36429,7 +37751,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -36500,6 +37824,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -36691,7 +38021,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -36762,6 +38094,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -37025,7 +38363,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -37096,6 +38436,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -37461,7 +38807,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -37532,6 +38880,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -37635,7 +38989,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -37706,6 +39062,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -37827,7 +39189,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -37898,6 +39262,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -38116,7 +39486,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -38187,6 +39559,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -38477,7 +39855,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -38548,6 +39928,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -38798,7 +40184,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -38869,6 +40257,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -39228,7 +40622,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -39299,6 +40695,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -39376,7 +40778,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -39447,6 +40851,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -39529,7 +40939,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -39600,6 +41012,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -39716,7 +41134,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -39787,6 +41207,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -39924,7 +41350,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -39995,6 +41423,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -40083,7 +41517,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -40154,6 +41590,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -40251,7 +41693,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -40322,6 +41766,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -40487,7 +41937,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -40558,6 +42010,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -40781,7 +42239,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -40852,6 +42312,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -41114,7 +42580,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -41185,6 +42653,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -41564,7 +43038,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -41635,6 +43111,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -41873,7 +43355,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -41944,6 +43428,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -42287,7 +43777,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -42358,6 +43850,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -42535,7 +44033,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -42606,6 +44106,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -42839,7 +44345,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -42910,6 +44418,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -42975,7 +44489,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -43046,6 +44562,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -43108,7 +44630,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -43179,6 +44703,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -43438,7 +44968,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -43509,6 +45041,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -43876,7 +45414,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -43947,6 +45487,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -44069,7 +45615,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -44140,6 +45688,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -44302,7 +45856,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -44373,6 +45929,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -44495,7 +46057,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -44566,6 +46130,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -44728,7 +46298,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -44799,6 +46371,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -44924,7 +46502,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -44995,6 +46575,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -45160,7 +46746,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -45231,6 +46819,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -45354,7 +46948,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -45425,6 +47021,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -45586,7 +47188,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -45657,6 +47261,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -45779,7 +47389,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -45850,6 +47462,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -46011,7 +47629,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -46082,6 +47702,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -46207,7 +47833,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -46278,6 +47906,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -46443,7 +48077,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -46514,6 +48150,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -46640,7 +48282,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -46711,6 +48355,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -46876,7 +48526,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -46947,6 +48599,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -47069,7 +48727,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -47140,6 +48800,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -47302,7 +48968,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -47373,6 +49041,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -47498,7 +49172,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -47569,6 +49245,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -47731,7 +49413,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -47802,6 +49486,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -47924,7 +49614,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -47995,6 +49687,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -48157,7 +49855,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -48228,6 +49928,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -48350,7 +50056,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -48421,6 +50129,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -48583,7 +50297,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -48654,6 +50370,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -48776,7 +50498,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -48847,6 +50571,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -49009,7 +50739,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -49080,6 +50812,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -49207,7 +50945,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -49278,6 +51018,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -49443,7 +51189,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -49514,6 +51262,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -49640,7 +51394,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -49711,6 +51467,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -49876,7 +51638,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -49947,6 +51711,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -50071,7 +51841,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -50142,6 +51914,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -50304,7 +52082,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -50375,6 +52155,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -50497,7 +52283,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -50568,6 +52356,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -50730,7 +52524,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -50801,6 +52597,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -50923,7 +52725,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -50994,6 +52798,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -51156,7 +52966,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -51227,6 +53039,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -51352,7 +53170,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -51423,6 +53243,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -51588,7 +53414,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -51659,6 +53487,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -51786,7 +53620,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -51857,6 +53693,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -52017,7 +53859,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -52088,6 +53932,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -52217,7 +54067,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -52288,6 +54140,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -52450,7 +54308,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -52521,6 +54381,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -52563,7 +54429,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -52634,6 +54502,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -52671,7 +54545,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -52742,6 +54618,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -52775,7 +54657,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -52846,6 +54730,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -52874,7 +54764,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -52945,6 +54837,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -52991,7 +54889,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -53062,6 +54962,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -53103,7 +55009,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -53174,6 +55082,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -53220,7 +55134,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -53291,6 +55207,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -53332,7 +55254,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -53403,6 +55327,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -53452,7 +55382,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -53523,6 +55455,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -53567,7 +55505,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -53638,6 +55578,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -53766,7 +55712,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -53837,6 +55785,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -53995,7 +55949,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -54066,6 +56022,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -54112,7 +56074,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -54183,6 +56147,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -54224,7 +56194,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -54295,6 +56267,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -54422,7 +56400,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -54493,6 +56473,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -54651,7 +56637,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -54722,6 +56710,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -54768,7 +56762,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -54839,6 +56835,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -54880,7 +56882,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -54951,6 +56955,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -54997,7 +57007,9 @@
             "port": [],
             "district": [],
             "milked": [],
-            "underground": []
+            "underground": [],
+            "corporate": [],
+            "temple": []
           },
           "cab": false,
           "into": true,
@@ -55068,6 +57080,12 @@
               "outskirts",
               "port",
               "underground"
+            ],
+            "corporate": [
+              "corporate"
+            ],
+            "temple": [
+              "temple"
             ]
           }
         },
@@ -55109,7 +57127,9 @@
               "port": [],
               "district": [],
               "milked": [],
-              "underground": []
+              "underground": [],
+              "corporate": [],
+              "temple": []
             },
             "cab": false,
             "into": true,
@@ -55180,6 +57200,12 @@
                 "outskirts",
                 "port",
                 "underground"
+              ],
+              "corporate": [
+                "corporate"
+              ],
+              "temple": [
+                "temple"
               ]
             }
           }
@@ -58868,7 +60894,7 @@
       "spawn"
     ]
   },
-  "revision": "996775e7edb3d28a",
+  "revision": "08b35a38cad8b40d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75235,55 +77261,55 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1008,
+      "line": 1009,
       "text": "'step-subject':(m,o)=>'[data-me-step-subject=\"'+CSS.escape(o)+'\"]',label:(m,o)=>'[data-me-label=\"'+CSS.escape(o)+'\"]',say:(m,o)=>'[data-me-tstep=\"'+CSS.escape(o)+'\"] textarea',ending:m=>'[data-me-ending=\"'+CSS.escape(m.id)+'\"]','wait-at':m=>'[data-me-wait-at=\"'+CSS.escape(m.id)+'\"] canvas','step-spot':(m,o)=>'[data-me-esc-map=\"'+CSS.escape(o)+'\"] canvas','step-stop':(m,o)=>'[data-me-esc-stop=\"'+CSS.escape(o)+'\"]','step-into':(m,o)=>'[data-me-esc-into=\"'+CSS.escape(o)+'\"]',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1019,
+      "line": 1020,
       "text": "if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1021,
+      "line": 1022,
       "text": "const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename=\"'+CSS.escape(raw.id)+'\"]',text:'the tree’s name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1022,
+      "line": 1023,
       "text": "if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1024,
+      "line": 1025,
       "text": "for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission=\"'+CSS.escape(m.id)+'\"] '+f(m,n.step),text:n.text});}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1025,
+      "line": 1026,
       "text": "return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play=\"tree:'+CSS.escape(doneM.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1028,
+      "line": 1029,
       "text": "const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1115,
+      "line": 1117,
       "text": "used to vanish as an unhandled promise rejection; now the editor says what stopped it, in the status line, and the browser console keeps the details. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1186,
+      "line": 1188,
       "text": "addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;",
       "kind": "source-reference"
     },
@@ -76957,43 +78983,43 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 191,
+      "line": 192,
       "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 199,
+      "line": 200,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 201,
+      "line": 202,
       "text": "const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 230,
+      "line": 231,
       "text": "if(!p.near){p.near=true;p.nearTarget=null;const last=p.lastRemark??-Infinity;if(clock-last>=(traits.remarkCooldown??30)){p.lastRemark=clock;const lines=rel?.r.lines.length?[rel.r.lines[Math.floor(rnd()*rel.r.lines.length)]]:conversationLines(p.c,rnd);if(lines[0]!=='…'&&rnd()<(rel?rel.r.affection:traits.initiative??.5)&&(!rel||rel.r.target==='player'||player&&Math.hypot(player.x-origin.x,player.z-origin.z)<8)){try{if(typeof announce==='function')announce(p.c.name+(rel&&rel.r.target!=='player'?' → '+rel.r.target:'')+' · '+lines[0]);}catch{}}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 242,
+      "line": 243,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 265,
+      "line": 266,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 278,
+      "line": 282,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -79431,7 +81457,7 @@
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
     "void-runner/corporate-actors.js": "4ded2564263ea8f5ed16a535864a00385925c81bdfb4aa877b69944f55ffd588",
-    "void-runner/corporate-build.js": "9515b727eb80b593e03f3281826f9d27e4da3b7e41310a25e86dd026a61818cc",
+    "void-runner/corporate-build.js": "a9b65f3b956d24800b272fc917b7f996f71a9ed3decc339082182d778164f3cc",
     "void-runner/corporate-integration.js": "8f3bfa9d2b5c710a0df5eba90b45e231cb1ea49517a1e50aac38aaa6756226e3",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
@@ -79523,7 +81549,7 @@
     "void-runner/mission-blocks.js": "061c4b824827d796bb71755b250dcbbf04d875167ab816fb2c4ec34e8353f49e",
     "void-runner/mission-content.js": "503e29e9cc04e66995c761f066edb62c056fbe5c0ee28c001b9bb0d1d27a678b",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "5be732fe299523d82883f35230e024eed77f77d8f30cbdb6cf4ba38bce5cfba7",
+    "void-runner/mission-editor.js": "7ea7e0af8b6e030548673f6fda5f40f088ae9aa8540f8f30584b69435cdc7d38",
     "void-runner/mission-givers.js": "3d7177af06c183cdcbe1bd0e59400461298701aad94511eddd5a56d0073c8b81",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -79566,7 +81592,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d597edacb9a15cc06763cd70ce3be07b5df85b6184a2025fe085138e63ccd6ae",
-    "void-runner/npc-areas.js": "6f142131557c7fed6e9866ba807813bec00afcb1593447a4c17e67a329b5077b",
+    "void-runner/npc-areas.js": "f33f4019f5a10580ebd00e50b13d2c49e740aa2c30a633e5ea64a78a9803ff57",
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "d10a6c7586bb7c9e640ca76450209e91e19bedd9bac511da634790e6054a4e70",
@@ -79576,7 +81602,7 @@
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "13c2fba01f0a1e4a7040f2037c9f956beae2cae0dbb379407cf55a518fb0f53a",
+    "void-runner/npc-made.js": "0d738c038772a4650c715561e922413ab19f9e2177948ca55508cc4f35c88c62",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
     "void-runner/npc-paths.js": "91cf24548451edf4a53cee4b8c6dcb693ecd58060dbf9cddf1391e792af465b4",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
@@ -79630,7 +81656,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/temple-build.js": "2a45c415c6dcdfc037fbda2b6653924c18e80d1a26bc378b5671594b584d43c2",
+    "void-runner/temple-build.js": "90f74d6499da58e0c6e80c1aff2782806944620c209048d804f90227f74660a3",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
     "void-runner/temple.js": "f6741486bce226c3915b8e59be3ff318af780175946dd8f9608fc50b1844bc9c",
