@@ -31,8 +31,12 @@
    throw Error('Unsupported companion transfer part.');
   for(const p of motions)if(typeof p.meta.clip!=='string'||!p.meta.clip.trim())
    throw Error('Companion animation has no clip name.');
-  for(const p of voices)if(!p.meta.record||typeof p.meta.record.text!=='string'||!validLines.has(p.meta.record.text))
-   throw Error('Companion voice recording does not match a current dialogue line.');
+  for(const p of voices)if(!p.meta.record||typeof p.meta.record.text!=='string')
+   throw Error('Companion voice recording has invalid dialogue metadata.');
+  // A saved companion may still contain old recordings after its text was edited.
+  // Keep them marked as unused rather than refusing the entire character import.
+  const attachedVoices=voices.filter(p=>validLines.has(p.meta.record.text));
+  const orphanVoices=voices.length-attachedVoices.length;
   return {
    id:meta.id,name:meta.name,sex:meta.sex||null,about:profile.about,
    personality:profile.personality,dialogue:profile.dialogue,
@@ -42,11 +46,13 @@
    skeletonCount:(gltf.skins||[]).length,
    animationNames:(gltf.animations||[]).map((a,i)=>a.name||'animation-'+i),
    motions:motions.map(p=>({clip:p.meta.clip,name:p.meta.name||p.meta.clip,blob:p.blob})),
-   voices:voices.map(p=>({record:p.meta.record,blob:p.blob})),
-   dialogueLineCount:validLines.size,recordedLineCount:new Set(voices.map(p=>p.meta.record.text)).size,
-   missingVoiceLines:[...validLines].filter(line=>!voices.some(p=>p.meta.record.text===line)),
+   voices:attachedVoices.map(p=>({record:p.meta.record,blob:p.blob})),
+   orphanVoiceCount:orphanVoices,
+   dialogueLineCount:validLines.size,recordedLineCount:new Set(attachedVoices.map(p=>p.meta.record.text)).size,
+   missingVoiceLines:[...validLines].filter(line=>!attachedVoices.some(p=>p.meta.record.text===line)),
    localTestOnly:true,
-   warnings:[...(gltf.skins||[]).length?[]:['Model has no skeleton; it cannot perform skeletal animations yet.'],
+   warnings:[...(orphanVoices?['Ignored '+orphanVoices+' old voice recording(s) whose text is no longer in the personality dialogue.']:[]),
+             ...(gltf.skins||[]).length?[]:['Model has no skeleton; it cannot perform skeletal animations yet.'],
              ...(gltf.animations||[]).length||motions.length?[]:['No animations were supplied.']]
   };
  }
