@@ -29,3 +29,18 @@ test('two women can share a room, never a man and a woman; the public roster',()
  assert.deepEqual(C.party({companions:['base-m','base-f']}).map(e=>e.id),['base-m']);
  assert.deepEqual([...C.companions.values()].filter(e=>C.offered(e,'thedarknetdistrict.com')).map(e=>e.id).sort(),['ava','base-f','base-m','eva','kai','luna','nadia','zane']);
 });
+
+
+test('Tea Room workshop drafts and unfinished Tao are not offered in the VR bedroom',()=>{
+ for(const name of ['Nomi','Se7en','Tao']){
+  assert.equal(C.offered({id:'test-'+name,name,localDraft:true,listed:true},'localhost'),false,name);
+  assert.equal(C.offered({id:'test-'+name,name,localDraft:true,listed:true},'thedarknetdistrict.com'),false,name);
+ }
+ assert.equal(C.offered({id:'test-other',name:'Other Companion',localDraft:false,listed:true},'localhost'),true);
+});
+
+test('the VR bedroom corrects foot position only for imported drafts',()=>{
+ const fs=require('node:fs'),s=fs.readFileSync(require.resolve('../void-runner/vr-suite.js'),'utf8');
+ assert.match(s,/if\(local\)\{try\{asset\.computeWorldMatrix\(true\)/);
+ assert.match(s,/asset\.position\.y-=bounds\.min\.y/);
+});
