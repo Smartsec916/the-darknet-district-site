@@ -20,6 +20,8 @@ test('reads the actual Companion Studio transfer and retains NPC metadata and lo
  assert.equal(x.motions[0].clip,'walk');assert.equal(x.voices[0].record.text,'Hello there');
  assert.equal(x.modelBytes,(await x.model.arrayBuffer()).byteLength);
  assert.equal(x.localTestOnly,true);
+ assert.equal(x.dialogueLineCount,1);assert.equal(x.recordedLineCount,1);
+ assert.deepEqual(x.missingVoiceLines,[]);
 });
 test('accepts static model but explicitly warns about missing rigging and clips',async()=>{
  const x=await importer.inspect(studio.packTransfer(meta,[{meta:{kind:'model'},blob:glb()}]));
@@ -37,4 +39,20 @@ test('rejects external model resources instead of loading outside files',async()
  h.writeUInt32LE(json.length+pad.length,12);h.writeUInt32LE(0x4e4f534a,16);
  const p=studio.packTransfer(meta,[{meta:{kind:'model'},blob:new Blob([h,json,pad])}]);
  await assert.rejects(importer.inspect(p),/external buffers or textures/);
+});
+
+test('reports the unrecorded lines from the imported personality',async()=>{
+ const m={...meta,dialogue:{greet:['Hello there','Welcome back'],chat:['What brings you here?']}};
+ const p=studio.packTransfer(m,[{meta:{kind:'model'},blob:glb()},
+  {meta:{kind:'voice',record:{text:'Hello there'}},blob:new Blob(['audio'])}]);
+ const x=await importer.inspect(p);
+ assert.equal(x.dialogueLineCount,3);assert.equal(x.recordedLineCount,1);
+ assert.deepEqual(x.missingVoiceLines,['Welcome back','What brings you here?']);
+});
+test('rejects invalid personality settings and voice clips unrelated to dialogue',async()=>{
+ const bad={...meta,personality:{initiative:5}};
+ await assert.rejects(importer.inspect(studio.packTransfer(bad,[{meta:{kind:'model'},blob:glb()}])),/Invalid behavior setting/);
+ const p=studio.packTransfer(meta,[{meta:{kind:'model'},blob:glb()},
+  {meta:{kind:'voice',record:{text:'Unrelated line'}},blob:new Blob(['audio'])}]);
+ await assert.rejects(importer.inspect(p),/does not match/);
 });
