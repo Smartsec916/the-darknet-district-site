@@ -1,5 +1,10 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — Tier 2 and 3 characters can walk from one area to the next
+
+- A character’s placement can be Tier 1, 2 or 3. Tier 1 is the ordinary case and stays in one area. Tier 2 or 3 may mark a later time block “Walk through the gates.” She walks to the gate in the area she is leaving and, after the player goes through, comes in on the far side and walks to the spot. There is still no walked route from the city into the Corporate District or the Temple, and the cat still does not go inside or underground.
+- Desktop Dev Tools has the tier list and the checkbox. The server rejects a Tier 1 cross-area walk and a walk with no way through.
+
 ## 23 Nov 2026 — Reverie, Lace and the cat in the Corporate District and the Temple
 
 - The open streets of the Corporate District and Zen Zephyr Temple are ordinary placement ground for Reverie, Lace and the street cat, as well as characters made in the editor. Saved spots stay shifted off the city map. Those scenes start the street-pair runtime and convert the spots into the scene’s own metres. The cat’s Avenue shop-wall clamp does not apply there.

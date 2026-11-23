@@ -1621,19 +1621,21 @@ def npc_problems(npcs, inv):
         rest = {k: v for k, v in p.items() if k != 'schedule'}
         out += [w + x for x in _plan_only(npc, rest, mv, inv, ok)]
         if 'schedule' in p:
-            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {})]
+            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {}, p.get('tier') or 1, rest)]
     return out
 
 
 def _plan_only(npc, p, mv, inv, ok):
     out = []
     path_only = set(mv.get('pathOnly') or [])
+    if p.get('tier') not in (None, 1, 2, 3):
+        out.append('the tier is 1, 2 or 3.')
     if p['mode'] == 'original':
-        if not _keys(p, ['mode', 'anims']):
+        if not _keys(p, ['mode', 'anims', 'tier']):
             out.append('unknown fields.')
         return out
     if p['mode'] == 'stay':
-        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims']):
+        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims', 'tier']):
             return ['the stay has unknown fields.']
         out += spot_problems(npc, p, inv)
         acts = p.get('actions')
@@ -1646,7 +1648,7 @@ def _plan_only(npc, p, mv, inv, ok):
                 elif a in SIT_POSES and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p, SIT_POSES[a]):
                     out.append('"Sit" needs a ledge.' if a == 'sit' else 'that sitting pose needs a seat that takes it (a cushion, a cot or a bench).')
         return out
-    if not _keys(p, ['mode', 'points', 'anims']):
+    if not _keys(p, ['mode', 'points', 'anims', 'tier']):
         return ['the path has unknown fields.']
     pts = p.get('points')
     if not isinstance(pts, list) or not 2 <= len(pts) <= 12:
@@ -1679,7 +1681,7 @@ def _plan_only(npc, p, mv, inv, ok):
 # minutes, a plain-words name; each block's stay or route is checked like a placement. Nothing in it is code: times, numbers and action ids only.
 HHMM = re.compile(r'^([01]\d|2[0-3]):([0-5]\d)$')
 BLOCK_NAME = re.compile(r"^[A-Za-z0-9 .,'\u2019()&!?\-/]{1,40}$")
-BLOCK_KEYS = {'original': ['from', 'to', 'name', 'mode'], 'stay': ['from', 'to', 'name', 'mode', 'x', 'z', 'yaw', 'actions'], 'path': ['from', 'to', 'name', 'mode', 'points']}
+BLOCK_KEYS = {'original': ['from', 'to', 'name', 'mode'], 'stay': ['from', 'to', 'name', 'mode', 'x', 'z', 'yaw', 'actions', 'cross'], 'path': ['from', 'to', 'name', 'mode', 'points', 'cross']}
 
 
 def _hhmm(t):
@@ -1703,7 +1705,29 @@ def schedule_shape_problems(sched):
     return []
 
 
-def schedule_problems(npc, sched, mv, inv, ok, limits=None):
+def _block_area(b, inv):
+    if not isinstance(b, dict) or b.get('mode') == 'original':
+        return None
+    p = b['points'][0] if b.get('mode') == 'path' and isinstance(b.get('points'), list) and b['points'] else b
+    return area_of(p, inv) if isinstance(p, dict) else None
+
+
+def _earlier_block(sched, i):
+    f = _hhmm(sched[i].get('from')) if isinstance(sched[i], dict) else None
+    best, bd = None, 1440
+    for k, b in enumerate(sched):
+        if k == i or not isinstance(b, dict) or b.get('mode') == 'original':
+            continue
+        t = _hhmm(b.get('to'))
+        if f is None or t is None:
+            continue
+        d = (f - t) % 1440
+        if d < bd:
+            bd, best = d, b
+    return best
+
+
+def schedule_problems(npc, sched, mv, inv, ok, limits=None, tier=1, base=None):
     limits = limits or {}
     most, least = limits.get('blocks', 8), limits.get('blockMin', 15)
     if not isinstance(sched, list):
@@ -1739,8 +1763,25 @@ def schedule_problems(npc, sched, mv, inv, ok, limits=None):
                 out.append(bw + 'it overlaps time block %d.' % (clash + 1))
         if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
             out.append(bw + 'the name may use letters, numbers and simple punctuation only.')
+        if b.get('cross') not in (None, True):
+            out.append(bw + '“Walk through the gates” is on or left off.')
+        if b.get('cross') is True:
+            if not (isinstance(tier, int) and tier >= 2):
+                out.append(bw + 'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.')
+            elif b['mode'] == 'original':
+                out.append(bw + 'walking through the gates needs a spot in the area she is going to.')
+            else:
+                dest = _block_area(b, inv)
+                prev = _earlier_block(sched, i)
+                src = _block_area(prev, inv) or _block_area(base, inv)
+                kind = 'cat' if mv.get('cat') else 'walker'
+                reach = set((((inv or {}).get('npcPaths') or {}).get('cross') or {}).get(kind, {}).get(src) or [])
+                if not src or not dest:
+                    out.append(bw + 'say where she walks from: an earlier spot in an area she can leave.')
+                elif src != dest and dest not in reach:
+                    out.append(bw + 'she cannot walk from that area to the next (there is no way through for her).')
         if b['mode'] != 'original':
-            rest = {k: v for k, v in b.items() if k not in ('from', 'to', 'name')}
+            rest = {k: v for k, v in b.items() if k not in ('from', 'to', 'name', 'cross')}
             out += [bw + x for x in _plan_only(npc, rest, mv, inv, ok)]
     return out
 

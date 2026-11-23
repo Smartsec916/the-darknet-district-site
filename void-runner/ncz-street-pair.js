@@ -337,7 +337,9 @@
    try{root.VoidNPCDevice?.enlist?.(node,{kind:'walker',state:()=>({moving:her?.s?.mode==='walk'||her?.s?.mode==='run',can:her?.s?.mode==='walk'||her?.s?.mode==='sit'&&!floorPose(her.s)}),
     force:()=>her?.node===node?her.s.device:null,target:()=>cat&&her?.s?.device==='photo'?new B.Vector3(cat.x,PAVE+.15,cat.z):null});}catch{}}
   // the editor's plan for her (live-content.js sets VoidStreetPair.planFor: a mission's "Giver waits at" while it waits for her, else Developer Tools > NPCs)
-  const planRaw=id=>{try{return localPlan(root.VoidStreetPair?.planFor?.(id)||null);}catch{return null;}};
+  const scenePlan=P=>{const Q=localPlan(P);if(!Q||!Q.depart)return Q;if(HERE.has(Q.area)){const a=Q.arrive;if(a&&Number.isFinite(+a.x)&&Q.mode==='stay')return {...Q,mode:'path',points:[{x:+a.x,z:+a.z,action:'walk-on',seconds:1},{x:Q.x,z:Q.z,action:(Q.actions&&Q.actions[0])||'idle',seconds:8}],key:(Q.key||'')+':in'};return Q;}
+   if(!HERE.has(Q.depart.area))return Q;const d=Q.depart;return {...Q,area:d.area,mode:'stay',x:d.x,z:d.z,yaw:0,actions:['idle','look'],key:(Q.key||'')+':walk'};};
+  const planRaw=id=>{try{return scenePlan(root.VoidStreetPair?.planFor?.(id)||null);}catch{return null;}};
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026, about a giver whose offer was denied: she goes about her own routine meanwhile and walks back for
      the offer; "never offer again" sends her back to her own routine): a new plan she cannot walk to in a straight line, or in another area, is HELD (she keeps the old one)
      while she is in the player's view; she is moved once she is out of it, and comes back in at a new spot only while that spot is out of view too. held: id -> {plan, key}. */

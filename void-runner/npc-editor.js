@@ -48,7 +48,7 @@
   colour:'Pick a colour and the clothes take it, keeping their own light and dark. A figure made in one piece is recoloured as a whole, but its skin keeps its own tone.',
   colourAdv:'Hue turns every colour round the colour wheel; saturation makes it duller (left) or stronger (right); brightness makes it darker or lighter. Used when no colour is picked above.',
   pieces:'Gear and hairstyles from the character creator. They fit only figures built on the creator’s skeleton, so most NPCs cannot take them.',
-  schedule:'Give parts of the in-game day something different to do: for example 08:00–12:00 walk a route, 12:00–13:00 sit on the ledge, 20:00–02:00 stay at one spot. Outside every time block the placement above applies. A block may run past midnight; blocks cannot overlap; 8 at most.',
+  schedule:'Give parts of the in-game day something different to do: for example 08:00–12:00 walk a route, 12:00–13:00 sit on the ledge, 20:00–02:00 stay at one spot. Outside every time block the placement above applies. A block may run past midnight; blocks cannot overlap; 8 at most. Tier 1 stays in one area. Tier 2 or 3 may walk through the gates into a later block.',
   tryTime:'Slide to a time of day to see what the schedule does then. PLAY THIS DRAFT AT THIS TIME starts a throwaway test session with the game’s clock set to that time.',
   chatgpt:'Say in your own words what this character should do, and let ChatGPT write it as a “behaviour recipe”: plain data the editor checks (never a program). Only places in the city’s walkable areas (never Milked, NULL, the District bar or the VR area) and actions they really have are accepted.',
   paste:'Paste ChatGPT’s answer. The editor finds the recipe in it, checks every field and says in plain words what to fix. Nothing in it is ever run as code.',
@@ -392,7 +392,10 @@
  function gameNow(){try{return typeof state!=='undefined'&&state&&root.VoidClock?root.VoidClock.now(state):null;}catch{return null;}}
  function freeSlot(sch){for(let h=8;h<32;h++){const f=(h%24)*60,ok=[...Array(60).keys()].every(k=>X().blockAt(sch,(f+k)%1440)<0);if(ok)return {from:X().hhmm(f),to:X().hhmm(f+60)};}return null;}
  function scheduleBox(main,e){const id=e.id,M=X().MOVABLE[id];if(!M)return;const box=el('section','','me-check',{'data-npc-schedule':id});box.append(el('h4','Daily schedule'),hint(HELP.schedule));
-  const whole=plan(id),sch=whole&&Array.isArray(whole.schedule)?whole.schedule:[],she=M.it?'it':'she',adv=advanced();
+  const whole=plan(id),sch=whole&&Array.isArray(whole.schedule)?whole.schedule:[],she=M.it?'it':'she',adv=advanced(),tier=whole&&whole.tier||1;
+  const tierRow=el('div','','me-row',{'data-npc-tier':id});const tierSel=el('select','','',{'aria-label':'Character tier','data-npc-tier-select':id});
+  for(const [v,t] of [['1','Tier 1 — stays in one area'],['2','Tier 2 — may walk through the gates'],['3','Tier 3 — may walk through the gates']])tierSel.append(new Option(t,v));tierSel.value=String(tier);
+  tierSel.onchange=()=>{const w=plan(id)||{mode:'original'},n={...w},t=+tierSel.value;if(t>=2)n.tier=t;else delete n.tier;setPlan(id,n,{keep:false});};tierRow.append(el('b','Tier: '),tierSel);box.append(tierRow);
   const setSch=(list,say,undoable)=>{const before=plan(id);const w=plan(id)||{mode:'original'};setPlan(id,{...w,schedule:list},{keep:false});if(say)status=say;if(undoable)ui.undo=()=>setPlan(id,before,{keep:false});if(!list.length)ui.block[id]=null;draw();};
   if(M.cat)box.append(el('p','The cat is out whenever the street is (day and night). The game’s own clock decides which time block it follows.','me-small'));
   else box.append(el('p',S().G().shiftText((S().givers||[]).find(g=>g.id===id)||{})+' While she is out, the game’s own clock (an in-game day passes in 2 hours of play) decides which time block she follows.','me-small me-warn'));
@@ -413,11 +416,13 @@
     list[k]=what.value==='original'?{...head,mode:'original'}:what.value==='stay'?{...head,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():stayDefault(id)}:{...head,mode:'path',points:[]};ui.block[id]=what.value==='original'?ui.block[id]:k;setSch(list);};
    const nm=el('input','','',{'aria-label':'Name of time block '+(k+1),'data-npc-block-name':String(k),placeholder:'e.g. Morning walk',maxlength:'40',style:'width:10em'});nm.value=b.name||'';
    nm.onchange=()=>{const v=nm.value.trim(),list=sch.slice();if(v&&!X().NAME_OK.test(v)){status='A name may use letters, numbers and simple punctuation only.';draw();return;}const nb={...b};if(v)nb.name=v;else delete nb.name;list[k]=nb;setSch(list);};
+   const cross=el('label','','me-small',{'data-npc-block-cross':String(k)});const cx=el('input','','',{type:'checkbox','aria-label':'Walk through the gates into time block '+(k+1)});cx.checked=b.cross===true;cx.disabled=b.mode==='original';
+   cx.onchange=()=>{const list=sch.slice(),nb={...b};if(cx.checked)nb.cross=true;else delete nb.cross;list[k]=nb;setSch(list);};cross.append(cx,document.createTextNode(' Walk through the gates'));
    const edit=btn(blockOf(id)===k?'CHANGING ON THE MAP':'EDIT ON THE MAP',()=>{ui.block[id]=k;draw();setTimeout(()=>host.querySelector('[data-npc-place]')?.scrollIntoView({block:'start'}),50);},blockOf(id)===k?'on':'',{'data-npc-block-edit':String(k),title:'Changes this time block with the map and buttons in “Where they are in the game”.',...(b.mode==='original'?{disabled:''}:{})});
    const rm=btn('×',()=>{ui.block[id]=null;setSch(sch.filter((_,q)=>q!==k),'Time block '+b.from+'–'+b.to+' removed.',true);},'me-x',{'aria-label':'Remove time block '+(k+1),'data-npc-block-remove':String(k)});
-   tr.append(td(sw),td(time('from','Start')),td(time('to','End')),td(what),td(nm),td(edit,rm));tb.append(tr);});
+   tr.append(td(sw),td(time('from','Start')),td(time('to','End')),td(what),td(nm,cross),td(edit,rm));tb.append(tr);});
   if(sch.length)box.append(tb);
-  for(const pr of X().scheduleProblems(id,sch.length?sch:null,whole&&whole.anims))box.append(el('p','⚠ '+pr.replace(M.name+': ',''),'me-bad',{'data-npc-schedule-problem':'1'}));
+  for(const pr of X().scheduleProblems(id,sch.length?sch:null,whole&&whole.anims,tier,whole))box.append(el('p','⚠ '+pr.replace(M.name+': ',''),'me-bad',{'data-npc-schedule-problem':'1'}));
   const row=el('div','','me-row');row.append(btn('+ ADD A TIME BLOCK',()=>{const f=freeSlot(sch);if(!f||sch.length>=X().LIMIT.blocks){status=sch.length>=X().LIMIT.blocks?'A schedule has '+X().LIMIT.blocks+' time blocks at most.':'There is no free hour left in the day: shorten a time block first.';draw();return;}
     const s0=root.VoidStreetPair?.SEAT||{x:104.4};setSch([...sch,{...f,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():stayDefault(id)}],'Time block '+f.from+'–'+f.to+' added: change its times, what '+she+' does, and its spot on the map.');ui.block[id]=sch.length;draw();},'',{'data-npc-block-add':id,title:'Adds the next free hour of the day (from 08:00). Change its times and what '+she+' does.'}));
   if(sch.length)row.append(btn('REMOVE THE SCHEDULE',()=>setSch([],'The daily schedule was removed.',true),'me-x',{'data-npc-schedule-clear':id}));box.append(row);
