@@ -49,10 +49,14 @@ test('reports the unrecorded lines from the imported personality',async()=>{
  assert.equal(x.dialogueLineCount,3);assert.equal(x.recordedLineCount,1);
  assert.deepEqual(x.missingVoiceLines,['Welcome back','What brings you here?']);
 });
-test('rejects invalid personality settings and voice clips unrelated to dialogue',async()=>{
+test('rejects invalid personality but ignores stale recordings safely',async()=>{
  const bad={...meta,personality:{initiative:5}};
  await assert.rejects(importer.inspect(studio.packTransfer(bad,[{meta:{kind:'model'},blob:glb()}])),/Invalid behavior setting/);
  const p=studio.packTransfer(meta,[{meta:{kind:'model'},blob:glb()},
   {meta:{kind:'voice',record:{text:'Unrelated line'}},blob:new Blob(['audio'])}]);
- await assert.rejects(importer.inspect(p),/does not match/);
+ const x=await importer.inspect(p);
+ assert.equal(x.orphanVoiceCount,1);
+ assert.equal(x.voices.length,0);
+ assert.deepEqual(x.missingVoiceLines,['Hello there']);
+ assert.match(x.warnings[0],/old voice recording/);
 });
