@@ -40,6 +40,29 @@ function roomDialogueStep(room,previous,{inside,npcPresent,audible,blocked,now})
  const index=state.index[pool]||0;state.last[pool]=now;state.index[pool]=index+1;
  return {state,line:lines[index%lines.length],pool};
 }
+// Paired conversation: one actor at a time, their published entrance lines in
+// author order. The caller retains one state per player; walking out cancels it.
+function roomDuoStep(previous,{inside,present,blocked,now,lines,members=['nomi','se7en'],gapMs=3500,cooldownMs=90000,maxTurns=6}){
+ const p=previous||{inside:false,last:-Infinity,queue:[],nextAt:0};
+ const state={inside:!!inside,last:p.last??-Infinity,queue:[...(p.queue||[])],nextAt:p.nextAt||0};
+ if(!inside){state.queue=[];state.nextAt=0;return {state,line:null};}
+ if(!p.inside){
+  state.queue=[];
+  if(present&&now-state.last>=cooldownMs){
+   const pools=Object.fromEntries(members.map(id=>[id,Array.isArray(lines?.[id])?lines[id].filter(s=>typeof s==='string'&&s.trim()).map(s=>s.trim()):[]]));
+   for(let i=0;state.queue.length<maxTurns;i++){
+    let any=false;
+    for(const id of members){const text=pools[id]?.[i];if(text&&state.queue.length<maxTurns){state.queue.push({speaker:id,text});any=true;}}
+    if(!any)break;
+   }
+   if(state.queue.length){state.last=now;state.nextAt=now;}
+  }
+ }
+ if(blocked||!present||now<state.nextAt||!state.queue.length)return {state,line:null};
+ const line=state.queue.shift();
+ state.nextAt=now+Math.max(gapMs,Math.min(12000,1800+line.text.length*70));
+ return {state,line};
+}
 // Use the walking scene's collision solids, including its live open-door state.
 function clearRoomLine(a,b,solids){
  if(!Array.isArray(solids)||!a||!b)return false;
@@ -60,6 +83,6 @@ function followStep({phase='invite',waited=0}={},input){
  if(near&&!atDestination)return {phase:'lead',waited:0};
  const w=waited+Math.max(0,dt);return {phase:w>=maxWait?'return':'wait',waited:w};
 }
-const api={createDialogueCoordinator,roomVisit,roomDialogueStep,clearRoomLine,followStep};
+const api={createDialogueCoordinator,roomVisit,roomDialogueStep,roomDuoStep,clearRoomLine,followStep};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdvancedInteractions=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
