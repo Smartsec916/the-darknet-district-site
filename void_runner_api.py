@@ -1167,3 +1167,47 @@ def shop_use(db, uid):
     if not isinstance(body, dict):
         raise DraftError('A JSON object is required.')
     return jsonify(items_service.use_item(db, uid, body))
+
+# Sound projects are private drafts until a developer publishes the library.
+import void_runner_audio_studio as sound_studio
+
+
+@api.get('/studio/audio')
+def public_sound_project():
+    if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
+        return jsonify(version=0, content=sound_studio.EMPTY)
+    db, _, _ = services()
+    return jsonify(sound_studio.live(db))
+
+
+@api.get('/developer/studio/audio')
+@signed_in
+def private_sound_project(db, uid):
+    items_admin(uid)
+    return jsonify(draft=sound_studio.draft(db, uid), live=sound_studio.live(db))
+
+
+@api.post('/developer/studio/audio/<action>')
+@signed_in
+def change_sound_project(db, uid, action):
+    items_admin(uid)
+    if action == 'upload':
+        if request.content_length is not None and request.content_length > sound_studio.MAX:
+            raise DraftError('Audio files must be at most 20 MiB.', 413)
+        return jsonify(sound_studio.upload(db, request.stream.read(sound_studio.MAX + 1)))
+    if action not in ('draft', 'publish'):
+        raise DraftError('Unknown sound operation.', 404)
+    return jsonify(sound_studio.save(db, uid, request.get_json(silent=True), publish=action == 'publish'))
+
+
+@api.get('/studio/audio/media/<recording>')
+def public_sound_media(recording):
+    db, _, _ = services()
+    return sound_studio.media(db, recording)
+
+
+@api.get('/developer/studio/audio/media/<recording>')
+@signed_in
+def private_sound_media(db, uid, recording):
+    items_admin(uid)
+    return sound_studio.media(db, recording, private=True)

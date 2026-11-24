@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "939fe22da636f86e",
+  "revision": "42b40273e7f50a10",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81187,61 +81187,79 @@
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 139,
+      "line": 125,
+      "text": "let studioMix = {master:1,music:1,effects:1,dialogue:1,ambient:1,cinematic:1,duck:.4};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 131,
+      "text": "target(buses.voice.gain, settings.voice * studioMix.dialogue);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 140,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 141,
+      "line": 142,
       "text": "root.speechSynthesis?.cancel();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 372,
+      "line": 374,
       "text": "voices = (root.speechSynthesis?.getVoices() || []).filter(v => /^en(?:-|_)/i.test(v.lang)).sort((a,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 378,
+      "line": 380,
       "text": "root.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 442,
+      "line": 444,
       "text": "if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return false;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 448,
+      "line": 450,
       "text": "speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key); }, 1000);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 453,
+      "line": 455,
       "text": "const u = new root.SpeechSynthesisUtterance(text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 465,
+      "line": 460,
+      "text": "u.volume = settings.master * studioMix.master * settings.voice * studioMix.dialogue * p.volume;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 467,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 469,
+      "line": 471,
       "text": "root.speechSynthesis.speak(u);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 470,
+      "line": 472,
       "text": "speechTimer = setTimeout(() => {",
       "kind": "source-reference"
     },
@@ -81261,6 +81279,18 @@
       "source": "void-runner/skirmish.js",
       "line": 8,
       "text": "const layout={id:'skirmish-three-sector',name:'Three-sector station',kind:'room',color:'#343d43',music:'combat',bounds:[10,30],spawn:[0,1.68,-26],yaw:0,solids,interactions:[],signs:[{id:'neutral',text:'NEUTRAL / CUSTOMS',position:[0,5,-10],color:'#ff9a2e'},{id:'hostile',text:'HOSTILE / STRONGHOLD',position:[0,5,10],color:'#ff4646'},{id:'friendly',text:'FRIENDLY / SAFE HANGAR',position:[0,5,-29.5],color:'#37d67a'}]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/sound-studio-editor.js",
+      "line": 96,
+      "text": "function render(){stop();body.replaceChildren();if(tab==='Library')library().catch(notify);else if(tab==='Mixer'){for(const ch of S.channels){const inp=field(body,ch==='duck'?'Dialogue ducking':ch,c.mix,ch,[0,1]);inp.type='range';inp.step='.01';inp.oninput=()=>{c.mix[ch]=Number(inp.value);if(mixerPreview)root.VoidAudio.setStudioMix(c.mix);};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/sound-studio-runtime.js",
+      "line": 7,
+      "text": "const channels=['master','music','dialogue','effects','ambient','voice','cinematic','duck'];",
       "kind": "source-reference"
     },
     {
@@ -82909,7 +82939,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "884194fd119cfbb45e198ea29dc8b0a187d9f6e2bdd761bd539ddfceab480547",
+    "void-runner/dev-tools.js": "2c77fe3119fbd3d4e77be6967d3b5256ecc0af56e08c24e31bf119370d36b2fe",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -82923,7 +82953,7 @@
     "void-runner/district-people.js": "073b8cc90db96c392deb1606a03a75ad97ce273a57bda8c7ecee0132e8a2d008",
     "void-runner/district-rooms.js": "240bd61023dd1410f46b61b1f26ba8fa2a35fce3db27555960e2fff82cdc13ab",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
-    "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
+    "void-runner/district-voice.js": "bcee4f8653c2baa33a52e08db57485e618c3ba8e6fb2616f78efbe78dd5d04be",
     "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
     "void-runner/editor-home.js": "e4301b93b8abd8805591aa691d864798f42687dd0ae95d5c3710f78bc9229046",
@@ -83006,8 +83036,8 @@
     "void-runner/mouse-control.js": "33d7d3da26d2dde7a1f1c0cd88b05e15b6263ac8214f4fa8719e9d751fa3865b",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
-    "void-runner/music-engine.js": "9a4ee46218d4b7be56ded9763e3ad56c42bfa2eeaa6c59d207b6757ff7d0b8c2",
-    "void-runner/music-integration.js": "863ea5b77f48fdd30fbacc55ae51b1c000d8f80a59f93c1a88dfc93fa733a646",
+    "void-runner/music-engine.js": "3058cb35f65337dfff3bead224182fd1db113b81c6a9459a16b7f22788d4d6e5",
+    "void-runner/music-integration.js": "195d2f8e371286b0036d3d7c1589d8ced67463962d81d0e1637844e48e29e7a5",
     "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
     "void-runner/nav-coords.js": "90146b858e992b388ee5529bba69ffdad5cf4aac2d2c6a20cf7e89e484c5494b",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
@@ -83084,13 +83114,15 @@
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
-    "void-runner/ship-audio.js": "ddc20614a00142f4b4b61eb8be79aaf64ac7ae0964cf5ebc11ef93dfa326f52e",
+    "void-runner/ship-audio.js": "99bdac69b9743f9e8980bf2038db722b8249016142ed78b1950bf596bcb11888",
     "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "3b7205101d6e6f651bef09f0846b0caa2b20d87f5b0a221e348816ae84bd8af0",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
+    "void-runner/sound-studio-editor.js": "ab4efa4bc4d5a29e84297c74f1f9f091276f6b92def5a5e7caae25fc0c0cc492",
+    "void-runner/sound-studio-runtime.js": "7ad31510f7fa02bb14b76050adae62bc92e967d38df7272dd6c72f7c1d90bb91",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",

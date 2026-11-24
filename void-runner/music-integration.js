@@ -42,6 +42,13 @@
    E.preload?.(D.neighbours[target.style]);
    // Where the player is, for the environmental sound (area-ambience.js).
    globalThis.VoidMusicArea=onFoot?{area:target.style,x:walker.x,z:walker.z,yaw:walker.yaw||0,city:target.cityLevel,at:performance.now()}:null;
+   const studio=globalThis.VoidSoundStudio;
+   if(studio){
+    const areas=[target.style];
+    if(onFoot){areas.push(walkingLocation.id);if(c.under)areas.unshift(globalThis.VoidUnderground?.placeAt?.(walker.x,walker.z));}
+    const missions=Object.entries(state?.universe?.missions||{}).filter(([,m])=>m?.acquired||m?.completed).map(([id])=>id);
+    target.authored=studio.update({areas,walker:onFoot?walker:null,solids:onFoot?walkingLocation.solids:null,environment:onFoot&&walkingLocation.area==='street'&&!c.under?'exterior':'interior',hour:(21+Math.floor((state?.story?.flags?.gameMin||0)/60))%24,missions});
+   }
    E.update(target);
   }catch(error){if(!warned){warned=true;console.warn('[VOID music]',error.message);}}
  };
