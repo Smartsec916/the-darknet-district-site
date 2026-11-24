@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "ea083d6491d0e75d",
+  "revision": "2895ac7feea4d9ed",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83198,7 +83198,7 @@
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
-    "void-runner/shared-rig.js": "2caa37c89e9faa7785ca0626e8d9991731425f0acaeb36cecee17a94b8e450ed",
+    "void-runner/shared-rig.js": "ed6a486e5c700a37ce9c1ade441724795c0336d9d5815c0425cb9186023285a0",
     "void-runner/ship-audio.js": "99bdac69b9743f9e8980bf2038db722b8249016142ed78b1950bf596bcb11888",
     "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
