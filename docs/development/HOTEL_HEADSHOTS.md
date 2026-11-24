@@ -160,3 +160,10 @@ CHECK IN fades to black, shows THIS GAME IS SPONSORED BY with Milked's establish
 Validation: 1,181 Node tests passed, one skipped; full five-floor gameplay browser regression passed. Dedicated tests cover downward flow, moving NPC regions, opacity, floor pooling, cleanup and the effect budget. Generated admin inventory refreshed because it fingerprints the District source. No deployment or production API/save changes.
 
 Presentation and District-host checks passed: sponsor logo/fades, fresh-run balance, NPC liquid creation, character creator, Sleeping Pod exit, cabinet launch and return. The 16-frame strip stays below the existing 200 KB budget. Local test hosting now serves SVG with the correct image MIME type. Visual captures: `.test-temp/hotel-headshots/milked-sponsor.png`, `liquid-npc.png`, and `cabinet.png`.
+
+
+## 24 Nov 2026 — botanical hotel cabinet decoration
+
+The owner requested a cabinet theme drawn from the game. Reused the original flower-and-bee painting atlas already displayed throughout the hotel: a framed front panel and two side panels, walnut-grain control deck and trim, aged brass around the screen, muted rose/gold marquee accents, and a THE GRAND LIABILITY / FIVE FLOORS · NO REFUNDS plaque. The coin slot sits below the artwork. Existing screen, attract loop, controls, footprint and launch action remain functional. This adds one reused atlas texture and small decorative meshes; other cabinets are unchanged. Build 2026-11-24-hotel-headshots-19. Node suite: 1,181 passed, one skipped.
+
+Cabinet integration validation: character creation, Sleeping Pod exit, Hotel Headshots launch, sponsor/start sequence, and return to the District passed without page errors. Full-cabinet preview is captured by `node tests/hotel-headshots-district-browser.cjs --cabinet-only`.
