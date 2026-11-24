@@ -266,13 +266,52 @@
   const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS'],['archived','Removed from the game (archived)']];
   side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from your scripts)','me-small'));
   side.append(btn('+ NEW MISSION TREE',()=>{ui.newTree=true;root.VoidEditorGuide?.focusNext();draw();},ui.newTree?'on':'',{'data-me-new-tree':'1'}));
-  side.append(btn('Rook freight contracts',()=>{ui.tree='rook-freight';ui.newTree=false;ui.mission=null;draw();},ui.tree==='rook-freight'?'on':'',{'data-me-tree':'rook-freight'}));
-  for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;
-   // Archived trees sit in one collapsed group (open while one of them is shown): readable and copyable, never in the game.
-   let box=side;if(st==='archived'){const d=el('details','','me-archived',{'data-me-archived':'1'});d.open=!!ui.archivedOpen||ts.some(t=>t.id===ui.tree);d.ontoggle=()=>{ui.archivedOpen=d.open;};d.append(el('summary',name+' ('+ts.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;}
-   else side.append(el('h4',name,'me-group'));
-   for(const t of ts){const b=btn(t.title+' ('+t.missions.length+')',()=>{ui.tree=t.id;ui.mission=null;ui.step=null;ui.newTree=false;draw();},ui.tree===t.id?'on':'',{'data-me-tree':t.id});box.append(b);
-    if(ui.tree===t.id)for(const m of t.missions){const mb=btn(m.title+(editCount(m)?' ✎':''),()=>{ui.mission=m.key;ui.step=null;draw();},'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key});box.append(mb);}}}
+  const filters=el('form','','me-row',{role:'search','aria-label':'Filter missions'});
+  const search=el('input','','',{type:'search','aria-label':'Mission title or ID',placeholder:'Mission title or ID'});
+  search.value=ui.missionQuery||'';
+  const status=el('select','','',{'aria-label':'Mission status'});
+  status.append(new Option('All statuses',''));
+  for(const [id,label] of groups)status.append(new Option(label,id));
+  status.value=ui.missionStatus||'';
+  const apply=el('button','Filter','',{type:'submit'});
+  filters.onsubmit=event=>{event.preventDefault();ui.missionQuery=search.value.trim();ui.missionStatus=status.value;draw();};
+  status.onchange=()=>filters.requestSubmit();
+  filters.append(search,status,apply);
+  if(ui.missionQuery||ui.missionStatus)filters.append(btn('Clear filters',()=>{ui.missionQuery='';ui.missionStatus='';draw();}));
+  side.append(filters);
+  const query=(ui.missionQuery||'').toLowerCase();
+  const matches=(...parts)=>parts.some(part=>String(part||'').toLowerCase().includes(query));
+  let shown=0;
+  if((!ui.missionStatus||ui.missionStatus==='active')&&matches('Rook freight contracts','rook-freight')){
+   side.append(btn('Rook freight contracts',()=>{ui.tree='rook-freight';ui.newTree=false;ui.mission=null;draw();},ui.tree==='rook-freight'?'on':'',{'data-me-tree':'rook-freight'}));
+   shown++;
+  }
+  for(const [st,name] of groups){
+   if(ui.missionStatus&&st!==ui.missionStatus)continue;
+   const rows=[];
+   for(const tree of built.trees){
+    if(tree.status!==st)continue;
+    const missions=matches(tree.title,tree.id)?tree.missions:tree.missions.filter(m=>matches(m.title,m.key,m.id));
+    if(missions.length||matches(tree.title,tree.id))rows.push({tree,missions});
+   }
+   if(!rows.length)continue;
+   shown+=rows.length;
+   let box=side;
+   if(st==='archived'){
+    const d=el('details','','me-archived',{'data-me-archived':'1'});
+    d.open=!!query||!!ui.archivedOpen||rows.some(row=>row.tree.id===ui.tree);
+    d.ontoggle=()=>{if(!query)ui.archivedOpen=d.open;};
+    d.append(el('summary',name+' ('+rows.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;
+   }else side.append(el('h4',name,'me-group'));
+   for(const {tree,missions} of rows){
+    box.append(btn(tree.title+' ('+missions.length+')',()=>{ui.tree=tree.id;ui.mission=null;ui.step=null;ui.newTree=false;draw();},ui.tree===tree.id?'on':'',{'data-me-tree':tree.id}));
+    if(ui.tree===tree.id||query)for(const m of missions){
+     const select=()=>{ui.tree=tree.id;ui.mission=m.key;ui.step=null;ui.newTree=false;ui.scrollTo=true;draw();};
+     box.append(btn(m.title+(editCount(m)?' ✎':''),select,'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key}));
+    }
+   }
+  }
+  if(!shown)side.append(el('p','No matching missions.','me-small',{role:'status'}));
   const t=built.trees.find(x=>x.id===ui.tree)||built.trees[0];const main=el('div','','me-main');
   if(ui.newTree){main.append(newTreeForm());cols.append(side,main);root_.append(cols);return;}
   if(ui.tree==='rook-freight'){main.append(freightPanel());cols.append(side,main);root_.append(cols);return;}
