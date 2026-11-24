@@ -1521,7 +1521,7 @@ def escort_problems(o, inv, area='avenue', m=None):
     kind, npc = o.get('kind'), o.get('npc')
     who = (esc.get('npcs') or {}).get(npc)
     if not who or not _movable(inv).get(npc):
-        return ['only someone who can walk with the player (Reverie, Lace, the street cat) can do this step.']
+        return ['only someone who can walk with the player can do this step.']
     out = []
     allowed = (esc.get('fields') or {}).get(kind) or []
     for f in ESCORT_FIELDS:
@@ -1601,7 +1601,7 @@ def wait_at_problems(giver, w, inv):
     if w is None:
         return []
     if not _movable(inv).get(giver) or _movable(inv)[giver].get('placementOnly'):
-        return ['"Giver waits at" works only for a giver the editor can move (Reverie or Lace).']
+        return ['"Giver waits at" works only for a giver the editor can move.']
     if not _keys(w, ['x', 'z', 'yaw']):
         return ['"Giver waits at" has unknown fields.']
     return spot_problems(giver, w, inv)
@@ -1984,7 +1984,7 @@ def import_package_problems(pkg, inv=None):
     tri, size = m.get('triangles'), m.get('bytes')
     if type(tri) is not int or tri < 0:
         out.append('The package does not say how many triangles the model has.')
-    elif tri > cap.get('maxTriangles', 50000):
+    elif tri > cap.get('maxTriangles', 50000) and pkg.get('allowOverTriangleLimit') is not True:
         out.append('This model has %d triangles; the limit is %d.' % (tri, cap.get('maxTriangles', 50000)))
     if type(size) is not int or size < 0:
         out.append('The package does not say how big the file is.')

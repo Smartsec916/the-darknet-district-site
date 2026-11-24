@@ -59,10 +59,10 @@ test('the checks: minutes only with "after", 1 to 120; the export keeps them (de
  assert.equal(MC.treeStrip(nearTree({}).missions[0]).start.deny,undefined,'an existing mission is sent as it was');});
 
 test('"Giver waits at" is not used while a denied offer waits (she goes about her routine) or after "never"; it is used again when the offer comes back',()=>{
- const x=env(),{MC}=x;const tr=st=>({id:'draft-street',name:'Street',missions:[{id:'draft-street-m1',number:41,title:'A favour',type:'side',giver:'grey-reverie',start:{how:'person',accept:true,...st},offer:[{who:'grey-reverie',text:'Got a minute?'}],objectives:[{id:'go',kind:'go',place:'port',label:'Go.'}],waitAt:{x:104.4,z:-5.9,yaw:3.14}}]});
- MC.apply(doc(x,tr({deny:'after',denyMinutes:2})),x.e,ctx(x));const s=player(x);assert.ok(MC.waitingAt(s,x.e)['grey-reverie']);
+ const x=env(),{MC}=x;const tr=st=>({id:'draft-street',name:'Street',missions:[{id:'draft-street-m1',number:41,title:'A favour',type:'side',giver:'tea-host',start:{how:'person',accept:true,...st},offer:[{who:'tea-host',text:'Got a minute?'}],objectives:[{id:'go',kind:'go',place:'port',label:'Go.'}],waitAt:{x:104.4,z:-5.9,yaw:3.14}}]});
+ MC.apply(doc(x,tr({deny:'after',denyMinutes:2})),x.e,ctx(x));const s=player(x);assert.ok(MC.waitingAt(s,x.e)['tea-host']);
  ev(x,s,{type:'decline',mission:'draft-street-m1'});assert.deepEqual(MC.waitingAt(s,x.e),{},'during the wait: her own routine');
- MC.denyTick(s,x.e,120);assert.ok(MC.waitingAt(s,x.e)['grey-reverie'],'back at her spot for the offer');
+ MC.denyTick(s,x.e,120);assert.ok(MC.waitingAt(s,x.e)['tea-host'],'back at her spot for the offer');
  MC.apply(doc(x,tr({deny:'never'})),x.e,ctx(x));const t=player(x);ev(x,t,{type:'decline',mission:'draft-street-m1'});assert.deepEqual(MC.waitingAt(t,x.e),{},'never: back to her routine for good');});
 
 test('"Go into" / "Use" / "Hack" by the place\'s real name; the words follow the place while automatic and the owner\'s own words stay',()=>{fresh();

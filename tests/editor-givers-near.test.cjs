@@ -16,43 +16,9 @@ const doc=(x,...trees)=>({format:x.MC.FORMAT,version:x.MC.VERSION,trees:[...x.MC
 const ctx=x=>({givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()});
 const STORY_ID=/^[a-zA-Z][\w-]{0,63}$/;   // void_runner_api.py clean_save story_id (story.met, relationships, ...)
 
-test('Reverie and Lace are in the giver roster: District, a TALK prompt on The Avenue, draft play and players, ids the save server accepts',()=>{
- const x=env(),by=id=>x.e.givers.find(g=>g.id===id);
- for(const [id,name,hours] of [['grey-reverie','Reverie',[0,12]],['ethereal-lace','Lace',[12,24]]]){const g=by(id);
-  assert.ok(g,id);assert.equal(g.name,name);assert.equal(g.group,'district');assert.equal(g.canTalk,true);assert.equal(g.players,true);assert.equal(g.draft,true);
-  assert.deepEqual(g.shift,{hours,arrive:90});assert.deepEqual(g.targets,[{action:'street-pair',character:id}]);assert.equal(g.layout,'street-pair-'+id);
-  assert.deepEqual(g.enter,{walk:'sacramento',quarter:'avenue'});assert.equal(g.say,id,'the dialogue speaker is the id (story.met records it)');
-  assert.match(id,STORY_ID);assert.doesNotMatch(g.say,/\s/);assert.match(x.G.status(g),/Only while .* is out on the street/);}
- // the street pair's own data agrees (one clock for everyone)
- const S=require(R('void-runner/ncz-street-pair.js'));for(const p of S.PAIR)assert.deepEqual(by(p.id).shift.hours,p.hours);
- assert.deepEqual(x.G.whoAt(x.e.givers,'street-pair','grey-reverie'),['grey-reverie']);assert.deepEqual(x.G.whoAt(x.e.givers,'street-pair','ethereal-lace'),['ethereal-lace']);
- // the server's list of givers (admin inventory, read by void_runner_live_content.py) has them
- const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).missionEditor.givers;for(const id of ['grey-reverie','ethereal-lace'])assert.equal(inv[id].canTalk,true,id);
-});
-
-test('who is out by UTC hour: Reverie 00-11, Lace 12-23, nobody for the first 90 s of a shift; everyone else is always on duty',()=>{
- const x=env(),{G}=x,rev=x.e.givers.find(g=>g.id==='grey-reverie'),lace=x.e.givers.find(g=>g.id==='ethereal-lace'),admin=x.e.givers.find(g=>g.id==='admin');
- for(let h=0;h<24;h++){const t=at(h,30);assert.equal(G.onDuty(rev,t),h<12,'Reverie '+h);assert.equal(G.onDuty(lace,t),h>=12,'Lace '+h);assert.equal(G.onDuty(admin,t),true);}
- assert.equal(G.onDuty(rev,at(0,0,30)),false,'handover');assert.equal(G.onDuty(rev,at(0,1,30)),true);assert.equal(G.onDuty(lace,at(12,1,29)),false);assert.equal(G.onDuty(lace,at(12,1,31)),true);
- assert.equal(G.onDuty(rev,at(11,59,59)),true);assert.equal(G.onDuty(rev,at(12,0,0)),false);
- assert.match(G.shiftText(rev,at(6)),/She is out now/);assert.match(G.shiftText(rev,at(14)),/not out now \(next shift from 00:00 UTC\)/);assert.match(G.shiftText(lace,at(6)),/next shift from 12:00 UTC/);
-});
-
-test('a mission Reverie gives in person is offered only while she is out; draft play is not exempt but runs on a simulated street clock in her shift; Lace the same on her shift',()=>{
- const x=env(),{MC}=x;
- const tree={id:'draft-street',name:'Street',missions:[{id:'draft-street-m1',number:41,title:'A favour',type:'side',giver:'grey-reverie',start:{how:'person',accept:true},offer:[{who:'grey-reverie',text:'Got a minute?'}],
-  objectives:[{id:'go',kind:'go',place:'port',label:'Go to the Port.'}]}]};
- assert.deepEqual(MC.check(doc(x,tree),ctx(x)).errors,[]);MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[tree]},x.e);
- const s=player(x);
- assert.equal(ev(x,s,{type:'talk',npcs:['grey-reverie'],at:at(14)}).ask,undefined,'off shift: no offer');
- assert.equal(ev(x,s,{type:'talk',npcs:['grey-reverie'],at:at(0,0,40)}).ask,undefined,'the handover: no offer');
- const r=ev(x,s,{type:'talk',npcs:['grey-reverie'],at:at(6)});assert.equal(r.ask.mission,'draft-street-m1');assert.deepEqual(r.lines,[{who:'grey-reverie',text:'Got a minute?'}]);
- assert.equal(ev(x,s,{type:'accept',mission:'draft-street-m1',at:at(6)}).offered,true);
- // draft play: no exemption any more (19 Nov 2026); a test session's simulated street clock (ncz-street-pair.js) inside her shift makes her available
- const SP=require(R('void-runner/ncz-street-pair.js'));x.e.draft=true;const s2=player(x);assert.equal(ev(x,s2,{type:'talk',npcs:['grey-reverie'],at:at(14)}).ask,undefined,'draft play at a real Lace hour, no simulated clock: no offer');
- SP.simulate(SP.testClock(['grey-reverie'],at(14)).ms,at(14));try{assert.equal(ev(x,s2,{type:'talk',npcs:['grey-reverie'],at:at(14)}).ask.mission,'draft-street-m1','the test clock puts the street at 03:00 UTC');}finally{SP.simulate(null);}x.e.draft=false;
- const t2=JSON.parse(JSON.stringify(tree));t2.missions[0].giver='ethereal-lace';t2.missions[0].offer[0].who='ethereal-lace';MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[t2]},x.e);
- const s3=player(x);assert.equal(ev(x,s3,{type:'talk',npcs:['ethereal-lace'],at:at(6)}).ask,undefined);assert.equal(ev(x,s3,{type:'talk',npcs:['ethereal-lace'],at:at(20)}).ask.mission,'draft-street-m1');
+test('retired NPCs have no mission giver entries',()=>{
+ const ids=env().e.givers.map(g=>g.id);
+ for(const id of ['grey-reverie','ethereal-lace'])assert.ok(!ids.includes(id));
 });
 
 const nearTree=(npc,distance,giver='admin')=>({id:'draft-near',name:'Near',missions:[
@@ -88,16 +54,12 @@ test('"When walked near" starts the mission once, at the distance set, in tree o
  assert.equal(s.universe.missions['draft-near-m2'],undefined,'the next mission waits for the first to be done (prerequisites respected)');
  ev(x,s,{type:'talk',npcs:['admin']});assert.equal(s.universe.missions['draft-near-m1'].completed,true);
  assert.equal(near(2.5).offered,false,'its own distance is 2 m');assert.equal(near(1.9).mission,'draft-near-m2');
- // a person who moves: Reverie, measured where she is; her mission starts only while she is out
- const y=env();y.MC.apply({format:y.MC.FORMAT,version:y.MC.VERSION,trees:[nearTree('grey-reverie',3,'grey-reverie')]},y.e);const s2=player(y);
- assert.equal(y.MC.treeEvent(s2,y.e,{type:'near',near:{'grey-reverie':2},at:at(15)},y.M,y.C).offered,false,'Lace\'s shift');
- assert.equal(y.MC.treeEvent(s2,y.e,{type:'near',near:{'grey-reverie':3.4},at:at(3)},y.M,y.C).offered,false);
- assert.equal(y.MC.treeEvent(s2,y.e,{type:'near',near:{'grey-reverie':2.9},at:at(3)},y.M,y.C).offered,true);
+
 });
 
 test('the server checks "when walked near" the same way (void_runner_live_content.py) and the browser watches it without allocating per tick',()=>{
  const py=fs.readFileSync(R('void_runner_live_content.py'),'utf8');assert.match(py,/WHEN = \[[^\]]*'near'\]/);assert.match(py,/'npc', 'distance'\]/);assert.match(py,/NEAR_MIN, NEAR_MAX = 1, 30/);
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/setInterval\(nearTick,250\)/);
  for(const k of ["mode!=='walking'",'VoidConversationUI?.isOpen','podWakePending===true','VoidCharacterCreator?.isOpen','VoidKeyMapUI?.open'])assert.ok(lc.includes(k),'near waits: '+k);
- const ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(ed,/data-me-start-distance/);assert.match(ed,/data-me-start-near/);assert.doesNotMatch(ed,/VoidStreetPair\.force/);assert.match(ed,/S\.testClock\(ids\)/);
+ const ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(ed,/data-me-start-distance/);assert.match(ed,/data-me-start-near/);assert.doesNotMatch(ed,/VoidStreetPair\.force/);
 });

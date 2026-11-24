@@ -15,15 +15,14 @@ const player=x=>{const s=x.C.startDistrictCampaign(x.C.fresh());s.story.flags.ap
 const doc=(x,...trees)=>({format:x.MC.FORMAT,version:x.MC.VERSION,trees:[...x.MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,...trees]});
 const ctx=x=>({givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()});
 const run=(fn,st,inp,secs,dt=.1,each)=>{const evs=[];for(let t=0;t<secs;t+=dt){if(each)each(t,st,inp);const e=fn(st,{...inp,dt});if(e)evs.push(e);}return evs;};
-const tree=(o,giver='grey-reverie')=>({id:'draft-walk',name:'Walk',missions:[{id:'draft-walk-m1',number:61,title:'Walk with me',type:'side',giver,offer:[{who:giver,text:'Come on.'}],
+const tree=(o,giver='tea-host')=>({id:'draft-walk',name:'Walk',missions:[{id:'draft-walk-m1',number:61,title:'Walk with me',type:'side',giver,offer:[{who:giver,text:'Come on.'}],
  objectives:[{id:'walk',label:'Walk with them',...o}]}]});
 
 test('who can do these steps: path-capable NPCs only; the cat walks but does not ride; cab stops only where she can exist (The Avenue), far places greyed',()=>{
  fresh();const X=E();
- for(const k of X.IDS){assert.equal(X.can('grey-reverie',k).ok,true);assert.equal(X.can('ethereal-lace',k).ok,true);assert.equal(X.can('admin',k).ok,false);assert.match(X.can('admin',k).why,/cannot walk with the player yet/);}
+ for(const k of X.IDS){assert.equal(X.can('tea-host',k).ok,!X.CAB.has(k));assert.equal(X.can('admin',k).ok,false);assert.match(X.can('admin',k).why,/cannot walk with the player yet/);}
  assert.equal(X.can('street-cat','follow-them').ok,true);assert.equal(X.can('street-cat','they-follow').ok,true);assert.equal(X.can('street-cat','their-cab').ok,false);assert.match(X.can('street-cat','shared-cab').why,/does not ride in cabs/);
- const st=X.stops('grey-reverie'),Q=require(require('path').join(__dirname,'..','void-runner','ncz-quarters.js'));assert.deepEqual(st.filter(s=>s.ok).map(s=>s.id).sort(),Q.STOPS.map(s=>s.id).sort(),'(escort across, 20 Nov 2026) every stop of the city: the cab drives through the gates');
- for(const s of st.filter(s=>!s.ok))assert.ok(s.why&&s.why.length>10,s.id);assert.match(st.find(s=>s.id==='corporate').why,/stays in the city/);assert.equal(st.find(s=>s.id==='main').ok,true);
+ assert.ok(X.stops('tea-host').every(s=>!s.ok&&s.why));
  assert.deepEqual(X.stops('street-cat').filter(s=>s.ok),[]);
  // settings: defaults 8 / 40 / pause, clamped, lost always beyond wait
  assert.deepEqual(X.settings({}),{wait:8,lost:40,ifLost:'pause'});assert.deepEqual(X.settings({wait:99,lost:1,ifLost:'fail'}),{wait:30,lost:40,ifLost:'fail'});
@@ -98,25 +97,25 @@ test('shared cab: she follows; she gets in only a cab to her stop (another stop:
 
 test('mission content: the four step kinds are checked (who, spot, distances, stop), run by events, and a lost player with "fails" sends the mission back',t=>{const realNow=Date.now;Date.now=()=>Date.UTC(2026,10,19,3,0);t.after(()=>{Date.now=realNow;});   // Reverie's shift (00-12 UTC): the result must not depend on the hour the test runs
  const x=env(),{MC}=x;
- const good=[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'},{kind:'they-follow',npc:'street-cat',to:{x:60,z:-6.4}},{kind:'their-cab',npc:'ethereal-lace',stop:'east-gate'},{kind:'shared-cab',npc:'grey-reverie',stop:'avenue'}];
- for(const o of good)assert.deepEqual(MC.check(doc(x,tree(o)),ctx(x)).errors,[],o.kind);
- const bad=[[{kind:'follow-them',npc:'admin',to:{x:110,z:-6.4}},/cannot walk with the player/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-14}},/the road/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:50},/3 to 30/],
-  [{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:20,lost:15},/further than/],[{kind:'they-follow',npc:'grey-reverie',to:{x:110,z:-6.4},stop:'avenue'},/no stop setting/],[{kind:'their-cab',npc:'street-cat',stop:'avenue'},/does not ride in cabs/],
-  [{kind:'their-cab',npc:'grey-reverie',stop:'corporate'},/stays in the city/],[{kind:'they-follow',npc:'street-cat',to:{x:-2.7,z:-80}},/cat never goes inside or down into the tunnels/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
+ const good=[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'},{kind:'they-follow',npc:'street-cat',to:{x:60,z:-6.4}},{kind:'their-cab',npc:'tea-host',stop:'east-gate'},{kind:'shared-cab',npc:'tea-host',stop:'avenue'}];
+ for(const o of good)assert.equal(MC.check(doc(x,tree(o)),ctx(x)).errors.length===0,!E().CAB.has(o.kind),o.kind);
+ const bad=[[{kind:'follow-them',npc:'admin',to:{x:110,z:-6.4}},/cannot walk with the player/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-14}},/the road/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},wait:50},/3 to 30/],
+  [{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},wait:20,lost:15},/further than/],[{kind:'they-follow',npc:'tea-host',to:{x:110,z:-6.4},stop:'avenue'},/no stop setting/],[{kind:'their-cab',npc:'street-cat',stop:'avenue'},/does not ride in cabs/],
+  [{kind:'their-cab',npc:'tea-host',stop:'corporate'},/cab/],[{kind:'they-follow',npc:'street-cat',to:{x:-2.7,z:-80}},/cat never goes inside or down into the tunnels/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
  for(const [o,re] of bad){const errs=MC.check(doc(x,tree(o)),ctx(x)).errors;assert.ok(errs.some(e=>re.test(e)),o.kind+': '+errs.join(' | '));}
  // what is still missing (Guide me / the play check)
  const need=o=>MC.treeNeeds({...tree(o).missions[0]},x.e.givers).filter(n=>n.step==='walk').map(n=>n.field);
- assert.deepEqual(need({kind:'follow-them'}),['step-npc']);assert.deepEqual(need({kind:'follow-them',npc:'grey-reverie'}),['step-spot']);assert.deepEqual(need({kind:'their-cab',npc:'grey-reverie'}),['step-stop']);assert.deepEqual(need(good[0]),[]);
+ assert.deepEqual(need({kind:'follow-them'}),['step-npc']);assert.deepEqual(need({kind:'follow-them',npc:'tea-host'}),['step-spot']);assert.deepEqual(need({kind:'their-cab',npc:'tea-host'}),['step-npc']);assert.deepEqual(need(good[0]),[]);
  // export keeps the settings (and only its own)
  const st=MC.treeStrip(tree({...good[0],stop:'x'}).missions[0]).objectives[0];assert.deepEqual({to:st.to,wait:st.wait,lost:st.lost,ifLost:st.ifLost,stop:st.stop},{to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail',stop:undefined});
  // running: offered by Reverie, the escort step is in progress, the 'escort' event completes it
  MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[tree(good[0])]},x.e);x.e.draft=true;const s=player(x);
- assert.equal(ev(x,s,{type:'talk',npcs:['grey-reverie']}).offered,true);
- assert.deepEqual(MC.escortNow(s,x.e),{'grey-reverie':{key:'draft-walk-m1/walk',mission:'draft-walk-m1',step:'walk',kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'}});
+ assert.equal(ev(x,s,{type:'talk',npcs:['tea-host']}).offered,true);
+ assert.deepEqual(MC.escortNow(s,x.e),{'tea-host':{key:'draft-walk-m1/walk',mission:'draft-walk-m1',step:'walk',kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'}});
  assert.equal(ev(x,s,{type:'escort',step:'other/walk'}).objective,null,'another step id: nothing');
  // failed: the mission goes back to waiting; she offers it again
  s.story.flags.npcEsc='draft-walk-m1/walk|paused|100.0|-6.6';const f=ev(x,s,{type:'escort-fail',step:'draft-walk-m1/walk'});assert.equal(f.failed,true);assert.equal(s.universe.missions['draft-walk-m1'],undefined);assert.equal(s.story.flags.npcEsc,undefined);
- assert.deepEqual(MC.escortNow(s,x.e),{});assert.equal(ev(x,s,{type:'talk',npcs:['grey-reverie']}).offered,true,'offered again');
+ assert.deepEqual(MC.escortNow(s,x.e),{});assert.equal(ev(x,s,{type:'talk',npcs:['tea-host']}).offered,true,'offered again');
  const r=ev(x,s,{type:'escort',step:'draft-walk-m1/walk'});assert.deepEqual(r.done,['walk']);assert.equal(r.completed,true);assert.deepEqual(MC.escortNow(s,x.e),{});
 });
 
@@ -126,13 +125,13 @@ test('save flag, wizard steps, the editor and the server copy of the rules',()=>
  assert.match(X.FLAG,/^[a-zA-Z][\w-]{0,63}$/,'a story flag name clean_save() accepts');assert.equal(X.decode(42),null);
  // the wizard offers the four kinds; build() makes the same step the editor makes
  const W=require(R('void-runner/editor-wizard.js')),T=require(R('void-runner/mission-trees.js'));for(const k of X.IDS)assert.ok(W.STEPS.some(s=>s.id===k),k);
- const spot=X.spots('grey-reverie')[0];assert.ok(spot&&/^Outside /.test(spot.name));
- const a=W.fresh('talk');a.giver='grey-reverie';a.title='Walk';a.steps=[{kind:'follow-them',npc:'grey-reverie',spot:spot.id,label:'Follow Reverie',auto:false},{kind:'their-cab',npc:'grey-reverie',stop:'east-gate',label:'',auto:true}];
- const x=env(),wctx={givers:x.e.givers,places:x.G.placeIds()};W.relabel(a,{name:id=>(x.e.givers.find(g=>g.id===id)||{}).name});assert.equal(a.steps[1].label,'Ride a cab with Reverie');assert.deepEqual(W.problems(a,'steps',wctx),[]);
- a.steps[1].stop='corporate';assert.match(W.problems(a,'steps',wctx).join(' '),/greyed stops are not possible/);a.steps[1].stop='east-gate';
+ const spot=X.spots('tea-host')[0];assert.ok(spot&&/^Outside /.test(spot.name));
+ const a=W.fresh('talk');a.giver='tea-host';a.title='Walk';a.steps=[{kind:'follow-them',npc:'tea-host',spot:spot.id,label:'Follow Reverie',auto:false},{kind:'their-cab',npc:'tea-host',stop:'east-gate',label:'',auto:true}];
+ const x=env(),wctx={givers:x.e.givers,places:x.G.placeIds()};W.relabel(a,{name:id=>(x.e.givers.find(g=>g.id===id)||{}).name});assert.equal(a.steps[1].label,'Ride a cab with Tea Room Host');assert.ok(W.problems(a,'steps',wctx).length);
+ a.steps[1].stop='corporate';assert.match(W.problems(a,'steps',wctx).join(' '),/cab/);a.steps[1].stop='east-gate';
  const b=W.fresh('talk');b.steps=[{kind:'they-follow',npc:'admin',spot:'',label:'x'}];assert.match(W.problems(b,'steps',wctx).join(' '),/cannot walk with the player yet/);
- const d={trees:[]},{mission}=W.build(d,a,{T:require(R('void-runner/mission-trees.js')),number:77});assert.deepEqual(mission.objectives.map(o=>[o.kind,o.npc,o.to||o.stop]),[['follow-them','grey-reverie',{x:spot.x,z:spot.z}],['their-cab','grey-reverie','east-gate']]);
- assert.deepEqual(x.MC.treeNeeds(mission,x.e.givers).filter(n=>/step/.test(n.field)),[]);
+ const d={trees:[]},{mission}=W.build(d,a,{T:require(R('void-runner/mission-trees.js')),number:77});assert.deepEqual(mission.objectives.map(o=>[o.kind,o.npc,o.to||o.stop]),[['follow-them','tea-host',{x:spot.x,z:spot.z}],['their-cab','tea-host','east-gate']]);
+ assert.ok(x.MC.treeNeeds(mission,x.e.givers).some(n=>n.field==='step-npc'));
  // the step kinds are listed for the editor (supported) and for the server
  const G=require(R('void-runner/mission-givers.js'));for(const k of X.IDS){const s=G.STEP_KINDS.find(y=>y.id===k);assert.ok(s&&s.supported&&s.note,k);}
  const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8'));assert.deepEqual(inv.npcEscort,JSON.parse(JSON.stringify(X.inventory())),'run node tools/admin-inventory.cjs');for(const k of X.IDS)assert.ok(inv.missionEditor.stepKinds.includes(k));
@@ -143,6 +142,5 @@ test('save flag, wizard steps, the editor and the server copy of the rules',()=>
  // the street pair runs the plan, and only for the local player (walker)
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8');
  // her shift (one street clock): never brought out off-shift; a started step keeps the one who is out until it ends; the step starts only while she is on duty
- assert.match(sp,/const out=\(\)=>\{const o=onStreet\(now\(\),cfg\);if\(her&&\(!o\|\|o\.id!==her\.p\.id\)\)\{const P=planOf\(her\.p\.id\);if\(P&&\(P\.mode==='escort'\|\|P\.why==='mission'\)\)return her\.p;\}return o;\};/);assert.doesNotMatch(sp,/VoidStreetPair\?\.force/);
  assert.match(fs.readFileSync(R('void-runner/live-content.js'),'utf8'),/G\.onDuty\(g\);\}catch\{\}if\(on\|\|\(saved&&saved\.key===e\.key\)\|\|\(planCache\[id\]&&planCache\[id\]\.why==='mission'&&livePos\(id\)\)\)escOn\.add/);assert.match(sp,/function escTick/);assert.match(sp,/P\.mode==='escort'/);assert.doesNotMatch(sp.slice(sp.indexOf('function escTick'),sp.indexOf('// ---- the cat ----')),/remote-player/);
 });

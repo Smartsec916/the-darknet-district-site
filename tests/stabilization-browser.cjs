@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 const smoke=process.env.STABILIZATION_SMOKE==='1',base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',out=process.env.STABILIZATION_OUTPUT||path.resolve('work/stabilization');
 const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],timing:[],errors:[]};fs.mkdirSync(out,{recursive:true});
 (async()=>{const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:channel==='chromium'?{}:{channel})});try{
- const page=await browser.newPage({viewport:{width:1280,height:720},serviceWorkers:'block'});page.on('pageerror',e=>result.errors.push(e.stack));page.on('console',async m=>{if(/VOID frame|VOID.*preparation/.test(m.text())){const details=await Promise.all(m.args().map(a=>a.evaluate(v=>v?.error?.stack||v?.stack||v)));console.log('GAME ERROR',details);result.errors.push(m.text());}});
+ const page=await browser.newPage({viewport:{width:1280,height:720},serviceWorkers:'block'});page.on('pageerror',e=>result.errors.push(e.stack));page.on('console',async m=>{if(/\[escort across\]|\[escort arrival\]/.test(m.text())){const details=await Promise.all(m.args().map(a=>a.evaluate(v=>v?.stack||v)));console.log('ESCORT DIAGNOSTIC',details);}if(/VOID frame|VOID.*preparation/.test(m.text())){const details=await Promise.all(m.args().map(a=>a.evaluate(v=>v?.error?.stack||v?.stack||v)));console.log('GAME ERROR',details);result.errors.push(m.text());}});
  await page.route('https://**/*',r=>r.abort());await page.route('**/api/**',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>VoidStartup.started,null,{timeout:90000});
  // A software-rendered CI machine builds a scene several times slower than any player's device: give scene building room here, so the check measures the game and not the runner.
@@ -63,10 +63,12 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   return page.evaluate(async ({fail,id})=>{
    const ctl=VoidGateTransit,lane=VoidQuarters.lane('north:foot-w'),from=walkingLocation.quarter;
    const gate=VoidQuarters.gate(lane.gate),to=gate.ends[VoidQuarters.other(VoidQuarters.endOf(gate,from))].quarter;
-   const original=enterWalking,commits=[],queued=[],observed=[];
+   const original=enterWalking,commits=[],queued=[],observed=[],entering=[];
    const plan=VoidLiveContent.plans()[id],session=plan?.step,leg=VoidLiveContent.socialTravelPolicy(id,session)?.leg;
-   const snapshot=()=>({carry:VoidLiveContent.carried(id),area:VoidLiveContent.plans()[id]?.area,leg:VoidLiveContent.socialTravelPolicy(id,session)?.leg,quarter:walkingLocation.quarter});
+   const snapshot=()=>{const plan=VoidLiveContent.plans()[id],policy=VoidLiveContent.socialTravelPolicy(id,session),actor=VoidMadeNPCs.live?.()?.people.find(p=>p.id===id),escort=VoidEscortAcross.present().find(p=>p.npc===id);return {carry:VoidLiveContent.carried(id),area:plan?.area,planKey:plan?.key,leg:policy?.leg,quarter:walkingLocation.quarter,mode,here:VoidEscortAcross.here(),walker:{x:walker.x,z:walker.z,area:VoidNPCAreas.areaOf(walker,plan?.area)},actor:actor?{x:actor.x,z:actor.z,enabled:actor.enabled,esc:actor.esc}:null,escort:escort?{x:escort.x,z:escort.z,phase:escort.phase,ride:escort.ride}:null,log:VoidEscortAcross.log().filter(e=>e.npc===id).slice(-4)};};
+   const before=snapshot();
    enterWalking=async function(id,opts){
+    if(opts?.gateLane===lane.key)entering.push({phase:ctl.state,lane:ctl.lane,target:VoidEscortAcross.target(id,opts),...snapshot()});
     const loaded=await original.apply(this,arguments);
     if(opts?.gateLane===lane.key){
      observed.push({phase:ctl.state,...snapshot()});
@@ -78,7 +80,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
    try{
     Object.assign(walker,{x:lane.mid[0],z:lane.mid[1],yaw:0,pitch:0});
     const ok=await ctl.go();
-    return {ok,from,to,quarter:walkingLocation.quarter,phase:ctl.state,queued,commits,history:ctl.history,observed,after:snapshot(),session,leg};
+    return {ok,from,to,quarter:walkingLocation.quarter,phase:ctl.state,queued,commits,history:ctl.history,before,entering,observed,after:snapshot(),session,leg};
    }finally{enterWalking=original;}
   },{fail,id:socialId});
  }

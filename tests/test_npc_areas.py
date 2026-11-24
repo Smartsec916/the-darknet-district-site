@@ -36,31 +36,31 @@ class NpcAreasServerTests(unittest.TestCase):
 
     def test_placements_anywhere_but_forbidden_places(self):
         stay = {'mode': 'stay', 'x': 64, 'z': -242, 'yaw': 0, 'actions': ['idle']}
-        good = live.npc_problems({'grey-reverie': stay}, INV)
+        good = live.npc_problems({'tea-host': stay}, INV)
         ok_here = live.area_check(stay, INV)[0]
         if ok_here:
             self.assertEqual(good, [])
-        self.assertTrue(live.npc_problems({'grey-reverie': {**stay, 'x': 52, 'z': -58}}, INV))
+        self.assertTrue(live.npc_problems({'tea-host': {**stay, 'x': 52, 'z': -58}}, INV))
         self.assertTrue(live.npc_problems({'street-cat': {**stay, 'x': 88, 'z': -182, 'actions': ['cat-sit']}}, INV))
         cross = {'mode': 'path', 'points': [{'x': 100, 'z': -6.4, 'action': 'look', 'seconds': 3}, {'x': 100, 'z': -58.5, 'action': 'look', 'seconds': 3}]}
-        self.assertTrue(any('one area' in p for p in live.npc_problems({'grey-reverie': cross}, INV)))
+        self.assertTrue(any('one area' in p for p in live.npc_problems({'tea-host': cross}, INV)))
         road = {'mode': 'path', 'points': [{'x': 100, 'z': -6.4, 'action': 'look', 'seconds': 3}, {'x': 100, 'z': -18.3, 'action': 'look', 'seconds': 3}]}
-        self.assertTrue(any('road' in p for p in live.npc_problems({'grey-reverie': road}, INV)))
-        self.assertTrue(live.wait_at_problems('grey-reverie', {'x': 52, 'z': -58, 'yaw': 0}, INV))
+        self.assertTrue(any('road' in p for p in live.npc_problems({'tea-host': road}, INV)))
+        self.assertTrue(live.wait_at_problems('tea-host', {'x': 52, 'z': -58, 'yaw': 0}, INV))
 
     def test_tier_two_may_walk_through_a_gate_and_tier_one_may_not(self):
         ave = {'from': '08:00', 'to': '12:00', 'mode': 'stay', 'x': 103.5, 'z': -6.4, 'yaw': 0, 'actions': ['idle']}
         town = {'from': '12:00', 'to': '14:00', 'mode': 'stay', 'x': 73, 'z': -58.5, 'yaw': 0, 'actions': ['idle'], 'cross': True}
-        self.assertTrue(any('Tier 1' in p for p in live.npc_problems({'grey-reverie': {'mode': 'original', 'schedule': [ave, town]}}, INV)))
-        self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'original', 'tier': 2, 'schedule': [ave, town]}}, INV), [])
+        self.assertTrue(any('Tier 1' in p for p in live.npc_problems({'tea-host': {'mode': 'original', 'schedule': [ave, town]}}, INV)))
+        self.assertEqual(live.npc_problems({'tea-host': {'mode': 'original', 'tier': 2, 'schedule': [ave, town]}}, INV), [])
         corp = {**town, 'x': 0, 'z': 220}
-        self.assertTrue(any('cannot walk' in p for p in live.npc_problems({'grey-reverie': {'mode': 'original', 'tier': 2, 'schedule': [ave, corp]}}, INV)))
+        self.assertTrue(any('cannot walk' in p for p in live.npc_problems({'tea-host': {'mode': 'original', 'tier': 2, 'schedule': [ave, corp]}}, INV)))
 
     def test_the_draft_copy_refuses_forbidden_spots(self):
         base = {'version': 1, 'missions': {}, 'lines': {}, 'trees': [], 'npcs': {}, 'animRequests': []}
-        self.assertTrue(drafts.validate_workspace(ws({**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 64, 'z': -242, 'yaw': 0, 'actions': ['idle']}}}))['valid'])
-        bad = [{**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 52, 'z': -58, 'yaw': 0, 'actions': ['idle']}}},
-               {**base, 'npcs': {'ethereal-lace': {'mode': 'original', 'schedule': [{'from': '08:00', 'to': '09:00', 'mode': 'path', 'points': [{'x': 81.75, 'z': -173, 'action': 'idle', 'seconds': 3}]}]}}},
+        self.assertTrue(drafts.validate_workspace(ws({**base, 'npcs': {'tea-host': {'mode': 'stay', 'x': 64, 'z': -242, 'yaw': 0, 'actions': ['idle']}}}))['valid'])
+        bad = [{**base, 'npcs': {'tea-host': {'mode': 'stay', 'x': 52, 'z': -58, 'yaw': 0, 'actions': ['idle']}}},
+               {**base, 'npcs': {'tea-host': {'mode': 'original', 'schedule': [{'from': '08:00', 'to': '09:00', 'mode': 'path', 'points': [{'x': 81.75, 'z': -173, 'action': 'idle', 'seconds': 3}]}]}}},
                {**base, 'trees': [{'id': 'draft-t', 'missions': [{'id': 'm', 'waitAt': {**W(10, 34), 'yaw': 0}}]}]},
                {**base, 'npcs': {'street-cat': {'mode': 'stay', **W(-5, 73), 'yaw': 0, 'actions': ['cat-sit']}}}]
         for b in bad:
@@ -69,14 +69,14 @@ class NpcAreasServerTests(unittest.TestCase):
 
     def test_escort_steps_in_her_placed_area(self):
         alley = {'x': 77, 'z': -58.5}
-        self.assertEqual(live.placed_area('grey-reverie', alley, None, INV), 'oldtown')
-        self.assertEqual(live.placed_area('grey-reverie', None, {'mode': 'stay', 'x': 64, 'z': -242}, INV), 'outskirts')
-        self.assertEqual(live.escort_problems({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'main'}, INV, 'oldtown'), [])
+        self.assertEqual(live.placed_area('tea-host', alley, None, INV), 'oldtown')
+        self.assertEqual(live.placed_area('tea-host', None, {'mode': 'stay', 'x': 64, 'z': -242}, INV), 'outskirts')
+        self.assertEqual(live.escort_problems({'kind': 'shared-cab', 'npc': 'tea-host', 'stop': 'main'}, INV, 'oldtown'), ['this one does not ride in cabs.'])
         # escort across (20 Nov 2026): a stop or a spot in another area she can get to is fine; an area with no taxis is not
-        self.assertEqual(live.escort_problems({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'avenue'}, INV, 'oldtown'), [])
-        self.assertTrue(live.escort_problems({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'avenue'}, INV, 'underground'))
-        self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 82, 'z': -58.5}}, INV, 'oldtown'), [])
-        self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 82, 'z': -58.5}}, INV, 'avenue'), [])
+        self.assertEqual(live.escort_problems({'kind': 'shared-cab', 'npc': 'tea-host', 'stop': 'avenue'}, INV, 'oldtown'), ['this one does not ride in cabs.'])
+        self.assertTrue(live.escort_problems({'kind': 'shared-cab', 'npc': 'tea-host', 'stop': 'avenue'}, INV, 'underground'))
+        self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'tea-host', 'to': {'x': 82, 'z': -58.5}}, INV, 'oldtown'), [])
+        self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'tea-host', 'to': {'x': 82, 'z': -58.5}}, INV, 'avenue'), [])
         self.assertTrue(any('area' in p for p in live.escort_problems({'kind': 'they-follow', 'npc': 'street-cat', 'to': {'x': -2.7, 'z': -80}}, INV, 'avenue')))
 
     @unittest.skipUnless(shutil.which('node'), 'Node is not installed')
@@ -101,13 +101,13 @@ class NpcAreasServerTests(unittest.TestCase):
         self.assertTrue(live.area_check(door, INV, adult=True)[0])
         for p in [{'x': 48, 'z': -58.5}, {'x': 88, 'z': -182}, {'x': 81.75, 'z': -176}]:
             self.assertEqual(live.area_check(p, INV, passing=True)[2], 'rule', p)
-        mv = live._movable(INV)['grey-reverie']
+        mv = live._movable(INV)['tea-host']
         self.assertEqual(live._leg_problems(mv, {'x': 52.5, 'z': -40}, {'x': 52.5, 'z': -90}, INV), [])
         self.assertEqual(live._leg_problems(mv, {'x': 69.5, 'z': -163}, {'x': 69.5, 'z': -196}, INV), [])
         self.assertTrue(live._leg_problems(mv, {'x': 52.6, 'z': -58.5}, {'x': 40, 'z': -58.5}, INV))
-        self.assertTrue(live.wait_at_problems('ethereal-lace', {**door, 'yaw': 0}, INV))
+        self.assertTrue(live.wait_at_problems('tea-host', {**door, 'yaw': 0}, INV))
         path = {'mode': 'path', 'points': [{'x': 52.6, 'z': -75, 'action': 'look', 'seconds': 3}, {'x': 52.6, 'z': -45, 'action': 'look', 'seconds': 3}]}
-        self.assertEqual(live.npc_problems({'grey-reverie': path}, INV), [])
+        self.assertEqual(live.npc_problems({'tea-host': path}, INV), [])
         self.assertEqual(live.forbidden_spot_problems({'street-cat': {'mode': 'stay', 'x': 52.6, 'z': -62}}, inv=INV), [])
         self.assertTrue(live.forbidden_spot_problems({'street-cat': {'mode': 'stay', **door}}, inv=INV))
 

@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=p=>path.join(__dirname,'..',p);
 const P=require(R('void-runner/npc-paths.js')),A=require(R('void-runner/npc-areas.js'));
-const REV='grey-reverie',CAT='street-cat';
+const REV='tea-host',CAT='street-cat';
 const place=id=>{const p=A.places().find(q=>q.id===id);assert.ok(p,id);return {x:p.x,z:p.z};};
 const stay=(from,to,id,extra)=>({from,to,mode:'stay',...place(id),yaw:0,actions:['idle'],...extra});
 

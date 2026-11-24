@@ -25,8 +25,8 @@ def doc(**extra):
 
 class VoiceRulesTests(unittest.TestCase):
     def test_choices_are_checked(self):
-        self.assertEqual(live.voice_problems({'grey-reverie': OK, 'admin': OK, 'zen-zephyr': OK}), [])
-        self.assertEqual(live.check(doc(voices={'grey-reverie': OK})), [])
+        self.assertEqual(live.voice_problems({'tea-host': OK, 'admin': OK, 'zen-zephyr': OK}), [])
+        self.assertEqual(live.check(doc(voices={'tea-host': OK})), [])
         bad = [({'special-character': OK}, 'reserved'), ({'the-function': OK}, 'no voice'), ({'news-anchor': OK}, 'Broadcast'), ({'warflying-host': OK}, 'Broadcast'),
                ({'nobody-at-all': OK}, 'not a character'), ({'admin': {**OK, 'voiceId': 'short'}}, '20 letters'), ({'admin': {**OK, 'apiKey': 'sk_x'}}, '20 letters'),
                ({'admin': {**OK, 'engine': 'kokoro'}}, '20 letters'), ({'admin': {**OK, 'name': '<b>x</b>'}}, '20 letters'), ({'admin': {**OK, 'chosen': 'today'}}, '20 letters'),
@@ -39,7 +39,7 @@ class VoiceRulesTests(unittest.TestCase):
         def ws(bundle):
             return {'schemaVersion': 1, 'kind': 'workspace', 'adapter': 'mission-editor', 'sourceKey': drafts.WORKSPACE_ID, 'baseRevision': 0,
                     'data': {'id': drafts.WORKSPACE_ID, 'title': 'Mission Editor workspace', 'bundle': bundle}}
-        good = {'version': 1, 'missions': {}, 'lines': {}, 'trees': [], 'npcs': {}, 'animRequests': [], 'voices': {'grey-reverie': OK}}
+        good = {'version': 1, 'missions': {}, 'lines': {}, 'trees': [], 'npcs': {}, 'animRequests': [], 'voices': {'tea-host': OK}}
         self.assertTrue(drafts.validate_workspace(ws(good))['valid'])
         for b in [{**good, 'voices': {'the-function': OK}}, {**good, 'voices': []}, {**good, 'npcs': []}, {**good, 'apiKey': 'x'}]:
             with self.assertRaises(drafts.DraftError):
@@ -66,19 +66,19 @@ class VoiceQueueTests(unittest.TestCase):
         live.clear_cache()
         self.assertEqual(self.client.get('/api/void-runner/live-content').json['content']['voices'], {'mara': OK})
         items = [{'ref': 'mara|a', 'who': 'mara', 'text': 'A line for Mara.'},
-                 {'ref': 'reverie|a', 'who': 'grey-reverie', 'text': 'Got a minute?', 'voiceId': VID, 'voiceName': 'Gravel vendor'},
+                 {'ref': 'reverie|a', 'who': 'tea-host', 'text': 'Got a minute?', 'voiceId': VID, 'voiceName': 'Gravel vendor'},
                  {'ref': 'zen|a', 'who': 'zen-zephyr', 'text': 'Breathe.'},
                  {'ref': 'nyx|a', 'who': 'nyx', 'text': 'Another round?'}]
         r = self.post('revoice', {'items': items})
         self.assertEqual(r.status_code, 200, r.json)
         by = {i['who']: i for i in r.json['items']}
         self.assertEqual((by['mara']['engine'], by['mara']['voiceId'], by['mara']['voice']), ('elevenlabs', VID, 'Gravel vendor'), 'the published choice')
-        self.assertEqual((by['grey-reverie']['engine'], by['grey-reverie']['voiceId']), ('elevenlabs', VID), 'the draft choice sent with the line')
+        self.assertEqual((by['tea-host']['engine'], by['tea-host']['voiceId']), ('elevenlabs', VID), 'the draft choice sent with the line')
         self.assertEqual(by['zen-zephyr']['voiceId'], 'bAq8AI9QURijOtmeFFqT', 'revoice-engines.json, even without a registered Kokoro voice')
         self.assertEqual((by['nyx']['engine'], by['nyx']['voice']), ('kokoro', 'af_river'), 'no choice: the registered Kokoro voice')
         self.assertTrue(all(i['status'] == 'queued' for i in r.json['items']))
         done = self.post('revoice/done', {'ids': [i['id'] for i in r.json['items']]}).json['items']
-        self.assertEqual({i['who']: i['status'] for i in done}, {'mara': 'queued', 'grey-reverie': 'queued', 'zen-zephyr': 'queued', 'nyx': 'done'}, 'ElevenLabs lines wait for approval')
+        self.assertEqual({i['who']: i['status'] for i in done}, {'mara': 'queued', 'tea-host': 'queued', 'zen-zephyr': 'queued', 'nyx': 'done'}, 'ElevenLabs lines wait for approval')
         for bad in [{'who': 'the-function', 'text': 'x', 'voiceId': VID, 'voiceName': 'n'}, {'who': 'special-character', 'text': 'x', 'voiceId': VID, 'voiceName': 'n'},
                     {'who': 'news-anchor', 'text': 'x'}, {'who': 'street-cat', 'text': 'x'}, {'who': 'admin', 'text': 'x', 'voiceId': 'bad', 'voiceName': 'n'},
                     {'who': 'admin', 'text': 'x', 'voiceId': VID}, {'who': 'admin', 'text': 'x', 'apiKey': 'sk'}]:
@@ -89,7 +89,7 @@ class GenerateFromQueueTests(unittest.TestCase):
     def test_voices_file_moves_lines_to_waiting(self):
         queue = {'items': [{'id': 'nyx-1', 'who': 'nyx', 'text': 'Another round?', 'engine': 'kokoro', 'status': 'queued'},
                            {'id': 'mara-1', 'who': 'mara', 'text': 'Hold still.', 'engine': 'kokoro', 'status': 'queued'},
-                           {'id': 'rev-1', 'who': 'grey-reverie', 'text': 'Got a minute?', 'engine': 'elevenlabs', 'voice': 'Gravel vendor', 'voiceId': VID, 'status': 'queued'}]}
+                           {'id': 'rev-1', 'who': 'tea-host', 'text': 'Got a minute?', 'engine': 'elevenlabs', 'voice': 'Gravel vendor', 'voiceId': VID, 'status': 'queued'}]}
         voices = {'about': 'x', 'characters': {'mara': {'engine': 'elevenlabs', 'voice': 'Gravel vendor', 'voiceId': VID, 'chosen': '2026-11-18 by the owner'},
                                                'the-function': {'engine': 'elevenlabs', 'voice': 'never', 'voiceId': VID}}}
         with tempfile.TemporaryDirectory() as d:

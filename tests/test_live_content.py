@@ -446,9 +446,9 @@ class MissionRemovalSaveTests(unittest.TestCase):
         bad['trees'][1]['missions'][0]['start']['when']['mission'] = 'nowhere'
         self.assertTrue(live.check(bad))
         # "when walked near" (18 Nov 2026): who (a person with a TALK prompt; Reverie and Lace are givers) and how far (1..30 m, default 5)
-        near = {'id': 'draft-near', 'name': 'Near', 'missions': [{'id': 'draft-near-m1', 'number': 42, 'title': 'Walk by', 'type': 'side', 'giver': 'grey-reverie',
-                'start': {'how': 'notification', 'channel': 'notify', 'from': 'grey-reverie', 'text': 'x', 'when': {'kind': 'near', 'npc': 'grey-reverie', 'distance': 5}},
-                'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'ethereal-lace'}]}]}
+        near = {'id': 'draft-near', 'name': 'Near', 'missions': [{'id': 'draft-near-m1', 'number': 42, 'title': 'Walk by', 'type': 'side', 'giver': 'tea-host',
+                'start': {'how': 'notification', 'channel': 'notify', 'from': 'tea-host', 'text': 'x', 'when': {'kind': 'near', 'npc': 'tea-host', 'distance': 5}},
+                'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'street-cat'}]}]}
         good = copy.deepcopy(content)
         good['trees'].append(near)
         self.assertEqual(live.check(good), [])

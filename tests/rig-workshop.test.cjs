@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{fileURLToPath}=require('node:url');
 test('retarget missing mandatory tracks and preserve bound geometry across real imports',async()=>{
  const w=await import('../void-runner/rig-workshop.mjs'),m=await import('../void-runner/rig-motion.mjs');
- const filenames=['void-runner/assets/models/crowd/vr-companion-f.glb','void-runner/assets/models/crowd/npc-grey-reverie.glb'];
+ const filenames=['void-runner/assets/models/crowd/vr-companion-f.glb','void-runner/assets/models/crowd/npc-kai.glb'];
  if(process.env.RIG_REGRESSION_FILES)filenames.push(...JSON.parse(process.env.RIG_REGRESSION_FILES));
  const native=global.fetch;global.fetch=async url=>new Response(fs.readFileSync(fileURLToPath(url)));
  try{for(const filename of filenames){

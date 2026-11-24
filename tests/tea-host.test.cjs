@@ -71,22 +71,23 @@ test('sliding doors open for NPCs passing (as the street doors do for residents)
 
 test('placed people sit on the alcoves\' seats with the ledge\'s sit; the seats face into their alcove; the Avenue\'s ledges are unchanged',()=>{
  assert.deepEqual(U.SEATS.map(s=>s.yaw),[0,Math.round(Math.PI*1e4)/1e4,0,Math.round(Math.PI*1e4)/1e4,0,Math.round(Math.PI*1e4)/1e4]);
+ P.setMade({sitter:{name:"Sitter",model:"npc-casual-m"}});
  for(const s of U.SEATS){const f=SP.along(s,SP.SEAT_FRONT);assert.equal(U.placeAt(f.x,f.z),s.place,'one stands in the alcove to sit');assert.equal(SP.seatNear(f).id,s.id);assert.equal(P.ledgeAt({x:f.x,z:f.z}).id,s.id);
-  let ok=0;for(let dx=-.5;dx<=.5;dx+=.1)for(let dz=-.5;dz<=.5;dz+=.1)if(Math.hypot(dx,dz)<=.6&&!P.planProblems('grey-reverie',{mode:'stay',x:+(f.x+dx).toFixed(1),z:+(f.z+dz).toFixed(1),yaw:0,actions:['sit']}).length)ok++;assert.ok(ok>3,s.id+': a spot to sit from');}
+  let ok=0;for(let dx=-.5;dx<=.5;dx+=.1)for(let dz=-.5;dz<=.5;dz+=.1)if(Math.hypot(dx,dz)<=.6&&!P.planProblems('sitter',{mode:'stay',x:+(f.x+dx).toFixed(1),z:+(f.z+dz).toFixed(1),yaw:0,actions:['sit']}).length)ok++;assert.ok(ok>3,s.id+': a spot to sit from');}
  assert.equal(SP.seatNear({x:-3,z:-20}),null);const l=SP.STEPS[1];assert.equal(SP.seatNear({x:l.x,z:SP.frontOf(l)}).id,l.id);
  // the routine sits at a seat facing any way and stands up again (the same steps as at a ledge, along the seat's facing)
  const seat=U.SEATS[2],f=SP.along(seat,SP.SEAT_FRONT),cfg={...SP.config,sit:[3,3]},plan={key:'k',mode:'stay',x:f.x,z:f.z,yaw:0,actions:['sit']},rnd=()=>.5;
- for(const back of [undefined,.1]){let s={...SP.routineStart(SP.PAIR[0],rnd,cfg),x:f.x+.3,z:f.z,seatBack:back},seen=new Set();
+ for(const back of [undefined,.1]){let s={...SP.routineStart({id:'sitter'},rnd,cfg),x:f.x+.3,z:f.z,seatBack:back},seen=new Set();
   for(let i=0;i<2000;i++){s=SP.routineStep(s,.05,rnd,cfg,{plan});seen.add(s.mode);if(s.mode==='sit'){const want=SP.along(seat,back??SP.SEAT_BACK);assert.ok(Math.hypot(s.x-want.x,s.z-want.z)<1e-6);assert.equal(s.yaw,seat.yaw);
     const o=SP.seatOffset(s,.2);assert.ok(Math.abs(o.x+Math.sin(seat.yaw)*.2)<1e-9&&Math.abs(o.z+Math.cos(seat.yaw)*.2)<1e-9,'the eased offset goes back into the seat');}}
   for(const m of ['to-step','settle','sit-down','sit','stand-up','step-off'])assert.ok(seen.has(m),m);}
  // a ledge: exactly as before (no yaw: the old z-only numbers)
- let s={...SP.routineStart(SP.PAIR[0],rnd,cfg),x:l.x,z:SP.frontOf(l)-.2};const lp={key:'l',mode:'stay',x:l.x,z:SP.frontOf(l),yaw:Math.PI,actions:['sit']};
+ let s={...SP.routineStart({id:'sitter'},rnd,cfg),x:l.x,z:SP.frontOf(l)-.2};const lp={key:'l',mode:'stay',x:l.x,z:SP.frontOf(l),yaw:Math.PI,actions:['sit']};
  for(let i=0;i<800&&s.mode!=='sit';i++)s=SP.routineStep(s,.05,rnd,cfg,{plan:lp});assert.equal(s.mode,'sit');assert.equal(s.z,SP.seatOf(l));assert.equal(s.x,l.x);assert.deepEqual(SP.seatOffset(s,.3),{x:0,z:.3});
  // made characters may sit (their street models carry the sit clips); the server reads the seats from the admin inventory
  P.setMade({sitter:{name:'Sitter',model:'npc-casual-m'}});try{assert.ok(P.actionsFor('sitter').some(a=>a.id==='sit'));const g=U.SEATS[0],ff=SP.along(g,SP.SEAT_FRONT);
   assert.deepEqual(P.planProblems('sitter',{mode:'stay',x:+(ff.x+.2).toFixed(1),z:+ff.z.toFixed(1),yaw:0,actions:['sit']}),[]);}finally{P.setMade({});}
- const inv=JSON.parse(read('void_runner_admin_inventory.json'));assert.equal(inv.npcPaths.movable['grey-reverie'].seats.length,U.seatsAll().length);   // with the rooms' seats (21 Nov 2026)
+ const inv=JSON.parse(read('void_runner_admin_inventory.json'));assert.equal(inv.npcPaths.movable['tea-host'].seats.length,U.seatsAll().length);   // with the rooms' seats (21 Nov 2026)
  assert.equal(C.clipIn('npc-casual-m','sit-wave'),'sit','a street figure waves from its seat by staying seated');});
 
 test('module spots and seats face the right way in a turned module (they subtracted the turn)',()=>{

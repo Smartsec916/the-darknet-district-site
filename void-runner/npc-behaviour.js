@@ -5,7 +5,7 @@
    turned into the same placement the route editor makes (content.npcs[id], npc-paths.js) and checked again by npc-paths.js planProblems (and by the server when published).
    Nothing in a recipe is ever run: its strings are only compared with fixed lists (place names, action ids, times).
    THE RECIPE (version 1):
-     {"recipe":"void-runner-npc-behaviour", "version":1, "npc":"grey-reverie",
+     {"recipe":"void-runner-npc-behaviour", "version":1, "npc":"tea-host",
       "allDay":   ACTIVITY                       what she does outside every time block (optional: her usual thing)
       "schedule": [ {"from":"08:00", "to":"12:00", "name":"Morning walk", ...ACTIVITY}, ... ]   (optional: up to 8 blocks on the in-game 24-hour clock)}
      ACTIVITY: {"do":"usual"}                                         her own routine
@@ -114,7 +114,7 @@
   out.push((sch.length?'Outside the times below: ':'All day: ')+describe(id,plan));
   for(const b of sch)out.push(b.from+'–'+b.to+(b.name?' “'+b.name+'”':'')+': '+describe(id,b));return out;}
  /* The prompt the owner pastes into ChatGPT: self-contained (the schema, her places and actions, the limits, two examples). */
- function examples(id){const pl=places(id),pick=k=>(pl.find(p=>p.id===k)||pl[0]).id,led=(pl.find(p=>p.ledge)||pl[0]).id,ids=X().actionsFor(id).map(a=>a.id),A=(want,alt)=>ids.includes(want)?want:alt;
+ function examples(id){const pl=places(id),pick=k=>(pl.find(p=>p.id===k)||pl[0]).id,led=(pl.find(p=>p.ledge)||pl[0]).id,ids=X().actionsFor(id).map(a=>a.id),A=(want,alt)=>[want,alt,'idle','wait'].find(action=>ids.includes(action));
   return [{recipe:KIND,version:VERSION,npc:id,allDay:{do:'usual'},schedule:[{from:'08:00',to:'12:00',name:'Morning walk',do:'route',points:[{at:pick('repair'),action:A('look','cat-look'),seconds:6},{at:pick('laundry'),action:A('scroll','cat-wander'),seconds:10},{at:pick('bio-clinic'),action:A('idle-shift','cat-sit'),seconds:5}]},
     {from:'12:00',to:'13:00',name:'Lunch on the ledge',do:'stay',at:led,face:'road',actions:[A('sit','cat-sit')]},{from:'20:00',to:'02:00',name:'Night watch',do:'stay',at:{x:118.5,z:-6.6},face:'road',actions:[A('idle','cat-sit'),A('look','cat-look'),A('scroll','cat-wander')]}]},
    {recipe:KIND,version:VERSION,npc:id,allDay:{do:'stay',at:pick('oldtown-alley-mouth'),face:'west',actions:[A('idle','cat-sit'),A('look','cat-look'),A('selfie','cat-wander')]}}];}

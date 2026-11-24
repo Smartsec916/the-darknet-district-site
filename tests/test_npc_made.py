@@ -41,9 +41,9 @@ class MadeCharacterTests(unittest.TestCase):
     def test_adult_venues_need_the_adult_flag(self):
         self.assertRegex(' | '.join(live.check(doc(npcs={'kara-voss': NULLFLOOR}))), 'NULL')
         self.assertEqual(live.check(doc(characters={'kara-voss': dict(KARA, adult=True)}, npcs={'kara-voss': NULLFLOOR})), [])
-        self.assertRegex(' | '.join(live.check(doc(characters={'kara-voss': dict(KARA, model='npc-grey-reverie', adult=True)}, npcs={'kara-voss': NULLFLOOR}))), 'youthful')
+        self.assertRegex(' | '.join(live.check(doc(characters={'kara-voss': dict(KARA, model='npc-grey-reverie', adult=True)}, npcs={'kara-voss': NULLFLOOR}))), 'not a model')
         # Reverie herself is never relaxed
-        self.assertRegex(' | '.join(live.check({'format': live.FORMAT, 'version': 1, 'npcs': {'grey-reverie': NULLFLOOR}})), 'NULL')
+        self.assertRegex(' | '.join(live.check({'format': live.FORMAT, 'version': 1, 'npcs': {'street-cat': NULLFLOOR}})), 'NULL')
 
     def test_workspace_keeps_characters(self):
         b = {'version': 1, 'characters': {'kara-voss': KARA}, 'npcs': {'kara-voss': OLDTOWN}}

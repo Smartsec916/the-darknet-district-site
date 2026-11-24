@@ -43,7 +43,7 @@
  // ---------------- the welcome screen
  const TASKS=[
   ['make','mission','Make a mission','Answer a few easy questions, one at a time. Nothing reaches players until you publish.'],
-  ['place','character','Place a character','Put Reverie or Lace at a spot, or make them walk a route on the map.'],
+  ['place','character','Place a character','Choose a character and set a spot or walking route on the map.'],
   ['giver','people','Create a mission giver','Make a new character, step by step: a model, a name, a look, a device, a ship, items and a place in the world.'],
   ['test','test','Test my mission','Play your mission in a practice game. Your real save is never touched.'],
   ['publish','publish','Publish','Check your missions, then send them to every player.']];
@@ -101,7 +101,7 @@
      {const ins=W().aptChoices(a),ci=E&&s.npc&&E.canInto?E.canInto(s.npc):{ok:true};if(ins.length){const og=document.createElement('optgroup');og.label='Into this mission’s place';for(const p of ins){const op=new Option((s.kind==='follow-them'?'Follow them into: ':'Bring them into: ')+p.label,'in:'+p.value);if(!ci.ok){op.disabled=true;op.title=ci.why;}og.append(op);}s2.append(og);}}
      s2.value=s.spot||'';s2.onchange=()=>{s.spot=s2.value;draw();};}
     else{s2.append(new Option(s.npc?'— choose a stop —':'— choose the person first —',''));for(const p of (E&&s.npc?E.stops(s.npc,E.placedArea(s.npc)):[])){const op=new Option(p.name+(p.ok?'':' — not possible'),p.id);if(!p.ok){op.disabled=true;op.title=p.why;}s2.append(op);}s2.value=s.stop||'';s2.onchange=()=>{s.stop=s2.value;draw();};}
-    r2.append(s2,el('span',kd.needs==='escort-spot'?'Only people who can walk with the player are listed (Reverie, Lace, the street cat). You can move the spot anywhere on their pavement later, on the Mission Editor’s map.':'Any stop in the city: the cab drives through the gates’ bays into another quarter with her (she calls it in the quarter where she is placed for this mission: The Avenue unless you placed her somewhere else; greyed stops say why). The normal fare is paid.','me-help'));sel=null;c.append(r2);}
+    r2.append(s2,el('span',kd.needs==='escort-spot'?'Only people who can walk with the player are listed. You can move the spot anywhere on their pavement later, on the Mission Editor’s map.':'Any stop in the city: the cab drives through the gates’ bays into another quarter with her (she calls it in the quarter where she is placed for this mission: The Avenue unless you placed her somewhere else; greyed stops say why). The normal fare is paid.','me-help'));sel=null;c.append(r2);}
    else if(kd.needs==='seconds'){const r2=el('label','','me-field');const n=el('input','','',{type:'number',min:'1',max:'600',step:'1','aria-label':kd.ask,'data-eh-step-secs':String(i)});n.value=String(s.secs??10);n.onchange=()=>{const v=parseInt(n.value,10);s.secs=Number.isFinite(v)?v:null;draw();};
     r2.append(el('span',kd.ask),n,el('span','The mission waits this long, then goes on to the next step. The clock stops in the pause menu and conversations. In the Mission Editor you can also make it count only while the player stays near someone.','me-help'));c.append(r2);sel=null;}
    else if(kd.needs==='anim'){const A=root.VoidNPCGestures;sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));
