@@ -181,9 +181,13 @@ def item_problems(it, cats):
 def seller_rules(value):
     if value is None:
         return []
-    if not _only(value, ['opens', 'closes', 'minRep', 'mission', 'color', 'message', 'sound', 'model']):
+    if not _only(value, ['opens', 'closes', 'minRep', 'mission', 'color', 'message', 'sound', 'model', 'slot', 'screen']):
         return ['Unknown vendor setting']
     errors = []
+    if value.get('slot') and (not isinstance(value['slot'],str) or value['slot'] not in SPEC['kioskSlots']):
+        errors.append('Choose a District kiosk bay')
+    if value.get('screen') and not re.fullmatch(r'#[a-fA-F0-9]{6}',str(value['screen'])):
+        errors.append('Choose a valid kiosk screen color')
     for key in ('opens', 'closes'):
         if key in value and not _int(value[key], 0, 23):
             errors.append('Hours are whole numbers from 0 to 23')
@@ -303,6 +307,17 @@ def problems(c):
                     if en.get('item') in seen:
                         out.append(n + 'sells an item twice')
                     seen.add(en.get('item'))
+    occupied=set()
+    for reg in SPEC['vendorRegistry']:
+        if reg['kind']!='kiosk':
+            continue
+        v=next((row for row in c['vendors'] if isinstance(row,dict) and row.get('entity')==reg['entity']),{})
+        rules=v.get('rules') if isinstance(v.get('rules'),dict) else {}
+        slot=rules.get('slot') or reg['entity']
+        if isinstance(slot,str):
+            if slot in occupied:
+                out.append('Two kiosks occupy the same bay')
+            occupied.add(slot)
     if len(set(ents)) != len(ents):
         out.append('Two vendors use the same seller.')
     if not isinstance(c.get('presets'), list) or len(c['presets']) > LIM['presets']:

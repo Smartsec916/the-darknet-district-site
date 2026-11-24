@@ -41,3 +41,14 @@ test('a sprint reserve only limits speed while a stamina modifier is active; per
   global.VoidConsumableGame={modifier:k=>k==='perception'?.5:0};assert.equal(explorer.select(char(),world),it);
  }finally{global.VoidConsumableGame=old;}
 });
+test('published kiosk placements share the same named bay for signs, geometry and collision',()=>{
+ const N=require('../void-runner/neochinatown.js'),c=C.seed(),v=c.vendors.find(v=>v.id==='kiosk-entrance');
+ v.rules={slot:'shop-center',model:'assets/models/district-interior/district_arcade_change_1m.glb',screen:'#bd53ff'};v.name='Night Market';
+ assert.deepEqual(C.problems(c),[]);const old=global.VoidNPCServices;
+ try{global.VoidNPCServices={kiosks:c.vendors.filter(v=>v.kind==='kiosk')};const zone=N.layout('interior'),k=zone.kiosks.find(k=>k.id===v.id);assert.equal(k.kit,'arcade_change_1m');assert.equal(k.screen,'#bd53ff');
+  const target=zone.interactions.find(i=>i.id===v.id),solid=zone.solids.find(i=>i.id===v.id);assert.equal(target.label,'SHOP · NIGHT MARKET');
+  assert.deepEqual([solid.position[0],solid.position[2]],N.toWorld(k.x,k.z));assert.deepEqual([target.position[0],target.position[2]],N.toWorld(k.x,k.z+.48));
+  const original=N.configuredKiosks([]).find(row=>row.id===v.id);assert.notEqual(original.x,k.x);
+  v.rules.slot='kiosk-far-2';assert.ok(C.problems(c).includes('Two kiosks occupy the same bay'));v.rules.slot='through-a-wall';assert.ok(C.problems(c).some(e=>e.includes('District kiosk bay')));
+ }finally{global.VoidNPCServices=old;}
+});

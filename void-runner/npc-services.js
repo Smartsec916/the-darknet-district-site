@@ -1,8 +1,12 @@
 // Optional offers layer over an NPC's existing conversation. Missions and authored escorts retain priority.
 (function(root){
  'use strict';
- const sales=new Map();let loaded=0,loading=false,lastStep='',active=null;
- function index(content){sales.clear();for(const v of content?.vendors||[])if(v.kind==='npc'&&v.enabled!==false&&v.entries.some(e=>e.available))sales.set(v.entity.replace(/^npc-/,''),v);}
+ const sales=new Map();let kiosks=[];
+ const salesCache='void-runner-published-kiosk-settings-v1';
+ try{const cached=JSON.parse(root.localStorage?.getItem(salesCache)||'[]');if(Array.isArray(cached))kiosks=cached;}catch{}let loaded=0,loading=false,lastStep='',active=null;
+ function index(content){kiosks=(content?.vendors||[]).filter(v=>v.kind==='kiosk').map(({id,name,entity,rules})=>({id,name,entity,rules:rules||{}}));
+  try{root.localStorage?.setItem(salesCache,JSON.stringify(kiosks));}catch{}
+  sales.clear();for(const v of content?.vendors||[])if(v.kind==='npc'&&v.enabled!==false&&v.entries.some(e=>e.available))sales.set(v.entity.replace(/^npc-/,''),v);}
  function stage(service,now){
   if(!service||now<service.started||now>=service.expires)return null;
   let elapsed=now-service.started;
@@ -10,7 +14,7 @@
   return {i:-1,step:null};
  }
  function sync(){
-  if(!loading&&Date.now()-loaded>60000&&typeof mode==='string'&&mode==='walking'&&root.VoidNetwork){
+  if(!loading&&Date.now()-loaded>60000&&typeof mode==='string'&&root.VoidNetwork){
    loading=true;loaded=Date.now();root.VoidNetwork.request('items/catalog').then(d=>index(d.content)).catch(()=>{}).finally(()=>loading=false);
   }
   const s=root.VoidConsumableGame?.data?.service,now=root.VoidConsumableGame?.now(),next=stage(s,now);
@@ -33,6 +37,6 @@
   return {key:'service:'+active.id+':'+now.i,area:root.VoidNPCAreas?.areaOf(point)||authored.area,why:'service',mode:'stay',x:point.x,z:point.z,yaw:point.yaw||0,
    actions:[now.step.clip||point.action||'idle'],npc:id};
  }
- const api={index,stage,has:ids=>ids.some(id=>sales.has(id)),offer,plan,pose,get active(){return active;}};if(typeof module!=='undefined')module.exports=api;else root.VoidNPCServices=api;
+ const api={index,stage,get kiosks(){return kiosks;},has:ids=>ids.some(id=>sales.has(id)),offer,plan,pose,get active(){return active;}};if(typeof module!=='undefined')module.exports=api;else root.VoidNPCServices=api;
  if(root.document)setInterval(sync,350);
 })(globalThis);

@@ -38,12 +38,13 @@
   function setData(d){s.data=rules.clone(d.draft.content||d.live.content);s.revision=d.draft.revision;s.version=d.state.version;s.history=d.state.history||[];s.dirty=false;if(!item())s.id=s.data.items[0]?.id;}
   function mark(){s.dirty=true;s.message='Unsaved changes';}
   function filter(key,title,values){return '<label>'+title+' <select data-filter="'+key+'">'+options([['','All'],...values],s.filter[key]||'')+'</select></label>';}
-  function availabilityFields(scope,r={}){
+  function availabilityFields(scope,r={},kiosk=false){
    const wrap=(k,title,val)=>field(k,title,val);
    return '<fieldset data-rule-owner="'+scope+'"><legend>'+ (scope==='vendor'?'Vendor settings':'Product availability')+'</legend>'+
     wrap('opens','Opening hour',r.opens??0)+wrap('closes','Closing hour (same hour = all day)',r.closes??0)+
     wrap('minRep','Minimum civilian reputation',r.minRep??-100).replace('min="0"','min="-100"')+wrap('mission','Required completed mission ID',r.mission||'')+
     (scope==='vendor'?'<label>Interface color <input type="color" data-field="color" value="'+esc(r.color||'#548c98')+'"></label>'+
+    (kiosk?field('slot','Physical kiosk bay',r.slot||'',[['','Original bay'],...Object.entries(spec.kioskSlots).map(([id,s])=>[id,s.name])])+field('model','Kiosk cabinet',r.model||'',[['','Original scanner'],...Object.entries(spec.kioskModels).map(([id,m])=>[id,m.name])])+'<label>Screen light <input type="color" data-field="screen" value="'+esc(r.screen||'#68e0db')+'"></label>':'')+
     wrap('message','Promotional message',r.message||'')+wrap('sound','Purchase sound (game asset path)',r.sound||''):'')+'</fieldset>';
   }
   function serviceFields(it){
@@ -59,7 +60,7 @@
    return [...spec.vendorRegistry,...s.data.vendors.filter(v=>v.kind==='npc'&&!spec.vendorRegistry.some(r=>r.entity===v.entity))].map(reg=>{
     const vendor=s.data.vendors.find(v=>v.entity===reg.entity),e=vendor?.entries.find(x=>x.item===it.id);
     return '<fieldset data-seller="'+esc(reg.entity)+'"><legend><label><input type="checkbox" data-assigned '+(e?'checked':'')+'> '+esc(vendor?.name||reg.name)+'</label></legend><small>'+esc(reg.location)+' · '+esc(reg.kind)+'</small>'+
-     (e?'<label>Vendor name <input data-vendor-name value="'+esc(vendor.name)+'"></label><label>Location label <input data-vendor-location value="'+esc(vendor.location)+'"></label>'+availabilityFields('vendor',vendor.rules)+availabilityFields('entry',e.rules)+field('price','Vendor price',e.price)+field('stock','Initial stock',e.stock)+field('maxStock','Maximum stock',e.maxStock)+
+     (e?'<label>Vendor name <input data-vendor-name value="'+esc(vendor.name)+'"></label><label>Location label <input data-vendor-location value="'+esc(vendor.location)+'"></label>'+availabilityFields('vendor',vendor.rules,reg.kind==='kiosk')+availabilityFields('entry',e.rules)+field('price','Vendor price',e.price)+field('stock','Initial stock',e.stock)+field('maxStock','Maximum stock',e.maxStock)+
      '<label><input type="checkbox" data-sale '+(e.available?'checked':'')+'> On sale</label>'+field('mode','Restock',e.restock.mode,spec.restock)+
      (e.restock.mode==='interval'?field('every','Interval (seconds)',e.restock.every)+field('amount','Units per interval',e.restock.amount):''):'')+'</fieldset>';
    }).join('');

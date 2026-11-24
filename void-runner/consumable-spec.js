@@ -131,6 +131,17 @@ globalThis.VoidConsumableSpec = {
   "interactionSpeed": {"label": "Interaction speed", "min": -0.5, "max": 0.5, "supported": false, "help": "Interactions are instant today."}
  },
 
+ "kioskSlots": {
+  "kiosk-entrance":{"name":"Entrance bay","x":4.2,"z":44.1},
+  "shop-left":{"name":"Front wall · left bay","x":7.1,"z":44.1},
+  "shop-center":{"name":"Front wall · centre bay","x":9.7,"z":44.1},
+  "kiosk-far-1":{"name":"Supply bay","x":12.4,"z":44.1},
+  "kiosk-far-2":{"name":"Equipment bay","x":15.4,"z":44.1}
+ },
+ "kioskModels": {
+  "assets/models/district-interior/district_scanner_kiosk_1m.glb":{"name":"District scanner terminal","kit":"scanner_kiosk_1m"},
+  "assets/models/district-interior/district_arcade_change_1m.glb":{"name":"District change machine","kit":"arcade_change_1m"}
+ },
  "vendorRegistry": [
   {"entity": "shop-here", "name": "SHOP HERE counter", "kind": "counter", "location": "District store"},
   {"entity": "kiosk-entrance", "name": "Store kiosk by the entrance", "kind": "kiosk", "location": "District store"},
