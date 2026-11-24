@@ -99,7 +99,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   if(d==='swap'){this.request=request;this.signin(false);return;}
   if(d==='hold')return;
   if(d==='expired'){this.request=null;this.signin(true);return;}
-  globalThis.VoidVRCompanionStudio?.reset();this.signin(false);this.authorized=false;this.uid=null;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
+  globalThis.VoidVRCompanionStudio?.reset();globalThis.VoidItemCatalogEditor?.reset();this.signin(false);this.authorized=false;this.uid=null;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
   if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
   if(!request)return;
   try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.uid=uid;this.receive(data);devButton.hidden=false;this.testCredits();const first=!this.confirmed;this.confirmed=true;
@@ -146,7 +146,23 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   // Developer Tools > Guide (21 Nov 2026, the owner: "remake me a new mission editor guide and add it as a tab here next to Achievements"): mission-editor-guide.js, loaded on demand
   if(this.tab==='guide'){const go=()=>{if(this.tab==='guide'&&!devPanel.hidden)VoidMissionEditorGuide.render(devPanel,head);};if(globalThis.VoidMissionEditorGuide)return go();devPanel.innerHTML=head+'<p class="dev-note">Loading the guide…</p>';this.loadGuide().then(go).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The guide could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   if(this.tab==='achievements'){const items=globalThis.VoidAchievements?.definitions||[];devPanel.innerHTML=head+'<p>Read-only catalog preview. Publishing, granting, and revoking require a server-authorized manager that is not enabled yet.</p>'+items.map(d=>'<article class="dev-field"><h3>'+escapeText(d.icon+' '+d.name)+'</h3><p>'+escapeText(d.description)+'</p><p>'+escapeText(d.category+' · '+d.condition.event+' · '+d.condition.count)+'</p></article>').join('');return;}
-  if(this.tab==='studios'){devPanel.innerHTML=globalThis.VoidDevStudios?.panel?.(head)||head+'<p>Studios are loading.</p>';return;}
+  if(this.tab==='items'){
+   devPanel.innerHTML=head+'<button data-dev-tab="studios">Back to Studios</button><section data-item-editor aria-live="polite">Loading catalog…</section>';
+   const host=devPanel.querySelector('[data-item-editor]'),uid=this.uid;
+   this.catalogScripts??=new Map();
+   const load=src=>{
+    if(!this.catalogScripts.has(src))this.catalogScripts.set(src,new Promise((ok,fail)=>{
+     const script=document.createElement('script');script.src='void-runner/'+src+'.js';script.onload=ok;
+     script.onerror=()=>{this.catalogScripts.delete(src);script.remove();fail(Error('Could not load '+src));};document.head.append(script);
+    }));
+    return this.catalogScripts.get(src);
+   };
+   ['consumable-spec','consumables','item-catalog-editor'].reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
+    if(host.isConnected&&this.authorized&&this.uid===uid)VoidItemCatalogEditor.mount(host,this);
+   }).catch(error=>{host.textContent=error.message;});
+   return;
+  }
+  if(this.tab==='studios'){devPanel.innerHTML=globalThis.VoidDevStudios?.panel?.(head+'<button data-dev-tab="items">Items &amp; Vendors</button>')||head+'<p>Studios are loading.</p>';return;}
   const known=new Set(Object.values(balanceHelp).flatMap(g=>Object.keys(g))),field=(key,[name,help])=>{const s=VoidBalance.spec[key];return `<label class="dev-field"><span class="dev-name">${name}</span><input data-balance="${key}" type="number" min="${s.min}" max="${s.max}" step="any" value="${this.values[key]}"><span class="dev-help">${help}</span><span class="dev-range">${key} · ${s.min}–${s.max} · default ${VoidBalance.defaults[key]}</span></label>`;};
   const groups=Object.entries(balanceHelp).map(([title,fields])=>`<h3 class="dev-group">${title}</h3><div class="dev-fields">${Object.entries(fields).filter(([key])=>VoidBalance.spec[key]).map(([key,h])=>field(key,h)).join('')}</div>`).join('');
   const other=Object.keys(VoidBalance.spec).filter(key=>!known.has(key));
