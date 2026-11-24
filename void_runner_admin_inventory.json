@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "21db1a4607933443",
+  "revision": "0670da35367d100d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80429,19 +80429,19 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 175,
+      "line": 182,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 218,
+      "line": 226,
       "text": "/* The device itself (any model, see myDevice): sent only to a hub that says it knows it (features.dev; an older hub would count the message as a fault), and only",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 247,
+      "line": 257,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -81089,19 +81089,19 @@
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 373,
+      "line": 396,
       "text": "const isBlocked=()=>{try{return !!((typeof speech!=='undefined'&&speech)||root.VoidLiveContent?.nearBlocked?.()||(typeof document!=='undefined'&&document.hidden));}catch{return true;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 503,
+      "line": 529,
       "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms,hardEnd:now+MAX_LINE-250};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 522,
+      "line": 552,
       "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};",
       "kind": "source-reference"
     },
@@ -82578,7 +82578,7 @@
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
     "void-runner/relay.js": "9d6ddf78aba19d66545431c4eb87d23e974991792851191548039b80f2097b3f",
-    "void-runner/remote-players.js": "041f6c2e67c0198dc4fb2541c264a218e6bdca82926acb376f009a4db9dc4454",
+    "void-runner/remote-players.js": "95ae39cb6eb2f948e318f3df1eb0b375f77013dbbdccbcd49c7d0ef52bd68b2d",
     "void-runner/road-taxi-rules.js": "78f664cd9459e6b88b9e5bb14f80bfc2abc4535f995d6674223d7e809cf61f37",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "45791a8afbcbd2b494f4cc40e51c183ca29d193fbaee00ecdb0c96583d580b5a",
@@ -82604,7 +82604,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "3223bdf3f5009972d72cb6336e7ebbabc685e047c5c349ea852dcccdb0cb6aa0",
+    "void-runner/tea-duo.js": "db6111219c170e6f30ee7972351f1d2b3079739040dfdcb273f3aaeb79561ebe",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",

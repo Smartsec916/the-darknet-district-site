@@ -272,7 +272,7 @@
   if(!spot||Math.hypot(f.node.position.x-spot.x,f.node.position.z)<.22)return true;
   if(f.greetMoved)return true;
   f.greetMoved=walkTo(f,spot,w);
-  return !f.greetMoved;
+  return false;
  }
  function driveArrival(w){
   if(!arrival||arrival.index>=MEMBERS.length)return true;
@@ -309,7 +309,10 @@
     if(d>.12)walkTo(f,home,g);else if(turnTo(f,f.pl.yaw,8,dt)<.25)transition(f,false,t);}
   }
   if(f.post==='rising'||f.post==='sitting'){if(t-f.tr.t0>=f.tr.len){f.post=f.post==='rising'?'stand':'sit';f.tr=null;f.tail=t+1.3;f.clip=f.post==='stand'?(f.has('idle-f')?'idle-f':'idle'):'sit';}}
-  if(f.lock)holdFeet(f);if(f.tail&&t>=f.tail){f.lock=null;f.tail=0;if(f.post==='sit'){f.node.position.x=f.pl.x;f.node.position.z=f.pl.z;}}   // the feet were held through the last of the blend; seated, she is then exactly on her seat
+  if(f.lock)holdFeet(f);if(f.tail&&t>=f.tail){f.lock=null;f.tail=0;if(f.post==='stand'&&blockedAt(f.node.position.x,f.node.position.z,f,g)){
+   // Finish the rising step on the aisle side of the mattress before asking the navigator for a route.
+   for(const offset of [.48,.55,.65]){const x=f.pl.x+Math.sin(f.pl.yaw)*offset,z=f.pl.z+Math.cos(f.pl.yaw)*offset;if(!blockedAt(x,z,f,g)){f.node.position.x=x;f.node.position.z=z;break;}}
+  }if(f.post==='sit'){f.node.position.x=f.pl.x;f.node.position.z=f.pl.z;}}   // the feet were held through the last of the blend; seated, she is then exactly on her seat
   if(f.tail)return;
   if(f.post==='sit')play(f,speaking&&f.has('sit-talk')?'sit-talk':'sit');
   else if(f.post==='stand'&&!f.walk){
@@ -326,8 +329,28 @@
    const Wp=W.multiply(B.Matrix.Translation(-p.x,-p.y,-p.z)).multiply(R).multiply(B.Matrix.Translation(p.x,p.y,p.z)),L=Wp.multiply(bone.parent.getWorldMatrix().clone().invert()),q=new B.Quaternion();
    L.decompose(new B.Vector3(),q,new B.Vector3());bone.rotationQuaternion=q;bone.computeWorldMatrix(true);}
  }
+ let observedLine=null,observedOwner=null;
+ function spectator(w){
+  const mp=root.VoidRemotePlayers;
+  return mp?.connected&&mp.features?.teaRoom&&placeOf(w)===ROOM&&mp.teaState?.owner!==mp.me;
+ }
+ function mirror(w,dt){
+  const mp=root.VoidRemotePlayers,shared=mp.teaState;
+  if(shared?.owner!==observedOwner){stopSpeech();observedLine=null;observedOwner=shared?.owner;}
+  const s=shared?.state;if(!s)return;
+  MEMBERS.forEach((id,i)=>{const f=figs.get(id),at=s.actors[i];if(!f||!at)return;
+   const factor=Math.min(1,dt*10);f.node.position.x+=(at[0]-f.node.position.x)*factor;f.node.position.z+=(at[1]-f.node.position.z)*factor;
+   turnTo(f,at[2],10,dt);play(f,at[3]);
+  });
+  if(s.line!==observedLine){if(observedLine)stopSpeech();observedLine=s.line;
+   if(s.line&&!isBlocked()){const who=s.line.split('-')[0],entry=allLines(who).find(l=>l.id===s.line);
+    if(entry){announce(PEOPLE[who].name+' · '+strip(entry.text));root.VoidAudio?.speak?.(who,entry.text,false,false,true);}
+   }
+  }
+ }
  function frame(){
   try{const t=clock(),dt=Math.min(.25,Math.max(0,t-lastT||.016));lastT=t;const g=where(),now=Date.now();if(!g)return;
+   if(spectator(g)){mirror(g,dt);return;}
    const focus=guestOf(g);if(activity)driveActivity(g);
    const talking=!!rec&&playing(now),quiet=!visiting&&!talking||visiting&&!talking&&duo&&!duo.queue.length&&!duo.waiting;
    for(const f of figs.values()){if(!f.node.isEnabled())continue;
@@ -385,7 +408,7 @@
  function guestOf(w){
   const mp=root.VoidRemotePlayers;
   const others=mp?.connected?(mp.peers||[]).filter(p=>p.under&&placeOf(p)===ROOM):[];
-  const self=mp?.me||'';
+  const self=mp?.me||'';if(mp?.connected&&mp.features?.teaRoom&&mp.teaState?.owner===self)return {...w,id:self,local:true};
   const people=[...others,...(placeOf(w)===ROOM?[{id:self,x:w.x,y:w.y,z:w.z,local:true}]:[])];
   return chooseGuest(people,owner)||w;
  }
@@ -452,7 +475,7 @@
    f.want='stand';
    if(a.kind==='dance')f.doClip=f.has('slow-dance')?'slow-dance':f.has('dance-belly')?'dance-belly':null;
    else if(a.kind==='hands'&&f.id===a.speaker&&standing(f)&&!a.reached){
-    f.acts.push({id:'reach-hand',t0:clock(),dur:POSES['reach-hand'].dur,s:1});a.reached=true;
+    f.acts.push({id:'reach-hand',t0:clock(),dur:Math.max(1,16-(clock()-a.started)),s:1});a.reached=true;
    }else if(a.kind==='relax')f.doClip=f.has('idle-f2')?'idle-f2':null;
   }
  }
@@ -475,6 +498,8 @@
    if(near&&scene&&!figs.size)ensure(scene);
    for(const f of figs.values())f.node.setEnabled(near||f.post!=='sit');
    const A=ADV(),inside=place_===ROOM,now=Date.now();if(!A)return;
+   if(spectator(w)){if(arrival||playerSeat||activity){sitAll();duo=null;rec=null;visiting=false;}return;}
+   if(observedOwner){stopSpeech();observedOwner=null;observedLine=null;sitAll();duo=null;owner=null;}
    const present=figs.size===MEMBERS.length,guest=guestOf(w),ours=inside&&!(guest.id&&!guest.local);
    const guestKey=guest.id??'solo';
    if(!inside||owner!==null&&owner!==guestKey){if(arrival||rec||activity){stopSpeech();rec=null;sitAll();visiting=false;lastSpeaker=null;}}
@@ -484,8 +509,9 @@
    let ready=!!arrival&&driveArrival(guest);
    if(!ours&&ready&&arrival?.index<MEMBERS.length){arrival.sounded=true;ready=false;}
    if(invitation&&invitation.answer===null&&!playing(now)){
-    if(now>=invitation.expires)answer(false);
+    if(panel&&now>=invitation.expires)answer(false);
     else if(!panel){
+     invitation.expires=now+30000;
      const label={sit:'Sit together',dance:'Dance together',hands:'Hold hands',relax:'Relax together'}[invitation.kind];
      panelFor(label,[['1 · '+label,()=>answer(true)],['2 · Maybe later',()=>answer(false)]]);
     }
@@ -506,6 +532,10 @@
     else if(r.line.activity)invitation={kind:r.line.activity,speaker:id,answer:null,expires:now+ms+18000};
     if(r.line.step==='reply')invitation=null;
     perform(r.line,info);visiting=true;
+   }
+   if(present&&inside&&root.VoidRemotePlayers?.teaState?.owner===root.VoidRemotePlayers?.me){
+    const actors=MEMBERS.map(id=>{const f=figs.get(id),p=f.node.position;return [+p.x.toFixed(3),+p.z.toFixed(3),+Math.atan2(Math.sin(f.node.rotation.y),Math.cos(f.node.rotation.y)).toFixed(3),f.clip||(f.post==='rising'?'sit-exit':'sit-enter')];});
+    root.VoidRemotePlayers?.teaPose?.({actors,activity:activity?.kind||null,seated:!!playerSeat,line:rec&&playing(now)?lineInfo(rec.id,rec.text)?.id||null:null});
    }
    if(duo&&!duo.queue.length&&!duo.waiting&&!playing(now)&&visiting&&duo.rounds>=ROUNDS){visiting=false;if(!activity)for(const f of figs.values())f.want='sit';}
   }catch(e){if(!tick.warned){tick.warned=true;console.warn('[VOID//RUNNER] Nomi and Se7en',e);}}

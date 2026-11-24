@@ -90,7 +90,8 @@
  // Their device, drawn by npc-device.js (the one path by which it draws a player): the cuff and hologram (V1, V2) or the eye (V3 // Shadow), only while the hub says it is open.
  function mark(node,p){node.metadata={...(node.metadata||{}),remoteDevice:{id:p.id,tier:()=>p.dev,force:()=>root.VoidNPCDevice?.remotePose?.(p.dev,p.devPose)||null}};return node;}
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
- function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
+ let teaState=null;
+ function clearPeers(){teaState=null;for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
   const scene=root.VoidBabylon?.scene;if(!scene||!walker||!consistent())return false;if(p.node&&!p.node.isDisposed())return true;
   // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
@@ -123,9 +124,10 @@
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
+  if(m.t==='tea-state'){teaState=m;return;}
   if(m.t==='error'&&m.reason==='unknown room'){refusedRoom=joinedRoom;return;}   // this hub does not carry this place: it is played alone, and other places still connect
   if(m.t==='voice-token'||m.t==='voice-refused'){const w=voiceWaiting;voiceWaiting=null;if(w){clearTimeout(w.timer);m.t==='voice-token'&&/^wss:\/\//.test(String(m.url))?w.resolve({url:m.url,token:m.token,room:m.room,identity:m.identity,expires:m.expires}):w.reject(new Error(m.reason||'Voice is not available.'));}return;}
-  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={teaRoom:!!m.features?.teaRoom,trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
   else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
@@ -152,9 +154,14 @@
   const wait=code===1012||code===1001?600:code===4006?30000:Math.min(15000,1000*2**Math.min(retry++,4));
   retryTimer=setTimeout(connect,wait);
  }
+ let loadingSince=0;
  async function connect(){
   retryTimer=0;if(ws||opening||!wantOn||!inRoom())return;
-  if(root.VoidAssets?.pending>0){retryTimer=setTimeout(connect,1000);return;}   // let the room finish loading first: a busy page answers the hub late
+  if(root.VoidAssets?.pending>0){
+   loadingSince=loadingSince||Date.now();
+   if(Date.now()-loadingSince<5000){retryTimer=setTimeout(connect,1000);return;}
+  }
+  loadingSince=0;
   const url=hubUrl(root.location,root.localStorage);if(!url){status='no hub configured';return;}
   opening=true;let tok;try{tok=await token();}finally{opening=false;}
   if(ws||!wantOn||!inRoom())return;
@@ -179,7 +186,7 @@
    scheduleRetry(e.code);};
   sock.onerror=()=>{};
  }
- function disconnect(){vrSession=null;clearTimeout(retryTimer);retryTimer=0;clearTimeout(wakeTimer);const s=ws;ws=null;if(s){try{if(s.readyState===1)s.send('{"t":"bye"}');s.close(1000);}catch{}}clearPeers();status='off';}
+ function disconnect(){loadingSince=0;vrSession=null;clearTimeout(retryTimer);retryTimer=0;clearTimeout(wakeTimer);const s=ws;ws=null;if(s){try{if(s.readyState===1)s.send('{"t":"bye"}');s.close(1000);}catch{}}clearPeers();status='off';}
 
  function frame(now){
   requestAnimationFrame(frame);
@@ -205,7 +212,8 @@
    const zf=root.VoidZoom?root.VoidZoom.now():1;   // zoomed with the camera app: tags and faces as the picture shows them (zoom-detail.js)
    if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)*zf<TAG_RANGE;
    if(p.char){const d=Math.hypot(p.x-walker.x,p.z-walker.z)*zf,far=root.VoidGraphics?.quality==='low'?8:14;p.char.setDetail(p.char.detailNear?d<far:d<far*.8);}   // face details only when close (distance-based rendering; hysteresis avoids flicker)   // no name tags across the whole hall
-   if(p.shownClip!==p.clip){p.shownClip=p.clip;p.ctrl?.play(p.clip);}
+   const visibleClip=teaState?.owner===p.id&&teaState.state?.seated?'sit':p.clip;
+   if(p.shownClip!==visibleClip){p.shownClip=visibleClip;p.ctrl?.play(visibleClip);}
   }
  }
  // A tab that sleeps or loses the network is dropped by the hub; when it wakes the socket closes and reconnects by itself.
@@ -236,6 +244,8 @@
   vrLeave(){vrWant=null;if(vrSession&&hubVr&&ws?.readyState===1)ws.send('{"t":"vr-leave"}');vrSession=null;clearPeers();},
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
+  get teaState(){return teaState;},
+  teaPose(data){if(ws?.readyState===1&&status==='in'&&features.teaRoom&&teaState?.owner===selfId)ws.send(JSON.stringify({...data,t:'tea-pose'}));},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
   nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed()||p.elsewhere)continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
   get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,under:p.under,yaw:p.yaw,clip:p.clip,dev:p.dev||null,devPose:p.devPose||null,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
