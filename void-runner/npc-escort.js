@@ -400,9 +400,9 @@
    if(st.ride!=='to-cab'){st.ride='to-cab';ev='to-cab';}st.clip='walk';st.speed=SPEED.walk*1.5;if(stepTo(st,door,SPEED.walk*1.5,dt)){st.ride='in-cab';st.rideArrived=false;st.clip='sit';ev='in-cab';}return {busy:true,ev};}
   if(st.ride==='to-cab')st.ride=null;return {busy:false,ev};}
  
- /* Checked social gate planning (foundation only). Do not enable an escort from this helper alone.
+ /* Checked gate planning for the NPC Editor's opt-in district escorts.
     An adapter must supply the published opt-in, actual actor/scene state, and current gate authorization.
-    Only registered foot gates are supported; stairs, doors, taxis and guessed arrival points are not. */
+    This planner handles registered foot gates. The scene adapter handles seated taxi passengers. */
  const socialPoint=(p,a)=>!!(p&&num(p.x)&&num(p.z)&&AR()?.areaOf(p,a)===a);
  function socialEligible(id,policy){const M=movable(id);return !!(M&&!M.cat&&policy?.enabled===true&&(policy.tier===2||policy.tier===3)&&typeof policy.allowGate==='function');}
  function socialGateAllowed(id,l,a,b,policy){try{
@@ -423,10 +423,13 @@
     The canonical arrival is checked again, never reconstructed from the player's spawn. */
  function socialGateCross(plan,actor,transition,policy){
   const id=plan?.npc;
+  // Scanner chambers straddle two walk grids. The registered gate still identifies the player's lane.
+  const lane=transition?.scanned&&transition.player&&QT()?.laneAt?.(transition.player,AR()?.get(plan?.area)?.quarter);
+  const inScanner=lane?.kind==='foot'&&'gate:'+lane.key===plan?.via;
   if(!socialEligible(id,policy)||!plan||!actor||!transition||plan.session!==policy.session||
    plan.key!==plan.session+':'+plan.area+':'+plan.via||actor.key!==plan.key||actor.area!==plan.area||
    transition.from!==plan.area||transition.to!==plan.next||transition.via!==plan.via||transition.onFoot!==true||transition.riding!==false||
-   !socialPoint(actor,plan.area)||!socialPoint(transition.player,plan.area))return null;
+   !socialPoint(actor,plan.area)||(!socialPoint(transition.player,plan.area)&&!inScanner))return null;
   const l=linkById(plan.via);
   if(!socialGateAllowed(id,l,plan.area,plan.next,policy))return null;
   const w=l.ends[plan.area].wait,at=l.ends[plan.next].ahead;
