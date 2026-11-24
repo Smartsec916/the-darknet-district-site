@@ -4,12 +4,14 @@ class NpcDialogue {
     this.now = now;
     this.send = send;
     this.groups = new Map();
+    // Each connection may listen to only one linked conversation at a time.
+    this.activeByPeer = new Map();
     this.serial = 0;
   }
   finish(group, peer) {
-    if (group.listeners.delete(peer) && !group.listeners.size) {
-      group.next = this.now() + group.cooldown;
-    }
+    if (!group.listeners.delete(peer)) return;
+    if (this.activeByPeer.get(peer) === group) this.activeByPeer.delete(peer);
+    if (!group.listeners.size) group.next = this.now() + group.cooldown;
   }
   depart(peer) {
     for (const group of this.groups.values()) {
@@ -26,6 +28,7 @@ class NpcDialogue {
       if (group && group.token === msg.token) this.finish(group, peer);
       return;
     }
+    if (this.activeByPeer.has(peer)) return;
     if (now - (peer.lastNpcReady ?? -Infinity) < 150) return;
     peer.lastNpcReady = now;
     if (!group) {
@@ -36,13 +39,14 @@ class NpcDialogue {
     group.touched = now;
     group.ready.set(peer, now);
     if (group.listeners.size || now < group.next) return;
-    const listeners = [...group.ready].filter(([p,at]) => now-at < 1200 && p.room === peer.room && Math.hypot(p.x-peer.x,p.z-peer.z) <= 18);
+    const listeners = [...group.ready].filter(([p,at]) => now-at < 1200 && p.placed && !this.activeByPeer.has(p) && p.room === peer.room && Math.hypot(p.x-peer.x,p.z-peer.z) <= 18);
     group.ready.clear();
     group.token = ++this.serial;
     group.cooldown = msg.cooldown * 1000;
     group.expires = now + 48000;
     for (const [p] of listeners) {
       group.listeners.add(p);
+      this.activeByPeer.set(p, group);
       this.send(p.conn,{t:'npc-turn',group:msg.group,token:group.token,turn:group.turn});
     }
     group.turn++;
@@ -51,8 +55,7 @@ class NpcDialogue {
     const now = this.now();
     for (const [key,group] of this.groups) {
       if (group.listeners.size && now >= group.expires) {
-        group.listeners.clear();
-        group.next = now + group.cooldown;
+        for (const peer of group.listeners) this.finish(group, peer);
       }
       if (!group.listeners.size && now > Math.max(group.touched,group.next)+60000) this.groups.delete(key);
     }
