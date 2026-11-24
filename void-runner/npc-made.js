@@ -214,7 +214,7 @@
    if(rr.ev)tellE(rr.ev,{ride:e.st.ride||null});
    if(e.st.ride==='in-cab'){p.seat=e.cab&&root.VoidRoadTaxiRules?.companionSeat?root.VoidRoadTaxiRules.companionSeat(e.cab):null;if(p.seat){e.st.x=p.seat.x;e.st.z=p.seat.z;e.st.yaw=p.seat.yaw;}p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return 'sit';}
    p.seat=null;if(e.st.ride==='to-cab'){p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return e.st.clip||'walk';}
-   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
+   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,social:!!P.social,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
    if(P.social){const others=[...people.values()].filter(o=>o!==p&&o.node?.isEnabled?.()).map(o=>({x:o.s.x,z:o.s.z}));if(mp)others.push(mp);const n=root.VoidAdvancedInteractions?.separate?.({x:p.s.x,z:p.s.z},others,.85);if(n&&Ar&&!Ar.leg({x:p.s.x,z:p.s.z},n,{passing:true,adult:!!p.c.adult,made:true}).length){p.s.x=e.st.x=n.x;p.s.z=e.st.z=n.z;}}
    if(ev)tellE(ev);return e.st.clip||'idle';}

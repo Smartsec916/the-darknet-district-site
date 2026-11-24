@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "9194dadd96b1dae9",
+  "revision": "ef4cd855f1b5e57c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79763,7 +79763,7 @@
     },
     {
       "source": "void-runner/npc-escort.js",
-      "line": 220,
+      "line": 223,
       "text": "WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into the fight pit (ADULT_ROOMS),",
       "kind": "source-reference"
     },
@@ -82524,7 +82524,7 @@
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
-    "void-runner/ncz-street-pair.js": "60080ba5facb4d9bc92b4ff84b156edd383ceed74cc5133146382ed5b3f58e93",
+    "void-runner/ncz-street-pair.js": "cb53bba3b41cb93cfedac2262d1b860f2db2c836b9786fd192a0cf3f9efc9179",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
     "void-runner/neochinatown.js": "a546cff053ccdd2bed8cf0b773487ce99a3a731075db57d095579feb3728a3bc",
@@ -82539,11 +82539,11 @@
     "void-runner/npc-editor.js": "c5e12d6d5e0cda420f3f4f8896f530f380bb19bb0c9f1264908818dc049f9297",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "97b31de243204d78f9804a4a16579d58f0431bd559b41796b01987a27c52d10d",
+    "void-runner/npc-escort.js": "a4f216484f4e566718a1f9977a3b4a3adc28e8155216d2b722a98483e09ba300",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "175eacca669c17c446391cc77178f44d99f371675536ebc1d432e71213c82883",
+    "void-runner/npc-made.js": "90066ea7331e46c6aa8181aa1cfda52da3741163e73c65adf1dc03d2208d33b8",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
     "void-runner/npc-paths.js": "0d01e501b549457049c2386f681b83eb7fdf1bd5d04abce885bfa83326d689a9",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",

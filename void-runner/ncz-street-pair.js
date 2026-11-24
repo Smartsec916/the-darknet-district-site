@@ -417,7 +417,7 @@
     if(r&&r.ride==='in-cab')e.st.ride='in-cab';if(r&&E.CAB.has(P.kind)&&r.phase==='in-cab')e.st.phase='in-cab';}
    const st=e.st,me=player(),meP=me&&Number.isFinite(me.x+me.z)?{x:me.x,z:me.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi',job=taxiJob();
    if(walking&&meP)E.trailPush(e.trail,meP);
-   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job:E.CAB.has(P.kind)?job:null,crossing:taxiCrossing()};
+   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,noDone:!!P.via,social:!!P.social,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job:E.CAB.has(P.kind)?job:null,crossing:taxiCrossing()};
    if(P.kind==='their-cab'||P.kind==='shared-cab')inp.me=meP;
    // a follow / lead step's taxi (20 Nov 2026): she rides along in the player's cab (the cat does not: it waits); the walking rules wait while the ride has her
    let rv=null;if(!E.CAB.has(P.kind)&&E.rideAlong){const rr=E.rideAlong(st,{me:meP,job,riding,dt,set:P.set,crossing:inp.crossing,can:!isCat});rv=rr.ev;if(rv==='ride-out'||rv==='ride-left'){e.trail.pts.length=0;e.trail.shifted=0;}if(rr.busy){if(job&&st.ride==='in-cab')e.cab=job.cab;}}

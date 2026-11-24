@@ -216,3 +216,29 @@ test('a retained same-area carry resumes at the last position and waits only unt
  const q=h.plan();assert.equal(q.area,'avenue');assert.equal(q.resume.x,3);assert.equal(q.resume.z,4);
  h.advance(5999);assert.ok(h.plan());h.advance(6000);assert.equal(h.plan(),null);
 });
+
+
+const EscortRules=require('../void-runner/npc-escort.js');
+function socialFollowerCase(R=EscortRules){
+ const st={x:0,z:0,yaw:0,phase:'follow'},trail={pts:[{x:0,z:0},{x:50,z:0}],shifted:0};
+ return {st,trail,tick:(x,social=true,seen=false)=>R.follow(st,{me:{x,z:0},trail,dt:.1,set:{wait:8,lost:40,ifLost:'pause'},social,seen})};
+}
+test('ordinary follower pauses when lost, never teleports, and resumes only on catch-up',()=>{
+ const h=socialFollowerCase();
+ assert.equal(h.tick(50),'paused');assert.equal(h.st.x,0);assert.equal(h.st.speed,0);
+ assert.equal(h.tick(15),null);assert.equal(h.st.phase,'paused');assert.equal(h.st.x,0);
+ assert.equal(h.tick(6),'follow');assert.equal(h.st.phase,'follow');assert.ok(h.st.x<2);
+ assert.ok(h.trail.pts.every(p=>p.x<=6),'old trail cleared');
+});
+test('ordinary follower below lost distance does not use the off-screen catch-up teleport',()=>{
+ const h=socialFollowerCase();h.tick(30);assert.ok(h.st.x<2);
+});
+test('mission follower retains its existing off-screen catch-up behavior',()=>{
+ const h=socialFollowerCase();assert.equal(h.tick(50,false),'caught-up');assert.ok(h.st.x>10);
+});
+test('both world movement adapters pass the social-only escort flag',()=>{
+ for(const file of ['npc-made.js','ncz-street-pair.js']){
+  const s=fs.readFileSync(require('node:path').join(__dirname,'../void-runner',file),'utf8');
+  assert.match(s,/noDone:!!P\.via,social:!!P\.social,set:P\.set,dt/);
+ }
+});
