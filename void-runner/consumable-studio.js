@@ -2,6 +2,7 @@
 (function(root){
  'use strict';
  const examples={
+  medical:['District recovery patch','medical','colorShift','healthRecovery',.025],
   energy:['District charge','stimulants','cameraMotion','runSpeed',.18],
   coffee:['Synthetic coffee','beverages','colorShift','movementControl',.12],
   focus:['Signal focus','stimulants','tunnelVision','movementControl',.16],
@@ -19,7 +20,7 @@
   const draft=R.clone(item.consumable||{effects:[],modifiers:[]}),library=R.clone(presets),dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','Consumables Studio');dialog.style.cssText='color:#d6f3ed;background:#0b171d;border:1px solid #55999d;width:min(900px,94vw);max-height:88vh;overflow:auto';
   dialog.innerHTML='<h2>Consumables Studio</h2><p data-name></p><label>Effect <select data-types></select></label><button data-add>Add effect</button><label>Gameplay stat <select data-stats></select></label><button data-mod>Add modifier</button>'+
-   '<div data-layers></div><h3>Effect timeline</h3><canvas data-timeline width="600" height="90" style="width:100%;height:90px"></canvas><label>Elapsed seconds <input data-time type="range" step=".05" min="0" value="0"></label> <output data-clock></output>'+
+   '<fieldset><legend>Repeat use</legend><select aria-label="Repeat use policy" data-repeat></select><label>Replacement group <input data-group maxlength="40"></label><label>Maximum doses <input type="number" data-cap min="1" max="8"></label><label>Maximum duration in seconds <input type="number" data-maxseconds min="1" max="3600"></label></fieldset><div data-layers></div><h3>Effect timeline</h3><canvas data-timeline width="600" height="90" style="width:100%;height:90px"></canvas><label>Elapsed seconds <input data-time type="range" step=".05" min="0" value="0"></label> <output data-clock></output>'+
    '<div><button data-play>Play</button> <button data-restart>Restart</button> <button data-stop>Stop all effects</button> <label><input type="checkbox" data-compare> Before effects</label></div>'+
    '<h3>3D preview</h3><label>Scene <select data-place><option value="store">District store</option><option value="arcade">Arcade cabinet</option><option value="cult">Blackrock camera room</option></select></label> <button data-reset>Reset scene</button> <button data-audio>Audition audio</button>'+
    '<div data-view></div><fieldset data-access><legend>Effect accessibility</legend></fieldset>'+
@@ -32,6 +33,10 @@
   const status=s=>q('[role=status]').textContent=s;
   opts(q('[data-types]'),Object.fromEntries(Object.entries(spec.effects).map(([k,v])=>[k,v.label])));
   opts(q('[data-stats]'),Object.fromEntries(Object.entries(spec.modifiers).filter(([,v])=>v.supported).map(([k,v])=>[k,v.label])));
+  for(const id of spec.repeatPolicies)option(q('[data-repeat]'),id,({none:'Prevent repeat use',refresh:'Refresh duration',extend:'Extend duration',intensify:'Increase intensity',independent:'Independent doses',replace:'Replace this effect group'})[id]);
+  for(const [selector,key,fallback] of [['repeat','repeat','refresh'],['group','group',''],['cap','maxStacks',3],['maxseconds','maxSeconds',1800]]){
+   const input=q('[data-'+selector+']');input.value=draft[key]??fallback;input.onchange=()=>draft[key]=input.type==='number'?input.valueAsNumber:input.value;
+  }
   let limits=root.VoidConsumableGame?.preferences||{motion:true,distortion:true,flashing:false},time=0,playing=false,previous=performance.now(),scene=null,engine=null,room=null,camera=null,canvas=null,version=0,closed=false,raf=0,audition=null,lastAudio=0;
   function total(){return Math.max(1,...[...draft.effects,...draft.modifiers].map(v=>v.delay+v.duration));}
   function frame(){return renderer.sample(q('[data-compare]').checked?[]:[{startedAt:0,definition:draft}],time);}
@@ -54,8 +59,8 @@
      const enabled=el('input');enabled.type='checkbox';enabled.checked=layer.intensity>0;const toggle=el('label');toggle.append(enabled,' Enabled ');field.append(toggle);enabled.onchange=()=>{layer.intensity=enabled.checked?spec.common.intensity.def:0;controls();};
      const stack=el('select');stack.setAttribute('aria-label','Stacking');spec.stacking.forEach(value=>option(stack,value,value));stack.value=layer.stacking;stack.onchange=()=>layer.stacking=stack.value;field.append(stack);
      for(const [k,p] of Object.entries(config.params))range(field,layer.params,k,p);
-    }else range(field,layer,'amount',{min:config.min,max:config.max},'Amount');
-    for(const k of isEffect?['delay','duration','fadeIn','fadeOut','speed']:['delay','duration'])range(field,layer,k,spec.common[k],({delay:'Start delay',duration:'Duration',fadeIn:'Fade in',fadeOut:'Fade out',speed:'Speed'})[k]);
+    }else{range(field,layer,'amount',{min:config.min,max:config.max},'Amount');layer.fadeIn??=0;layer.fadeOut??=0;}
+    for(const k of isEffect?['delay','duration','fadeIn','fadeOut','speed']:['delay','duration','fadeIn','fadeOut'])range(field,layer,k,spec.common[k],({delay:'Start delay',duration:'Duration',fadeIn:'Fade in',fadeOut:'Fade out',speed:'Speed'})[k]);
     action(field,'Duplicate',()=>{const copy=R.clone(layer);if(isEffect){copy.id=nextId(layer.type);}arr.splice(index+1,0,copy);controls();});
     action(field,'Move up',()=>{if(index){[arr[index-1],arr[index]]=[arr[index],arr[index-1]];controls();}});
     action(field,'Remove',()=>{arr.splice(index,1);controls();});

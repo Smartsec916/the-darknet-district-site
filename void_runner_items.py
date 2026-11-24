@@ -77,7 +77,7 @@ def effect_problems(e, at):
 
 def modifier_problems(m, at):
     n = at + ': '
-    if not _only(m, ['stat', 'amount', 'delay', 'duration']):
+    if not _only(m, ['stat', 'amount', 'delay', 'duration', 'fadeIn', 'fadeOut']):
         return [n + 'a modifier has unknown fields']
     d = SPEC['modifiers'].get(m.get('stat'))
     if not d:
@@ -89,6 +89,8 @@ def modifier_problems(m, at):
         out.append(n + 'amount out of range')
     if not _num(m.get('delay'), 0, LIM['delay']) or not _num(m.get('duration'), 1, LIM['duration']):
         out.append(n + 'delay or duration out of range')
+    if not _num(m.get('fadeIn',0),0,60) or not _num(m.get('fadeOut',0),0,120) or not _num(m.get('duration'),1,LIM['duration']) or m.get('fadeIn',0)+m.get('fadeOut',0)>m['duration']:
+        out.append(n + 'modifier fades must fit within its duration')
     return out
 
 
@@ -155,9 +157,11 @@ def item_problems(it, cats):
         out.append(n + 'unknown registry item')
     c = it.get('consumable')
     if c is not None:
-        if not _only(c, ['effects', 'modifiers']):
+        if not _only(c, ['effects', 'modifiers','repeat','group','maxStacks','maxSeconds']):
             out.append(n + 'bad consumable')
         else:
+            if c.get('repeat','refresh') not in SPEC['repeatPolicies'] or (c.get('group') and (not isinstance(c['group'],str) or not ID.fullmatch(c['group']))) or not _int(c.get('maxStacks',3),1,8) or not _int(c.get('maxSeconds',1800),1,3600):
+                out.append(n + 'invalid repeat-use settings')
             ef, mo = c.get('effects') or [], c.get('modifiers') or []
             if not isinstance(ef, list) or len(ef) > LIM['effects'] or not isinstance(mo, list) or len(mo) > LIM['modifiers']:
                 out.append(n + 'too many effects or modifiers')
@@ -535,9 +539,9 @@ def use_definition(content, item_id):
 def _active_view(player, content, now):
     out = []
     for a in player['active']:
-        d = use_definition(content, a['item'])
-        if d and now < a['at'] + _span(d):
-            out.append({'item': a['item'], 'startedAt': a['at'], 'definition': d})
+        d = a.get('definition') or use_definition(content, a['item'])
+        if d and now < a.get('until',a['at']+_span(d)):
+            out.append({'item':a['item'],'startedAt':a['at'],'definition':d,'gain':a.get('gain',1),'extension':a.get('extension',0),'until':a.get('until',a['at']+_span(d))})
     return out
 
 
@@ -547,8 +551,11 @@ def modifiers_now(active, now):
     for a in active:
         for m in a['definition']['modifiers']:
             t = now - a['startedAt']
-            if m['delay'] <= t < m['delay'] + m['duration']:
-                total[m['stat']] = total.get(m['stat'], 0) + m['amount']
+            elapsed = t-m['delay']
+            duration = m['duration']+a.get('extension',0)
+            if 0 <= elapsed < duration:
+                gain=min(1,elapsed/m['fadeIn'] if m.get('fadeIn') else 1,(duration-elapsed)/m['fadeOut'] if m.get('fadeOut') else 1)
+                total[m['stat']] = total.get(m['stat'],0)+m['amount']*gain*a.get('gain',1)
     return {k: max(SPEC['modifiers'][k]['min'], min(SPEC['modifiers'][k]['max'], v)) for k, v in total.items()}
 
 
@@ -692,8 +699,12 @@ def use_item(db, uid, payload, now=None):
     @firestore.transactional
     def commit(tx):
         p = _clean_player(pref.get(transaction=tx).to_dict())
-        if nonce in p['nonces']:
-            return {'duplicate': True, 'owned': p['owned'].get(d['id'], 0)}
+        receipt_ref = db.collection('vr_item_use_receipts').document(_tag(uid+'/'+nonce))
+        receipt = receipt_ref.get(transaction=tx).to_dict()
+        if receipt or nonce in p['nonces']:
+            if receipt and receipt.get('item') != d['id']:
+                raise DraftError('This receipt belongs to another item.',409)
+            return {'duplicate':True,'owned':p['owned'].get(d['id'],0),'startedAt':(receipt or {}).get('at',now)}
         have = p['owned'].get(d['id'], 0)
         if have < 1:
             raise DraftError('You do not have one.', 409, {'code': 'none'})
@@ -705,11 +716,44 @@ def use_item(db, uid, payload, now=None):
             del p['owned'][d['id']]
         p['last'][d['id']] = now
         p['last'] = dict(sorted(p['last'].items(), key=lambda kv: -kv[1])[:60])
-        keep = [a for a in p['active'] if a['item'] != d['id'] and (lambda dd: dd and now < a['at'] + _span(dd))(use_definition(content, a['item']))]
-        p['active'] = (keep + [{'item': d['id'], 'at': now}])[-12:]
+        rule=next(i['consumable'] for i in content['items'] if i['id']==d['id'])
+        group=rule.get('group') or d['id']
+        active=[]
+        for entry in p['active']:
+            definition=entry.get('definition') or use_definition(content,entry['item'])
+            if definition and now<entry.get('until',entry['at']+_span(definition)):
+                active.append(entry)
+        repeat=rule.get('repeat','refresh')
+        matches=[a for a in active if a.get('group',a['item'])==group] if repeat=='replace' else [a for a in active if a['item']==d['id']]
+        if matches and repeat=='none':
+            raise DraftError('This effect is already active.',409)
+        cap=rule.get('maxStacks',3)
+        duration=min(rule.get('maxSeconds',1800),_span(d))
+        entry={'item':d['id'],'definition':d,'at':now,'until':now+duration,'group':group}
+        old=matches[-1] if matches else {}
+        if old and repeat=='extend':
+            total=min(rule.get('maxSeconds',1800),old.get('until',old['at']+duration)-old['at']+duration)
+            if old.get('until',0)>=old['at']+total:
+                raise DraftError('Maximum effect duration reached.',409)
+            entry.update(at=old['at'],until=old['at']+total,extension=max(0,total-_span(d)))
+        if old and repeat=='intensify':
+            if old.get('gain',1)>=cap:
+                raise DraftError('Maximum effect intensity reached.',409)
+            entry['gain']=old.get('gain',1)+1
+        if repeat=='independent':
+            if len(matches)>=cap:
+                raise DraftError('Maximum simultaneous doses reached.',409)
+        else:
+            # Replacement groups can span distinct products. Ordinary refresh is per item.
+            active=[a for a in active if a not in matches]
+        if len(active)>=12:
+            raise DraftError('The active effect limit has been reached.',409)
+        p['active']=active+[entry]
+        tx.create(receipt_ref,{'item':d['id'],'at':now})
         p['nonces'] = (p['nonces'] + [nonce])[-30:]
         tx.set(pref, p)
         return {'duplicate': False, 'owned': p['owned'].get(d['id'], 0)}
     result = commit(db.transaction())
-    result.update(definition=d, startedAt=now, now=now)
+    result.setdefault('startedAt',now)
+    result.update(definition=d, now=now)
     return result
