@@ -15,7 +15,7 @@
   const doors=[],props=[],refills=[[11,3],[18,15],[23,27]],spawns=[],roomLabels=[],rooms=[];
   const wall=(x1,z1,x2,z2)=>{for(let z=z1;z<=z2;z++)for(let x=x1;x<=x2;x++)grid[z][x]='#';};
   const door=(x,z,label)=>{grid[z][x]='D';doors.push({x,z,label,open:false});};
-  const prop=(kind,x,z,extra={})=>{props.push({kind,x,z,...extra});if(['desk','couch','bed','bar','tub'].includes(kind))grid[z][x]='F';};
+  const prop=(kind,x,z,extra={})=>{props.push({kind,x,z,...extra});if(['desk','couch','bed','bar','tub','dining-table','buffet'].includes(kind))grid[z][x]='F';};
   // Front lobby, a longitudinal hall, and a double-loaded cross corridor.
   wall(1,6,29,6);door(15,6,'GUEST WING');
   const columns=index===3?[[1,13],[17,23],[25,29]]:index===4?[[1,13],[17,29]]:index===2?[[1,6],[8,13],[17,29]]:[[1,6],[8,13],[17,23],[25,29]];
@@ -37,18 +37,20 @@
   props.push({kind:'pool',x:(pool.bounds[0]+pool.bounds[2])/2,z:27,width:(pool.bounds[2]-pool.bounds[0]+1)*TILE,depth:3*TILE});
   prop('bar',20,28);prop('lounger',3,26);prop('lounger',3,28);prop('lounger',17,28);
   if(index===2)prop('tub',22,26);
-  prop('desk',12,4);prop('couch',5,3);prop('couch',23,3);
+  prop('desk',12,4);prop('couch',5,3);
+  const dining=index===0?{bounds:[20,1,29,5],seats:[[22,4],[24,4]],stands:[[23,4],[25,4]]}:null;
+  if(dining){wall(19,1,19,1);wall(19,5,19,5);for(const x of [22,24])prop('dining-table',x,3);prop('buffet',28,1);roomLabels.push(['NIGHT BITES',25,1]);}else prop('couch',23,3);
   if(index===4){prop('bar',23,5);roomLabels.push(['PENTHOUSE LOUNGE',20,3]);}
   if(index===1)prop('couch',3,15);
   if(index===3)prop('couch',27,15);
   roomLabels.push(['FRONT LOBBY',15,4],['GUEST CORRIDOR',15,15],['POOL / SPA',19,26]);
   for(let z=7;z<24;z++)for(let x=1;x<30;x++)if(grid[z][x]==='.'&&(z===15||x===15))spawns.push([x,z]);
-  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,start:[12,2],stairs:[28,28],down:[15,2],reception:[12,4],receptionNPC:[11.65,4.65]};
+  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,start:[12,2],stairs:[28,28],down:[15,2],reception:[12,4],receptionNPC:[11.65,4.65]};
  }
  function inside(bounds,p){const x=cell(p.x),z=cell(p.z);return x>=bounds[0]&&x<=bounds[2]&&z>=bounds[1]&&z<=bounds[3];}
  function residents(map,count){return Array.from({length:count},(_,i)=>{const room=map.rooms[i%map.rooms.length];let role,point;
-  if(i<2){role='sleep';point=room.bed;}else if(i===2){role='bathroom';point=room.bath;}else if(i===3){role='room';point=room.awake;}else if(i===4||i===5){role='swim';point=[map.pool.bounds[0]+1+(i-4)*2,27];}else if(i%3===0){role='room';point=room.awake;}else{role='hall';point=map.spawns[(i*7+map.index*3)%map.spawns.length];}
-  return {id:i,role,room:room.id,x:world(point[0]),z:world(point[1]),style:i%6,wakeDuration:i%2?.45:2.6,wakeRemaining:0,activity:role==='sleep'?'sleep':role==='swim'?'swim':role==='hall'?'wander':'idle',guardStyle:i%3};});}
+  if(i<2){role='sleep';point=room.bed;}else if(i===2){role='bathroom';point=room.bath;}else if(i===3){role='room';point=room.awake;}else if(i===4||i===5){role='swim';point=[map.pool.bounds[0]+1+(i-4)*2,27];}else if(map.dining&&(i===6||i===7)){role='diner';point=map.dining.seats[i-6];}else if(i%3===0){role='room';point=room.awake;}else{role='hall';point=map.spawns[(i*7+map.index*3)%map.spawns.length];}
+  return {id:i,role,room:room.id,x:world(point[0]),z:world(point[1]),style:i%6,wakeDuration:i%2?.45:2.6,wakeRemaining:0,activity:role==='diner'?'eating':role==='sleep'?'sleep':role==='swim'?'swim':role==='hall'?'wander':'idle',guardStyle:i%3};});}
  const cell=v=>Math.floor(v/TILE+.5),world=v=>v*TILE;
  function blocked(map,x,z,doors=true){const c=map.grid[z]?.[x];return !c||c==='#'||(c==='F'||c==='W')||(c==='D'&&doors&&!map.doors.find(d=>d.x===x&&d.z===z)?.open);}
  function fits(map,x,z,r=.28){return [[-r,-r],[-r,r],[r,-r],[r,r]].every(([dx,dz])=>!blocked(map,cell(x+dx),cell(z+dz)));}
