@@ -1136,7 +1136,7 @@ def items_version(db, uid, version):
 @api.get('/shop/vendor/<vendor>')
 @signed_in
 def shop_vendor(db, uid, vendor):
-    return jsonify(items_service.vendor_listing(db, vendor))
+    return jsonify(items_service.vendor_listing(db, vendor, uid=uid))
 
 
 @api.get('/shop/state')

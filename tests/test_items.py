@@ -13,6 +13,7 @@ U = '/api/void-runner/'
 
 def catalog():
     c = copy.deepcopy(items.SEED)
+    c['vendors'] = [v for v in c['vendors'] if v['id'] == 'shop-here']
     it = {'id': 'ghost-circuit', 'name': 'Ghost circuit', 'description': 'A fictional stimulant.', 'category': 'stimulants', 'subcategory': '', 'kind': 'consumable', 'icon': '◈', 'model': None, 'animation': 'inject',
           'price': 60, 'stack': 3, 'weight': 0.1, 'rarity': 'rare', 'status': 'published', 'cooldown': 30, 'consumable': {'effects': [
               {'id': 'ca', 'type': 'chromaticAberration', 'intensity': .65, 'delay': 0, 'duration': 45, 'fadeIn': 3, 'fadeOut': 6, 'speed': 1, 'stacking': 'max', 'params': {k: p['def'] for k, p in items.SPEC['effects']['chromaticAberration']['params'].items()}}],
@@ -35,6 +36,11 @@ class ItemTests(unittest.TestCase):
         self.addCleanup(env.stop)
         self.n = 0
 
+    def fund(self, uid, credits):
+        ref = self.db.collection('vr_players').document(items._tag(uid))
+        self.db.data[ref.key] = {'save': {'credits': credits, 'location': 'earth'}, 'revision': 1, 'handle': 'unchanged'}
+
+
     def h(self, t='owner'):
         return {'Authorization': 'Bearer ' + t}
 
@@ -55,6 +61,8 @@ class ItemTests(unittest.TestCase):
         return 'nonce-%08d' % self.n
 
     def buy(self, vendor='kiosk-a', item='ghost-circuit', qty=1, credits=1000, t='owner'):
+        if 'vr_players/' + items._tag(t) not in self.db.data:
+            self.fund(t, 1000)
         return self.post('shop/purchase', {'vendor': vendor, 'item': item, 'qty': qty, 'credits': credits, 'nonce': self.nonce()}, t)
 
     def test_seed_is_valid_and_matches_the_browser(self):
@@ -138,6 +146,7 @@ class ItemTests(unittest.TestCase):
     def test_purchase_checks_price_stock_carry_and_credits(self):
         self.publish()
         self.assertEqual(self.buy(credits=74).status_code, 402)
+        self.fund('owner', 100)
         r = self.buy(credits=100)
         self.assertEqual((r.status_code, r.json['cost'], r.json['credits'], r.json['owned'], r.json['stock']), (200, 75, 25, 1, 1))
         self.assertEqual(self.buy(qty=2).status_code, 409, 'only one left')
@@ -145,10 +154,34 @@ class ItemTests(unittest.TestCase):
         self.assertEqual(self.buy(qty=-1).status_code, 400)
         self.assertEqual(self.buy(credits=-5).status_code, 400)
         self.assertEqual(self.buy(item='nothing').status_code, 404)
+        self.fund('owner', 1000)  # The campaign earned more credits.
         self.assertEqual(self.buy(vendor='vend-drinks', qty=2).status_code, 200)
         self.assertEqual(self.buy(vendor='vend-drinks').status_code, 409, 'carry limit of 3')
         self.assertEqual(self.get('shop/state').json['owned'], {'ghost-circuit': 3})
         self.assertEqual(self.get('shop/vendor/vend-drinks').json['entries'][0]['stock'], 7)
+
+    def test_saved_balance_and_receipt_control_debits(self):
+        self.publish()
+        self.fund('owner', 1)
+        self.assertEqual(self.buy(credits=1000).status_code, 402)
+        self.assertEqual(self.get('shop/state').json['owned'], {})
+        self.fund('owner', 500)
+        body = {'vendor': 'vend-drinks', 'item': 'ghost-circuit', 'qty': 1, 'credits': 500, 'nonce': 'stable-order-1', 'revision': 1}
+        one, two = self.post('shop/purchase', body), self.post('shop/purchase', body)
+        self.assertEqual((one.json['credits'], two.json['credits'], two.json['cost']), (450, 450, 0))
+        self.assertEqual(self.post('shop/purchase', {**body, 'qty': 2}).status_code, 409)
+
+    def test_seller_hours_and_reputation_are_enforced_at_checkout(self):
+        c = catalog()
+        c['vendors'][1]['rules'] = {'opens': 22, 'closes': 4, 'minRep': 3, 'color': '#0099cc'}
+        self.assertEqual(self.publish(c).status_code, 200)
+        self.fund('owner', 1000)
+        self.assertEqual(self.buy().status_code, 409)
+        campaign = self.db.data['vr_players/' + items._tag('owner')]['save']
+        campaign['story'] = {'flags': {'gameMin': 60}}
+        self.assertEqual(self.buy().status_code, 409)
+        campaign['progression'] = {'reputation': {'civilian': 3}}
+        self.assertEqual(self.buy().status_code, 200)
 
     def test_forged_prices_and_extra_fields_are_refused(self):
         self.publish()
@@ -159,6 +192,7 @@ class ItemTests(unittest.TestCase):
     def test_a_repeated_request_is_not_charged_twice(self):
         self.publish()
         body = {'vendor': 'vend-drinks', 'item': 'ghost-circuit', 'qty': 1, 'credits': 500, 'nonce': 'same-nonce-1'}
+        self.fund('owner', 500)
         a, b = self.post('shop/purchase', body), self.post('shop/purchase', body)
         self.assertEqual((a.json['cost'], b.json['cost'], b.json['duplicate']), (50, 0, True))
         self.assertEqual(self.get('shop/state').json['owned']['ghost-circuit'], 1)
@@ -176,6 +210,8 @@ class ItemTests(unittest.TestCase):
         self.publish()
         results = []
 
+        for i in range(5):
+            self.fund('u%d' % i, 500)
         def go(i):
             try:
                 results.append(items.purchase(self.db, 'u%d' % i, {'vendor': 'kiosk-a', 'item': 'ghost-circuit', 'qty': 1, 'credits': 500, 'nonce': 'nonce-race-%d' % i})['cost'])
@@ -214,7 +250,10 @@ class ItemTests(unittest.TestCase):
     def test_existing_save_and_other_data_untouched(self):
         self.publish()
         self.buy()
-        self.assertTrue(all(k.startswith(('vr_items_', 'vr_shop_players/')) for k in self.db.data), list(self.db.data))
+        key = 'vr_players/' + items._tag('owner')
+        self.assertEqual(self.db.data[key]['save'], {'credits': 925, 'location': 'earth'})
+        self.assertEqual(self.db.data[key]['handle'], 'unchanged')
+        self.assertTrue(all(k == key or k.startswith(('vr_items_', 'vr_shop_players/')) for k in self.db.data))
 
     def test_players_without_the_service_get_the_seed(self):
         with patch.dict(os.environ, {'VOID_ACCOUNTS_ENABLED': 'false'}):

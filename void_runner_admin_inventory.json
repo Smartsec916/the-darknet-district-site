@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "b1b6349c8deca56e",
+  "revision": "0848bf9c20d77435",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79669,19 +79669,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 980,
+      "line": 988,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1144,
+      "line": 1156,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1265,
+      "line": 1277,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -80617,13 +80617,13 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 486,
+      "line": 487,
       "text": "function back(){if(stack[0]==='messages'&&stack[2]){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox'],'tab','LOADING');return true;}   // a conversation goes back to the list",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 571,
+      "line": 572,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -80845,7 +80845,7 @@
     },
     {
       "source": "void-runner/prologue-integration.js",
-      "line": 162,
+      "line": 169,
       "text": "VoidInteractions.register('admin',()=>{state.universe.completedObjectives.push(...(state.universe.completedObjectives.includes('meet-admin')?[]:['meet-admin']));state.story.flags.metAdmin=true;state.story.flags.metIris=true;save();talk('',[{who:'Admin',text:'Rook said you might make the trip. Welcome to The Darknet District. Your ship is fine on the landing pad; The Function charges for parking, not for staying.'},{who:'Iris',text:'We keep our own records here. Get settled, meet the locals, and keep your eyes open.'}],resumeWalking,'RETURN TO DISTRICT');});",
       "kind": "source-reference"
     },
@@ -82850,6 +82850,7 @@
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "d487751434b03dae022105534d6dc4a21519573a09f092a33b6a7c78c062e506",
+    "void-runner/catalog-shop.js": "488ec72ea5b11e3865b23315a65a96810a6281b8a3a61f75c0f3a03ccd2711e5",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -82870,7 +82871,7 @@
     "void-runner/consumable-renderer.js": "06edd54b8d3a1a4b2a20c54674e4b0d18aa95952d607386faeba0799bc282117",
     "void-runner/consumable-spec.js": "b983d3a3c1c3fadbadc66118b0dcd3f94d658168e2f1558f1e5e8320fe1c93a3",
     "void-runner/consumable-studio.js": "4706ac8580ef4c9b9763394b83903f4a0351b37e66d31727834d47c1758ff110",
-    "void-runner/consumables.js": "4f219d4db6c48427743c2ec63e1af68c8fc6212beb7d79c9ce03ea3b367f5b7c",
+    "void-runner/consumables.js": "5555c8c91a2bec25258f141ae402c3970deddf5b7845a740b091ea26cfe45982",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -82888,7 +82889,7 @@
     "void-runner/dax.js": "37de2e4c8bcfc0f1b2ef43e1528f1db91b48aab2affbb8dffdd8d23dae254c1a",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
-    "void-runner/dev-studios.js": "69b564b68bf9783002b653384e39b91cb3a5d5a2f422040f6d6721ef1cbf9c63",
+    "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
     "void-runner/dev-tools.js": "884194fd119cfbb45e198ea29dc8b0a187d9f6e2bdd761bd539ddfceab480547",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
@@ -82947,7 +82948,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "63285423c55d1ddc68a2f72c51531bd38ac7e9e03d492702fe059e9f27f59331",
+    "void-runner/item-catalog-editor.js": "b49481caf2068ab1e28bb659da849fb7f9ec746773a33c7d2c233466706b9fca",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "f631bae74fca8f9d7cf6599a357fe6bc1f37d21d9270186af38e0ac83c6677c1",
@@ -83010,7 +83011,7 @@
     "void-runner/ncz-street-pair.js": "cb53bba3b41cb93cfedac2262d1b860f2db2c836b9786fd192a0cf3f9efc9179",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
-    "void-runner/neochinatown.js": "a546cff053ccdd2bed8cf0b773487ce99a3a731075db57d095579feb3728a3bc",
+    "void-runner/neochinatown.js": "d385ee980e58cd50a3acb7f436f76129c4782260a594d7f09f5f0ed220f3d132",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "710466e49762a766b72fc5c5dcfba6e0f9f1b08828ece07c43d83f8574ac2188",
@@ -83037,7 +83038,7 @@
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/ordnance.js": "a3e43868918ec882965f16c95cd859475b3e634f5d75e691e606f8aefaa383c8",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
-    "void-runner/personal-device.js": "528a407502346c4c2f277611cbef67d353a21619a27e04fad54368f936fe8713",
+    "void-runner/personal-device.js": "219ef954069d719d2533776325dd6aff4dbbbec5c3d44d1d537607899747eab4",
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
@@ -83050,7 +83051,7 @@
     "void-runner/police-patrols.js": "46cc6fb8c4726e80b117f11d4c197778a0c1523a361c2aa34524f8601252f603",
     "void-runner/preparation.js": "488475633495762419719b2875b689feb9d29cf9db45239de74b34d04787c407",
     "void-runner/progression.js": "d2817df43e4d94d5e369cd5736e6f385a898a3597d6176dd63e3fbdd9a9341a3",
-    "void-runner/prologue-integration.js": "f62e9da5581e829849614572afbc907c5e58357a53532056b532b06ec79a2006",
+    "void-runner/prologue-integration.js": "21cf3f70b03f0a1f9e115c938aa81a218cd203b4baa7e37091b67874741458fd",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
