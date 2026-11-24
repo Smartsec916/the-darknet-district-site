@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "ab508a65287abed3",
+  "revision": "cd2d2ecf2bdba22b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75065,19 +75065,19 @@
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 115,
+      "line": 126,
       "text": "const dismiss=panel.querySelector('[data-input-dismiss],.conversation-minimize');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 121,
+      "line": 132,
       "text": "if(!['conversation','activity'].includes(current().name))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 122,
+      "line": 133,
       "text": "const choices=[...panel.querySelectorAll('.speech-controls #speech-next,.speech-controls [data-talk-choice],.tea-duo-choices button,.choice-menu button[data-action]')].filter(visible);",
       "kind": "source-reference"
     },
@@ -82492,7 +82492,7 @@
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "af87801f5e7fc0a86a0e6333443107aedccd432278f0aa163828e6c646e5fe0c",
+    "void-runner/input-state.js": "c4ba5152fe63754f78ec10f50fc503d26a0e5f008e0b5a8a7c29a37e130852c7",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
@@ -82504,7 +82504,7 @@
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
     "void-runner/main-story.js": "8cee869bbad79c79e26b9c7dde1e96050616c73ffd4a8342e9b240bc61ec6ec1",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
-    "void-runner/menu.js": "e1b820e755f0cb1ad8d1ec8903e7db576d1a20c110c726f5950a488e77892101",
+    "void-runner/menu.js": "c25efe78f21fca7046cb6183263e2709bbaa4258e9d8c7aa9dce247ebd4b16bb",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
     "void-runner/meridian-interior-kit.js": "8ba96cf08df03ca3ae29397f5f71cbb20f4402195c6686ff120320ec81d1f846",
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",

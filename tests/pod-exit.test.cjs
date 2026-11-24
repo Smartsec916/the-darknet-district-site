@@ -8,7 +8,7 @@ function input(mode,locked){
  const doc={hidden:false,pointerLockElement:locked,addEventListener:(name,fn)=>listeners.set(name,fn),
    exitPointerLock(){released.push(this.pointerLockElement);this.pointerLockElement=null;},
    createElement:()=>({style:{}}),body:{append(){}}};
- const ctx={mode,document:doc,addEventListener(){},dispatchEvent(){},Event,clearInput:()=>cleared.push(true),
+ const ctx={mode,performance,document:doc,addEventListener(){},dispatchEvent(){},Event,clearInput:()=>cleared.push(true),
    MutationObserver:class{observe(){}},requestAnimationFrame(){},openGameMenu(){assert.fail('pointer lock changes must preserve gameplay');}};
  require('node:vm').runInNewContext(read('void-runner/input-state.js'),ctx);
  return {doc,ctx,cleared,released,change:()=>listeners.get('pointerlockchange')()};
@@ -29,4 +29,12 @@ test('a late "mouse taken" event from the pod\'s own screen is not an Esc either
  h.change();assert.equal(h.doc.pointerLockElement,pod,'the pod owns the mouse while the player is there');
  h.ctx.mode='walking';h.change();assert.deepEqual(h.released,[pod]);assert.equal(h.ctx.mode,'walking');
  h.change();assert.equal(h.ctx.mode,'walking','the following release also preserves the room');
+});
+
+test('Escape after browser capture gives back the cursor and consumes a late unlock once',()=>{
+ const h=input('walking',{id:'space'});h.change();
+ assert.equal(h.ctx.VoidInputState.freeMouse(),true);
+ h.change();assert.equal(h.ctx.VoidInputState.freeMouse(),true);
+ assert.equal(h.ctx.VoidInputState.freeMouse(),false);
+ assert.deepEqual(h.released.map(el=>el.id),['space']);assert.equal(h.ctx.mode,'walking');
 });

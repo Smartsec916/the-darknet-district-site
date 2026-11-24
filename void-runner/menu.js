@@ -244,6 +244,12 @@ addEventListener('keydown', e => {
     if(mode==='dock'&&view==='account'&&VoidMenu.returnTo){e.preventDefault();VoidAccount.request('account-resume');return;}
     e.preventDefault();
     if(mode==='walking'&&globalThis.VoidTeaDuo?.leaveSeat?.()){e.stopImmediatePropagation();return;}
+    if(e.code==='Escape'){
+      if(['vr-menu','vr-pause','food-seated'].includes(mode))return;
+      if(['walking','skirmish-fps','vr-seated','pod-waking'].includes(mode)&&VoidInputState.freeMouse()){
+        e.stopImmediatePropagation();return;
+      }
+    }
     if (mode === 'menu') resumeMenu();
     else openGameMenu();
     return;

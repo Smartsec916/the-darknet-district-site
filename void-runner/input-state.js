@@ -98,7 +98,18 @@
   root.addEventListener('blur',()=>{away=true;manual=false;clear();refresh();});
   root.addEventListener('focus',()=>{away=false;scan();});
   document.addEventListener('visibilitychange',()=>{away=document.hidden||!document.hasFocus();manual=false;if(away)clear();scan();});
-  document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement)clear();refresh();});
+  let lastUnlock=-Infinity,hadLock=false;
+  document.addEventListener('pointerlockchange',()=>{
+    if(!document.pointerLockElement){if(hadLock)lastUnlock=performance.now();clear();}
+    hadLock=!!document.pointerLockElement;
+    refresh();
+  });
+  function freeMouse(){
+    if(document.pointerLockElement){document.exitPointerLock?.();return true;}
+    // Some browsers dispatch the unlock just before delivering the Escape key.
+    if(performance.now()-lastUnlock<180){lastUnlock=-Infinity;return true;}
+    return false;
+  }
   root.addEventListener('keydown',e=>{
     const voice=root.VoidVoice?.settings;
     if(e.code===root.VoidInput?.bindings?.cursor&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.getModifierState?.('AltGraph')&&
@@ -133,7 +144,7 @@
       (navigator.userActivation&&!navigator.userActivation.isActive))return;
     return element.requestPointerLock();
   }
-  root.VoidInputState={get current(){return current();},refresh,scan,capture};
+  root.VoidInputState={get current(){return current();},refresh,scan,capture,freeMouse};
   // Mode changes can occur without adding or removing a panel.
   function frame(){if(current()!==previous)refresh();requestAnimationFrame(frame);}
   requestAnimationFrame(()=>{scan();frame();});
