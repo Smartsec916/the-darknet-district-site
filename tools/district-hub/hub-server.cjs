@@ -72,6 +72,7 @@ function start({voice=null,ledger=null,identify,access={allowed:null,denied:new 
       if(m.t==='vr-join'){hub.vrJoin(ws,m);return;}
       if(m.t==='vr-leave'){hub.vrLeave(ws);return;}
       if(m.t==='tea-pose'){hub.tea.publish(hub.byConn.get(ws),m);return;}
+      if(m.t==='npc-ready'||m.t==='npc-end'){hub.dialogue.handle(hub.byConn.get(ws),m);return;}
       if(m.t==='chat'){hub.chat(ws,m);return;}
       if(m.t==='eye'){hub.eye(ws,m);return;}
       if(m.t==='dev'){hub.dev(ws,m);return;}

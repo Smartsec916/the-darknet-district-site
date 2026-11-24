@@ -39,6 +39,11 @@
   if(toArea&&toArea===fromArea)return;   // the same area again (a recovery, a re-lay)
   const riding=!!root.VoidRoadTaxi?.crossing,link=toArea&&!riding?R.linkBetween(fromArea,toArea,me):null;
   for(const h of people){const P=h.plan,M=(root.VoidNPCPaths?.MOVABLE||{})[h.npc]||{},who=h.npc===root.VoidStreetPair?.CAT_ID?'The cat':M.name||'They';
+   // Ordinary escorts are local until the checked, opted-in multi-leg route is wired. Keep the last
+   // actual position even when the player enters an unregistered interior; do not use mission transfer.
+   if(P.social){if(P.area!==fromArea||!Number.isFinite(h.x)||!Number.isFinite(h.z))continue;
+    C.setCarry(h.npc,{key:P.step,area:fromArea,x:+h.x.toFixed(2),z:+h.z.toFixed(2),yaw:h.yaw,phase:P.kind==='follow-them'?'wait':'paused',ride:null});
+    log.push({npc:h.npc,step:P.step,from:fromArea,to:toArea,via:link?link.id:null,go:'stay',dist:+Math.hypot(h.x-me.x,h.z-me.z).toFixed(1),at:Date.now()});if(log.length>30)log.shift();continue;}
    const place=P.kind==='follow-them'?'ahead':'behind',inCab=h.ride==='in-cab'||h.phase==='in-cab';
    const at=riding?(sp?{x:sp.x,z:sp.z,yaw:sp.yaw}:null):R.arrival(link,toArea,place,sp);
    const check=link&&link.ends[toArea]?link.ends[toArea].ahead:at&&A.nearest?A.nearest(at,toArea,4)||at:at;

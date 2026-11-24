@@ -755,7 +755,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   return out;
  }
  /* The trees that run: the shipped story trees (an edited copy in the content replaces the one with the same id), then the content's other trees. */
- function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x=shownTree(t);delete x.status;delete x.shipped;delete x.seq;if(Array.isArray(x.missions))x.missions=x.missions.map(expandChoices);return x;});}   // player reply choices: inline "Ask the player" steps (CHOICE)
+ function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x=shownTree(t);MS?.refreshFishDelay(x);delete x.status;delete x.shipped;delete x.seq;if(Array.isArray(x.missions))x.missions=x.missions.map(expandChoices);return x;});}   // player reply choices: inline "Ask the player" steps (CHOICE)
  /* A line about to be shown ({who,text}) → the edited line, or the same object when nothing applies. */
  function mapLine(env,l){if(!l||l.ambient||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}
  /* Builds content from the owner's drafts. studio: the Developer Studio's local draft {missions:[...]} (beginner campaign); local: Mission Editor edits {missions:{key:edit}}. */
