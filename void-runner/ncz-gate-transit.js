@@ -36,7 +36,7 @@
   async function exchange(o){
    const t0=now();d.freeze?.();d.overlay.show();
    const target=o.to.scene?{key:d.sceneKey(o.to.scene),spawn:o.spawn,yaw:o.yaw}:{key:d.streetKey(),spawn:o.spawn,yaw:o.yaw,quarter:o.to.quarter};
-   await d.enterWalking(target.key,{silent:true,spawn:target.spawn,yaw:target.yaw,quarter:target.quarter});
+   await d.enterWalking(target.key,{silent:true,spawn:target.spawn,yaw:target.yaw,quarter:target.quarter,gateLane:o.lane});
    const l=d.location();
    if(o.to.scene?l?.id!==d.sceneId(o.to.scene):!(l?.id==='neochinatown'&&l.area==='street'&&l.quarter===o.to.quarter))throw new Error('The next area did not load.');
    lastSwapMs=now()-t0;

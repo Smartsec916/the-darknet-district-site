@@ -33,15 +33,37 @@
    if(!s&&mk&&Array.isArray(mk.people)){const p=mk.people.find(q=>q.id===npc&&q.esc&&q.esc.key===P.key);if(p)s=p.esc;}
    if(s)out.push({npc,plan:P,x:s.x,z:s.z,yaw:s.yaw||0,phase:s.phase,ride:s.ride||null});}
   return out;}
+ // Only a completed scanner exchange carries an invited, present actor into a new district.
+ function socialArrival(h,from,to,o,me,riding){
+  const C=LC(),R=E(),Q=root.VoidQuarters,P=h.plan,policy=C.socialTravelPolicy?.(h.npc,P.step);
+  const lane=o?.gateLane&&Q?.lane?.(o.gateLane),g=lane&&Q.gate(lane.gate);
+  if(!policy||!g||g.shut||!to||P.area!==from||!policy.allowGate(h.npc,'gate:'+lane.key,from,to))return null;
+  if(riding){
+   if(lane.kind!=='bay'||h.ride!=='in-cab'||!Array.isArray(o.spawn)||Math.hypot(h.x-me.x,h.z-me.z)>12)return null;
+   const x=o.spawn[0],z=o.spawn[2];
+   if(!Number.isFinite(x)||!Number.isFinite(z)||!R.mayEnter(h.npc,to,null).ok)return null;
+   return {area:to,leg:policy.leg,x,z,yaw:o.yaw||0,phase:P.kind==='follow-them'?'walk':'follow',ride:'in-cab'};
+  }
+  if(lane.kind!=='foot')return null;
+  const via='gate:'+lane.key,link=R.linkById(via),dest=link?.ends?.[to]?.ahead;
+  if(!dest)return null;
+  const leg=P.leg||R.socialGateLeg(h.npc,{x:h.x,z:h.z,area:from},{...dest,area:to},{...policy,allowGate:(id,l,a,b)=>l===via&&policy.allowGate(id,l,a,b)});
+  if(!leg||leg.via!==via||P.key!==policy.session)return null;
+  const key=P.key+':'+policy.leg+':'+from+':'+via;
+  const at=R.socialGateCross(leg,{...h,area:from,key},{from,to,via,key,onFoot:true,riding:false,scanned:true,player:me},policy);
+  return at&&{...at,phase:P.kind==='follow-them'?'walk':'follow'};
+ }
  function decide(id,o){const R=E(),C=LC(),A=AR();if(!R||!R.across||!C||!A||typeof walker==='undefined'||!walker)return;
   const from=here();if(!from.length)return;const people=present();if(!people.length)return;
   const t=target(id,o),me={x:walker.x,z:walker.z},fromArea=pick(from,me),sp=Array.isArray(o&&o.spawn)?{x:o.spawn[0],z:o.spawn[2],yaw:Number.isFinite(o.yaw)?o.yaw:0}:null,toArea=pick(t.areas,sp);
   if(toArea&&toArea===fromArea)return;   // the same area again (a recovery, a re-lay)
   const riding=!!root.VoidRoadTaxi?.crossing,link=toArea&&!riding?R.linkBetween(fromArea,toArea,me):null;
-  for(const h of people){const P=h.plan,M=(root.VoidNPCPaths?.MOVABLE||{})[h.npc]||{},who=h.npc===root.VoidStreetPair?.CAT_ID?'The cat':M.name||'They';
-   // Ordinary escorts are local until the checked, opted-in multi-leg route is wired. Keep the last
+  const arrivals=[];for(const h of people){const P=h.plan,M=(root.VoidNPCPaths?.MOVABLE||{})[h.npc]||{},who=h.npc===root.VoidStreetPair?.CAT_ID?'The cat':M.name||'They';
+   // An ordinary escort stays at its last position unless its published travel rules allow this exchange. Keep the last
    // actual position even when the player enters an unregistered interior; do not use mission transfer.
    if(P.social){if(P.area!==fromArea||!Number.isFinite(h.x)||!Number.isFinite(h.z))continue;
+    const point=socialArrival(h,fromArea,toArea,o,me,riding);
+    if(point){arrivals.push({npc:h.npc,key:P.step,from:fromArea,point});continue;}
     C.setCarry(h.npc,{key:P.step,area:fromArea,x:+h.x.toFixed(2),z:+h.z.toFixed(2),yaw:h.yaw,phase:P.kind==='follow-them'?'wait':'paused',ride:null});
     log.push({npc:h.npc,step:P.step,from:fromArea,to:toArea,via:link?link.id:null,go:'stay',dist:+Math.hypot(h.x-me.x,h.z-me.z).toFixed(1),at:Date.now()});if(log.length>30)log.shift();continue;}
    const place=P.kind==='follow-them'?'ahead':'behind',inCab=h.ride==='in-cab'||h.phase==='in-cab';
@@ -56,8 +78,13 @@
    else if(r.go==='fail'){try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'failed',phase:'failed',x:h.x,z:h.z});}catch{}}
    else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}
    else if(r.go==='stay'&&(toArea||t.far))stay();}
-  try{C.replan();}catch{}}
+  try{C.replan();}catch{}return arrivals;}
  const prev=enterWalking;
- enterWalking=async function(id,options){try{decide(id,options||{});}catch(e){try{console.warn('[escort across]',e);}catch{}}const r=await prev.apply(this,arguments);try{LC()?.replan?.();}catch{}return r;};
+ enterWalking=async function(id,options){
+  let arrivals=[];try{arrivals=decide(id,options||{})||[];}catch(e){console.warn('[escort across]',e);}
+  const result=await prev.apply(this,arguments);
+  try{const areas=here();for(const a of arrivals)if(areas.includes(a.point.area))LC()?.arriveSocial?.(a.npc,a.key,a.from,a.point);LC()?.replan?.();}catch(e){console.warn('[escort arrival]',e);}
+  return result;
+ };
  root.VoidEscortAcross={log:()=>log.slice(),target,here,present};
 })(globalThis);
