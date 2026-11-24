@@ -15,34 +15,50 @@
   const doors=[],props=[],refills=[[11,3],[18,15],[23,27]],spawns=[],roomLabels=[],rooms=[],obstacles=[];
   const wall=(x1,z1,x2,z2)=>{for(let z=z1;z<=z2;z++)for(let x=x1;x<=x2;x++)grid[z][x]='#';};
   const door=(x,z,label)=>{grid[z][x]='D';doors.push({x,z,label,open:false});};
-  const prop=(kind,x,z,extra={})=>{props.push({kind,x,z,...extra});if(['desk','couch','bed','bar','tub','dining-table','buffet','room-desk'].includes(kind))grid[z][x]='F';};
+  const prop=(kind,x,z,extra={})=>{props.push({kind,x,z,...extra});if(['desk','couch','bed','bar','tub','dining-table','buffet','mini-fridge','room-desk'].includes(kind))grid[z][x]='F';};
   // Front lobby, a longitudinal hall, and a double-loaded cross corridor.
   wall(1,6,29,6);door(15,6,'GUEST WING');
   const columns=index===3?[[1,13],[17,23],[25,29]]:index===4?[[1,13],[17,29]]:index===2?[[1,6],[8,13],[17,29]]:[[1,6],[8,13],[17,23],[25,29]];
   for(const [row,z0,z1,entryZ] of [[0,7,12,13],[1,18,23,17]])for(const [x0,x1] of columns){
    wall(x0-1,z0-1,x0-1,z1+1);wall(x1+1,z0-1,x1+1,z1+1);wall(x0,z1+1,x1,z1+1);wall(x0,z0-1,x1,z0-1);
+   const propStart=props.length,obstacleStart=obstacles.length;
    const dx=x1-1;door(dx,entryZ,'ROOM '+((index+1)*100+rooms.length+1));
    const bx=x0+1,bz=z0+1;wall(x0+2,z0,x0+2,z0+2);wall(x0,z0+3,x0+2,z0+3);door(x0+1,z0+3,'BATHROOM');
    prop('bath',bx,bz);const bed=[x1-1,z1-1];prop('bed',...bed);
-   const room={id:rooms.length,number:(index+1)*100+rooms.length+1,bounds:[x0,z0,x1,z1],door:[dx,entryZ],bed,bath:[bx,bz],bedside:[bed[0],bed[1]+1],awake:[x1,z1]};rooms.push(room);
+   const room={id:rooms.length,number:(index+1)*100+rooms.length+1,bounds:[x0,z0,x1,z1],door:[dx,entryZ],bed,bath:[bx,bz],bedside:[bed[0],bed[1]-1],awake:[x1,z1]};rooms.push(room);
    room.window={x:x1+.48,z:z0+3};room.bathDoor=[x0+1,z0+3];room.furniture={nightstands:[[bed[0]-1,bed[1]],[bed[0]+1,bed[1]]],desk:[x1,z0+1],chair:[x1,z0+1.32],tv:[x1+.45,z0+1]};
    for(const point of room.furniture.nightstands){prop('nightstand',...point,{room:room.id});obstacles.push({x:world(point[0])+(point[0]<bed[0]?1.05:-1.05),z:world(point[1])+.45,hx:.34,hz:.35});}
    prop('room-desk',...room.furniture.desk,{room:room.id});prop('room-tv',...room.furniture.tv,{room:room.id});
    roomLabels.push(['ROOM '+room.number,dx,entryZ]);
    if(x1-x0>7)prop('couch',x1-3,z1-1);
+   // Mirror the far row: bathrooms at the corridor, sleeping area deeper inside.
+   room.facing=row===0?-1:1;
+   if(row===0){
+    const flip=z=>z0+z1-z,copy=grid.slice(z0,z1+1).map(r=>r.slice());
+    for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)grid[z][x]=copy[flip(z)-z0][x];
+    for(const d of doors)if(d.x>=x0&&d.x<=x1&&d.z>=z0&&d.z<=z1)d.z=flip(d.z);
+    for(const key of ['bed','bath','bedside','awake','bathDoor'])room[key]=[room[key][0],flip(room[key][1])];
+    room.window.z=flip(room.window.z);
+    for(const key of ['desk','chair','tv'])room.furniture[key][1]=flip(room.furniture[key][1]);
+    room.furniture.nightstands.forEach(p=>p[1]=flip(p[1]));
+    for(const p of props.slice(propStart)){p.z=flip(p.z);p.mirrorZ=true;}
+    for(const o of obstacles.slice(obstacleStart))o.z=world(z0+z1)-o.z;
+   }
   }
   // Rear pool is reached through its own door, never through a guest bedroom.
-  wall(1,24,29,24);door(15,24,index===4?'ROOFTOP POOL':'POOL / SPA');
-  wall(26,25,26,29);door(26,27,'STAIRWELL');
-  const pool={bounds:index===2?[4,26,13,28]:[6,26,12,28],zone:[1,25,25,29],exit:[15,26],edge:[13,27]};
+  wall(1,24,29,24);door(15,24,'REAR HALL / STAIRS');
+  // Dry passage reaches the stair core without entering the pool enclosure.
+  wall(1,25,14,25);wall(14,26,25,26);door(15,26,index===4?'ROOFTOP POOL':'POOL / SPA');
+  wall(26,25,26,29);door(26,27,'STAIRWELL');door(26,25,'STAIR LOBBY');
+  const pool={bounds:index===2?[4,26,13,28]:[6,26,12,28],zone:[1,26,25,29],exit:[15,26],edge:[13,27]};
   pool.edge=[pool.bounds[2]+1,27];pool.exit=[pool.bounds[2]+2,27];
   for(let z=pool.bounds[1];z<=pool.bounds[3];z++)for(let x=pool.bounds[0];x<=pool.bounds[2];x++)grid[z][x]='W';
   props.push({kind:'pool',x:(pool.bounds[0]+pool.bounds[2])/2,z:27,width:(pool.bounds[2]-pool.bounds[0]+1)*TILE,depth:3*TILE});
   prop('bar',20,28);prop('lounger',3,26);prop('lounger',3,28);prop('lounger',17,28);
-  if(index===2)prop('tub',22,26);
-  prop('desk',12,4);prop('couch',5,3);
+  if(index===2)prop('tub',22,27);
+  if(index===0)prop('desk',12,4);else prop('couch',12,4);prop('couch',5,3);
   const dining=index===0?{bounds:[20,1,29,5],seats:[[22,4],[24,4]],stands:[[23,4],[25,4]]}:null;
-  if(dining){wall(19,1,19,1);wall(19,5,19,5);for(const x of [22,24])prop('dining-table',x,3);prop('buffet',28,1);roomLabels.push(['NIGHT BITES',25,1]);}else prop('couch',23,3);
+  if(dining){wall(19,1,19,1);wall(19,5,19,5);for(const x of [22,24])prop('dining-table',x,3);prop('buffet',27,1);grid[1][26]=grid[1][28]='F';prop('mini-fridge',29,1);roomLabels.push(['NIGHT BITES',25,1]);}else prop('couch',23,3);
   if(index===4){prop('bar',23,5);roomLabels.push(['PENTHOUSE LOUNGE',20,3]);}
   if(index===1)prop('couch',3,15);
   if(index===3)prop('couch',27,15);
@@ -50,11 +66,11 @@
   for(let z=7;z<24;z++)for(let x=1;x<30;x++)if(grid[z][x]==='.'&&(z===15||x===15))spawns.push([x,z]);
   const artworks=[];
   const art=(x,z,rotation,zone,room=null)=>artworks.push({x,z,rotation,zone,room,variant:(artworks.length+index)%4});
-  for(const room of rooms){const [x0,z0,x1]=room.bounds;art(world(x0+2)+1.26,world(z0+1),-Math.PI/2,'room',room.id);const front=room.door[1]===13;art(world(x0+1),world(room.door[1])+(front?1.26:-1.26),front?Math.PI:0,'hall');}
+  for(const room of rooms){const [x0,z0,x1]=room.bounds;art(world(x0+2)+1.26,world(room.bath[1]),-Math.PI/2,'room',room.id);const front=room.door[1]===13;art(world(x0+1),world(room.door[1])+(front?1.26:-1.26),front?Math.PI:0,'hall');}
   for(const x of [4,9,21,26])art(world(x),world(6)-1.26,0,'lobby');
   for(const x of [4,17,22])art(world(x),world(30)-1.26,0,'pool');
   art(world(28),world(30)-1.26,0,'stairs');
-  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,start:[12,2],stairs:[28,28],down:[15,2],reception:[12,4],receptionNPC:[11.65,4.65]};
+  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,start:[12,2],stairs:[28,28],down:[28,25],landing:[28,26.5],reception:[12,4],receptionNPC:[11.65,4.65]};
  }
  function inside(bounds,p){const x=cell(p.x),z=cell(p.z);return x>=bounds[0]&&x<=bounds[2]&&z>=bounds[1]&&z<=bounds[3];}
  function residents(map,count){return Array.from({length:count},(_,i)=>{const room=map.rooms[i%map.rooms.length];let role,point;

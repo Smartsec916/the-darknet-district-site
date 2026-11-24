@@ -39,13 +39,35 @@
   for(const d of map.doors){const x=R.world(d.x),z=R.world(d.z),side=map.grid[d.z-1]?.[d.x]==='#';d.side=side;box('door lintel',[x,3.25,z],side?[.35,.5,2.4]:[2.4,.5,.35],wood);const hinge=new B.TransformNode('door hinge',scene);hinge.position=side?V(x,0,z-1.13):V(x-1.13,0,z);hinge.rotation.y=side?Math.PI/2:0;const mesh=box('door',[1.13,1.5,0],[2.2,3,.12],wood,hinge,true);box('door inlay',[1.13,1.6,-.07],[1.82,2.2,.035],dark,hinge,true);sphere('handle',[1.95,1.2,-.16],[.12,.12,.12],gold,hinge,true);doors.push({data:d,hinge,mesh,angle:0,base:hinge.rotation.y});}
   function couch(x,z){box('sofa base',[x,.35,z],[1.9,.5,1.25],wood);box('sofa seat',[x,.65,z-.15],[1.65,.27,1],cloth);box('sofa back',[x,1.05,z+.47],[1.9,.95,.3],cloth);for(const s of [-1,1])box('sofa arm',[x+s*.91,.8,z],[.22,.65,1.25],cloth);for(const s of [-1,1])box('pillow',[x+s*.42,.92,z+.2],[.55,.4,.24],white);}
   function bottle(x,y,z,i){const n=new B.TransformNode('bottle',scene);n.position=V(x,y,z);const m=cylinder('bottle body',[0,.17,0],.34,.14,i%2?glass:gold,n,true);cylinder('bottle neck',[0,.4,0],.15,.065,glass,n,true);box('bottle label',[0,.18,-.073],[.095,.13,.008],white,n,true);const o={node:n,mesh:m,kind:'bottle',fall:0,base:y};for(const p of n.getChildMeshes())p.metadata={object:o};objects.push(o);}
-  for(const p of map.props){const x=R.world(p.x),z=R.world(p.z);
+  for(const p of map.props){const meshStart=scene.meshes.length;const x=R.world(p.x),z=R.world(p.z);
    if(p.kind==='dining-table'){
     box('dining top',[x,.78,z],[1.7,.12,3.2],wood);for(const a of [-.65,.65])for(const b of [-1.35,1.35])box('table leg',[x+a,.38,z+b],[.07,.76,.07],gold);
     const cz=z+2.4;box('dining seat',[x,.48,cz],[.65,.12,.65],cloth);box('chair back',[x,.85,cz+.33],[.65,.75,.09],wood);for(const a of [-.27,.27])for(const b of [-.27,.27])box('chair leg',[x+a,.23,cz+b],[.045,.46,.045],gold);
     for(const dz of [-1.05,1.05]){cylinder('ceramic plate',[x,.86,z+dz],.035,.42,white);sphere('noodle bowl',[x,.91,z+dz],[.32,.12,.32],stone);sphere('meal',[x,.97,z+dz],[.25,.04,.25],mat('noodles','#c8a16a'));for(let i=0;i<4;i++)sphere('vegetables',[x-.08+i*.05,.995,z+dz+(i%2)*.06],[.04,.025,.05],leaf);cylinder('paper cup',[x+.53,.98,z+dz],.25,.14,white);box('napkin',[x-.5,.86,z+dz],[.25,.015,.3],white);box('chopsticks',[x-.48,.88,z+dz],[.025,.015,.28],gold);}bottle(x+.5,.85,z,0);
    }
-   if(p.kind==='buffet'){box('food counter',[x,.52,z],[2.3,1.04,1.1],dark);box('serving top',[x,1.08,z],[2.4,.1,1.2],gold);for(const dx of [-.7,0,.7]){box('hot food tray',[x+dx,1.17,z],[.55,.1,.65],stone);sphere('food tray contents',[x+dx,1.24,z],[.45,.08,.55],mat('noodles','#c8a16a'));}box('extractor hood',[x,2.7,z],[2.5,.35,1.2],gold);sign('NIGHT BITES / OPEN 25 HOURS',[x,2.1,z+.62],3.3,.5,Math.PI);}
+   if(p.kind==='buffet'){
+    const cz=z-.5,bread=mat('toasted pastry','#b77b42',.9),egg=mat('egg yolk','#e4ac36',.75),fruit=mat('breakfast fruit','#9b3935',.65);
+    box('breakfast counter',[x,.5,cz],[7.2,1,1.25],dark);box('breakfast worktop',[x,1.04,cz],[7.25,.08,1.3],stone);
+    box('counter backsplash',[x,1.25,cz-.62],[7.2,.4,.06],gold);
+    for(const dx of [-2.8,-1.4,0]){box('breakfast tray',[x+dx,1.12,cz],[1.15,.08,.8],gold);box('cabinet door',[x+dx,.52,cz+.64],[1.25,.84,.025],wood);box('cabinet handle',[x+dx,.83,cz+.68],[.32,.035,.04],gold);}
+    for(let i=0;i<4;i++){const fx=x-3.08+(i%2)*.5,fz=cz-.22+Math.floor(i/2)*.42;sphere('fried egg white',[fx,1.18,fz],[.38,.04,.3],white);sphere('fried egg yolk',[fx,1.21,fz],[.15,.07,.15],egg);}
+    for(let stack=0;stack<2;stack++){for(let layer=0;layer<3;layer++)cylinder('pancake',[x-1.66+stack*.52,1.18+layer*.065,cz],.065,.43,bread);box('butter pat',[x-1.66+stack*.52,1.36,cz],[.12,.035,.12],egg);}
+    for(let i=0;i<3;i++){const bun=sphere('breakfast pastry',[x-.35+i*.35,1.23,cz-.16],[.28,.18,.4],bread);bun.rotation.y=.35;}
+    for(let i=0;i<4;i++)sphere('fresh apple',[x-.35+i*.22,1.22,cz+.27],[.18,.19,.18],fruit);
+    box('coffee machine',[x+2.45,1.47,cz-.08],[.78,.78,.65],dark);box('coffee steel face',[x+2.45,1.49,cz+.26],[.69,.6,.035],gold);
+    box('coffee display',[x+2.45,1.67,cz+.29],[.34,.12,.02],glass);cylinder('coffee spout',[x+2.45,1.38,cz+.36],.13,.05,gold);
+    box('coffee drip tray',[x+2.45,1.14,cz+.42],[.66,.06,.3],gold);
+    for(let i=0;i<3;i++)cylinder('stacked coffee cups',[x+1.55,1.14+i*.1,cz+.18],.14,.18,white);
+    cylinder('sugar jar',[x+1.1,1.23,cz-.15],.28,.22,white);cylinder('sugar lid',[x+1.1,1.39,cz-.15],.04,.24,gold);
+    sign('BREAKFAST / EGGS + PANCAKES + PASTRIES',[x-.8,2.1,cz-.58],4.8,.42,Math.PI);
+    sign('COFFEE',[x+2.45,2.1,cz-.58],1.25,.4,Math.PI);
+   }
+   if(p.kind==='mini-fridge'){
+    const cz=z-.5;box('mini fridge',[x,.55,cz],[1.05,1.1,1.2],dark);box('fridge door',[x,.57,cz+.62],[.96,.98,.07],stone);
+    box('fridge handle',[x+.35,.65,cz+.7],[.05,.46,.06],gold);box('fridge gasket',[x,1.08,cz+.66],[.96,.025,.02],dark);
+    for(let i=0;i<5;i++)box('fridge ventilation slot',[x-.32+i*.16,.11,cz+.67],[.09,.035,.02],dark);
+    sign('CHILLED / MILK + JUICE',[x,.85,cz+.67],.86,.2,Math.PI);box('fridge status light',[x-.34,.2,cz+.68],[.035,.035,.02],lampMat);
+   }
    if(p.kind==='couch')couch(x,z);
    if(p.kind==='nightstand'){
     // Move the small bedside cabinet toward the bed with a matching small collision footprint.
@@ -71,6 +93,7 @@
    if(p.kind==='bath'){box('bath mat',[x,.012,z],[1.7,.025,2],stone);box('vanity',[x,.55,z+.65],[1.7,1.1,.65],wood);sphere('basin',[x,1.12,z+.65],[.7,.13,.4],white);cylinder('tap',[x,1.25,z+.85],.28,.06,gold);box('mirror frame',[x,1.95,z+1.05],[1.8,1.3,.08],gold);const mirrorMat=mat('mirror','#bcc6c9',.05,1),mirror=box('mirror',[x,1.95,z+1],[1.65,1.15,.015],mirrorMat,null,true);mirrors.push(mirror);}
    if(p.kind==='pool'||p.kind==='tub'){const pool=p.kind==='pool',w=pool?p.width:2.1,h=pool?p.depth:2.1;box('pool basin',[x,pool?-1.3:.04,z],[w,.12,h],stone);const waterMat=mat('water','#196b75',.12,.3);waterMat.alpha=.78;waterMat.emissiveColor=new B.Color3(.015,.11,.12);box('water',[x,.13,z],[w-.5,.04,h-.5],waterMat,null,true);for(const s of [-1,1]){box('pool rim',[x+s*w/2,.2,z],[.25,.3,h],white);box('pool rim',[x,.2,z+s*h/2],[w,.3,.25],white);}if(pool){for(let i=0;i<Math.floor(w/2.4);i++)box('pool lane',[x-w/2+1.2+i*2.4,-1.21,z],[.04,.01,h-.5],white);}}
    if(p.kind==='lounger'){const m=box('lounger',[x,.43,z],[.7,.12,1.7],white);m.rotation.x=-.14;for(const s of [-1,1])box('chair leg',[x+s*.28,.23,z],[.06,.4,1.3],gold);}
+   if(p.mirrorZ)for(const mesh of scene.meshes.slice(meshStart))if(!mesh.parent)mesh.position.z=2*z-mesh.position.z;
   }
   if(map.dining){sign('NIGHT BITES / NOODLES + COFFEE',[57.6,2.45,13.15],5,.65);const light=new B.PointLight('food area practical',V(55.2,2.8,8),scene);light.diffuse=new B.Color3(1,.77,.53);light.intensity=2;light.range=16;box('food pendant',[55.2,3.1,8],[1.4,.16,.35],dark);box('food diffuser',[55.2,3,8],[1.3,.04,.25],white);}
   // Pleated curtains sway on contact; small objects can be knocked over.
@@ -96,16 +119,17 @@
   for(const side of [-1,1]){for(let i=0;i<4;i++)cylinder('banister',[sx+side*1.03,.7+i*.2,sz-2+i*.6],1,.04,gold);const rail=box('stair handrail',[sx+side*1.03,1.5,sz-1],[.06,.06,2.8],gold);rail.rotation.x=-.35;}
   if(map.index>0)sign('STAIRS DOWN / FLOOR '+map.index,[R.world(map.down[0]),2.5,R.world(map.down[1])-.9],3,.5,Math.PI);
   sign('HOTEL // LIABILITY',[center,3.1,.95],6,.6,Math.PI);
-  sign('POOL / SPA',[R.world(15),2.8,R.world(24)-.2],2,.4);
+  sign('POOL / STAIRS',[R.world(15),2.8,R.world(24)-.2],2,.4);
+  sign('POOL / SPA',[R.world(15),2.8,R.world(26)-.2],2,.4);
   // A visible ladder marks the only swimmers' exit; swimmers climb before pursuing.
   const ex=R.world(map.pool.edge[0])-.95,ez=R.world(map.pool.edge[1]);
   for(const side of [-1,1])cylinder('pool ladder rail',[ex,.2,ez+side*.4],1.5,.065,gold);
   for(let i=0;i<5;i++){const rung=cylinder('pool ladder rung',[ex,-.8+i*.3,ez],.8,.055,gold);rung.rotation.x=Math.PI/2;}
-  for(const room of map.rooms){const x=R.world(room.bath[0]),z=R.world(room.bath[1]);box('shower tray',[x-.65,.04,z-.5],[.9,.08,1],white);cylinder('shower riser',[x-.9,1.3,z-.8],2.2,.04,gold);sphere('toilet bowl',[x+.55,.36,z-.5],[.5,.55,.75],white);box('toilet cistern',[x+.55,.65,z-.85],[.52,.65,.22],white);}
+  for(const room of map.rooms){const meshStart=scene.meshes.length,x=R.world(room.bath[0]),z=R.world(room.bath[1]);box('shower tray',[x-.65,.04,z-.5],[.9,.08,1],white);cylinder('shower riser',[x-.9,1.3,z-.8],2.2,.04,gold);sphere('toilet bowl',[x+.55,.36,z-.5],[.5,.55,.75],white);box('toilet cistern',[x+.55,.65,z-.85],[.52,.65,.22],white);if(room.facing<0)for(const mesh of scene.meshes.slice(meshStart))mesh.position.z=2*z-mesh.position.z;}
   if(map.index===4){for(let i=0;i<24;i++){const x=(i%8)*9-9,z=i<8?65:(i<16?-14:55),h=8+(i*13%19);box('city silhouette',[x,h/2,z],[5,h,5],dark);}sign('E · CHECK OUT',[sx,2.9,sz+.65],3,.55);}
   // Merge static architecture by material; interactive/hit-tested parts stay separate.
   for(const material of new Set(statics.map(m=>m.material))){const list=statics.filter(m=>m.material===material);if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.name='hotel '+material.name;merged.receiveShadows=true;}}}
-  if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,-1,m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}
+  if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,1,-m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}
   const glow=new B.GlowLayer('neon spill',scene,{blurKernelSize:32});glow.intensity=.65;
   scene.imageProcessingConfiguration.contrast=1.12;scene.imageProcessingConfiguration.exposure=1.2;
   const windows=HotelWindows.build(scene,camera,map);

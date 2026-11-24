@@ -84,3 +84,18 @@ Final reaction validation: full Node suite 1,171 passed, 0 failed, 1 skipped; 14
 Owner-requested original oil-painting artwork: flowers only, bees flying around flowers, bees landed on blooms, and a mixed flying/landed composition. One generated square four-panel atlas is shared by four materials. 104 paintings across the five floors: every guest room, guest corridors, front lobbies, pool decks and stair landings. Frames are modeled walnut rails and inset edges with a shared wood-grain texture. Existing abstract placeholders are replaced. Paintings remain projectile-pickable and can receive temporary foam splatters. Frames are merged with other static geometry; no extra lights or animation loops are added.
 
 Validation: all 15 Hotel Headshots rules/assets checks passed, including artwork coverage and unobstructed viewing positions on all floors. The browser artwork check verifies loaded textures, matching placement counts, wood-frame materials and no page errors; screenshots of flowers only, flying bees and landed bees are checked visually.
+
+
+## 24 Nov 2026 — hotel layout audit and breakfast counter
+
+Compared the owner's hotel-plan references with the [Gaylord Texan guest-room plans, page 4](https://www.marriott.com/content/dam/marriott-digital/ge/us-canada/hws/d/dalgt/en_us/document/assets/ge-dalgt-guest-rooms-suites-guide-99867.pdf) and the [Marriott Marquis room description](https://context.hosthotels.com/faq/html/properties/new-york-marriott-marquis/rooms.html). The useful patterns are a private bathroom near the entrance, sleeping space deeper in the room, furniture clear of circulation, and common corridors serving rooms independently.
+
+- Mirrored the upper guest-room row, including bathrooms, furniture, window positions, paintings, sleeping orientation and collision footprints. Both rows now put bathrooms nearer the corridor and beds farther inside.
+- Wake-up destinations are at the foot of each bed instead of behind its headboard.
+- Upstairs/downstairs interactions share the same rear stair core on every floor; arriving players spawn on its clear landing. Upper floors have lounge seating instead of duplicate check-in desks.
+- A dry rear passage connects the main hall to the stairwell without entering the pool. The pool has its own door; swimmers react when the player enters the pool area, not the dry passage.
+- Ground-floor dining now has a wall-side breakfast counter with eggs, pancake stacks and butter, pastries, apples, a coffee machine, cups, sugar, and an adjacent mini fridge. The counter and fridge have collision; diners retain clear exits.
+
+These are gameplay plans, not construction drawings: rooms and corridors retain generous arcade clearances; windows continue using the shared 3D city-view optimization; floor changes remain transitions rather than a continuous stacked building. The fridge and breakfast items are scenery, not a food inventory system. Updated floor-plan PNGs are generated from the actual level data.
+
+Validation: 17 focused hotel tests; full Node suite 1,174 passed / 1 skipped; resident browser checks passed (dining, slow/fast waking, bathrooms, pool entry/ladder exits, blocking poses); complete gameplay browser passed all five floors, stair down/up round trip, victory and persistent scores. Breakfast counter preview rendered without browser errors.

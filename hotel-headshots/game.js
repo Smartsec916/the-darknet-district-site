@@ -27,12 +27,12 @@
  function loadFloor(index,descending=false,attract=false){
   reactions.stop();if(art)art.scene.dispose();bullets=[];splats=[];npcs=[];receptionist=null;map=R.level(index);art=HotelScene.build(engine,map,settings);const loadingArt=art;$('loading').hidden=false;art.ready.then(()=>{if(art!==loadingArt)return;art.readyState=true;$('loading').hidden=true;}).catch(()=>{if(art!==loadingArt)return;mode='error';unlock();$('loading').textContent='CHARACTERS COULD NOT LOAD. PLEASE RELOAD.';});gun=art.weapon();gun.setEnabled(!attract);yaw=descending?Math.PI:0;pitch=0;
   foamTexture=new B.DynamicTexture('white foam splatter',128,art.scene,false);foamTexture.hasAlpha=true;{const g=foamTexture.getContext();g.clearRect(0,0,128,128);g.fillStyle='#f4f7ff';for(let i=0;i<28;i++){const a=i*2.399,r=i<8?10:12+(i*17%43);g.beginPath();g.arc(64+Math.cos(a)*r,64+Math.sin(a)*r,i<8?20:2+i%6,0,Math.PI*2);g.fill();}foamTexture.update();}
-  const start=descending?[map.stairs[0],map.stairs[1]-1]:map.start;art.camera.position.copyFromFloats(R.world(start[0]),1.68,R.world(start[1]));
+  const start=descending||index>0?map.landing:map.start;if(descending||index>0)yaw=-Math.PI/2;art.camera.position.copyFromFloats(R.world(start[0]),1.68,R.world(start[1]));
   const saved=floorStates[index];if(saved)map.doors.forEach((d,i)=>d.open=!!saved.doors[i]);
   const count=Math.round(map.theme.count*R.DIFFICULTIES[run.difficulty].count);
   const specs=saved?.npcs||R.residents(map,count).map(s=>({...s,resistance:100+index*12+(s.id%3)*10,retreat:false,speed:(1.35+index*.55+(s.id%4)*.25)*R.DIFFICULTIES[run.difficulty].speed}));
   npcs=specs.map(s=>({...s,view:art.person(s.id,s.x,s.z,s.style),state:s.retreat?'retreat':s.activity,route:[],repath:s.id*.07,attack:1,alert:0,shield:0,lastSeen:null,search:0,target:null}));
-  for(const n of npcs)n.view.activity={kind:n.activity,progress:n.activity==='waking'?1-n.wakeRemaining/n.wakeDuration:n.activity==='rising'?n.rise||0:n.climb||0};
+  for(const n of npcs){if(['sleep','waking'].includes(n.activity))n.view.node.rotation.y=map.rooms[n.room].facing<0?Math.PI:0;n.view.activity={kind:n.activity,progress:n.activity==='waking'?1-n.wakeRemaining/n.wakeDuration:n.activity==='rising'?n.rise||0:n.climb||0};}
   if(index===0){receptionist=art.person(-1,R.world(map.receptionNPC[0]),R.world(map.receptionNPC[1]),1,true);art.sign('WELCOME / E TO CHECK IN',[R.world(map.reception[0]),2.8,R.world(map.reception[1])],3,.45);}
   if(attract){art.camera.position.copyFromFloats(R.world(15),1.72,R.world(2));yaw=.55;art.camera.rotation.y=yaw;}else{toast('FLOOR '+(index+1)+' · '+map.theme.subtitle,4);updateHud();}
  }
