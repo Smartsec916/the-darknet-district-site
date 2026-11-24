@@ -36,6 +36,12 @@
    box(head,'Project name',p.name,null,v=>prop(p,'name',v));
    for(const [k,l,list] of [['place','Scene',C.places],['actor','Performer',C.actors],['resolution','Resolution (short edge)',C.presets.resolution],['aspect','Aspect ratio',C.presets.aspect],['fps','Frames per second',C.presets.fps]]){
     box(head,l,p[k],list,v=>{if(k==='place'&&v!=='Blackrock camera feed')delete p.feed;prop(p,k,v);close();heading();note('Load the scene to preview the new settings.');});}
+   if(p.place==='Gameplay tab'){
+    const source=node('a','Open gameplay with HUD, markers and crosshair hidden');
+    const url=new URL('void-runner.html',document.baseURI);url.searchParams.set('cinemaView','clean');
+    source.href=url.href;source.target='_blank';source.rel='noopener';head.append(source);
+    head.append(node('p','Open the recording tab, then choose it when you load the scene. Actions in that tab use its current game save. Choose an ordinary gameplay tab to include the HUD.'));
+   }
    box(head,'Lighting hour',p.hour??21,Array.from({length:24},(_,h)=>({value:h,name:String(h).padStart(2,'0')+'00'})),v=>prop(p,'hour',v));
    if(p.place==='Blackrock camera feed')box(head,'Mission camera sequence',p.feed||'',[{value:'',name:'Original Blackrock sequence'},...feeds().map(f=>({value:f.id,name:f.name}))],v=>{if(v)p.feed=v;else delete p.feed;close();});
    button(head,'Save private project',async()=>{ensureEdit();if(busy)return;const problem=C.validate(p);if(problem)throw Error(problem);
