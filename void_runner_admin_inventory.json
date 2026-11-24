@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "e9e5c3fc8d9e96f7",
+  "revision": "ef0ba4ece741c8d5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81313,7 +81313,7 @@
     },
     {
       "source": "void-runner/sound-studio-editor.js",
-      "line": 96,
+      "line": 104,
       "text": "function render(){stop();body.replaceChildren();if(tab==='Library')library().catch(notify);else if(tab==='Mixer'){for(const ch of S.channels){const inp=field(body,ch==='duck'?'Dialogue ducking':ch,c.mix,ch,[0,1]);inp.type='range';inp.step='.01';inp.oninput=()=>{c.mix[ch]=Number(inp.value);if(mixerPreview)root.VoidAudio.setStudioMix(c.mix);};}",
       "kind": "source-reference"
     },
@@ -83155,8 +83155,8 @@
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "3b7205101d6e6f651bef09f0846b0caa2b20d87f5b0a221e348816ae84bd8af0",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
-    "void-runner/sound-studio-editor.js": "ab4efa4bc4d5a29e84297c74f1f9f091276f6b92def5a5e7caae25fc0c0cc492",
-    "void-runner/sound-studio-runtime.js": "7ad31510f7fa02bb14b76050adae62bc92e967d38df7272dd6c72f7c1d90bb91",
+    "void-runner/sound-studio-editor.js": "18382f9f26e4641af878e9436a2a668f8129ccca1bd32e2daf72654fbdcb4b04",
+    "void-runner/sound-studio-runtime.js": "4dc408d955f1e7efc8d46dbae5fbbcbba7dfceb30a958d1aa26396feab11e66b",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",

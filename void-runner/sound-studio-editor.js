@@ -8,15 +8,16 @@
   const uid=tools.uid,active=()=>host.isConnected&&tools.authorized&&tools.uid===uid;
   const send=(path,body)=>{if(!active())throw Error('Reopen the studio with the same developer account.');return tools.request('developer/studio/audio'+path,body);};
   const data=await send('');if(!active())return;
-  let revision=data.draft.revision,version=data.live.version,c=structuredClone(data.draft.content||data.live.content),tab='Library',selected=c.assets[0]?.id,search='',category='',unused=false,preview=null,objectUrl=null,audioContext=null,epoch=0,busy=false,mixerPreview=false;
+  let revision=data.draft.revision,version=data.live.version,c=structuredClone(data.draft.content||data.live.content),tab='Library',selected=c.assets[0]?.id,search='',category='',unused=false,preview=null,objectUrl=null,audioContext=null,auditionController=null,epoch=0,busy=false,mixerPreview=false;
   const status=node('p');status.role='status';const body=node('section');
-  function stop(){if(mixerPreview){root.VoidAudio.setStudioMix(S.project.mix);mixerPreview=false;}epoch++;preview?.dispose();preview=null;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;if(audioContext)audioContext.close().catch(()=>{});audioContext=null;}
+  function stop(){if(mixerPreview){root.VoidAudio.setStudioMix(S.project.mix);mixerPreview=false;}epoch++;auditionController?.abort();auditionController=null;preview?.dispose();preview=null;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;if(audioContext)audioContext.close().catch(()=>{});audioContext=null;}
   const observer=new MutationObserver(()=>{if(!active()){stop();observer.disconnect();}});observer.observe(document.body,{subtree:true,childList:true});
   const notify=e=>status.textContent=e?.message||String(e);
   function button(parent,label,fn){const b=node('button',label);b.type='button';b.onclick=async()=>{try{await fn();}catch(e){notify(e);}};parent.append(b);return b;}
   function field(parent,label,obj,key,options){
-   const box=node('label',label+' '),input=node(Array.isArray(options)?'select':'input');
-   if(Array.isArray(options))for(const v of options){const opt=node('option',v.name??v);opt.value=v.id??v;input.append(opt);}
+   const choices=Array.isArray(options)&&typeof obj[key]!=='number';
+   const box=node('label',label+' '),input=node(choices?'select':'input');
+   if(choices)for(const v of options){const opt=node('option',v.name??v);opt.value=v.id??v;input.append(opt);}
    else if(typeof obj[key]==='number'){input.type='number';input.step='any';if(options){input.min=options[0];input.max=options[1];}}
    else if(typeof obj[key]==='boolean')input.type='checkbox';
    input.dataset.field=key;if(input.type==='checkbox')input.checked=obj[key];else input.value=obj[key]??'';
@@ -43,7 +44,14 @@
    stop();const t=epoch;let url=S.mediaUrl(a.src);
    if(/^[a-f0-9]{64}$/.test(a.src)){const blob=await blobRequest('media/'+a.src);if(t!==epoch||!active())return;url=objectUrl=URL.createObjectURL(blob);}
    root.VoidAudio.unlock();preview=S.player(a,'effects',1,{url});if(!preview)throw Error('Enable game audio to preview this recording.');
-   const r=await fetch(url);if(!r.ok)throw Error('The recording could not be read.');const raw=await r.arrayBuffer();if(t!==epoch)return;
+   const media=preview.media,controller=auditionController=new AbortController(),signal=controller.signal;
+   if(!media.readyState)await new Promise(resolve=>{
+    for(const event of ['loadedmetadata','error'])media.addEventListener(event,resolve,{once:true,signal});
+    signal.addEventListener('abort',resolve,{once:true});
+   });
+   if(signal.aborted||t!==epoch)return;
+   if(!Number.isFinite(media.duration)||media.duration>180){notify('Streaming preview · full waveforms are available for recordings up to three minutes.');return;}
+   const r=await fetch(url,{signal});if(!r.ok)throw Error('The recording could not be read.');const raw=await r.arrayBuffer();if(t!==epoch)return;
    const ctx=audioContext=new AudioContext(),decoded=await ctx.decodeAudioData(raw);if(t!==epoch)return;
    const samples=decoded.getChannelData(0),g=canvas.getContext('2d'),w=canvas.width,h=canvas.height;g.clearRect(0,0,w,h);g.strokeStyle='#69f3e7';g.beginPath();
    for(let x=0;x<w;x++){let peak=0;const start=Math.floor(x*samples.length/w),end=Math.min(samples.length,Math.ceil((x+1)*samples.length/w));
@@ -65,7 +73,7 @@
    const a=c.assets.find(a=>a.id===selected);if(!a)return;
    body.append(node('h3',a.name));field(body,'Recording name',a,'name');field(body,'Recording category',a,'category',S.categories);
    const tags=field(body,'Tags, separated by commas',{tags:a.tags.join(', ')},'tags');tags.onchange=()=>a.tags=tags.value.split(',').map(s=>s.trim()).filter(Boolean);
-   for(const [key,label,min,max] of [['volume','Volume',0,1],['start','Trim start (seconds)',0,7200],['end','Trim end (0 uses full recording)',0,7200],['fadeIn','Fade in (seconds)',0,60],['fadeOut','Fade out (seconds)',0,60],['rate','Playback speed',.25,4],['pitch','Pitch (semitones, changes playback rate)',-12,12]])field(body,label,a,key,[min,max]);
+   for(const [key,label,min,max] of [['volume','Volume',0,1],['start','Trim start (seconds)',0,7200],['end','Trim end (0 uses full recording)',0,7200],['fadeIn','Fade in (seconds)',0,60],['fadeOut','Fade out (seconds)',0,60],['rate','Playback speed',.25,4],['pitch','Pitch (semitones)',-12,12]])field(body,label,a,key,[min,max]);
    field(body,'Loop',a,'loop');body.append(node('p',refs(a.id).join(' · ')||'Unused recording'));upload(body,a);
    const wave=node('canvas');wave.width=480;wave.height=60;wave.style.maxWidth='100%';wave.setAttribute('aria-label','Recording waveform');body.append(wave);
    button(body,'Preview recording',()=>audition(a,wave));button(body,'Stop preview',stop);
@@ -99,6 +107,18 @@
   host.replaceChildren(node('h2','Sound & Audio Studio'));const nav=node('nav');host.append(nav);
   for(const name of ['Library','Playlists','Spatial sources','Game events','Mixer'])button(nav,name,()=>{tab=name;render();});
   host.append(body,status);
+  button(host,'Export audio configuration',()=>{
+   const url=URL.createObjectURL(new Blob([JSON.stringify(c,null,2)],{type:'application/json'})),link=node('a');
+   link.href=url;link.download='void-runner-audio.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
+  });
+  const importLabel=node('label','Import audio configuration '),picker=node('input');picker.type='file';picker.accept='.json,application/json';
+  picker.onchange=async()=>{if(busy)return;const file=picker.files[0];if(!file)return;
+   busy=true;try{if(file.size>1024*1024)throw Error('Choose a configuration smaller than 1 MiB.');
+    const content=JSON.parse(await file.text()),validated=await send('/validate',{content});if(!active())return;
+    c=validated.content;selected=c.assets[0]?.id;render();notify('Imported for preview. Save the private draft to keep these changes.');
+   }catch(e){notify(e);}finally{busy=false;picker.value='';}
+  };importLabel.append(picker);host.append(importLabel);
+
   for(const [path,label] of [['draft','Save private draft'],['publish','Publish audio']])button(host,label,async()=>{if(busy)return;busy=true;try{const r=await send('/'+path,{revision,expected:version,content:c});if(!active())return;revision=r.revision;if(r.version!=null)version=r.version;notify(path==='draft'?'Private draft saved.':'Published version '+version+'.');}finally{busy=false;}});
   render();
  }
