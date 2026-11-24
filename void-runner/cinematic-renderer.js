@@ -7,7 +7,7 @@
   const view=document.createElement('canvas'),out=document.createElement('canvas'),g=out.getContext('2d',{alpha:false});
   const [w,h]=C.dimensions(project.resolution,project.aspect);out.width=w;out.height=h;
   out.style.cssText='display:block;max-width:100%;max-height:42vh;background:#081016;margin:auto';out.tabIndex=0;out.setAttribute('aria-label','Cinematic preview');
-  parent.replaceChildren(out);let scene,engine,cam,actor,lamp,room,disposeRenderer=false,display,video,groups=[],currentGroup,pipeline,record,session,download=null,soundCtx,recordMix,monitor;
+  parent.replaceChildren(out);let scene,engine,cam,actor,lamp,room,disposeRenderer=false,display,video,groups=[],currentGroup,pipeline,record,captureTrack,session,download=null,soundCtx,recordMix,monitor;
   const sounds=new Map(),held=new Set();let time=0,playing=false,frame=0,last=performance.now(),mouse=null,yaw=0,tilt=0,free=null;
   const loaded=[];
   function dispose(){disposeRenderer=true;cancelAnimationFrame(frame);stopRecording();clearSounds();display?.getTracks().forEach(t=>t.stop());video?.pause();soundCtx?.close().catch(()=>{});
@@ -62,9 +62,10 @@
    if(project.place==='Gameplay tab'&&!video)throw Error('Share a gameplay tab before recording.');
    const duration=C.span(project);if(!duration)throw Error('Add a clip before recording.');
    const hasAudio=project.clips.some(c=>c.src)||display?.getAudioTracks().length;
+   if(hasAudio){const candidate=C.formats(true).find(t=>t.split(';')[0]===type.split(';')[0]);if(!candidate)throw Error('This encoder cannot include the soundtrack.');type=candidate;}
    const ctx=hasAudio?audio():null;
    if(ctx&&ctx.state!=='running')await Promise.race([ctx.resume(),new Promise((_,reject)=>setTimeout(()=>reject(Error('Audio device unavailable. Enable audio before exporting the soundtrack.')),5000))]);
-   const stream=out.captureStream(project.fps);
+   const stream=out.captureStream(project.fps);captureTrack=stream.getVideoTracks()[0];
    let silence;
    if(hasAudio){
     // Keep the encoder clock running before the first audible cue.
@@ -77,7 +78,7 @@
    const startupTimer=setTimeout(()=>{if(!started){failed='The browser encoder did not start. Try another format or check your media device.';stopRecording();}},8000);
    session=new Promise((resolve,reject)=>{r.ondataavailable=e=>{if(!e.data.size)return;size+=e.data.size;if(size>300*1024*1024){failed='Recording exceeded 300 MiB.';stopRecording();}else chunks.push(e.data);};
     r.onerror=e=>{failed=e.error?.message||'Browser encoder failed.';note(failed);};
-    r.onstop=()=>{clearTimeout(startupTimer);silence?.stop();silence?.disconnect();stream.getTracks().forEach(t=>t.stop());if(failed||!chunks.length||disposeRenderer){reject(Error(failed||'The encoder returned no video. Try a different format or lower resolution.'));return;}
+    r.onstop=()=>{captureTrack=null;clearTimeout(startupTimer);silence?.stop();silence?.disconnect();stream.getTracks().forEach(t=>t.stop());if(failed||!chunks.length||disposeRenderer){reject(Error(failed||'The encoder returned no video. Try a different format or lower resolution.'));return;}
      if(download)URL.revokeObjectURL(download);const blob=new Blob(chunks,{type:r.mimeType});download=URL.createObjectURL(blob);resolve({url:download,blob,extension:r.mimeType.includes('mp4')?'mp4':'webm'});};});
    record=r;playing=false;seek(0);
    r.onstart=()=>{started=true;clearTimeout(startupTimer);last=performance.now();playing=true;};
@@ -113,6 +114,7 @@
    if(disposeRenderer)return;if(video){if(video.readyState>=2)g.drawImage(video,0,0,w,h);}else if(scene)projectScene(t,dt);
    for(const c of C.on(project,'Text',t)){g.textAlign='center';g.font='600 '+Math.round(h*.045)+'px sans-serif';g.fillStyle=c.color;g.fillText(c.text,w/2,h*.87,w*.92);}
    for(const c of C.on(project,'Transition',t)){const f=(t-c.start)/c.duration;g.globalAlpha=c.kind==='Fade in'?1-f:f;g.fillStyle=c.color;g.fillRect(0,0,w,h);g.globalAlpha=1;}
+   captureTrack?.requestFrame?.();
   }
   function tick(n){if(disposeRenderer)return;const dt=Math.max(0,(n-last)/1000);last=n;
    if(playing){time=Math.min(C.span(project),time+dt);syncSound(time);if(time>=C.span(project)){draw(Math.max(0,time-.0001),dt);stop();}}

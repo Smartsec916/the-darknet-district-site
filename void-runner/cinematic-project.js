@@ -37,7 +37,8 @@
   }
   return '';
  }
- function formats(){if(!root.MediaRecorder||!root.HTMLCanvasElement?.prototype.captureStream)return [];
-  return ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].filter(t=>MediaRecorder.isTypeSupported(t));}
+ function formats(withSound=false){if(!root.MediaRecorder||!root.HTMLCanvasElement?.prototype.captureStream)return [];
+  const audio=withSound?',opus':'';
+  return ['video/webm;codecs=vp9'+audio,'video/webm;codecs=vp8'+audio,'video/webm','video/mp4;codecs=avc1.42E01E'+(withSound?',mp4a.40.2':''),'video/mp4'].filter(t=>MediaRecorder.isTypeSupported(t));}
  const api={tracks,modes,places,actors,presets,base,clip,fresh,dimensions,span,on,camera,validate,formats};if(typeof module!=='undefined')module.exports=api;else root.VoidCinema=api;
 })(globalThis);
