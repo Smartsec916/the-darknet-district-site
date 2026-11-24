@@ -21,7 +21,7 @@ const dir=path.resolve(__dirname,'..');
    const kiosk=p.locator('[data-seller=kiosk-entrance]');await kiosk.locator('[data-assigned]').check();await kiosk.getByLabel('Vendor price').fill('18');
    await p.getByLabel('Base price').fill('31');await p.locator('[data-field=status]').selectOption('published');
    await p.getByRole('button',{name:'Save draft',exact:true}).click();await p.waitForFunction(()=>catalogFixture.draft.revision===1);
-   const result=await p.evaluate(()=>{const c=catalogFixture.draft.content;return [c.items.find(i=>i.id==='district-espresso').price,c.vendors.find(v=>v.id==='kiosk-entrance').entries[0].price,VoidConsumables.problems(c),catalogFixture.live.content.items.length];});assert.deepEqual(result,[31,18,[],2]);
+   const result=await p.evaluate(()=>{const c=catalogFixture.draft.content;return [c.items.find(i=>i.id==='district-espresso').price,c.vendors.find(v=>v.id==='kiosk-entrance').entries.find(e=>e.item==='district-espresso').price,VoidConsumables.problems(c),catalogFixture.live.content.items.length];});assert.deepEqual(result,[31,18,[],2]);
    await p.getByRole('button',{name:'Publish draft',exact:true}).click();await p.waitForFunction(()=>catalogFixture.state.version===1);
    await p.getByLabel('Search',{exact:true}).fill('espresso');assert.equal(await p.locator('[data-picker] option').count(),2);
    await p.getByRole('button',{name:'Duplicate selected'}).click();await p.getByRole('button',{name:'Save draft',exact:true}).click();

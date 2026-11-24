@@ -27,6 +27,8 @@
  const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable'];
  function itemProblems(it,cats){const out=[],n=(it&&it.id||'item')+': ';
   if(!hasOnly(it,ITEM_KEYS))return [n+'unknown fields'];
+  if(it.image&&!/^assets\/[a-z0-9_/-]+\.(png|jpe?g|webp)$/i.test(it.image))out.push(n+'choose a game image');
+  for(const key of ['purchaseSound','useSound'])if(it[key]&&!/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(it[key]))out.push(n+'choose a game audio file for '+key);
   if(typeof it.id!=='string'||!ID.test(it.id))out.push(n+'the item id uses lowercase letters, numbers and hyphens (1 to 40)');
   if(!plain(it.name,L.name)||!it.name)out.push(n+'name is required (up to '+L.name+' characters, no markup)');
   if(!plain(it.description,L.description))out.push(n+'description has markup or is too long');
@@ -48,7 +50,19 @@
     else{const ids=new Set();ef.forEach((e,i)=>{out.push(...effectProblems(e,n+'effect '+(i+1)));if(e&&ids.has(e.id))out.push(n+'two effects share the id "'+e.id+'"');ids.add(e&&e.id);});}
     if(!Array.isArray(mo)||mo.length>L.modifiers)out.push(n+'at most '+L.modifiers+' gameplay modifiers');else mo.forEach((m,i)=>out.push(...modifierProblems(m,n+'modifier '+(i+1))));}}
   return out;}
- const ENTRY_KEYS=['item','price','stock','maxStock','restock','available'];
+ const ENTRY_KEYS=['item','price','stock','maxStock','restock','available','rules'];
+ function sellerRules(r){
+  if(r==null)return [];
+  if(!hasOnly(r,['opens','closes','minRep','mission','color','message','sound','model']))return ['Unknown vendor setting'];
+  const bad=[];for(const key of ['opens','closes'])if(key in r&&!int(r[key],0,23))bad.push('Hours must be 0–23');
+  if('minRep' in r&&!int(r.minRep,-100,100))bad.push('Reputation must be -100 to 100');
+  if(r.mission&&!ID.test(r.mission))bad.push('Choose a valid mission ID');
+  if('message' in r&&!plain(r.message,160))bad.push('Promotional message is too long');
+  if(r.color&&!/^#[a-f0-9]{6}$/i.test(r.color))bad.push('Choose a six-digit color');
+  if(r.sound&&!/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(r.sound))bad.push('Choose game audio');
+  if(r.model&&!/^assets\/models\/[a-z0-9_/-]+\.glb$/i.test(r.model))bad.push('Choose a game model');
+  return bad;
+ }
  function entryProblems(en,at,items){const n=at+': ';if(!hasOnly(en,ENTRY_KEYS))return [n+'unknown fields'];const out=[];
   if(!items.has(en.item))out.push(n+'item "'+en.item+'" is not in the catalog');
   if(!int(en.price,0,L.price))out.push(n+'price is a whole number from 0 to '+L.price);
@@ -65,8 +79,9 @@
   if(!Array.isArray(c.items)||c.items.length>L.items)return out.concat(['At most '+L.items+' items.']);
   const ids=new Set();for(const it of c.items){out.push(...itemProblems(it,cats));if(it&&ids.has(it.id))out.push('Two items share the id "'+it.id+'".');ids.add(it&&it.id);}
   if(!Array.isArray(c.vendors)||c.vendors.length>L.vendors)return out.concat(['At most '+L.vendors+' vendors.']);
+  for(const v of c.vendors){if(v){out.push(...sellerRules(v.rules));for(const e of Array.isArray(v.entries)?v.entries:[])if(e)out.push(...sellerRules(e.rules));}}
   const vids=new Set(),known=new Map(S.vendorRegistry.map(v=>[v.entity,v]));
-  for(const v of c.vendors){const n=(v&&v.id||'vendor')+': ';if(!hasOnly(v,['id','name','kind','location','entity','entries'])){out.push(n+'unknown fields');continue;}
+  for(const v of c.vendors){const n=(v&&v.id||'vendor')+': ';if(!hasOnly(v,['id','name','kind','location','entity','entries','rules'])){out.push(n+'unknown fields');continue;}
    if(typeof v.id!=='string'||!ID.test(v.id))out.push(n+'the vendor id uses lowercase letters, numbers and hyphens');else if(vids.has(v.id))out.push(n+'two vendors share this id');vids.add(v.id);
    const reg=known.get(v.entity);if(!reg)out.push(n+'"'+v.entity+'" is not a seller the game has');else if(reg.kind!==v.kind)out.push(n+'kind does not match the game seller');
    if(!plain(v.name,L.name)||!v.name)out.push(n+'name is required');if(!plain(v.location,60))out.push(n+'location is too long');
@@ -89,7 +104,12 @@
   const tint=newItem('street-tint','Street tint');Object.assign(tint,{description:'A light colour wash for 60 seconds.',category:'substances',icon:'◐',price:15,status:'published',stack:5});
   const fx=newEffect('colorShift','tint-wash');Object.assign(fx.params,{hue:8,hueSpeed:0,saturation:1.15,contrast:1,tintAmount:0});fx.intensity=1;fx.duration=60;fx.fadeIn=2;fx.fadeOut=4;tint.consumable={effects:[fx],modifiers:[]};
   const entries=[newVendorEntry('sprint-tonic',40),newVendorEntry('street-tint',15)];entries.forEach(e=>{e.stock=9999;e.maxStock=9999;});
-  return {format:S.format,version:S.version,categories:clone(S.categories),items:[sprint,tint],vendors:[{id:'shop-here',name:'SHOP HERE counter',kind:'counter',location:'District store',entity:'shop-here',entries}],presets:[]};}
+  const vendors=[{id:'shop-here',name:'SHOP HERE counter',kind:'counter',location:'District store',entity:'shop-here',entries}];
+  const initial={'kiosk-entrance':[[sprint,40]],'kiosk-far-1':[[tint,15]],'kiosk-far-2':[[sprint,38],[tint,18]],'vend-drinks':[[sprint,45]],'vend-dispensary':[[sprint,42],[tint,20]],'vend-neurohackers':[[tint,17]]};
+  for(const reg of S.vendorRegistry.filter(v=>initial[v.entity])){
+   vendors.push({...reg,id:reg.entity,entries:initial[reg.entity].map(([it,price])=>({...newVendorEntry(it.id,price),restock:{mode:'interval',every:600,amount:2}}))});
+  }
+  return {format:S.format,version:S.version,categories:clone(S.categories),items:[sprint,tint],vendors,presets:[]};}
  /* ---------- vendor listing math (the server runs the same rules on its own stock record) ---------- */
  function restocked(entry,rec,now){const base={remaining:entry.stock,at:now,base:entry.stock};let r=rec&&rec.base===entry.stock?{...rec}:base;
   if(entry.restock.mode==='interval'&&entry.restock.every>0&&r.remaining<entry.maxStock){const k=Math.floor(Math.max(0,now-r.at)/entry.restock.every);if(k>0){r.remaining=Math.min(entry.maxStock,r.remaining+k*entry.restock.amount);r.at+=k*entry.restock.every;}}

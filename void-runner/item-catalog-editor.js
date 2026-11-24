@@ -38,11 +38,19 @@
   function setData(d){s.data=rules.clone(d.draft.content||d.live.content);s.revision=d.draft.revision;s.version=d.state.version;s.history=d.state.history||[];s.dirty=false;if(!item())s.id=s.data.items[0]?.id;}
   function mark(){s.dirty=true;s.message='Unsaved changes';}
   function filter(key,title,values){return '<label>'+title+' <select data-filter="'+key+'">'+options([['','All'],...values],s.filter[key]||'')+'</select></label>';}
+  function availabilityFields(scope,r={}){
+   const wrap=(k,title,val)=>field(k,title,val);
+   return '<fieldset data-rule-owner="'+scope+'"><legend>'+ (scope==='vendor'?'Vendor settings':'Product availability')+'</legend>'+
+    wrap('opens','Opening hour',r.opens??0)+wrap('closes','Closing hour (same hour = all day)',r.closes??0)+
+    wrap('minRep','Minimum civilian reputation',r.minRep??-100).replace('min="0"','min="-100"')+wrap('mission','Required completed mission ID',r.mission||'')+
+    (scope==='vendor'?'<label>Interface color <input type="color" data-field="color" value="'+esc(r.color||'#548c98')+'"></label>'+
+    wrap('message','Promotional message',r.message||'')+wrap('sound','Purchase sound (game asset path)',r.sound||''):'')+'</fieldset>';
+  }
   function assignments(it){
    return spec.vendorRegistry.map(reg=>{
     const vendor=s.data.vendors.find(v=>v.entity===reg.entity),e=vendor?.entries.find(x=>x.item===it.id);
     return '<fieldset data-seller="'+esc(reg.entity)+'"><legend><label><input type="checkbox" data-assigned '+(e?'checked':'')+'> '+esc(vendor?.name||reg.name)+'</label></legend><small>'+esc(reg.location)+' · '+esc(reg.kind)+'</small>'+
-     (e?field('price','Vendor price',e.price)+field('stock','Initial stock',e.stock)+field('maxStock','Maximum stock',e.maxStock)+
+     (e?'<label>Vendor name <input data-vendor-name value="'+esc(vendor.name)+'"></label><label>Location label <input data-vendor-location value="'+esc(vendor.location)+'"></label>'+availabilityFields('vendor',vendor.rules)+availabilityFields('entry',e.rules)+field('price','Vendor price',e.price)+field('stock','Initial stock',e.stock)+field('maxStock','Maximum stock',e.maxStock)+
      '<label><input type="checkbox" data-sale '+(e.available?'checked':'')+'> On sale</label>'+field('mode','Restock',e.restock.mode,spec.restock)+
      (e.restock.mode==='interval'?field('every','Interval (seconds)',e.restock.every)+field('amount','Units per interval',e.restock.amount):''):'')+'</fieldset>';
    }).join('');
@@ -60,7 +68,7 @@
     field('newId','New item ID','')+'<label>Template <select data-example>'+options([['','Blank item'],...Object.entries(root.VoidConsumableStudio?.examples||{}).map(([id,v])=>[id,v[0]])],'')+'</select></label>'+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
     (it?'<fieldset><legend>'+esc(it.name)+' · '+esc(it.id)+'</legend>'+field('name','Name',it.name)+field('description','Description',it.description)+field('category','Category',it.category,cats)+
      field('kind','Item type',it.kind,spec.kinds)+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
-     field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+
+     field('image','Product image path',it.image||'')+field('purchaseSound','Purchase sound',it.purchaseSound||'')+field('useSound','Use sound',it.useSound||'')+field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+
      ('<button data-effects type="button">Open Consumables Studio</button>')+field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset>'+
      '<h4>Sold at</h4><p>'+esc(where.map(v=>v.name+' · '+v.location).join(', ')||'No vendors assigned')+'</p>'+assignments(it):'')+
     '<p>'+button('category','Add category')+button('save','Save draft')+button('publish','Publish draft')+button('reload','Reload saved draft')+'</p>'+
@@ -102,7 +110,11 @@
      if(!el.checked)vendor.entries=vendor.entries.filter(x=>x.item!==it.id);
     }else{
      const entry=vendor?.entries.find(x=>x.item===it.id);if(!entry)return;
-     if(el.matches('[data-sale]'))entry.available=el.checked;
+     const owner=el.closest('[data-rule-owner]')?.dataset.ruleOwner;
+     if(owner){const target=owner==='vendor'?vendor:entry;target.rules||={};target.rules[k]=el.type==='number'?el.valueAsNumber:el.value;}
+     else if(el.matches('[data-vendor-name]'))vendor.name=el.value;
+     else if(el.matches('[data-vendor-location]'))vendor.location=el.value;
+     else if(el.matches('[data-sale]'))entry.available=el.checked;
      else if(k==='mode')entry.restock=el.value==='interval'?{mode:'interval',every:300,amount:1}:{mode:'none',every:0,amount:0};
      else if(k==='every'||k==='amount')entry.restock[k]=el.valueAsNumber;
      else if(k)entry[k]=el.valueAsNumber;else return;

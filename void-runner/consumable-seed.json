@@ -1,146 +1,296 @@
 {
- "format": "vr-items",
- "version": 1,
- "categories": [
-  {
-   "id": "food",
-   "name": "Food"
-  },
-  {
-   "id": "beverages",
-   "name": "Beverages"
-  },
-  {
-   "id": "medical",
-   "name": "Medical supplies"
-  },
-  {
-   "id": "stimulants",
-   "name": "Stimulants"
-  },
-  {
-   "id": "substances",
-   "name": "Fictional cyberpunk substances"
-  },
-  {
-   "id": "other",
-   "name": "Other"
-  }
- ],
- "items": [
-  {
-   "id": "sprint-tonic",
-   "name": "Sprint tonic",
-   "description": "You move faster for 90 seconds.",
-   "category": "stimulants",
-   "subcategory": "",
-   "kind": "consumable",
-   "icon": "⚡",
-   "model": null,
-   "animation": "drink",
-   "price": 40,
-   "stack": 5,
-   "weight": 0.1,
-   "rarity": "common",
-   "status": "published",
-   "cooldown": 0,
-   "consumable": {
-    "effects": [],
-    "modifiers": [
-     {
-      "stat": "runSpeed",
-      "amount": 0.2,
-      "delay": 0,
-      "duration": 90
-     },
-     {
-      "stat": "walkSpeed",
-      "amount": 0.2,
-      "delay": 0,
-      "duration": 90
-     }
-    ]
-   }
-  },
-  {
-   "id": "street-tint",
-   "name": "Street tint",
-   "description": "A light colour wash for 60 seconds.",
-   "category": "substances",
-   "subcategory": "",
-   "kind": "consumable",
-   "icon": "◐",
-   "model": null,
-   "animation": "drink",
-   "price": 15,
-   "stack": 5,
-   "weight": 0.1,
-   "rarity": "common",
-   "status": "published",
-   "cooldown": 0,
-   "consumable": {
-    "effects": [
-     {
-      "id": "tint-wash",
-      "type": "colorShift",
-      "intensity": 1,
-      "delay": 0,
-      "duration": 60,
-      "fadeIn": 2,
-      "fadeOut": 4,
-      "speed": 1,
-      "stacking": "max",
-      "params": {
-       "hue": 8,
-       "hueSpeed": 0,
-       "saturation": 1.15,
-       "contrast": 1,
-       "exposure": 0,
-       "invert": 0,
-       "channelSplit": 0.2,
-       "tintHue": 280,
-       "tintAmount": 0
-      }
-     }
-    ],
-    "modifiers": []
-   }
-  }
- ],
- "vendors": [
-  {
-   "id": "shop-here",
-   "name": "SHOP HERE counter",
-   "kind": "counter",
-   "location": "District store",
-   "entity": "shop-here",
-   "entries": [
+  "format": "vr-items",
+  "version": 1,
+  "categories": [
     {
-     "item": "sprint-tonic",
-     "price": 40,
-     "stock": 9999,
-     "maxStock": 9999,
-     "restock": {
-      "mode": "none",
-      "every": 0,
-      "amount": 0
-     },
-     "available": true
+      "id": "food",
+      "name": "Food"
     },
     {
-     "item": "street-tint",
-     "price": 15,
-     "stock": 9999,
-     "maxStock": 9999,
-     "restock": {
-      "mode": "none",
-      "every": 0,
-      "amount": 0
-     },
-     "available": true
+      "id": "beverages",
+      "name": "Beverages"
+    },
+    {
+      "id": "medical",
+      "name": "Medical supplies"
+    },
+    {
+      "id": "stimulants",
+      "name": "Stimulants"
+    },
+    {
+      "id": "substances",
+      "name": "Fictional cyberpunk substances"
+    },
+    {
+      "id": "other",
+      "name": "Other"
     }
-   ]
-  }
- ],
- "presets": []
+  ],
+  "items": [
+    {
+      "id": "sprint-tonic",
+      "name": "Sprint tonic",
+      "description": "You move faster for 90 seconds.",
+      "category": "stimulants",
+      "subcategory": "",
+      "kind": "consumable",
+      "icon": "⚡",
+      "model": null,
+      "animation": "drink",
+      "price": 40,
+      "stack": 5,
+      "weight": 0.1,
+      "rarity": "common",
+      "status": "published",
+      "cooldown": 0,
+      "consumable": {
+        "effects": [],
+        "modifiers": [
+          {
+            "stat": "runSpeed",
+            "amount": 0.2,
+            "delay": 0,
+            "duration": 90
+          },
+          {
+            "stat": "walkSpeed",
+            "amount": 0.2,
+            "delay": 0,
+            "duration": 90
+          }
+        ]
+      }
+    },
+    {
+      "id": "street-tint",
+      "name": "Street tint",
+      "description": "A light colour wash for 60 seconds.",
+      "category": "substances",
+      "subcategory": "",
+      "kind": "consumable",
+      "icon": "◐",
+      "model": null,
+      "animation": "drink",
+      "price": 15,
+      "stack": 5,
+      "weight": 0.1,
+      "rarity": "common",
+      "status": "published",
+      "cooldown": 0,
+      "consumable": {
+        "effects": [
+          {
+            "id": "tint-wash",
+            "type": "colorShift",
+            "intensity": 1,
+            "delay": 0,
+            "duration": 60,
+            "fadeIn": 2,
+            "fadeOut": 4,
+            "speed": 1,
+            "stacking": "max",
+            "params": {
+              "hue": 8,
+              "hueSpeed": 0,
+              "saturation": 1.15,
+              "contrast": 1,
+              "exposure": 0,
+              "invert": 0,
+              "channelSplit": 0.2,
+              "tintHue": 280,
+              "tintAmount": 0
+            }
+          }
+        ],
+        "modifiers": []
+      }
+    }
+  ],
+  "vendors": [
+    {
+      "id": "shop-here",
+      "name": "SHOP HERE counter",
+      "kind": "counter",
+      "location": "District store",
+      "entity": "shop-here",
+      "entries": [
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 9999,
+          "maxStock": 9999,
+          "restock": {
+            "mode": "none",
+            "every": 0,
+            "amount": 0
+          },
+          "available": true
+        },
+        {
+          "item": "street-tint",
+          "price": 15,
+          "stock": 9999,
+          "maxStock": 9999,
+          "restock": {
+            "mode": "none",
+            "every": 0,
+            "amount": 0
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "kiosk-entrance",
+      "name": "Store kiosk by the entrance",
+      "kind": "kiosk",
+      "location": "District store",
+      "id": "kiosk-entrance",
+      "entries": [
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "kiosk-far-1",
+      "name": "Store kiosk, far wall (survival gear)",
+      "kind": "kiosk",
+      "location": "District store",
+      "id": "kiosk-far-1",
+      "entries": [
+        {
+          "item": "street-tint",
+          "price": 15,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "kiosk-far-2",
+      "name": "Store kiosk, far wall (by Iris)",
+      "kind": "kiosk",
+      "location": "District store",
+      "id": "kiosk-far-2",
+      "entries": [
+        {
+          "item": "sprint-tonic",
+          "price": 38,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        },
+        {
+          "item": "street-tint",
+          "price": 18,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "vend-drinks",
+      "name": "Vending machine: DRINKS",
+      "kind": "vending",
+      "location": "District vending alcove",
+      "id": "vend-drinks",
+      "entries": [
+        {
+          "item": "sprint-tonic",
+          "price": 45,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "vend-dispensary",
+      "name": "Vending machine: DISPENSARY",
+      "kind": "vending",
+      "location": "District vending alcove",
+      "id": "vend-dispensary",
+      "entries": [
+        {
+          "item": "sprint-tonic",
+          "price": 42,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        },
+        {
+          "item": "street-tint",
+          "price": 20,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "vend-neurohackers",
+      "name": "Vending machine: NEUROHACKERS",
+      "kind": "vending",
+      "location": "District vending alcove",
+      "id": "vend-neurohackers",
+      "entries": [
+        {
+          "item": "street-tint",
+          "price": 17,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 600,
+            "amount": 2
+          },
+          "available": true
+        }
+      ]
+    }
+  ],
+  "presets": []
 }

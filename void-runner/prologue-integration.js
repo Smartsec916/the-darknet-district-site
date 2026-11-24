@@ -151,7 +151,14 @@ VoidInteractions.register('district-iris',()=>districtLine('Iris',state.story.fl
 VoidInteractions.register('district-shop',()=>{shop();screen.querySelector('.shop-heading,.actions')?.insertAdjacentHTML('beforeend',button('RETURN TO THE DISTRICT','walk-resume',true));});
 VoidInteractions.register('district-bar',()=>districtLine('Bartender','Filtered air is free, the drinks are not. Pilots talk too much in here, so listen.'));
 VoidInteractions.register('district-vr',()=>districtLine('Arcade attendant','Every rig is booked tonight. Come back later.'));
-VoidInteractions.register('district-vending',()=>{announce('The machine hums and drops a can of Drink Oil. It tastes like a warm battery.');resumeWalking();});
+VoidInteractions.register('district-vending',()=>{
+ if(globalThis.VoidCatalogShop&&typeof walker!=='undefined'){
+  const machines=walkingLocation.interactions.filter(i=>i.vendor?.startsWith('vend-'));
+  const distance=i=>Math.hypot(i.position[0]-walker.x,i.position[2]-walker.z);
+  machines.sort((a,b)=>distance(a)-distance(b));
+  if(machines.length){VoidCatalogShop.open(machines[0].vendor);return;}
+ }
+ announce('The machine hums and drops a can of Drink Oil. It tastes like a warm battery.');resumeWalking();});
 VoidInteractions.register('district-pod',({item}={})=>{if(typeof enterSleepingPod==='function')enterSleepingPod(item?.podIndex||1);});
 // Meridian's living area has the same pods (meridian-interior.js): rest and save.
 VoidInteractions.register('meridian-pod',()=>{save();announce('You rest in a sleep pod. Progress saved.');resumeWalking();});
