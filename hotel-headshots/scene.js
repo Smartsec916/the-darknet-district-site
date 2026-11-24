@@ -99,10 +99,11 @@
   if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,-1,m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}
   const glow=new B.GlowLayer('neon spill',scene,{blurKernelSize:32});glow.intensity=.65;
   scene.imageProcessingConfiguration.contrast=1.12;scene.imageProcessingConfiguration.exposure=1.2;
+  const windows=HotelWindows.build(scene,camera,map);
   const characters=HotelCharacters.prepare(scene,shadow);
   const person=characters.person;
   function weapon(){const n=new B.TransformNode('foam blaster',scene);n.parent=camera;n.position=V(0,-.21,.28);n.scaling=V(.62,.72,.72);const tan=mat('blaster tan','#b89a72',.65,.04);const barrel=cylinder('foam pressure barrel',[0,0,.1],.47,.17,tan,n,true);barrel.rotation.x=Math.PI/2;const nozzle=cylinder('tan nozzle',[0,0,.37],.1,.1,tan,n,true);nozzle.rotation.x=Math.PI/2;box('tan grip',[0,-.12,-.07],[.12,.24,.13],tan,n,true);for(const m of n.getChildMeshes()){m.isPickable=false;m.renderingGroupId=1;}return n;}
-  return {scene,camera,shadow,person,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
+  return {scene,camera,shadow,windows,person,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
  }
  root.HotelScene={build};
 })(globalThis);

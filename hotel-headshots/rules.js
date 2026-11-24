@@ -25,7 +25,7 @@
    const bx=x0+1,bz=z0+1;wall(x0+2,z0,x0+2,z0+2);wall(x0,z0+3,x0+2,z0+3);door(x0+1,z0+3,'BATHROOM');
    prop('bath',bx,bz);const bed=[x1-1,z1-1];prop('bed',...bed);
    const room={id:rooms.length,number:(index+1)*100+rooms.length+1,bounds:[x0,z0,x1,z1],door:[dx,entryZ],bed,bath:[bx,bz],bedside:[bed[0],bed[1]+1],awake:[x1,z1]};rooms.push(room);
-   room.bathDoor=[x0+1,z0+3];room.furniture={nightstands:[[bed[0]-1,bed[1]],[bed[0]+1,bed[1]]],desk:[x1,z0+1],chair:[x1,z0+1.32],tv:[x1+.45,z0+1]};
+   room.window={x:x1+.48,z:z0+3};room.bathDoor=[x0+1,z0+3];room.furniture={nightstands:[[bed[0]-1,bed[1]],[bed[0]+1,bed[1]]],desk:[x1,z0+1],chair:[x1,z0+1.32],tv:[x1+.45,z0+1]};
    for(const point of room.furniture.nightstands){prop('nightstand',...point,{room:room.id});obstacles.push({x:world(point[0])+(point[0]<bed[0]?1.05:-1.05),z:world(point[1])+.45,hx:.34,hz:.35});}
    prop('room-desk',...room.furniture.desk,{room:room.id});prop('room-tv',...room.furniture.tv,{room:room.id});
    roomLabels.push(['ROOM '+room.number,dx,entryZ]);
