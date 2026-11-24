@@ -418,7 +418,7 @@
  function panelFor(title,choices){
   panel?.remove();panel=document.createElement('aside');panel.className='tea-duo-choices';panel.setAttribute('aria-label',title);
   const label=document.createElement('p');label.textContent=title;panel.append(label);
-  for(const [text,run] of choices){const button=document.createElement('button');button.type='button';button.textContent=text;button.onclick=run;panel.append(button);}
+  for(const [text,run] of choices){const button=document.createElement('button');button.type='button';button.textContent=text;button.onclick=run;if(text==='Cancel'||text==='Stand up'||text.startsWith('2 ·'))button.dataset.inputDismiss='';panel.append(button);}
   document.body.append(panel);
  }
  function answer(yes){
@@ -474,7 +474,9 @@
     for(const f of figs.values()){assignSeat(f,seats[f.id]);f.want='sit';}
    }
    if(!playerSeat&&Math.hypot(w.x-seats.player.stand.x,w.z-seats.player.stand.z)<.76)beginSeat(w,seats.player);
-   else if(!playerSeat&&!a.hint){a.hint=true;panelFor('Walk to the middle of the open cot to sit between Nomi and Se7en.',[['Cancel',endActivity]]);}
+   else if(!playerSeat&&!a.hint){a.hint=true;panelFor('Walk to the middle of the open cot to sit between Nomi and Se7en.',[
+     ['Walk to cot',()=>{panel?.remove();panel=null;}],['Cancel',endActivity]
+    ]);panel.dataset.approach='true';}
    a.seated=!!playerSeat&&Array.from(figs.values()).every(f=>f.post==='sit'&&!f.tail);
    return;
   }

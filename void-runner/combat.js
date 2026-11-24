@@ -60,7 +60,7 @@ function fireMissile(consequences=campaignMissileFireConsequences){
  missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',ship,missile,flightBasis());globalThis.VoidFlightFx?.launch(missile);updateMissileHud();
 }
 canvas.addEventListener('contextmenu',event=>{if(mode==='play')event.preventDefault();});
-canvas.addEventListener('pointerdown',event=>{if(mode==='play'&&event.button===2){event.preventDefault();fireMissile();}});
+canvas.addEventListener('pointerdown',event=>{if(mode==='play'&&VoidInputState.current.movement&&event.button===2){event.preventDefault();fireMissile();}});
 canvas.addEventListener('wheel',event=>{if(mode==='play'&&missileState.rack){event.preventDefault();switchMissile();}},{passive:false});
 const missileButton=document.createElement('button');missileButton.id='missile-fire';missileButton.textContent='MISSILE';missileButton.className='hidden';missileButton.setAttribute('aria-label','Fire missile (guided when locked)');document.getElementById('touch-controls').append(missileButton);
 missileButton.addEventListener('pointerdown',event=>{event.preventDefault();fireMissile();});

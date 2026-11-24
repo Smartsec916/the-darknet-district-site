@@ -55,7 +55,7 @@
   canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&Math.abs(e.movementX)+Math.abs(e.movementY)>2)setActive('keyboard');},true);
   for(const type of ['contextmenu','selectstart','dragstart'])canvas.addEventListener(type,e=>{if(touchFirst&&activeModes.has(mode))e.preventDefault();});
   addEventListener('keydown',e=>{if(!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&!e.target.isContentEditable)setActive('keyboard');},true);
-  addEventListener('blur',clearTouch);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTouch();});
+  addEventListener('void-input-clear',()=>{clearTouch();padHeld.clear();});addEventListener('blur',clearTouch);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTouch();});
   function dead(value,threshold){const n=Math.abs(value);return n<=threshold?0:Math.sign(value)*(n-threshold)/(1-threshold);}
   function gamepad(){try{for(const pad of navigator.getGamepads?.()||[])if(pad&&pad.connected!==false&&(pad.mapping==='standard'||pad.axes?.length>=4))return pad;return null;}catch{return null;}}
   function pollPad(dt){
@@ -64,6 +64,7 @@
     const c=input.controller,digital=mode==='play'?flightActions:fpsActions;
     const raw=pad.buttons.map(b=>!!b&&(b.pressed||b.value>.55));const lx=dead(pad.axes[0]||0,c.leftDeadZone),ly=dead(pad.axes[1]||0,c.leftDeadZone),rx=dead(pad.axes[2]||0,c.rightDeadZone),ry=dead(pad.axes[3]||0,c.rightDeadZone);
     if(capture){const index=raw.findIndex((pressed,i)=>pressed&&!previousButtons[i]);if(index>=0){const result=input.bindController(capture,index),status=document.getElementById('device-binding-status');if(result.error){if(status)status.textContent=result.error;}else{capture=null;mainAction('device-bindings');if(document.getElementById('device-binding-status'))document.getElementById('device-binding-status').textContent=result.saved?'Binding saved.':'Binding active for this session.';}}previousButtons=raw;return;}
+    if(!VoidInputState.current.movement&&!(mode==='menu'&&VoidMenu.returnTo&&VoidInputState.current.name!=='background')){previousButtons=raw;previousAxes=[lx,ly,rx,ry];return;}
     const axes=[lx,ly,rx,ry];if((Math.hypot(...axes)>.24&&axes.some((value,i)=>Math.abs(value-previousAxes[i])>.08))||raw.some((pressed,i)=>pressed&&!previousButtons[i]))setActive('gamepad');
     if(active==='gamepad'){input.axes.moveX=lx;input.axes.moveZ=-ly;input.axes.flightX=lx;input.axes.flightY=ly;input.axes.roll=rx;input.axes.lookX=rx;input.axes.lookY=ry*(c.invertY?-1:1);
       if(mode==='walking'&&walker){walker.yaw+=rx*c.sensitivity*dt*2.5;walker.pitch=FM.clamp(walker.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.35,1.35);}
@@ -77,7 +78,7 @@
   function poll(dt){
     if(lastMode!==mode){clearTouch();for(const id of padHeld)input.virtual.delete(id);padHeld.clear();lastMode=mode;buttons.dataset.signature='';}
     if(capture&&!document.getElementById('device-binding-status'))capture=null;
-    const gameplay=activeModes.has(mode),show=touchFirst&&gameplay&&active!=='gamepad';
+    const gameplay=activeModes.has(mode)&&VoidInputState.current.movement,show=touchFirst&&gameplay&&active!=='gamepad';
     layer.classList.toggle('visible',show);document.body.classList.toggle('mobile-gameplay',show);
     layer.classList.toggle('flight',mode==='play');layer.classList.toggle('portrait',show&&innerHeight>innerWidth);
     if(show)refreshButtons();

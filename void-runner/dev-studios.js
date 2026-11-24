@@ -56,7 +56,7 @@
   box.style.cssText='position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:40;width:min(440px,92vw);padding:16px 18px;background:#0c1214;color:#d7e6e4;border:1px solid #2a7f8a;font:14px/1.4 sans-serif';
   const cr=Number.isInteger(root.state?.credits)?root.state.credits:0;let html='<h2 style="margin:0 0 8px;font-size:18px">SHOP HERE</h2><p>This counter sells tonics. Admin and Iris keep their own conversation. You have '+cr+' CR.</p>';
   for(const p of PRESETS)html+='<p><b>'+esc(p.name)+'</b> · '+p.price+' CR<br>'+esc(p.help)+'</p><button type="button" data-buy="'+p.id+'">BUY '+esc(p.name.toUpperCase())+'</button>';
-  html+='<p id="shop-here-note" role="status"></p><p><button type="button" data-buy="close">CLOSE</button></p>';box.innerHTML=html;
+  html+='<p id="shop-here-note" role="status"></p><p><button type="button" data-buy="close" data-input-dismiss>CLOSE</button></p>';box.innerHTML=html;
   box.addEventListener('click',e=>{const id=e.target?.dataset?.buy;if(!id)return;if(id==='close'){box.remove();return;}
    const now=Date.now()/1000,r=buy(root.state?.credits,root.state?.story?.flags?.shopEffect,id,now),note=box.querySelector('#shop-here-note');
    if(!r.ok){if(note)note.textContent=r.why;return;}

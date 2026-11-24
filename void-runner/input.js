@@ -20,6 +20,7 @@
     lock: ['Acquire target lock', 'KeyB'],
     missionLog: ['Mission log', 'KeyL'],
     personalHud: ['Personal HUD', 'KeyP'],
+    cursor: ['Hold for cursor', 'AltLeft'],
     pause: ['Pause / menu', 'Escape'],
     keymap: ['KeyMap (show / hide)', 'KeyK']
   };
@@ -54,6 +55,9 @@
     if (raw && typeof raw.personalHud !== 'string') {
       const used = code => Object.values(raw).includes(code);
       raw.personalHud = ['KeyP', 'KeyI', 'KeyO', 'KeyU'].find(code => !used(code)) || 'KeyP';
+    }
+    if(raw && typeof raw.cursor !== 'string') {
+      raw.cursor=['AltLeft','AltRight','KeyU','KeyY','BracketRight','BracketLeft','Period','Comma',...Array.from({length:26},(_,i)=>'Key'+String.fromCharCode(65+i))].find(code=>!Object.values(raw).includes(code));
     }
     if (raw && Object.keys(defaults).every(id => typeof raw[id] === 'string') && new Set(Object.keys(defaults).map(id=>raw[id]))
       .size === Object.keys(defaults).length) bindings = Object.fromEntries(Object.keys(defaults).map(

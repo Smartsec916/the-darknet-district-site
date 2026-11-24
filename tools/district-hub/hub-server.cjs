@@ -37,7 +37,12 @@ function start({voice=null,ledger=null,identify,access={allowed:null,denied:new 
     ws.alive=true;ws.joined=false;ws.busy=false;let released=false;
     const release=()=>{if(!released){released=true;gate.release(ip);}};
     const hello=setTimeout(()=>{if(!ws.joined)ws.close(4005,'hello required');},LIMITS.helloMs);
-    ws.on('pong',()=>{ws.alive=true;});
+    ws.on('pong',()=>{
+      ws.alive=true;
+      // A hidden browser still answers protocol pings when its animation frames and JS timers are suspended.
+      const peer=hub.byConn.get(ws);
+      if(peer)peer.lastAt=hub.now();
+    });
     ws.on('message',async data=>{
       const m=parse(data.toString());
       if(!m){hub.send(ws,{t:'refused',reason:'invalid message'});if(!ws.joined)ws.close(4002,'invalid');else{const p=hub.byConn.get(ws);if(p)hub.violate(p,'invalid message');}return;}

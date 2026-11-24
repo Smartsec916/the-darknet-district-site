@@ -62,7 +62,7 @@ function enterSleepingPod(index=1){
 }
 // Lying in the pod the player can look around freely: click the view to take the mouse (as when walking; Esc gives it back), or drag, or use the arrow keys.
 // E leaves, M opens music and lights, V opens the vending unit, Q turns the view to the wall controls and back to the hatch.
-const podLook={drag:null,keys:new Set()},podFree=()=>mode==='pod-waking'&&!podWake.hidden&&podVend.box.hidden&&!!walker;
+const podLook={drag:null,keys:new Set()},podFree=()=>VoidInputState.current.camera&&mode==='pod-waking'&&!podWake.hidden&&podVend.box.hidden&&!!walker;
 const podTurn=(dx,dy)=>{if(Math.abs(dx)>160||Math.abs(dy)>160)return;   // the browser reports one enormous jump at the moment it captures or releases the mouse: not a real movement
  walker.yaw+=dx*.003;walker.pitch=Math.max(-1.2,Math.min(1.2,(walker.pitch||0)+dy*.003));};
 // The pod's wall controls (the owner, 15 Nov 2026): the music player, the light panel, the vending unit and EXIT THE POD on the hatch glass are used by pointing at them
@@ -86,6 +86,7 @@ function podUse(hit){const UI=globalThis.VoidPodPlayerUI,M=globalThis.VoidPodMus
  return true;}
 // The wheel over the player scrolls its song list (when the list is showing).
 podWake.addEventListener('wheel',e=>{const UI=globalThis.VoidPodPlayerUI,N=globalThis.VoidNeoChinatown;if(!podFree()||!UI||UI.ui.view!=='list'||!N?.podPick)return;podPoint.x=e.clientX;podPoint.y=e.clientY;const hit=podAim();if(!hit||hit.kind!=='music')return;e.preventDefault();UI.scroll(Math.sign(e.deltaY)*2,globalThis.VoidPodMusic?.state?.().count);},{passive:false});
+addEventListener('void-input-clear',()=>{podLook.drag=null;podLook.keys.clear();});
 podWake.addEventListener('pointerdown',e=>{if(e.target!==podWake||!podFree())return;podPoint.x=e.clientX;podPoint.y=e.clientY;if(podUse(podAim())){e.preventDefault();return;}podLook.drag={x:e.clientX,y:e.clientY};if(e.pointerType==='mouse'&&VoidControls?.deviceClass!=='touch-first')podWake.requestPointerLock?.()?.catch?.(()=>{});});
 addEventListener('pointerup',()=>{podLook.drag=null;});addEventListener('pointercancel',()=>{podLook.drag=null;});
 addEventListener('mousemove',e=>{if(!podFree())return;podPoint.x=e.clientX;podPoint.y=e.clientY;if(document.pointerLockElement===podWake)podTurn(e.movementX,e.movementY);else if(podLook.drag){podTurn(e.clientX-podLook.drag.x,e.clientY-podLook.drag.y);podLook.drag={x:e.clientX,y:e.clientY};}

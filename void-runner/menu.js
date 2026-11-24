@@ -239,13 +239,16 @@ addEventListener('keydown', e => {
   const action = VoidInput.action(e.code);
   if (!action) return;
   if (action === 'pause' && !e.repeat) {
+    // An open gameplay panel handles Escape itself. Leave its return state intact.
+    if(['walking','vr-seated','food-seated','pod-waking'].includes(mode)&&VoidInputState.current.ui)return;
+    if(mode==='dock'&&view==='account'&&VoidMenu.returnTo){e.preventDefault();VoidAccount.request('account-resume');return;}
     e.preventDefault();
     if(mode==='walking'&&globalThis.VoidTeaDuo?.leaveSeat?.()){e.stopImmediatePropagation();return;}
     if (mode === 'menu') resumeMenu();
     else openGameMenu();
     return;
   }
-  if (mode !== 'play' || !VoidFlightSession.running()) return;
+  if (mode !== 'play' || !VoidInputState.current.movement || !VoidFlightSession.running()) return;
   e.preventDefault();
   VoidInput.held.add(e.code);
   if (e.repeat) return;

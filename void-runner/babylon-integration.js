@@ -341,7 +341,7 @@ walkingUI.addEventListener('pointerdown', e => {
 });
 for (const event of ['pointerup', 'pointercancel']) walkingUI.addEventListener(event, e => walkingKeys.delete(e.target.dataset.walk));
 addEventListener('keydown', e => {
-  if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (VoidInputState.current.shortcuts==='interface'||VoidInputState.current.shortcuts==='none'||!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyC', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
     e.preventDefault();
     walkingKeys.add(e.code);
@@ -357,19 +357,17 @@ document.addEventListener('visibilitychange', () => {
     walkingKeys.clear();
   }
 });
-canvas.addEventListener('click', () => {
-  if (mode === 'walking' && globalThis.VoidControls?.deviceClass!=='touch-first') canvas.requestPointerLock?.()?.catch?.(() => {});
-});
+addEventListener('void-input-clear',()=>{lookPointer=null;});
 let lookPointer = null;
 canvas.addEventListener('pointerdown', e => {
-  if (mode === 'walking') lookPointer = {
+  if (mode === 'walking' && VoidInputState.current.camera) lookPointer = {
     x: e.clientX,
     y: e.clientY
   };
 });
 canvas.addEventListener('pointerup', () => lookPointer = null);
 canvas.addEventListener('pointermove', e => {
-  if (mode !== 'walking' || !walker) return;
+  if (mode !== 'walking' || !walker || !VoidInputState.current.camera) return;
   const locked = document.pointerLockElement === canvas;
   if (!locked && !lookPointer) return;
   const dx = locked ? e.movementX : e.clientX - lookPointer.x,
@@ -420,6 +418,7 @@ update = function(dt) {
       crouch: walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft')||walkingKeys.has('ControlRight')||VoidInput.virtual.has('crouch'),
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
+    if(!VoidInputState.current.movement){moving.x=0;moving.z=0;moving.run=false;moving.crouch=false;}
     const seated=globalThis.VoidTeaDuo?.playerStep?.(walker,moving,dt);
     if(!seated)VoidExplorer.step(walker, moving, dt, walkingLocation);
     if (!seated&&!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
