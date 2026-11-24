@@ -4,6 +4,7 @@
 'use strict';
 const crypto=require('node:crypto');
 const {TradeBook,parseTrade,RULES:TRADE_RULES}=require('./trade.cjs');
+const Tea=require('./tea-room.cjs');
 const {NpcDialogue}=require('./npc-dialogue.cjs');
 const Chat=require('./chat.cjs');
 
@@ -51,6 +52,7 @@ function parse(raw){
   if(m.t!=='hello'&&m.t!=='refresh'&&raw.length>LIMITS.maxBytes)return null;
   if(m.t==='hello')return keys==='room,t,token'&&typeof m.token==='string'&&m.token.length<4096&&typeof m.room==='string'?m:null;
   if(m.t==='state')return keys==='t,x,yaw,z'&&num(m.x)&&num(m.z)&&num(m.yaw)&&Math.abs(m.x)<1e5&&Math.abs(m.z)<1e5&&Math.abs(m.yaw)<1e4?m:null;
+  if(m.t==='tea-pose')return Tea.valid(m)?m:null;
   if(m.t==='npc-ready'||m.t==='npc-end'){
     if(typeof m.group!=='string'||!/^[a-z0-9:._-]{1,140}$/.test(m.group))return null;
     return m.t==='npc-ready' ? (keys==='cooldown,group,t'&&Number.isInteger(m.cooldown)&&m.cooldown>=5&&m.cooldown<=600?m:null) : (keys==='group,t,token'&&Number.isSafeInteger(m.token)&&m.token>0?m:null);
@@ -73,7 +75,7 @@ const wrap=a=>{a=a%(Math.PI*2);return a>Math.PI?a-Math.PI*2:a<-Math.PI?a+Math.PI
 
 class Hub{
   /* send(connection, object) and close(connection, code, reason) are supplied by the transport. */
-  constructor({send,close,now=()=>Date.now(),report=()=>{},voice=null}){this.voice=voice;this.Voice=require('./voice.cjs');this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];this.sessions=new Map();this.dialogue=new NpcDialogue(now,send);}
+  constructor({send,close,now=()=>Date.now(),report=()=>{},voice=null}){this.voice=voice;this.Voice=require('./voice.cjs');this.send=send;this.closeConn=close;this.now=now;this.report=report;this.peers=new Map();this.byConn=new Map();this.trades=null;this.history=[];this.sessions=new Map();this.tea=new Tea.TeaRoom(send,now);this.dialogue=new NpcDialogue(now,send);}
   /* Turns player-to-player trading on for this hub, against a ledger (ledger.cjs). The production ledger is the disabled one. */
   attachTrades(ledger,{simulated=false,rules}={}){
    this.trades=new TradeBook({ledger,simulated,rules,now:()=>this.now(),peers:{byUid:u=>this.peers.get(u)||null,byPublicId:id=>[...this.peers.values()].find(p=>p.id===id)||null},
@@ -115,7 +117,7 @@ class Hub{
     const {model,appearance}=this.look(who);
     const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,anonymous:!!who.anonymous,ignoring:new Set(),chatTimes:[],chatRefusals:0,chatLockUntil:0,reports:0,lastReportAt:-Infinity,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
-    this.send(conn,{t:'welcome',you:id,features:{npcDialogue:true,dev:true,trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true,voice:!!this.voice&&!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    this.send(conn,{t:'welcome',you:id,features:{teaRoom:true,npcDialogue:true,dev:true,trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true,voice:!!this.voice&&!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;
   }
 
@@ -184,7 +186,7 @@ class Hub{
     if(moved>.02)p.walkUntil=t+LIMITS.walkHoldMs;
     p.clip=t<(p.walkUntil??0)?'walk':'idle';
     queueMicrotask(()=>this.trades?.onMove(p.uid));   // a step away from a trade partner ends the trade
-    const first=!p.placed;p.placed=true;
+    const first=!p.placed;p.placed=true;this.tea.update(p);
     if(first)this.broadcast(p.room,{t:'join',peer:this.view(p)},p.id);
     else this.broadcast(p.room,{t:'state',id:p.id,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip},p.id);
     if(p.devPending&&!first)this.devFlush(p);   // a device change that came too soon after the last one
@@ -199,7 +201,7 @@ class Hub{
   /* Leave, close or kick: the avatar goes from every other screen exactly once. */
   drop(conn,code,reason){
     const p=this.byConn.get(conn);this.byConn.delete(conn);
-    if(p&&this.peers.get(p.uid)===p){this.dialogue.depart(p);this.trades?.onLeave(p.uid);this.peers.delete(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});this.vrDepart(p);}
+    if(p&&this.peers.get(p.uid)===p){this.tea.leave(p);this.dialogue.depart(p);this.trades?.onLeave(p.uid);this.peers.delete(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});this.vrDepart(p);}
     if(code)this.closeConn(conn,code,reason||'');
   }
   /* ---- Shared VR sessions ---- */
@@ -211,7 +213,7 @@ class Hub{
    if(s.owner===p.uid)s.owner=[...s.members][0];
    for(const uid of s.members){const q=this.peers.get(uid);if(q)this.send(q.conn,{t:'vr-update',session:this.vrInfo(s,true)});}}
   /* Move a player between the District and a session: gone from the old room's screens, and shown in the new one with its next position. */
-  vrMove(p,room){this.dialogue.depart(p);this.trades?.onLeave(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});this.vrDepart(p);p.room=room;p.placed=false;p.lastSnap=-Infinity;p.clip='idle';
+  vrMove(p,room){this.tea.leave(p);this.dialogue.depart(p);this.trades?.onLeave(p.uid);if(p.placed)this.broadcast(p.room,{t:'leave',id:p.id});this.vrDepart(p);p.room=room;p.placed=false;p.lastSnap=-Infinity;p.clip='idle';
    const s=this.vrOf(p);if(s)s.members.add(p.uid);
    this.send(p.conn,{t:'vr-room',session:s?this.vrInfo(s,true):null,peers:this.roomPeers(room).filter(q=>q.id!==p.id&&q.placed).map(q=>this.view(q))});
    if(s)for(const uid of s.members){const q=this.peers.get(uid);if(q&&q!==p)this.send(q.conn,{t:'vr-update',session:this.vrInfo(s,true)});}}
