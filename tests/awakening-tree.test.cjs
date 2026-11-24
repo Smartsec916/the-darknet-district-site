@@ -25,10 +25,12 @@ const newChar=x=>{const s=x.C.startDistrictCampaign(x.C.fresh());s.story.flags.a
 const K=(m,o)=>m+'/'+o;
 /* 004 to 012, with a reload after every mission and in the middle of several. Returns the state. */
 function play(x,s0){let s=s0;const id=n=>x.MS['M0'+String(n).padStart(2,'0')].id;
- // 004: Fish's call 6 in-game hours after 003 (nothing before that)
- place(x,s,['far-south']);assert.equal(s.universe.missions[id(4)],undefined,'Fish has not called yet');passTime(s,359);place(x,s,['far-south']);assert.equal(s.universe.missions[id(4)],undefined,'not before 6 in-game hours');
- passTime(s,2);const call=place(x,s,['far-south']);assert.equal(call.offered,true);assert.equal(call.messages[0].channel,'comms');assert.equal(call.messages[0].text,x.MS.FISH_CALL.join('\n'),'Fish\'s words verbatim');
+ // 004: Fish calls exactly 10 in-game minutes after 003.
+ place(x,s,['far-south']);assert.equal(s.universe.missions[id(4)],undefined,'Fish has not called yet');passTime(s,9);place(x,s,['far-south']);assert.equal(s.universe.missions[id(4)],undefined,'not before ten in-game minutes');
+ s=reload(x,s);
+ passTime(s,1);const call=place(x,s,['oldtown']);assert.equal(call.offered,true);assert.equal(call.messages[0].channel,'comms');assert.equal(call.messages[0].text,x.MS.FISH_CALL.join('\n'),'Fish\'s words verbatim');
  assert.equal(step(x,s,'M004'),'travel');s=reload(x,s);
+ assert.equal(place(x,s,['oldtown']).messages.filter(m=>m.from==='milked-fish').length,0,'Fish calls once across reload');
  const iris=place(x,s,['underground','under-tea-room']);assert.equal(iris.messages[0].from,'iris');assert.match(iris.messages[0].text,/^Fish brought me up to speed\./);
  assert.equal(ev(x,s,{type:'overhear',step:K(id(4),'overhear')}).objective,null,'events in the wrong order do nothing');
  ev(x,s,{type:'observe',step:K(id(4),'locate')});ev(x,s,{type:'observe',step:K(id(4),'blend-in')});s=reload(x,s);
@@ -111,7 +113,7 @@ test('the owner\'s words verbatim (a sample of every mission), the cargo tree li
  assert.deepEqual(MS.RITUAL.beats.filter(b=>b.act==='line'&&b.text).map(b=>b.who).join(','),'robed-all,initiate,robed-all,initiate,robed-all,robed-all,robed-all,robed-all,initiate,robed-all,initiate');
  assert.ok(MS.RITUAL.beats.some(b=>b.text==='Fucking dogs!?'&&b.who==='initiate'),'Halden\'s line exactly as the owner wrote it');assert.deepEqual(C.sceneProblems(MS.RITUAL),[]);
  assert.equal(MS.REWARD,5000);assert.ok(MS.M011.unlocks.some(u=>u.kind==='credits'&&u.amount===MS.REWARD&&u.when==='reward'),'one editable number');
- assert.equal(MS.FOLLOWUPS[0].gameMinutes,MS.M004.start.when.value,'the same 6 in-game hours as the old stub');});
+ assert.equal(MS.M004.start.when.value,10);assert.equal(MS.FOLLOWUPS[0].gameMinutes,MS.M004.start.when.value,'mission and clock event agree');});
 test('every new mission round-trips through the Mission Editor\'s export (treesContent) unchanged in what the game runs',()=>{const x=env();
  const sent=x.MC.treesContent(x.MS.trees(),{givers:x.e.givers}),ids=sent.trees.flatMap(t=>t.missions.map(m=>m.id));assert.deepEqual(sent.skipped,[]);
  assert.equal(ids.length,12);const m4=sent.trees[0].missions[3];assert.deepEqual(m4.cast,x.MS.M004.cast);assert.deepEqual(m4.evidence,x.MS.M004.evidence);assert.deepEqual(m4.objectives.find(o=>o.id==='overhear').near,6);
@@ -123,3 +125,18 @@ test('the flight Map and Rook after the real Mission 012: route-only to Meridian
  r.location='earth';assert.deepEqual(N.markers(r,[{id:'m',destination:'meridian'}]),['meridian'],'a mission to Meridian from NeoChinatown: only its warp marker');
  r.location='meridian';assert.equal(x.C.rookOpen(r),true,'Mission 012 opened Rook\'s side missions');const board=x.C.rookBoard(r);assert.ok(board.length>=3);
  assert.equal(N.grant(r,'rook'),true);assert.equal(N.mode(r,[]),'full');assert.ok(x.C.accept(r,'rook-job:routine'));assert.ok(x.M.track(r,x.C.rookRun(r).id,x.C));assert.equal(x.M.tracked(r,x.C).type,'side');});
+
+test('old Awakening snapshots adopt the new Fish timer and retain independently edited fields',()=>{
+ const x=env(),old=x.MS.trees()[0],fish=old.missions.find(m=>m.id===x.MS.M004.id),before=structuredClone(fish);
+ fish.start.when.value=360;
+ fish.description='Owner-edited description';
+ const upgraded=x.MC.storyTrees([old])[0].missions.find(m=>m.id===fish.id);
+ assert.deepEqual(upgraded.start.when,{...before.start.when,value:10});
+ assert.equal(upgraded.description,'Owner-edited description');
+ assert.equal(fish.start.when.value,360,'working from a snapshot leaves the supplied record intact');
+ const savedDraft=structuredClone(old);
+ x.MS.refreshShipped(savedDraft);
+ assert.equal(savedDraft.missions.find(m=>m.id===fish.id).start.when.value,10);
+ fish.start.when.value=15;
+ assert.equal(x.MC.storyTrees([old])[0].missions.find(m=>m.id===fish.id).start.when.value,15);
+});

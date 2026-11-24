@@ -133,7 +133,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    assert.equal(await page.evaluate(()=>VoidDistrictPeople.isFollowing(state.story.flags,'n:milked-fish')),true,'and followed on Social');
    assert.equal((await S()).credits,s.credits,'no reward');
 
-   // ---- the V1 shows the in-game time; the follow-up waits 6 in-game hours (in-game time runs only while walking or flying); fires once (a stub: nothing is delivered)
+   // ---- the V1 shows the in-game time; the follow-up waits 10 in-game minutes and fires once
    await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen);await page.waitForTimeout(1500);
    const v1=await page.evaluate(()=>({shown:document.querySelector('[data-pd-clock]')?.textContent||'',now:VoidClock.now(state).label}));assert.match(v1.shown,/^\d\d:\d\d · DAY \d+$/,'the V1 shows the in-game time: '+v1.shown);assert.equal(v1.shown,v1.now);
    await shot('v1-clock');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);await page.waitForFunction(()=>mode==='walking');
@@ -141,9 +141,10 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
     L.clockTick(t);const st0=L.gameClock().followups[0];mode='menu';for(let i=0;i<200;i++)L.clockTick(t+=5000);const inMenu=L.gameClock().followups[0].elapsed;mode='dialogue';for(let i=0;i<50;i++)L.clockTick(t+=5000);const inTalk=L.gameClock().followups[0].elapsed;mode='walking';
     for(let i=0;i<st0.remaining-1;i++)L.clockTick(t+=5000);const mid=L.gameClock().followups[0];for(let i=0;i<2;i++)L.clockTick(t+=5000);const end=L.gameClock().followups[0];for(let i=0;i<50;i++)L.clockTick(t+=5000);
     return {st0,inMenu,inTalk,mid,end,events:out.slice(),flag:state.story.flags['ev_fish-followup-due'],now:L.gameClock().now.label};});
-   log(JSON.stringify(fired));assert.equal(fired.st0.gameMinutes,360,'6 in-game hours');assert.equal(fired.inMenu,fired.st0.elapsed,'the clock stops in a menu');assert.equal(fired.inTalk,fired.st0.elapsed,'and in a conversation');
+   log(JSON.stringify(fired));assert.equal(fired.st0.gameMinutes,10,'10 in-game minutes');assert.equal(fired.inMenu,fired.st0.elapsed,'the clock stops in a menu');assert.equal(fired.inTalk,fired.st0.elapsed,'and in a conversation');
    assert.equal(fired.mid.due,false);assert.equal(fired.end.fired,true);assert.deepEqual(fired.events,['fish-followup-due'],'fires once');assert.equal(fired.flag,true);assert.equal(fired.end.dueAt,fired.st0.dueAt);
-   assert.equal(await page.evaluate(()=>document.querySelector('#pd-notify')?.textContent.includes('Fish')&&!/call/i.test(document.querySelector('#pd-notify').textContent)),true,'no call is delivered (stub)');
+   await page.waitForFunction(()=>VoidLiveContent.inbox('comms').some(x=>x.id==='m004-a-promising-investment/start'),null,{timeout:10000});
+   assert.equal(await page.evaluate(()=>VoidLiveContent.inbox('comms').filter(x=>x.id==='m004-a-promising-investment/start').length),1,'Mission 004 rings once');
    assert.deepEqual(errors.filter(e=>!/ResizeObserver|AbortError|The play\(\) request/.test(e)),[],'no page errors');
    log(W+' done');await ctx.close();}
  }finally{await browser.close();srv?.close();}

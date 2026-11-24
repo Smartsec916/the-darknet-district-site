@@ -14,8 +14,7 @@
    MISSION 003 — CORPORATE CONNECTIONS is the owner's, APPROVED 17 Nov 2026 (VOID_RUNNER_HANDOFF.md §11, his words verbatim): Admin's briefing in person after Eyes on the Street
    (ACCEPT / NOT NOW, as 002), walk into Milked (Far South), Eva at reception (the staff-only door opens for this player: story flag mf_milkedStaff), Fish in her office
    (her Mandarin line with the V1's English translation over it), Fish is added to the V1 contacts and followed on Social, and the mission ends ("Await Fish's response").
-   Her follow-up call becomes DUE after FOLLOWUPS[0].gameMinutes of IN-GAME time (game-clock.js: 6 in-game hours, about 30 minutes of play), so the player can do other things
-   meanwhile; the call itself and the next mission are the owner's to write later (a stub).
+   Her follow-up call starts Mission 004 after 10 in-game minutes (50 seconds of active play).
    Lines marked in PROPOSED below are Claude's short drafts of what the owner described but did not write word for word: text only (no voice) until he approves them. */
 (function(root){
  'use strict';
@@ -84,11 +83,10 @@
    {id:'await-fish',kind:'await-call',npc:'milked-fish',label:'Await Fish\'s response.',place:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],
   unlocks:[{kind:'flag',id:'milkedStaff',value:true,when:'speak-eva'},{kind:'contact',id:'milked-fish',when:'meet-fish'},{kind:'follow',id:'milked-fish',when:'meet-fish'}]};
- /* Follow-up calls that become due after IN-GAME time (the owner, 17 Nov 2026: Fish's callback waits on in-game time; game-clock.js: 12 in-game minutes a real minute of
-    walking or flight; story.flags.gameMin). `after`: the mission whose completion starts the wait; `gameMinutes`: how long, in in-game minutes (the one place to change it:
-    360 = 6 in-game hours, about 30 minutes of play: the owner, so a player can finish a side mission meanwhile); `event`: fired once when due (story.flags ev_<event> = true). STUB: the owner's script for the call and the next
-    mission are not written; nothing is delivered to the player yet. */
- const FOLLOWUPS=[{event:'fish-followup-due',after:'m003-corporate-connections',gameMinutes:360,from:'milked-fish',channel:'comms',status:'live',note:'Fish\'s follow-up call: delivered by Mission 004 (A Promising Investment), which starts by her Comms call on the same in-game timer (20 Nov 2026).'}];
+ // Fish's callback starts when Corporate Connections completes. The mission
+ // trigger and the diagnostic follow-up event use the same saved game clock.
+ const FISH_DELAY=10;
+ const FOLLOWUPS=[{event:'fish-followup-due',after:CORPORATE.id,gameMinutes:FISH_DELAY,from:'milked-fish',channel:'comms',status:'live',note:"Fish's follow-up call starts Mission 004 (A Promising Investment)."}];
  /* ======== THE AWAKENING CONTINUATION: MISSIONS 004-011 (the owner's spec, 20 Nov 2026, APPROVED: his dialogue below is used word for word) and the FIRST CARGO
     DELIVERY tree (Mission 012). Built from the reusable mechanics of mission-mechanics.js (observe, overhear, sneak, collect, report, call, in-game wait, camera feed,
     tail, leave, flight; mission cast and evidence) and the existing ones (apartments and locations from modules, hack steps, zones and armed people, photo steps).
@@ -109,8 +107,7 @@
  // (20 Nov 2026, the tea room host) the tea station became an island 0.8 m out from the partition with the host behind it: the two associates stand 1.05 m further east,
  // in front of it at its south end (the same 1.3 m apart, facing each other), instead of one behind the counter and the counter between them.
  const M004={id:'m004-a-promising-investment',number:4,title:'A Promising Investment',type:'main',category:'Intelligence gathering / Eavesdropping',giver:'milked-fish',location:'under-tea-room',description:'',
-  // Fish's follow-up call (replaces the Mission 003 stub): due 6 in-game hours after Corporate Connections (game-clock.js; about 30 minutes of play)
-  start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL · V1 TRANSLATION',text:FISH_CALL.join('\n'),when:{kind:'game-time',mission:'m003-corporate-connections',value:360}},
+  start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL · V1 TRANSLATION',text:FISH_CALL.join('\n'),when:{kind:'game-time',mission:CORPORATE.id,value:FISH_DELAY}},
   offer:[],
   cast:[{id:'tea-associate-1',name:'Associate 1',model:'npc-office-m',place:'under-tea-room',x:-6.55,z:-104.2,y:UT,yaw:1.57,clip:'talk',from:'travel'},{id:'tea-associate-2',name:'Associate 2',model:'npc-executive',place:'under-tea-room',x:-5.25,z:-104.2,y:UT,yaw:-1.57,clip:'listen',from:'travel'}],
   evidence:[{id:'tea-talk',title:'Overheard at the tea house',kind:'audio',text:'Associate 1: "Reyes is getting desperate. He\'s running out of options."\nAssociate 2: "Has he agreed to the percentage?"\nAssociate 1: "Fifty-one. He\'s not happy about it, but he doesn\'t have much choice."\nAssociate 2: "And the admission requirement?"\nAssociate 1: "That comes later. The preliminary agreement has already been sent to his personal computer."\nAssociate 2: "The board wants this completed before the end of the week."'}],
@@ -372,10 +369,25 @@
  const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],
   'm003-corporate-connections/speak-eva':[['Welcome to Milked! I\'m Eva. Can I get you a water while you wait?','We\'re the district\'s top adult stream and donor programme. Members watch from home; a courier collects their donations.','Performers are paid by volume collected. Our top earner led the board three quarters running. We\'re so proud of her.','Admin sent me. I\'m here to see Fish.','He also said to tell you hi.','Oh, Admin! Tell him I said hi, too.','Fish is through the staff-only door. You\'ll find her in her office.']]};
  const textsOf=say=>(say||[]).map(l=>l&&l.text);
- function refreshShipped(tree,shipped=TREE){let changed=0;for(const m of (tree&&tree.missions)||[])for(const o of (m&&m.objectives)||[]){const old=SUPERSEDED[m.id+'/'+o.id];if(!old)continue;
-   const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
-   const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}
-  return changed;}
- const api={M004,M005,M006,M007,M008,M009,M010,M011,M012,CARGO_TREE,CARGO_TREE_ID,CARGO_LINES,ROOK_CARGO,IRIS_OK,IRIS_NEW,isApprovedCargo,REWARD,ALL_EVIDENCE,RITUAL,FISH_CALL,CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ function refreshFishDelay(tree){
+  if(tree?.id!==TREE_ID)return 0;
+  const when=tree.missions?.find(m=>m?.id===M004.id)?.start?.when;
+  if(when?.kind!=='game-time'||when.mission!==CORPORATE.id||when.value!==360)return 0;
+  when.value=FISH_DELAY;
+  return 1;
+ }
+ function refreshShipped(tree,shipped=TREE){
+  let changed=refreshFishDelay(tree);
+  for(const m of (tree&&tree.missions)||[]){
+   for(const o of (m&&m.objectives)||[]){
+    const old=SUPERSEDED[m.id+'/'+o.id];if(!old)continue;
+    const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
+    const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);
+    if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;
+   }
+  }
+  return changed;
+ }
+ const api={M004,M005,M006,M007,M008,M009,M010,M011,M012,CARGO_TREE,CARGO_TREE_ID,CARGO_LINES,ROOK_CARGO,IRIS_OK,IRIS_NEW,isApprovedCargo,REWARD,ALL_EVIDENCE,RITUAL,FISH_CALL,CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshFishDelay,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
