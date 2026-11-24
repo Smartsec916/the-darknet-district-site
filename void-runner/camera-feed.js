@@ -55,7 +55,7 @@
  const AIM_KEYS={ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0],ArrowUp:[0,1],KeyW:[0,1],ArrowDown:[0,-1],KeyS:[0,-1]};
  const keyBlock=e=>{if(!F||!root.VoidInputState.current.camera||e.altKey||e.metaKey)return;e.preventDefault();e.stopImmediatePropagation();if(AIM_KEYS[e.code]){if(e.type==='keydown')F.keys.add(e.code);else F.keys.delete(e.code);}};
  const zoomNow=()=>CR().ROOM.camera.zooms[F.zi];
- function onWheel(e){if(!F)return;e.preventDefault();e.stopImmediatePropagation();const z=CR().ROOM.camera.zooms,now=performance.now();F.wacc+=e.deltaY;if(Math.abs(F.wacc)<40||now-F.wlast<110)return;const was=F.zi;F.zi=Math.max(0,Math.min(z.length-1,F.zi+(F.wacc<0?1:-1)));F.wacc=0;F.wlast=now;$('zoom').textContent=z[F.zi]+'x';if(F.zi!==was)zoomSound(F.zi>was);}
+ function onWheel(e){if(!F||!root.VoidInputState.current.camera)return;e.preventDefault();e.stopImmediatePropagation();const z=CR().ROOM.camera.zooms,now=performance.now();F.wacc+=e.deltaY;if(Math.abs(F.wacc)<40||now-F.wlast<110)return;const was=F.zi;F.zi=Math.max(0,Math.min(z.length-1,F.zi+(F.wacc<0?1:-1)));F.wacc=0;F.wlast=now;$('zoom').textContent=z[F.zi]+'x';if(F.zi!==was)zoomSound(F.zi>was);}
  // the mouse: held (pointer lock) it aims by its movement; free, a left-button drag aims. Nothing reaches the game's own mouse handlers while the feed shows.
  function onMouse(e){if(!F||!root.VoidInputState.current.camera)return;if(e.type==='mousemove'||e.type==='pointermove'){if(e.type==='mousemove'&&F.live&&(document.pointerLockElement||(e.buttons&1))){const d=CR().aimInput(e.movementX||0,e.movementY||0,F.zf);F.push.pan+=d.pan;F.push.tilt+=d.tilt;}}
   else if(e.type==='mousedown'&&e.button===0&&!document.pointerLockElement){try{root.VoidInputState.capture(document.getElementById('space'))?.catch?.(()=>{});}catch{}}
@@ -85,7 +85,7 @@
    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(S.zoomLevel,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(bp);bp.connect(g);g.connect(a.bus);s.start(t,Math.random());s.stop(t+d+.05);
    const o=c.createOscillator(),og=c.createGain();o.type='sine';o.frequency.setValueAtTime(inward?190:260,t);o.frequency.exponentialRampToValueAtTime(inward?260:190,t+d);og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(S.zoomLevel*.5,t+.03);og.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(og);og.connect(a.bus);o.start(t);o.stop(t+d+.05);}catch{}}
  function quiet(f){const a=f.snd;if(!a)return;try{a.out.gain.setTargetAtTime(0,a.c.currentTime,.03);}catch{}setTimeout(()=>{for(const n of a.nodes){try{n.stop?.();}catch{}try{n.disconnect();}catch{}}},250);}
- const clearKeys=()=>{if(F)F.keys.clear();};
+ const clearKeys=()=>{if(F){F.keys.clear();F.push.pan=F.push.tilt=F.wacc=0;}};
  function dateLine(){try{if(root.VoidClock&&typeof state!=='undefined'&&state)return root.VoidClock.now(state).label;}catch{}return new Date().toISOString().slice(0,19).replace('T',' ');}
  /* Play a feed. o: {scene (the mission's timeline), room, record (default true), label, onSaved}. -> Promise of {saved: record|null, why}. */
  function start(o={}){if(F)return Promise.resolve({saved:null,why:'busy'});if(!hook())return Promise.resolve({saved:null,why:'the game is not ready'});
@@ -97,7 +97,7 @@
    try{document.exitPointerLock?.();}catch{}
    F.cam=o.cam?String(o.cam).toUpperCase():'CAM B2-07';const stage=st=>{try{o.onStage&&o.onStage(st);}catch{}};F.stage=stage;   // a remote feed opened from the V1 (mission-mechanics-game.js) names its camera and reports its stages
    $('cam').textContent=F.cam+' · SUB-LEVEL 2';el.hidden=false;$('zoom').textContent='1x';$('aim').textContent=CR().aimLabel(0,0);$('hold').hidden=!!document.pointerLockElement;$('msg').textContent='CONNECTING TO '+F.cam+'…';$('say').textContent='';$('rec').style.visibility=o.record===false?'hidden':'visible';document.body.classList.add('cam-feed-on');
-   addEventListener('keydown',keyBlock,{capture:true});addEventListener('keyup',keyBlock,{capture:true});addEventListener('wheel',onWheel,{passive:false,capture:true});for(const t of MOUSE_EV)addEventListener(t,onMouse,{capture:true});addEventListener('blur',clearKeys);
+   addEventListener('keydown',keyBlock,{capture:true});addEventListener('keyup',keyBlock,{capture:true});addEventListener('wheel',onWheel,{passive:false,capture:true});for(const t of MOUSE_EV)addEventListener(t,onMouse,{capture:true});addEventListener('void-input-clear',clearKeys);
    F.comp=document.createElement('canvas');F.comp.width=OUT.w;F.comp.height=OUT.h;F.g=F.comp.getContext('2d');
    const go=()=>{if(!F)return;$('msg').textContent='';F.last=performance.now();F.live=true;if(o.record!==false)F.rec=recorder();F.stage('open');};
    room.loaded.then(()=>{if(room.failed){$('msg').textContent='NO SIGNAL';setTimeout(()=>end(null,'the figures could not load'),1500);return;}setTimeout(go,600);});});}
@@ -134,7 +134,7 @@
   end(saved,why);}
  function end(saved,why){const f=F;if(!f)return;F=null;try{f.rec&&f.rec.state!=='inactive'&&f.rec.stop();}catch{}try{f.room.dispose();}catch{}
   for(const [n,v] of f.hidden)n.style.visibility=v;el.hidden=true;$('msg').textContent='';document.body.classList.remove('cam-feed-on');
-  removeEventListener('keydown',keyBlock,{capture:true});removeEventListener('keyup',keyBlock,{capture:true});removeEventListener('wheel',onWheel,{capture:true});for(const t of MOUSE_EV)removeEventListener(t,onMouse,{capture:true});removeEventListener('blur',clearKeys);quiet(f);
+  removeEventListener('keydown',keyBlock,{capture:true});removeEventListener('keyup',keyBlock,{capture:true});removeEventListener('wheel',onWheel,{capture:true});for(const t of MOUSE_EV)removeEventListener(t,onMouse,{capture:true});removeEventListener('void-input-clear',clearKeys);quiet(f);
   f.done({saved:saved||null,why:why||''});if(saved&&f.o.onSaved)try{f.o.onSaved(saved);}catch{}}
  F=null;
  // ---- missions: a hack step with a camera feed plays the feed; the saved recording completes the step ----
