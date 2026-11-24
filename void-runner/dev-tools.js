@@ -158,7 +158,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
     }));
     return this.catalogScripts.get(src);
    };
-   (cinematic?['cinematic-project','cinematic-renderer','cinematic-editor']:sound?['sound-studio-editor']:['consumable-spec','consumables','consumable-studio','item-catalog-editor']).reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
+   (cinematic?['cinematic-project','cinematic-locations','cinematic-renderer','cinematic-editor']:sound?['sound-studio-editor']:['consumable-spec','consumables','consumable-studio','item-catalog-editor']).reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
     if(host.isConnected&&this.authorized&&this.uid===uid)(cinematic?VoidCinemaEditor:sound?VoidSoundEditor:VoidItemCatalogEditor).mount(host,this);
    }).catch(error=>{host.textContent=error.message;});
    return;

@@ -3,14 +3,14 @@
  'use strict';
  const tracks=['Camera','Movement','Animation','Dialogue','Music','Sound effects','Lighting','Environment','Text','Transition'];
  const modes=['Tracking','Fixed','Free','First person','Third person','Orbit','Follow NPC','Follow player','Security camera','Hacked camera'];
- const places=['District store set','Arcade set','Meridian Station','Blackrock camera feed','Kestrel spacecraft','Gameplay tab'];
- const actors=['none','district-resident','npc-admin','npc-iris','npc-fish','npc-hacker','npc-blackrock-robe'];
+ const places=['District store set','Arcade set','Meridian Station','Blackrock camera feed','Kestrel spacecraft','Corporate District','Zen Zephyr Temple','Milked reception','Gameplay tab'];
+ const actors=['none','saved-player','district-resident','npc-admin','npc-iris','npc-fish','npc-hacker','npc-blackrock-robe'];
  const presets={resolution:[720,1080,1440,2160],aspect:['16:9','9:16','1:1'],fps:[30,60]};
  const base={Camera:{mode:'Tracking',x:2,y:2,z:-5,toX:-2,toY:2,toZ:-4,targetX:0,targetY:1,targetZ:0,yaw:0,pitch:0,fov:52,zoom:1,shake:0,easing:'Smooth',focus:0},
   Movement:{x:-1,y:0,z:0,toX:1,toY:0,toZ:0},Animation:{clip:'idle'},Dialogue:{src:'',volume:1,offset:0},Music:{src:'',volume:.6,offset:0},'Sound effects':{src:'',volume:1,offset:0},
   Lighting:{brightness:1,color:'#cbdcff'},Environment:{fog:0,color:'#172e38'},Text:{text:'',color:'#ffffff'},Transition:{kind:'Fade in',color:'#000000'}};
  function clip(track,start=0,duration=3){return {id:'c-'+root.crypto.randomUUID().slice(0,12),track,start,duration,...base[track]};}
- function fresh(){return {name:'District trailer',place:places[0],actor:'none',resolution:720,aspect:'16:9',fps:30,clips:[clip('Camera',0,4)]};}
+ function fresh(){return {name:'District trailer',place:places[0],actor:'none',hour:21,resolution:720,aspect:'16:9',fps:30,clips:[clip('Camera',0,4)]};}
  function dimensions(resolution,aspect){const wide=Math.round(resolution*16/9/2)*2;return aspect==='1:1'?[resolution,resolution]:aspect==='9:16'?[resolution,wide]:[wide,resolution];}
  const span=p=>p.clips.reduce((n,c)=>Math.max(n,c.start+c.duration),0);
  const on=(p,track,t)=>p.clips.filter(c=>c.track===track&&c.start<=t&&t<c.start+c.duration).sort((a,b)=>a.start-b.start);
@@ -22,6 +22,8 @@
  function validate(p){
   const okName=x=>typeof x==='string'&&x.length<=140;
   if(!p||!okName(p.name)||!p.name.trim()||!places.includes(p.place)||!actors.includes(p.actor)||Object.entries(presets).some(([k,v])=>!v.includes(p[k]))||!Array.isArray(p.clips)||p.clips.length>240)return 'Invalid cinematic project.';
+  if(p.hour!=null&&(!Number.isInteger(p.hour)||p.hour<0||p.hour>=24))return 'Choose an hour from 0 to 23.';
+  if(p.feed!=null&&(p.place!=='Blackrock camera feed'||typeof p.feed!=='string'||!/^[-a-zA-Z0-9_:/]{1,140}$/.test(p.feed)))return 'Choose a valid mission feed.';
   const ids=new Set();
   for(const c of p.clips){
    if(!c||typeof c.id!=='string'||!/^c-[a-z0-9-]{1,48}$/.test(c.id)||ids.has(c.id)||!tracks.includes(c.track))return 'Invalid or duplicate clip.';

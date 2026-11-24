@@ -8,3 +8,11 @@ test('unsafe sources, unreasonable export settings and duplicate IDs cannot be i
  const p=C.fresh();p.clips.push(C.clip('Dialogue'));p.clips[1].src='https://example.invalid/track';assert.match(C.validate(p),/recording/);
  p.clips.pop();p.clips.push({...p.clips[0]});assert.match(C.validate(p),/duplicate/);p.clips.pop();p.fps=1000;assert.match(C.validate(p),/Invalid/);
 });
+
+test('private mission feeds and lighting survive round trips with legacy drafts',()=>{
+ const p=C.fresh();delete p.hour;assert.equal(C.validate(p),'');
+ p.hour=0;p.place='Blackrock camera feed';p.feed='mission-1/camera-2';
+ assert.equal(C.validate(JSON.parse(JSON.stringify(p))),'');
+ p.hour=23.7;assert.match(C.validate(p),/hour/);
+ p.hour=23;p.place='Milked reception';assert.match(C.validate(p),/feed/);
+});

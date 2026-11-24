@@ -3,18 +3,18 @@
  'use strict';
  const C=root.VoidCinema;
  async function create(parent,project,note){
-  const B=root.BABYLON;
-  const view=document.createElement('canvas'),out=document.createElement('canvas'),g=out.getContext('2d',{alpha:false});
+  let B=root.BABYLON,assets=root.VoidAssets,view=document.createElement('canvas');
+  const out=document.createElement('canvas'),g=out.getContext('2d',{alpha:false});
   const [w,h]=C.dimensions(project.resolution,project.aspect);out.width=w;out.height=h;
   out.style.cssText='display:block;max-width:100%;max-height:42vh;background:#081016;margin:auto';out.tabIndex=0;out.setAttribute('aria-label','Cinematic preview');
-  parent.replaceChildren(out);let scene,engine,cam,actor,lamp,room,disposeRenderer=false,display,video,groups=[],currentGroup,pipeline,record,captureTrack,session,download=null,soundCtx,recordMix,monitor;
+  parent.replaceChildren(out);let scene,engine,cam,actor,lamp,room,venue,disposeRenderer=false,display,video,groups=[],currentGroup,pipeline,record,captureTrack,session,download=null,soundCtx,recordMix,monitor;
   const sounds=new Map(),held=new Set();let time=0,playing=false,frame=0,last=performance.now(),mouse=null,yaw=0,tilt=0,free=null;
   const loaded=[];
   function dispose(){disposeRenderer=true;cancelAnimationFrame(frame);stopRecording();clearSounds();display?.getTracks().forEach(t=>t.stop());video?.pause();soundCtx?.close().catch(()=>{});
-   for(const resource of loaded)resource.dispose();scene?.dispose();engine?.dispose();if(download)URL.revokeObjectURL(download);}
+   venue?.dispose();for(const resource of loaded)resource.dispose();scene?.dispose();engine?.dispose();if(download)URL.revokeObjectURL(download);}
   function remember(container){if(disposeRenderer){container.dispose();throw Error('Preview closed.');}loaded.push(container);return container;}
   async function model(path,x=0,z=0,height){
-   const src='assets/models/'+path,container=remember(await root.VoidAssets.loadContainer({src},scene,null,'cinema:'+src));
+   const src='assets/models/'+path,container=remember(await assets.loadContainer({src},scene,null,'cinema:'+src));
    const instance=container.instantiateModelsToScene(n=>n),node=new B.TransformNode('cinematic-instance',scene);
    for(const m of instance.rootNodes)m.parent=node;
    if(height){const box=node.getHierarchyBoundingVectors(true),size=box.max.y-box.min.y;if(size>.001){node.scaling.setAll(height/size);node.position.y=-box.min.y*node.scaling.y;}}
@@ -22,8 +22,10 @@
   }
   function graphics(){
    engine=new B.Engine(view,true,{preserveDrawingBuffer:true,stencil:true});if(Math.max(w,h)>engine.getCaps().maxTextureSize)throw Error('Resolution exceeds this renderer’s texture limit.');
-   engine.setSize(w,h);root.VoidAssets?.useMeshoptLocally?.();
-   if(project.place==='Blackrock camera feed'){room=root.VoidCultRoomBuild.create(engine,{quality:'low'});scene=room.scene;}
+   engine.setSize(w,h);assets?.useMeshoptLocally?.();
+   if(project.place==='Blackrock camera feed'){const feed=project.feed&&root.VoidCinemaEditor?.feeds().find(f=>f.id===project.feed);
+    if(project.feed&&!feed)throw Error('This mission feed is no longer available.');
+    room=root.VoidCultRoomBuild.create(engine,{quality:'low',scene:feed?.scene?structuredClone(feed.scene):undefined});scene=room.scene;}
    else scene=new B.Scene(engine);
    cam=new B.FreeCamera('cinema-camera',new B.Vector3(1,2,-6),scene);cam.inputs.clear();cam.minZ=.03;cam.maxZ=2400;scene.activeCamera=cam;
    lamp=new B.HemisphericLight('cinema-fill',new B.Vector3(.2,1,-.3),scene);lamp.intensity=1;
@@ -106,8 +108,10 @@
     if(pipeline){pipeline.depthOfFieldEnabled=shot.focus>0;if(shot.focus>0)pipeline.depthOfField.focusDistance=shot.focus*1000;}
    }
    const light=C.on(project,'Lighting',t).at(-1),env=C.on(project,'Environment',t).at(-1);
-   lamp.intensity=light?.brightness??1;lamp.diffuse=B.Color3.FromHexString(light?.color||'#ffffff');
-   if(env){scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogColor=B.Color3.FromHexString(env.color);scene.fogDensity=env.fog;}else if(!room)scene.fogMode=B.Scene.FOGMODE_NONE;
+   const hour=project.hour??21,daylight=Math.max(0,Math.sin((hour-6)*Math.PI/12));
+   lamp.intensity=light?.brightness??(1+daylight*.8);lamp.diffuse=B.Color3.FromHexString(light?.color||(daylight>.15?'#fff1d5':'#dbe8ff'));
+   venue?.tick(t,cam);
+   if(env){scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogColor=B.Color3.FromHexString(env.color);scene.fogDensity=env.fog;}else if(!room&&!venue)scene.fogMode=B.Scene.FOGMODE_NONE;
    scene.render();g.drawImage(view,0,0,w,h);
   }
   function draw(t,dt=0){
@@ -124,12 +128,16 @@
   out.onkeydown=e=>{if(['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){held.add(e.code);e.preventDefault();e.stopPropagation();}};out.onkeyup=e=>held.delete(e.code);out.onblur=()=>{held.clear();mouse=null;};
   try{
    if(project.place==='Gameplay tab')await share();
-   else{graphics();
-    if(project.place==='Meridian Station'){const station=root.VoidMeridian.build(scene,null,{occupied:true});station.scaling.setAll(.025);}
+   else{
+    if(root.VoidCinemaLocations?.locations[project.place]){venue=await root.VoidCinemaLocations.open(project.place);B=venue.B;view=venue.canvas;assets=venue.assets;}
+    graphics();
+    if(venue)await venue.build(scene,'low');
+    else if(project.place==='Meridian Station'){const station=root.VoidMeridian.build(scene,null,{occupied:true});station.scaling.setAll(.025);}
     else if(project.place==='Kestrel spacecraft')await model('ships/kestrel-low.glb',0,0,1.8);
     else if(!room){await model('district-interior/district_vestibule_floor_6m.glb');
      if(project.place==='Arcade set')await model('district-interior/district_arcade_cabinet_1m.glb',0,0,2);else{await model('district-interior/district_shop_counter_8m.glb',0,1,1);await model('district-interior/district_scanner_kiosk_1m.glb',-1,0,1.6);}}
-    if(project.actor!=='none'){const result=await model('crowd/'+project.actor+'.glb',0,0,1.75);actor=result.node;actor.metadata={origin:actor.position.clone()};groups=result.groups;}
+    if(project.actor!=='none'){let id=project.actor;if(id==='saved-player'){id=root.VoidAccount?.character?.model||'district-resident';if(!/^[a-z][a-z0-9-]{0,48}$/.test(id))throw Error('Choose a packaged performer for this player appearance.');}
+     const result=await model('crowd/'+id+'.glb',0,0,1.75);actor=result.node;actor.metadata={origin:actor.position.clone()};groups=result.groups;}
     if(room){await room.loaded;if(room.failed)throw Error('The camera feed actors could not load.');}
     await scene.whenReadyAsync();
    }

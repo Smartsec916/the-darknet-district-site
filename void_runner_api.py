@@ -1231,10 +1231,12 @@ def cinematic_projects(db, uid):
     for key, project in projects.items():
         if not re.fullmatch(r'[a-zA-Z0-9-]{1,64}', key) or not isinstance(project, dict):
             raise DraftError('Invalid cinematic project.', 422)
-        if set(project) != {'name','place','actor','resolution','aspect','fps','clips'} or not isinstance(project['name'], str) or not project['name'].strip() or len(project['name']) > 140:
+        if set(project)-{'feed','hour'} != {'name','place','actor','resolution','aspect','fps','clips'} or not isinstance(project['name'], str) or not project['name'].strip() or len(project['name']) > 140:
             raise DraftError('Choose a valid project name and settings.', 422)
         if project['resolution'] not in (720,1080,1440,2160) or project['aspect'] not in ('16:9','9:16','1:1') or project['fps'] not in (30,60):
             raise DraftError('Unsupported recording settings.', 422)
+        if type(project.get('hour', 21)) is not int or not 0 <= project.get('hour', 21) <= 23 or ('feed' in project and (project['place'] != 'Blackrock camera feed' or not isinstance(project['feed'],str) or not re.fullmatch(r'[-a-zA-Z0-9_:/]{1,140}',project['feed']))):
+            raise DraftError('Invalid lighting hour or mission feed.',422)
         clips = project['clips']
         if not isinstance(clips,list) or len(clips)>240:
             raise DraftError('Choose up to 240 timeline clips.',422)

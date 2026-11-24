@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "5c8c63b7bec45f05",
+  "revision": "e9e5c3fc8d9e96f7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74629,7 +74629,7 @@
     },
     {
       "source": "void-runner/cinematic-editor.js",
-      "line": 45,
+      "line": 61,
       "text": "const labels={start:'Start time',duration:'Duration',mode:'Camera mode',x:'Start X',y:'Start Y',z:'Start Z',toX:'End X',toY:'End Y',toZ:'End Z',targetX:'Look at X',targetY:'Look at Y',targetZ:'Look at Z',yaw:'Yaw (degrees)',pitch:'Tilt (degrees)',fov:'Field of view (degrees)',zoom:'Zoom',shake:'Camera shake',easing:'Movement easing',focus:'Focus distance (0 disables depth of field)',brightness:'Light intensity',fog:'Fog density',color:'Color',clip:'Animation clip',src:'Recording',text:'Overlay text',volume:'Volume',offset:'Recording trim start',kind:'Transition'};",
       "kind": "source-reference"
     },
@@ -74653,7 +74653,7 @@
     },
     {
       "source": "void-runner/cinematic-renderer.js",
-      "line": 46,
+      "line": 48,
       "text": "const active=[...C.on(project,'Music',t),...C.on(project,'Dialogue',t),...C.on(project,'Sound effects',t)].filter(c=>c.src);",
       "kind": "source-reference"
     },
@@ -82935,9 +82935,10 @@
     "void-runner/character-creator.js": "cfd0082b0171c612f0881f485a9879e677a1af7e5d84d66d5a14d39c97c39d86",
     "void-runner/character-finish.js": "4fc7c0c8dd611061b6664284fe9dbee2708169cf01147e4db9afc0cb6a40908d",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
-    "void-runner/cinematic-editor.js": "9dc6cb6ad177fa2daaf6219818e6ec387e128f2fed7da75be8b3f25a5fe14970",
-    "void-runner/cinematic-project.js": "d1b684af1d9ed3ad64789a50b2cf52f96c7a988726b8ca7eea4127db5d0e18fe",
-    "void-runner/cinematic-renderer.js": "bb9c1061030af26387097a2b5b006423b77822d464171e03a55869a8d5e83639",
+    "void-runner/cinematic-editor.js": "20fb3023f6951bca08ee1888b354db6e934a7658ffb4e85e639563a3bfe4933a",
+    "void-runner/cinematic-locations.js": "c6ddd2b2b9f3f68cba4ad3c9a1552090c2c247a83394dab9645302ef46896a47",
+    "void-runner/cinematic-project.js": "37f3e0b256ada78fba8f83427d65e2efc616e574b6629649405d203b5d6f5bce",
+    "void-runner/cinematic-renderer.js": "ff6dc39e63eec6d2c459928a5ced3965bb2dd3cdf7b460dd22fc314235cf7940",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
@@ -82972,7 +82973,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "87d006a73e68c1474212cec227587079613ba1e2cb142d2fb1453620fff2cf68",
+    "void-runner/dev-tools.js": "2c8d09866c998ca9ce11ae5fe46192d2cbb41214424b9243bd6dbf8d24585bdf",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
