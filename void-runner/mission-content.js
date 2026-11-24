@@ -155,7 +155,7 @@
  function interactionLine(text,index=0){const lines=String(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);return lines.length?lines[index%lines.length]:'';}
  /* A shuffle bag for an ordinary greeting (the "Approach greetings" pool, 23 Nov 2026): every line plays once, in a random order, before any plays again, and the first line of a new round is never the one just played. p holds the bag between calls ({bag, last}); a line removed from the pool by an edit is dropped. One line plays every time. rnd is injectable for tests. */
  function interactionPick(text,p,rnd=Math.random){const lines=String(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(!lines.length)return '';if(lines.length===1){if(p){p.bag=[];p.last=lines[0];}return lines[0];}if(!p)return lines[Math.floor(rnd()*lines.length)];let bag=(Array.isArray(p.bag)?p.bag:[]).filter(x=>lines.includes(x));if(!bag.length){bag=lines.slice();for(let i=bag.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}const k=bag.length-1;if(bag[k]===p.last){const o=bag.findIndex(x=>x!==p.last);if(o>=0)[bag[k],bag[o]]=[bag[o],bag[k]];}}const line=bag.pop();p.bag=bag;p.last=line;return line;}
- function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters','zones','interactions']))return {ok:false,errors:['The content record has an unknown shape.']};
+ function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters','zones','interactions','rookFreight']))return {ok:false,errors:['The content record has an unknown shape.']};
   const X=NPX(),had=X&&content.characters!=null&&X.setMade?X.setMade(content.characters):null;
   try{const m=madeCtx(content,ctx),r=check_(content,m.ctx);return m.errors.length?{ok:false,errors:[...m.errors,...r.errors]}:r;}finally{if(had)X.setMade(had);}}
  function check_(content,ctx={}){
@@ -163,6 +163,10 @@
   if(content.interactions!=null)for(const p of interactionProblems(content.interactions,ctx.givers,ctx.places))err(p);
   if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
+  if(content.rookFreight!=null){
+   const freight=typeof module!=='undefined'?require('./rook-cargo-gen.js'):root.VoidRookCargoGen;
+   if(!freight)err('The freight board could not be checked.');else freight.configErrors(content.rookFreight).forEach(err);
+  }
   if(content.zones!=null){const X=ZN();if(!X)err('The Zones table cannot be checked here.');else for(const p of X.tableProblems(content.zones,{places:ctx.places,types:MODTYPES()}))err(p);}
   if(content.npcs!=null){const X=NPX();if(!X)err('NPC placements cannot be checked here.');else for(const p of X.checkAll(content.npcs))err(p);}
   if(content.looks!=null){const L=NPL();if(!L)err('NPC looks cannot be checked here.');else for(const p of L.problems(content.looks,{inventory:ctx.lookInventory}))err(p);}
@@ -748,6 +752,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   if(Object.keys(env.characters).length)out.applied.push(Object.keys(env.characters).length+' character(s) made in the editor');
   env.interactions=clone((content&&content.interactions)||{});
   env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
+  env.rookFreight=clone(content?.rookFreight||null);
   env.zones=clone((content&&content.zones)||{});if(content&&content.zones)out.applied.push('the Zones table');   // zones.js
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
@@ -885,11 +890,12 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   {const L=NPL(),lk={};for(const [a,e] of Object.entries((local&&local.looks)||{})){const c=L?L.clean(a,e):null;if(c)lk[a]=c;}if(Object.keys(lk).length)out.looks=lk;}   // NPC looks
   {const I=VIM(),cl=I&&local&&local.clips?I.contentClips(local.clips,clipText):[];if(cl.length)out.clips=cl;}   // imported voice files (clipText: line key -> its words now; an import whose words changed is left out)
   const names=Object.fromEntries(Object.entries((local&&local.names)||{}).filter(([id,n])=>ID.test(id)&&typeof n==='string'&&n.trim()).map(([id,n])=>[id,n.trim().slice(0,60)]));if(Object.keys(names).length)out.names=names;
+  if(local?.rookFreight)out.rookFreight=clone(local.rookFreight);
   {const X=ZN(),z=X&&local?X.cleanTable(local.zones):null;if(z)out.zones=z;}   // the owner's Zones table (Developer Tools > Zones)
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length)&&!c.zones);
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length)&&!c.zones&&!c.rookFreight);
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local,givers,items}={}){
   const out=[];

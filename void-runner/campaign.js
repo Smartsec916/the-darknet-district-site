@@ -220,7 +220,7 @@
     const n=rookRunNumber(s),f=s.story?.flags||{},to=f.rookRunTo,kind=s.contract==='rook-run'&&Object.hasOwn(rookJobs,f.rookJob)?f.rookJob:null;
     const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
     // A procedural job keeps its generated terms (rookTerms); a job taken before the procedural board keeps the older terms.
-    if(kind){const t=s.contract==='rook-run'?RG.decode(f.rookTerms):null,r={...rookJobOffer(n,kind,destination),...(t?{...t,procedural:true}:{})};if(!t||!t.title)delete r.title;return {...r,reward:r.payAt==='delivery'?r.payment:0};}
+    if(kind){const t=s.contract==='rook-run'?RG.decode(f.rookTerms):null,r={...rookJobOffer(n,kind,destination),...(t?{...t,procedural:true}:{})};if(!t||!t.title)delete r.title;if(f.rookLedger)r.payAt='rook';return {...r,reward:r.payAt==='delivery'?r.payment:0};}
     // A run accepted before the cargo board (older saves): its original terms, paid on delivery.
     const step=Math.min(n-1,8);
     return {...rookRunBase,id:'rook-run-'+n,number:n,kind:'legacy',payAt:'delivery',units:1,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),payment:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
@@ -235,14 +235,14 @@
   function rookOwed(s){const m=/^(\d{1,6}):(\d{1,6})$/.exec(String(s.story?.flags?.rookOwed||''));return m?{number:Number(m[1]),amount:Number(m[2])}:null;}
   // Rook pays in person at Meridian. The debt is cleared in the same step, so it is paid exactly once.
   function collectRook(s){
-    const o=rookOwed(s);if(rookShut(s)||!o||s.location!=='meridian')return 0;
+    const o=rookOwed(s);if(rookShut(s)||!o||s.story.flags.rookLedger||s.location!=='meridian')return 0;
     delete s.story.flags.rookOwed;s.credits+=o.amount;s.completed++;
     Missions.complete(s,'rook-run-'+o.number,'payment',api);rookHistory(s,o.number,'paid');return o.amount;
   }
   // Handing the freight back to Rook's crew ends the job: no pay, no penalty, the same run number stays open.
   function cancelRook(s){
     if(rookShut(s))return false;
-    if(s.contract!=='rook-run'||s.location!=='meridian')return false;
+    if(s.contract!=='rook-run'||s.story.flags.rookLedger||s.location!=='meridian')return false;
     const id=rookRun(s).id;s.contract=null;delete s.story.flags.rookJob;delete s.story.flags.rookRunTo;delete s.story.flags.rookTerms;
     if(s.universe?.missions)delete s.universe.missions[id];if(s.universe?.trackedMission===id)s.universe.trackedMission=null;return true;
   }
@@ -260,7 +260,7 @@
   function rookRunInfo(s,number){
     if(s.contract==='rook-run'&&rookRunNumber(s)===number)return {...rookRun(s),stage:'carrying',side:Missions.closed(s)};
     const o=rookOwed(s),h=rookLog(s).find(x=>x.number===number);
-    if(h)return {...rookRunBase,...h,payAt:h.kind&&rookJobs[h.kind]?rookJobs[h.kind].payAt:'delivery',id:'rook-run-'+number,name:'Rook freight run #'+number,stage:o?.number===number?'owed':'done',side:Missions.closed(s),destinationName:stations[h.destination]?.name||h.destination};
+    if(h)return {...rookRunBase,...h,payAt:o?.number===number?'rook':h.kind&&rookJobs[h.kind]?rookJobs[h.kind].payAt:'delivery',id:'rook-run-'+number,name:'Rook freight run #'+number,stage:o?.number===number?'owed':'done',side:Missions.closed(s),destinationName:stations[h.destination]?.name||h.destination};
     return null;
   }
   const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];

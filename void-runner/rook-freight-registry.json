@@ -1,0 +1,158 @@
+{
+  "stations": {
+    "kepler": {
+      "system": "erebus",
+      "hub": "meridian",
+      "surface": false,
+      "gate": null
+    },
+    "rusthaven": {
+      "system": "erebus",
+      "hub": "meridian",
+      "surface": false,
+      "gate": null
+    },
+    "foundry": {
+      "system": "erebus",
+      "hub": "meridian",
+      "surface": false,
+      "gate": null
+    },
+    "sol-belt": {
+      "system": "sol",
+      "hub": "sol-belt",
+      "surface": false,
+      "gate": null
+    },
+    "earth": {
+      "system": "sol",
+      "hub": "sol-belt",
+      "surface": true,
+      "gate": null
+    },
+    "mars": {
+      "system": "sol",
+      "hub": "sol-belt",
+      "surface": true,
+      "gate": null
+    },
+    "vigil": {
+      "system": "communion",
+      "hub": "vigil",
+      "surface": false,
+      "gate": "communionDelivery"
+    },
+    "holdfast": {
+      "system": "natural-order",
+      "hub": "holdfast",
+      "surface": false,
+      "gate": "orderDelivery"
+    }
+  },
+  "goods": [
+    {
+      "name": "general freight",
+      "container": "sealed crates",
+      "min": 3,
+      "max": 10,
+      "kg": 180,
+      "value": true
+    },
+    {
+      "name": "medical supplies",
+      "container": "cases",
+      "min": 6,
+      "max": 20,
+      "kg": 40,
+      "value": true
+    },
+    {
+      "name": "machine parts",
+      "container": "crates",
+      "min": 3,
+      "max": 9,
+      "kg": 260
+    },
+    {
+      "name": "data cores",
+      "container": "padded cases",
+      "min": 2,
+      "max": 6,
+      "kg": 25,
+      "value": true
+    },
+    {
+      "name": "perishable food",
+      "container": "cold boxes",
+      "min": 6,
+      "max": 16,
+      "kg": 70
+    },
+    {
+      "name": "water filters",
+      "container": "crates",
+      "min": 4,
+      "max": 12,
+      "kg": 90
+    },
+    {
+      "name": "coolant cells",
+      "container": "racks",
+      "min": 2,
+      "max": 8,
+      "kg": 150
+    },
+    {
+      "name": "spare electronics",
+      "container": "cases",
+      "min": 4,
+      "max": 14,
+      "kg": 35,
+      "value": true
+    },
+    {
+      "name": "building materials",
+      "container": "pallets",
+      "min": 2,
+      "max": 6,
+      "kg": 420
+    }
+  ],
+  "config": {
+    "destinations": [
+      "kepler",
+      "rusthaven",
+      "foundry",
+      "sol-belt",
+      "earth",
+      "mars",
+      "vigil",
+      "holdfast"
+    ],
+    "excluded": [],
+    "cargo": [
+      "general freight",
+      "medical supplies",
+      "machine parts",
+      "data cores",
+      "perishable food",
+      "water filters",
+      "coolant cells",
+      "spare electronics",
+      "building materials"
+    ],
+    "difficulties": [
+      "routine",
+      "long-haul",
+      "valuable",
+      "hazard"
+    ],
+    "minReward": 350,
+    "maxReward": 3500,
+    "unlockMission": "",
+    "dialogue": [
+      "Got freight going all over. Take a job, the pay is on the board.",
+      "You know the lanes. Pick a load and bring the delivery receipt back to me."
+    ]
+  }
+}
