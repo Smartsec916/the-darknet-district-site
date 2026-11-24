@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "d327f2fb2412cfd8",
+  "revision": "9a380f13b338df99",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82519,7 +82519,7 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "dac2a8fc5cbe7e0e6a09384510fb72145041152fa1c28fb6f2ee59d7bf06a45f",
-    "void-runner/npc-areas.js": "8eb99a3095dbd5039daa54d1f437c99ee1f278e9dac281e2bc58a7ae0752cfc3",
+    "void-runner/npc-areas.js": "d648d52f8eeca2576b55cae0344ef7d78c0cbab296624c1a6fdbb506936139e1",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
     "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
