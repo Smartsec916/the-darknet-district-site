@@ -168,17 +168,17 @@ function runtimeSocialLifecycleHarness(source=runtimeSource){
  const start=source.indexOf('function endSocial('),end=source.indexOf('function roomTick(',start);
  const carryStart=source.indexOf('function setCarry('),carryEnd=source.indexOf('/* Where the person',carryStart);
  const eventStart=source.indexOf('function onEscort('),eventEnd=source.indexOf('if(root.VoidStreetPair){root.VoidStreetPair.onEscort',eventStart);
- let time=0,busy=false;const said=[],follow={role:'lead',place:'store',maxWait:5,arrive:'HERE',cancel:'BYE'};
+ let time=0,busy=false,here={x:0,z:0},destination=[2,0,2],allowed=true;const said=[],follow={role:'lead',place:'store',maxWait:5,arrive:'HERE',cancel:'BYE'};
  const env={interactions:{iris:{advanced:{follow}}}};
- const root={VoidAdvancedInteractions:A,VoidNPCPaths:{MOVABLE:{iris:{name:'Iris'}}},VoidPlaces:{target:()=>[2,0,2]},VoidNPCAreas:{areaOf:()=> 'avenue',nearest:p=>p},VoidNPCEscort:{FLAG:'npcEsc',encode:c=>c.key}};
- const control={now:()=>time,busy:()=>busy};
+ const root={VoidAdvancedInteractions:A,VoidNPCPaths:{MOVABLE:{iris:{name:'Iris'}}},VoidPlaces:{target:()=>destination},VoidNPCAreas:{areaOf:p=>p&&Number.isFinite(p.x)?(p.x>=50?'oldtown':'avenue'):null,nearest:p=>p},VoidNPCEscort:{FLAG:'npcEsc',encode:c=>c.key,mayEnter:()=>({ok:allowed})}};
+ const control={now:()=>time,busy:()=>busy,here:()=>here};
  const api=new Function('root','env','control','said',
   'const Date={now:control.now},social=new Map(),carry={},state={story:{flags:{npcEsc:"mission/original"}}};let socialSerial=0,planAt=1,planCache={};'+
-  'const missionBusy=()=>control.busy(),saySocial=(id,line)=>said.push(line),livePos=()=>({x:0,z:0}),treesOn=()=>false;'+
+  'const missionBusy=()=>control.busy(),saySocial=(id,line)=>said.push(line),livePos=()=>control.here(),treesOn=()=>false;'+
   source.slice(start,end)+source.slice(carryStart,carryEnd)+source.slice(eventStart,eventEnd)+
-  ';return {start:()=>{const f=env.interactions.iris.advanced.follow,offer={phase:"offer",at:Date.now(),generation:0};social.set("iris",offer);return beginSocial("iris",offer,f);},plan:()=>socialPlan("iris"),end:()=>endSocial("iris","cancel"),event:(p,event,extra={})=>onEscort({npc:"iris",key:p.key,step:p.step,event,...extra}),carry:c=>setCarry("iris",c),flag:()=>state.story.flags.npcEsc};'
+  ';return {start:()=>{const f=env.interactions.iris.advanced.follow,offer={phase:"offer",at:Date.now(),generation:0};social.set("iris",offer);return beginSocial("iris",offer,f);},plan:()=>{const p=socialPlan("iris");planCache.iris=p;return p;},end:()=>endSocial("iris","cancel"),event:(p,event,extra={})=>onEscort({npc:"iris",key:p.key,step:p.step,event,...extra}),carry:c=>setCarry("iris",c),flag:()=>state.story.flags.npcEsc};'
  )(root,env,control,said);
- return {...api,said,advance:t=>{time=t;},busy(){busy=true;},republish(){env.interactions={iris:{advanced:{follow:{...follow}}}};}};
+ return {...api,said,advance:t=>{time=t;},busy(){busy=true;},republish(){env.interactions={iris:{advanced:{follow:{...follow}}}};},position:p=>{here=p;},target:p=>{destination=p;},allow:v=>{allowed=v;},role:r=>{follow.role=r;}};
 }
 test('an active lead expires after waiting, not while moving, and resets the wait on catch-up',()=>{
  const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.advance(4999);assert.ok(h.plan());h.advance(5000);assert.equal(h.plan(),null);
@@ -194,4 +194,25 @@ test('active escort yields silently to mission priority or changed published con
 });
 test('social escort carry never overwrites a saved mission escort',()=>{
  const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.carry({key:p.step,x:3,z:4});assert.equal(h.flag(),'mission/original');h.end();h.carry({key:p.step,x:4,z:5});assert.equal(h.flag(),'mission/original');h.carry({key:'mission/new',x:5,z:6});assert.equal(h.flag(),'mission/new');
+});
+
+test('a social lead never spawns in another area merely because the target is there',()=>{
+ const h=runtimeSocialLifecycleHarness();h.target([100,0,2]);h.start();assert.equal(h.plan(),null);
+});
+test('a destination rejected by the existing access rules or an unresolved explicit follow target cannot run',()=>{
+ const a=runtimeSocialLifecycleHarness();a.allow(false);a.start();assert.equal(a.plan(),null);
+ const b=runtimeSocialLifecycleHarness();b.role('follow');b.target(null);b.start();assert.equal(b.plan(),null);
+});
+test('an escort with no live starting position does not assume the Avenue',()=>{
+ const h=runtimeSocialLifecycleHarness();h.position(null);h.start();assert.equal(h.plan(),null);
+});
+test('a social carry into a different area is rejected without overwriting mission state',()=>{
+ const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.carry({key:p.step,area:'oldtown',x:100,z:2});
+ assert.equal(h.plan(),null);assert.equal(h.flag(),'mission/original');assert.deepEqual(h.said,[]);
+});
+test('a retained same-area carry resumes at the last position and waits only until the deadline',()=>{
+ const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.event(p,'walk');h.advance(1000);
+ h.carry({key:p.step,area:'avenue',x:3,z:4,phase:'wait'});h.position(null);
+ const q=h.plan();assert.equal(q.area,'avenue');assert.equal(q.resume.x,3);assert.equal(q.resume.z,4);
+ h.advance(5999);assert.ok(h.plan());h.advance(6000);assert.equal(h.plan(),null);
 });
