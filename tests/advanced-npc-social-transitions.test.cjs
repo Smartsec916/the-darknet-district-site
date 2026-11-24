@@ -46,7 +46,7 @@ test('an escort whose plan belongs to another area is not carried from this scen
 // Exercise the same adapter with public registry geometry, including the space inside the scanner.
 async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=true,tier=2,from='avenue',to='oldtown'}={}){
  const E=require('../void-runner/npc-escort'),A=require('../void-runner/npc-areas'),Q=require('../void-runner/ncz-quarters'),X=require('../void-runner/npc-paths');
- const lane=Q.lane(riding?'north:bay-s':'north:foot-w'),link=E.linkById('gate:north:foot-w'),id='grey-reverie',session='social:'+id+':3';
+ const lane=Q.lane(riding?'north:bay-s':'north:foot-w'),link=E.linkById('gate:north:foot-w'),id='tea-host',session='social:'+id+':3';
  const actual={id:'neochinatown',area:'street',quarter:from},walker={x:lane.mid[0],z:lane.mid[1]},point=riding?walker:link.ends[from].wait;
  const plan={mode:'escort',social:true,key:session,step:session,kind:'they-follow',area:from,set:{}};
  const actor={key:session,here:true,npc:id,...point,x:near?point.x:point.x-25,yaw:0,phase:'follow',ride:seated?'in-cab':null};

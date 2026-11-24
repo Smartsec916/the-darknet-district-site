@@ -36,7 +36,7 @@
    panel.id='milked-studio-request-panel';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Studio '+studio+' observation and animation requests');
    panel.style.cssText='position:fixed;z-index:2147483000;right:clamp(10px,3vw,36px);top:18%;width:min(350px,calc(100vw - 20px));max-height:72vh;overflow:auto;box-sizing:border-box;padding:17px 18px;color:#edf6ff;background:rgba(7,11,19,.65);border:1px solid rgba(255,63,180,.7);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.32);font:14px/1.5 system-ui,sans-serif;backdrop-filter:blur(3px);pointer-events:auto';
    const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:750;letter-spacing:.09em;color:#ff9bd8';title.textContent='MILKED // STUDIO '+studio;
-   const intro=document.createElement('p');intro.style.cssText='margin:8px 0 12px';intro.textContent='ON AIR · Fixed cameras · Soundproof observation window';
+   const intro=document.createElement('p');intro.style.cssText='margin:8px 0 12px';intro.textContent=!MK.STUDIOS[studio-1]?.dancer?'OFF AIR · No performer scheduled':'ON AIR · Fixed cameras · Soundproof observation window';
    const who=document.createElement('div');who.style.cssText='font-size:12px;color:#aafdd5;margin-bottom:9px';who.textContent='Connecting to performer…';
    const label=document.createElement('label');label.textContent='REQUEST ANIMATION';label.style.cssText='display:block;font-size:12px;letter-spacing:.08em;margin-bottom:5px';label.htmlFor='milked-animation-choice';
    const select=document.createElement('select');select.id='milked-animation-choice';select.style.cssText='width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid rgba(57,255,156,.6);border-radius:6px;color:#fff;background:rgba(12,20,28,.84);font:inherit';
@@ -45,10 +45,13 @@
    const request=button('REQUEST','#39ff9c'),close=button('CLOSE','#ff3fb4');buttons.append(request,close);
    const status=document.createElement('div');status.setAttribute('role','status');status.style.cssText='min-height:20px;margin-top:10px;font-size:12px;color:#aafdd5';
    panel.append(title,intro,who,label,select,buttons,status);document.body.append(panel);
-   const names={'npc-grey-reverie':'Reverie','npc-ethereal-lace':'Lace','studio-warrior':'Female Warrior','vr-companion-bm':'Dex','npc-milked-auburn':'Auburn'};
+   const names={'studio-warrior':'Female Warrior','vr-companion-bm':'Dex','npc-milked-auburn':'Auburn'};
+   const vacant=!MK.STUDIOS[studio-1]?.dancer;
+   if(vacant){who.remove();label.remove();select.remove();request.remove();}
    let signature='';
    function refresh(){
-    const available=currentZone()?.animationChoices?.(studio),look=available?.look||MK.STUDIOS[studio-1]?.dancer.look,clips=available?.clips||[];
+    if(vacant)return;
+    const available=currentZone()?.animationChoices?.(studio),look=available?.look||MK.STUDIOS[studio-1]?.dancer?.look,clips=available?.clips||[];
     const sig=String(look)+'|'+clips.map(c=>c.id).join(',');
     if(sig!==signature){
      const previous=select.value;signature=sig;select.replaceChildren();
@@ -69,7 +72,7 @@
    const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closeStudio();}else if(panel.contains(document.activeElement)&&['ArrowDown','ArrowUp','Enter',' '].includes(e.key))e.stopPropagation();};
    document.addEventListener('keydown',key,true);
    open={panel,key,timer:setInterval(()=>{if(currentZone())refresh();else closeStudio();},1000)};
-   refresh();select.focus();
+   refresh();(vacant?close:select).focus();
   }
   R('milked-studio',({item}={})=>viewStudio(item?.studio));
   R('milked-cameras',()=>note('REMOTE CAMERA CONTROLS: every studio camera is on a stand and is moved from this desk. All four studios are live.'));

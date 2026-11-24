@@ -22,7 +22,14 @@ export async function open(file){
  }
 }
 async function running(){
- if(!runLibrary)runLibrary=(async()=>{const response=await fetch(new URL('assets/models/crowd/npc-grey-reverie.glb',import.meta.url));if(!response.ok)throw Error('Run source unavailable');const doc=await open(await response.blob());return {doc,rig:map(doc)};})().catch(e=>{runLibrary=null;throw e;});
+ if(!runLibrary)runLibrary=(async()=>{
+  const response=await fetch(new URL('assets/animations/humanoid-run.glb',import.meta.url));
+  if(!response.ok)throw Error('Run source unavailable');
+  const doc=await open(await response.blob());
+  // This bundled motion-only skeleton carries the mapping measured on its original bound rig.
+  const rig={mapping:doc.json.extras.humanoidMapping,joints:doc.json.skins[0].joints.map(index=>({index}))};
+  return {doc,rig};
+ })().catch(e=>{runLibrary=null;throw e;});
  return runLibrary;
 }
 async function approved(){

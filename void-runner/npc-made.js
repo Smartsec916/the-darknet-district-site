@@ -40,7 +40,7 @@
     licensed model), its jacket darkened by a look (npc-looks.js colour, skin kept). His post and actions: npc-paths.js MOVABLE['tea-host'].home; the roster entry and
     TALK prompt: mission-givers.js FACTS (action ACTION). Placeholder name; no lines. */
  const BUILTIN={'tea-host':{name:'Tea Room Host',model:'npc-cook-old',look:{colour:{'*':{tint:'#30343a',sat:.55,bright:.62}}}}};
- const YOUNG=['npc-grey-reverie','npc-ethereal-lace','npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
+ const YOUNG=['npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
  const adultAllowed=asset=>!YOUNG.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
  const LIMIT={characters:12,name:40,role:80,items:6};
@@ -146,7 +146,24 @@
    return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
- const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ function deletionReferences(draft,id){
+  const uses=value=>value===id||!!value&&typeof value==='object'&&Object.values(value).some(uses);
+  const refs=(draft.trees||[]).filter(uses).map(tree=>tree.name||tree.id);
+  for(const [other,record] of Object.entries(draft.interactions||{}))
+   if(other!==id&&record.advanced?.group?.members?.includes(id))refs.push('interaction with '+other);
+  for(const [other,record] of Object.entries(draft.characters||{}))
+   if(other!==id&&record.relationships?.some(r=>r.target===id))refs.push('relationship with '+(record.name||other));
+  for(const [mission,record] of Object.entries(draft.missions||{}))if(uses(record))refs.push(mission);
+  return refs;
+ }
+ function deleteCharacter(draft,id){
+  if(!Object.hasOwn(draft.characters||{},id)||deletionReferences(draft,id).length)return false;
+  for(const key of ['characters','npcs','voices','names','interactions'])if(draft[key])delete draft[key][id];
+  if(draft.animRequests)draft.animRequests=draft.animRequests.filter(r=>r.npc!==id);
+  for(const [key,clip] of Object.entries(draft.clips||{}))if(clip?.who===id)delete draft.clips[key];
+  return true;
+ }
+ const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game

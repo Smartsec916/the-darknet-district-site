@@ -512,7 +512,7 @@
   box(3.3,.03,.03,81.3,.04,-80.17,pink);flat(pool(PINK,4.4,1.8,81.3,.02,-79.6,.42));box(3.56,.015,.02,81.3,1.115,-80.14,pinkDim);
   for(const x of [79.75,82.85])tbox(.3,1.06,1.68,x,.53,-81.84,S.wall,1.5);
   box(.64,.4,.04,80.7,1.42,-80.72,black);box(.08,.18,.08,80.7,1.2,-80.74,black);box(.5,.02,.18,80.75,1.12,-80.98,black);
-  screen(.58,.34,80.7,1.42,-80.745,TOS,256,150,(g,w,h,t)=>{g.fillStyle='#06070c';g.fillRect(0,0,w,h);g.fillStyle=PINK;g.font=FONT(15);g.textAlign='left';g.fillText('BROADCAST SCHEDULE',8,20);g.font=FONT(13);STUDIOS.forEach((s,i)=>{g.fillStyle=i%2?GREEN:'#ffd3ee';g.fillText('STUDIO '+s.n+'   ON AIR',8,46+i*22);});g.fillStyle='#8f9aa8';g.fillText('MEMBERS ONLINE '+(1840+Math.floor(t*2.3)%400),8,140);},2);
+  screen(.58,.34,80.7,1.42,-80.745,TOS,256,150,(g,w,h,t)=>{g.fillStyle='#06070c';g.fillRect(0,0,w,h);g.fillStyle=PINK;g.font=FONT(15);g.textAlign='left';g.fillText('BROADCAST SCHEDULE',8,20);g.font=FONT(13);STUDIOS.forEach((s,i)=>{g.fillStyle=i%2?GREEN:'#ffd3ee';g.fillText('STUDIO '+s.n+(s.dancer?'   ON AIR':'   OFF AIR'),8,46+i*22);});g.fillStyle='#8f9aa8';g.fillText('MEMBERS ONLINE '+(1840+Math.floor(t*2.3)%400),8,140);},2);
   // on the desk: the creators' check-in stand with its code, a bell, the lucky cat, an orchid, pens
   box(.24,.32,.015,82.25,1.27,-80.36,M('acrylic','#cfe6f0','#3a4a50',.35));
   sign(.21,.29,82.25,1.27,-80.35,TON,168,232,(g,w,h)=>{g.fillStyle='#f2f4f7';g.fillRect(0,0,w,h);g.fillStyle='#16161b';g.font=FONT(15);g.textAlign='center';g.fillText('OFFICIAL',w/2,22);g.fillText('CREATORS',w/2,40);g.fillStyle='#c41f86';g.fillText('CHECK-IN',w/2,58);k.reseed(5);const q=11,c=10,x0=(w-q*c)/2,y0=72;g.fillStyle='#16161b';for(let i=0;i<q;i++)for(let j=0;j<q;j++)if(k.rnd()<.5)g.fillRect(x0+i*c,y0+j*c,c,c);for(const [a,b] of [[0,0],[q-3,0],[0,q-3]]){g.fillStyle='#16161b';g.fillRect(x0+a*c,y0+b*c,3*c,3*c);g.fillStyle='#f2f4f7';g.fillRect(x0+a*c+c*.6,y0+b*c+c*.6,c*1.8,c*1.8);g.fillStyle='#16161b';g.fillRect(x0+a*c+c,y0+b*c+c,c,c);}g.fillStyle='#16161b';g.font=HAN(15);g.fillText('创作者签到',w/2,h-12);});
@@ -550,7 +550,7 @@
     else{tbox(b-a,CEIL-2.1,T,(a+b)/2,(CEIL+2.1)/2,wz,S.wall);box(b-a,2.1,.08,(a+b)/2,1.05,wz,doorM);box(.05,.3,.04,b-.14,1.05,wz+hn*.06,trim);for(const e of [a,b])box(.06,2.1,T+.04,e,1.05,wz,metal);
      plate(.52,.17,(a+b)/2,1.62,wz+hn*.05,ry,[['STUDIO '+s.n,hexOf(col),66]],{bg:'#07080c',border:'#07080c'});
      // ON AIR indicator over the studio door
-     box(.74,.26,.07,(a+b)/2,2.5,wz+hn*(T/2+.03),black);sign(.66,.2,(a+b)/2,2.5,wz+hn*(T/2+.075),ry,264,80,(g,w,h)=>{g.fillStyle='#16040a';g.fillRect(0,0,w,h);g.shadowColor=RED;g.shadowBlur=12;g.fillStyle='#ff5a72';g.font=FONT(52);g.textAlign='center';g.textBaseline='middle';g.fillText('ON AIR',w/2,h/2+3);});
+     box(.74,.26,.07,(a+b)/2,2.5,wz+hn*(T/2+.03),black);sign(.66,.2,(a+b)/2,2.5,wz+hn*(T/2+.075),ry,264,80,(g,w,h)=>{g.fillStyle='#16040a';g.fillRect(0,0,w,h);g.shadowColor=RED;g.shadowBlur=12;g.fillStyle='#ff5a72';g.font=FONT(52);g.textAlign='center';g.textBaseline='middle';g.fillText(s.dancer?'ON AIR':'OFF AIR',w/2,h/2+3);});
      box(.07,.07,.05,(a+b)/2+.46,2.5,wz+hn*(T/2+.05),onAir,true);}
     from=b;}
    if(r[1]>from)tbox(r[1]-from,CEIL,T,(from+r[1])/2,CEIL/2,wz,S.wall);}
@@ -686,7 +686,7 @@
   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,y:0,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,spawned:false,...opts});
   const eva=MODELS.eva,fish=MODELS.fish;
   spot(eva.id,eva.at[0],eva.at[1],eva.face,eva.clips,{fixedLook:eva.look,asset:eva.asset,role:'eva'});spot(fish.id,fish.at[0],fish.at[1],fish.face,fish.clips,{fixedLook:fish.look,asset:fish.asset,role:'fish'});
-  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:s.n===1?null:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,dances:s.dancer.dances,y:.055,phase:s.n*1.3});
+  for(const s of STUDIOS)if(s.dancer)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:s.n===1?null:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,dances:s.dancer.dances,y:.055,phase:s.n*1.3});
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
@@ -697,7 +697,7 @@
   const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
   function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
-  const LOOKS=[...new Set([...people.map(p=>p.fixedLook),'npc-grey-reverie','npc-ethereal-lace'])];
+  const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
   const asked=new Map();
   // A look that is a licensed companion model (the studio 3 dancer is Dex since 18 Nov 2026, the owner's choice) ships as an encrypted .vrpak, not a .glb.
   // Studio 2's dancer (the licensed Female Warrior, 18 Nov 2026) names her own .vrpak in milked.js; she is not a companion.
@@ -707,24 +707,11 @@
   // Who is speaking to the player now: the open walking conversation's current line (Eva and Fish speak as milked-eva / milked-fish, milked-integration.js).
   let lastSpeaker=null;
   function speakerNow(){try{const line=typeof speech!=='undefined'&&speech?.lines?.[speech.index];if(line){lastSpeaker=line.who;return lastSpeaker;}return root.VoidConversationUI?.isOpen?lastSpeaker:(lastSpeaker=null);}catch{return null;}}
-  const studioOne=people.find(p=>p.studio===1);
-  function syncStudioOne(){
-   if(!studioOne)return;
-   const wanted=MK.studioOnePerformer(root.VoidStreetPair?.streetTime?.()??Date.now());
-   if(wanted.look===studioOne.fixedLook)return;
-   studioOne.anim?.dispose?.();studioOne.node?.dispose?.();
-   studioOne.node=null;studioOne.anim=null;studioOne.rot=null;studioOne.requestUntil=0;studioOne.meshes=[];
-   studioOne.spawned=false;studioOne.fixedLook=wanted.look;
-   studioOne.clips=wanted.clips;studioOne.dances=wanted.dances;studioOne.library=null;
-   studioOne.look=null;studioOne.clip=null;
-   askLooks([wanted.look]); // first load at shift change, without waiting for the normal 20s retry
-   mirAll=null;mirNext=0;
-  }
   // Requestable only while the named animation group exists on this exact loaded model.
   // Keep walking, seated/floor, partner and prop-based clips out of a stationary studio.
   const REQUESTABLE=/^(?:dance(?:-[a-z0-9-]+)?|slow-dance|idle(?:-[a-z0-9-]+)?|look|watch|gesture|shrug|talk|ac-stand-curve-[23])$/;
   function animationChoices(studio){
-   syncStudioOne();const p=people.find(x=>x.studio===Number(studio));
+   const p=people.find(x=>x.studio===Number(studio));
    if(!p||!p.node||!p.anim)return {look:p?.fixedLook||null,ready:false,clips:[]};
    const groups=p.node.metadata?.animationGroups||[];
    const present=name=>groups.some(g=>g.name===name||g.name.endsWith('-'+name)||g.name.replace(/\.\d{3}$/,'').endsWith('-'+name));
@@ -742,7 +729,7 @@
     return {ok:true,message:'REQUEST RECEIVED · '+clip.replace(/-/g,' ').toUpperCase()};
    }catch{return {ok:false,message:'Unable to start the animation.'};}
   }
-  function staff(clock,cam=null,dt=0){syncStudioOne();const speaker=cam?speakerNow():null;
+  function staff(clock,cam=null,dt=0){const speaker=cam?speakerNow():null;
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
    if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;askLooks();}
@@ -788,7 +775,7 @@
      (the people, the floor mirror's view of them, the glow and the key light's shadow) is compiled before the inner doors open. They used to be fetched only once
      the player was walking, so they arrived, and their shaders compiled, just as the inner doors opened. A slow download (over 8 s) still finishes in the background. */
   const prepared={};   // how long each step behind the card took, in ms (state().prepared; for checking on a real graphics card)
-  async function prepare(){if(k.disposed)return;syncStudioOne();let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
+  async function prepare(){if(k.disposed)return;let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
    // only figures already on this computer (in memory or the offline cache), the rule every place follows (asset-pipeline.js prepare): a first visit still downloads after the card
    const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+fileOf(look)),1500)?look:null))).filter(Boolean);if(k.disposed)return;
    await cap(Promise.all(askLooks(here)),8000);if(k.disposed)return;lap('figures');staff(k.clock);

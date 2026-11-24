@@ -3,7 +3,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('path'),fs=require('fs'),vm=require('vm');
 const R=p=>path.join(__dirname,'..',p);
 const E=require(R('void-runner/npc-escort.js')),A=require(R('void-runner/npc-areas.js')),Q=require(R('void-runner/ncz-quarters.js')),BA=require(R('void-runner/ncz-backalleys.js')),U=require(R('void-runner/ncz-underground.js'));
-const REV='grey-reverie',LACE='ethereal-lace',CAT='street-cat',d=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+const REV='tea-host',LACE='tea-host',CAT='street-cat',d=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 
 test('links: every walkers\' lane between two city quarters, the three stairwells to the tunnels and the District\'s door; their points stand where she may',()=>{
  const L=E.links(),ids=L.map(l=>l.id);
@@ -85,7 +85,7 @@ test('a taxi during a follow / lead step: she gets in, rides (also through a gat
  const cs={x:0,z:0,phase:'in-cab',arrived:false};E.cab(cs,{kind:'their-cab',stop:'main',me:{x:0,z:0},job:null,crossing:true,walking:false,riding:true,dt:.1});assert.equal(cs.phase,'in-cab');
  E.cab(cs,{kind:'their-cab',stop:'main',me:{x:0,z:0},job:null,crossing:false,walking:false,riding:false,dt:.1});assert.equal(cs.phase,'kerb','without a crossing: the cab left without the player (as before)');
  // stops: any city stop, from an area with taxis; none from the tunnels or the District; never the far places
- assert.ok(E.stops(REV,'avenue').filter(s=>!s.far).every(s=>s.ok));assert.ok(E.stops(REV,'underground').every(s=>!s.ok));assert.ok(E.stops(REV,'avenue').filter(s=>s.far).every(s=>!s.ok));});
+ assert.ok(E.stops(REV,'avenue').every(s=>!s.ok));assert.ok(E.stops(REV,'underground').every(s=>!s.ok));assert.ok(E.stops(REV,'avenue').filter(s=>s.far).every(s=>!s.ok));});
 
 test('wiring: npc-escort-across.js wraps enterWalking after every transition, live-content.js carries her area, the street figures ride and wait at links, the arrow',()=>{
  const html=fs.readFileSync(R('void-runner.html'),'utf8'),i=f=>html.indexOf('void-runner/'+f+'"');assert.ok(i('npc-escort-across.js')>i('ncz-gate-transit.js')&&i('ncz-gate-transit.js')>i('ncz-underground-integration.js')&&i('npc-escort-across.js')>i('district-transition.js')&&i('npc-escort-across.js')>i('milked-transition.js'));

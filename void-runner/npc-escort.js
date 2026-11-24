@@ -54,16 +54,16 @@
  const movable=id=>{const X=NPX();const m=X?.MOVABLE?.[id];return m&&!m.placementOnly?m:null;};
  /* Can this NPC do this kind of step? {ok, why}. */
  function can(id,k){if(!id)return {ok:false,why:'Choose who walks with the player.'};const M=movable(id);
-  if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can (today Reverie, Lace and the street cat). Others are added as the path system grows.'};
+  if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can. Others are added as the path system grows.'};
   if(CAB.has(k)&&M.cat)return {ok:false,why:'The cat walks with the player but does not ride in cabs (it is a cat).'};
-  if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together works only with Reverie or Lace for now (a made character walks: use “Follow them” or “They follow you”).'};
+  if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together is unavailable for created characters (a made character walks: use “Follow them” or “They follow you”).'};
   return {ok:true,why:null};}
  /* Every cab stop and far place, with whether this NPC can go there: {id, name, quarter, far, ok, why}. */
  function stops(id,area='avenue'){const Q=QT(),M=movable(id),out=[],A=AR(),q=A&&A.get(area)?A.get(area).quarter:'avenue';if(!Q)return out;
   // (20 Nov 2026, escort across) the cab drives through the gates' bays like the player's own: any stop of the city, as long as her area has taxis (she calls it there)
   const taxis=!!q&&(Q.STOPS||[]).some(s=>s.quarter===q);
   for(const s of Q.STOPS||[]){const ok=!!M&&!M.cat&&!M.made&&taxis;
-   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'Cab rides: only Reverie or Lace for now.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
+   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'This character does not support shared cab rides.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
   for(const f of Q.FAR||[])out.push({id:f.id,name:f.name,quarter:null,far:true,ok:false,why:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.name+' stays in the city (her content rule): never the Corporate District or the Temple.'});
   return out;}
  const stopOk=(id,stop,area='avenue')=>stops(id,area).some(s=>s.id===stop&&s.ok);
