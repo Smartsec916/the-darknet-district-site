@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "e9486cfa72acda29",
+  "revision": "2e00fa16a027cfcf",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81113,7 +81113,7 @@
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 571,
+      "line": 572,
       "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};",
       "kind": "source-reference"
     },
@@ -82616,7 +82616,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "b6e5c511db37a60d6ca2968e0313a7c19a15017f877f9fe1a93df97e3bce345a",
+    "void-runner/tea-duo.js": "00b1db245b0c7b73d39d8bc8494a94ab6a59549763d5610f08e52c59c6eeb62e",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",

@@ -443,6 +443,7 @@
   return true;
  }
  function endActivity(){
+  if(activity?.kind==='sit'){panel?.remove();panel=null;}
   activity=null;
   for(const f of figs.values()){f.acts=f.acts.filter(a=>a.id!=='reach-hand'&&a.id!=='dance');f.walk=null;f.route=[];f.doClip=null;f.accent=null;f.want='stand';}
  }
@@ -458,7 +459,6 @@
   if(a.kind==='sit'){
    const seats=groupSeats();if(!seats){endActivity();return;}
    if(a.seated)return;
-   if(clock()-a.started>32){standPlayer();endActivity();return;}
    if(!a.moving){
     a.moving=true;
     for(const f of figs.values()){f.want='stand';f.walk=null;f.ep=null;}
@@ -469,7 +469,7 @@
     for(const f of figs.values()){assignSeat(f,seats[f.id]);f.want='sit';}
    }
    if(!playerSeat&&Math.hypot(w.x-seats.player.stand.x,w.z-seats.player.stand.z)<.76)beginSeat(w,seats.player);
-   else if(!playerSeat&&!a.hint){a.hint=true;announce('Walk to the middle of the open cot to sit between Nomi and Se7en.');}
+   else if(!playerSeat&&!a.hint){a.hint=true;panelFor('Walk to the middle of the open cot to sit between Nomi and Se7en.',[['Cancel',endActivity]]);}
    a.seated=!!playerSeat&&Array.from(figs.values()).every(f=>f.post==='sit'&&!f.tail);
    return;
   }
@@ -563,6 +563,7 @@
  root.addEventListener('keydown',e=>{
   if(e.repeat||placeOf(where()||{})!==ROOM)return;
   if(playerSeat&&e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();standPlayer();}
+  else if(activity?.kind==='sit'&&e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();endActivity();}
   else if(invitation?.answer===null&&panel&&['Digit1','Digit2'].includes(e.code)){
    e.preventDefault();e.stopImmediatePropagation();answer(e.code==='Digit1');
   }
