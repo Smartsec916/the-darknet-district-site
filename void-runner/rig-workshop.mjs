@@ -75,13 +75,14 @@ export function panel(host,{get,set,preview}){
  async function display(){
   const file=get();if(!file){status.textContent='Choose a character model.';return;}if(last!==file){overrides={};backup=null;last=file;}
   const r=await check(file,overrides);if(get()!==file)return;
-  controls.replaceChildren();status.textContent=[r.rig.state+' · '+r.rig.joints.length+' joints · '+(file.size/1048576).toFixed(2)+' MiB',...r.rig.issues].join(' · ');
+  controls.replaceChildren();const classification=r.rig.ready?'Fully rigged':r.rig.state==='unrigged'?'Unrigged':r.rig.issues.length?'Incorrect or unsupported rig':'Partially mapped rig';
+  status.textContent=[classification+' · '+r.rig.joints.length+' joints · '+(file.size/1048576).toFixed(2)+' MiB',...r.rig.issues].join(' · ');
   for(const role of required()){const line=document.createElement('p'),ok=r.clips.includes(role);line.textContent=(ok?'Passed':r.rig.ready?'Repairable':'Requires bone mapping')+' · '+role;line.style.color=ok?'#81d49e':r.rig.ready?'#eac36f':'#ff9292';if(!ok&&r.rig.ready){const fix=document.createElement('button');fix.type='button';fix.textContent='Repair '+role;fix.onclick=async()=>{if(busy)return;busy=true;try{await apply(false,[role]);}catch(e){status.textContent=e.message;}finally{busy=false;}};line.append(fix);}controls.append(line);}
   if(!r.rig.joints.length){controls.append('Not applicable · No bound skeleton to map. Use the manual humanoid skeleton tool.');}
   const generated=r.doc.json.extras?.voidAddedAnimations||[];
   for(const name of generated){const remove=document.createElement('button');remove.type='button';remove.textContent='Remove '+name;
    remove.onclick=async()=>{if(busy||get()!==file)return;busy=true;try{const doc=await open(file);doc.json.animations=doc.json.animations.filter(a=>a.name!==name);doc.json.extras.voidAddedAnimations=generated.filter(n=>n!==name);
-    backup=file;await set(blobOf(doc));await display();}catch(e){status.textContent=e.message;}finally{busy=false;}};controls.append(remove);}
+    backup=file;await set(blobOf(doc));last=get();await display();}catch(e){status.textContent=e.message;}finally{busy=false;}};controls.append(remove);}
 
   for(const role of Rig.roles){const label=document.createElement('label'),s=document.createElement('select');label.textContent=role;s.add(new Option('Choose a joint',''));for(const b of r.rig.joints)s.add(new Option(b.name||'Joint '+b.index,String(b.index)));s.value=String(r.rig.mapping[role]??'');s.onchange=()=>{if(s.value)overrides[role]=Number(s.value);else delete overrides[role];display().catch(e=>status.textContent=e.message);};label.append(s);controls.append(label);}
  }
@@ -98,6 +99,11 @@ export function panel(host,{get,set,preview}){
  async function apply(all,only=null){
   const file=get();if(!file)throw Error('Choose a GLB first');const sources=await available(all);
   let blob=file;const reports=[];
+  if(!all&&!only){const model=await open(blob),rig=map(model);
+   if(rig.state==='unrigged'&&!model.json.skins?.length&&!model.json.animations?.length){
+    const result=await GLB.rig(model.decoded?blobOf(model):blob);blob=result.blob;reports.push('Created an approximate humanoid skeleton. Review joint placement.');
+   }
+  }
   for(const source of sources){const names=all?source.doc.json.animations.map(a=>a.name).filter(n=>selected===null||selected.has(n)):only;
    const result=await repair(blob,{names,overrides,donor:source,progress:m=>status.textContent=m});blob=result.blob;reports.push(...result.added.map(n=>'Added '+n),...result.review);if(!all)break;}
   if(get()!==file||!box.isConnected)throw Error('Character changed. Run inspection again.');

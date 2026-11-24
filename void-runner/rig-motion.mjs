@@ -68,19 +68,23 @@ export function inspect(doc,overrides={}){
  return rig;
 }
 function sampler(doc,a,rig){
- const tracks=[],times=new Set(),joints=new Set(rig.joints.map(b=>b.index));
+ const tracks=[],times=new Set(),seen=new Set(),joints=new Set(rig.joints.map(b=>b.index));
  for(const c of a.channels||[]){
   if(!joints.has(c.target.node))continue;
   const path=c.target.path,s=a.samplers[c.sampler],time=reader(doc,s.input),value=reader(doc,s.output),key=c.target.node+':'+path;
-  if(!['rotation','translation','scale'].includes(path)||!['LINEAR','STEP'].includes(s.interpolation||'LINEAR')||time.count!==value.count)throw Error('Unsupported sampler in '+a.name);
-  const ts=[],vs=[];for(let i=0;i<time.count;i++){
-   const t=time.get(i)[0],v=value.get(i);if(!Number.isFinite(t)||t<0||i&&t<=ts[i-1]||!v.every(Number.isFinite))throw Error('Invalid samples in '+a.name);
+  if(seen.has(key)||doc.json.accessors[s.input].type!=='SCALAR'||doc.json.accessors[s.output].type!==(path==='rotation'?'VEC4':'VEC3')||[s.input,s.output].some(i=>doc.json.accessors[i].componentType!==5126))throw Error('Invalid or duplicate motion channel in '+a.name);
+  seen.add(key);const cubic=s.interpolation==='CUBICSPLINE';
+  if(!['rotation','translation','scale'].includes(path)||!['LINEAR','STEP','CUBICSPLINE'].includes(s.interpolation||'LINEAR')||time.count*(cubic?3:1)!==value.count)throw Error('Unsupported sampler in '+a.name);
+  const ts=[],vs=[],tangents=[];for(let i=0;i<time.count;i++){
+   const t=time.get(i)[0],v=value.get(cubic?i*3+1:i);if(cubic)tangents.push([value.get(i*3),value.get(i*3+2)]);if(path==='rotation'&&Math.abs(Math.hypot(...v)-1)>.01)throw Error('Invalid joint quaternion in '+a.name);if(!Number.isFinite(t)||t<0||i&&t<=ts[i-1]||!v.every(Number.isFinite))throw Error('Invalid samples in '+a.name);
    ts.push(t);times.add(t);vs.push(path==='rotation'?unit(v):v);
   }
-  tracks.push({path,node:c.target.node,key,ts,vs,step:s.interpolation==='STEP'});
+  tracks.push({path,node:c.target.node,key,ts,vs,cubic,tangents,step:s.interpolation==='STEP'});
  }
- return {tracks,times:[...times].sort((a,b)=>a-b),sample(t){const out=new Map();for(const {key,ts,vs,path,step} of tracks){
-  let k=ts.findIndex(v=>v>=t);if(k<0)k=ts.length-1;let v=vs[k];if(k>0&&ts[k]>t){const u=step?0:(t-ts[k-1])/(ts[k]-ts[k-1]),p=vs[k-1];if(path==='rotation'&&dot(p,v)<0)v=scale(v,-1);v=add(scale(p,1-u),scale(v,u));}
+ return {tracks,times:[...times].sort((a,b)=>a-b),sample(t){const out=new Map();for(const {key,ts,vs,path,step,cubic,tangents} of tracks){
+  let k=ts.findIndex(v=>v>=t);if(k<0)k=ts.length-1;let v=vs[k];if(k>0&&ts[k]>t){const u=step?0:(t-ts[k-1])/(ts[k]-ts[k-1]),p=vs[k-1];if(cubic){const dt=ts[k]-ts[k-1],u2=u*u,u3=u2*u;
+   v=v.map((x,i)=>(2*u3-3*u2+1)*p[i]+(u3-2*u2+u)*dt*tangents[k-1][1][i]+(-2*u3+3*u2)*x+(u3-u2)*dt*tangents[k][0][i]);
+  }else{if(path==='rotation'&&dot(p,v)<0)v=scale(v,-1);v=add(scale(p,1-u),scale(v,u));}}
   out.set(key,path==='rotation'?unit(v):v);
  }return out;}};
 }
@@ -91,8 +95,8 @@ function clipOK(doc,a,rig,role){
  for(const tr of s.tracks){if(tr.path!=='rotation')continue;const rest=doc.json.nodes[tr.node].rotation||identity;
   if(tr.vs.some(q=>Math.abs(dot(q,tr.vs[0]))<.999999))moving.add(tr.node);
   if(tr.vs.some(q=>Math.abs(dot(q,rest))<.9999))posed.add(tr.node);}
- if(required)return required.every(r=>moving.has(rig.mapping[r]));
- return role==='sit'?posed.has(rig.mapping.LeftUpperLeg)&&posed.has(rig.mapping.RightUpperLeg):moving.size>0;
+ if(required||role==='sit-enter'||role==='sit-exit')return ['Left','Right'].every(side=>['UpperLeg','LowerLeg','Foot'].some(part=>moving.has(rig.mapping[side+part])));
+ return role==='sit'?posed.has(rig.mapping.LeftUpperLeg)&&posed.has(rig.mapping.RightUpperLeg):moving.size>0||(!['idle','talk'].includes(role)&&posed.size>0);
  }catch{return false;}
 }
 export function validNames(doc,rig){return (doc.json.animations||[]).filter(a=>clipOK(doc,a,rig,a.name)).map(a=>a.name);}
