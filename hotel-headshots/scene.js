@@ -47,6 +47,25 @@
    }
    if(p.kind==='buffet'){box('food counter',[x,.52,z],[2.3,1.04,1.1],dark);box('serving top',[x,1.08,z],[2.4,.1,1.2],gold);for(const dx of [-.7,0,.7]){box('hot food tray',[x+dx,1.17,z],[.55,.1,.65],stone);sphere('food tray contents',[x+dx,1.24,z],[.45,.08,.55],mat('noodles','#c8a16a'));}box('extractor hood',[x,2.7,z],[2.5,.35,1.2],gold);sign('NIGHT BITES / OPEN 25 HOURS',[x,2.1,z+.62],3.3,.5,Math.PI);}
    if(p.kind==='couch')couch(x,z);
+   if(p.kind==='nightstand'){
+    // Move the small bedside cabinet toward the bed with a matching small collision footprint.
+    const bedX=R.world(map.rooms[p.room].bed[0]),nx=x+(bedX>x?1.05:-1.05);
+    box('bedside cabinet',[nx,.35,z+.45],[.62,.7,.65],wood);box('cabinet top',[nx,.73,z+.45],[.68,.06,.7],stone);
+    for(const y of [.22,.48]){box('bedside drawer',[nx,y,z+.11],[.55,.21,.025],dark);box('drawer pull',[nx,y,z+.08],[.16,.025,.035],gold);}
+    cylinder('bedside lamp base',[nx,.8,z+.5],.09,.23,gold);cylinder('bedside lamp stem',[nx,.96,z+.5],.27,.025,gold);const shade=mat('bedside shade','#bcb4a4',.8);shade.emissiveColor=new B.Color3(.2,.14,.08);cylinder('bedside lamp shade',[nx,1.15,z+.5],.24,.3,shade);
+    box('room phone',[nx+.17,.8,z+.23],[.19,.06,.19],dark);
+   }
+   if(p.kind==='room-desk'){
+    box('writing desk',[x,.77,z-.28],[1.65,.1,.82],wood);for(const a of [-.7,.7])for(const b of [-.62,.04])box('desk leg',[x+a,.36,z+b],[.055,.72,.055],gold);
+    box('desk drawer',[x+.47,.59,z-.28],[.54,.27,.7],dark);box('desk drawer handle',[x+.47,.59,z+.09],[.22,.035,.04],gold);
+    box('hotel stationery',[x-.35,.84,z-.25],[.34,.015,.25],white);box('desk pen',[x-.12,.86,z-.2],[.015,.015,.2],gold);cylinder('desk mug',[x+.46,.91,z-.4],.2,.14,white);
+    const cz=z+.77;box('desk chair seat',[x,.47,cz],[.55,.1,.52],cloth);box('desk chair back',[x,.85,cz+.24],[.55,.7,.07],wood);for(const a of [-.22,.22])for(const b of [-.2,.2])box('desk chair leg',[x+a,.22,cz+b],[.045,.44,.045],gold);
+   }
+   if(p.kind==='room-tv'){
+    box('TV bracket',[x+.06,1.94,z],[.14,.35,.35],gold);box('flat screen TV',[x,1.94,z],[.11,.91,1.55],dark);
+    sign('HOTEL TV / CHECKOUT 11:00',[x-.061,1.94,z],1.42,.78,Math.PI/2,'#83b9cb');
+    cylinder('TV standby LED',[x-.07,1.53,z-.65],.025,.025,lampMat);
+   }
    if(p.kind==='bed'){box('bed frame',[x,.25,z],[1.7,.4,2.15],wood);box('mattress',[x,.57,z],[1.65,.3,2.1],white);box('duvet',[x,.76,z-.25],[1.67,.12,1.5],cloth);box('headboard',[x,1.05,z+1.02],[1.8,1.5,.15],wood);for(const s of [-1,1])sphere('pillow',[x+s*.4,.82,z+.65],[.65,.17,.42],white);}
    if(p.kind==='desk'||p.kind==='bar'){box('counter',[x,p.kind==='desk'?.525:.65,z],[p.kind==='desk'?3.7:2.2,p.kind==='desk'?1.05:1.3,1.2],wood);box('countertop',[x,p.kind==='desk'?1.09:1.34,z],[p.kind==='desk'?3.9:2.4,.13,1.3],stone);for(const s of [-1,1])box('counter trim',[x+s*(p.kind==='desk'?1.7:1),p.kind==='desk'?.55:.68,z-.61],[.045,p.kind==='desk'?.85:1.1,.025],gold);if(p.kind==='bar'){for(let i=0;i<5;i++)bottle(x-.8+i*.38,1.42,z,i);}else{box('guest register',[x-.9,1.19,z],[.7,.06,.45],dark);box('register pages',[x-.9,1.23,z],[.65,.015,.4],white);cylinder('service bell',[x+.95,1.23,z-.1],.12,.2,gold);box('terminal',[x+.1,1.40,z+.1],[.5,.4,.08],dark);box('terminal screen',[x+.1,1.40,z+.05],[.43,.31,.01],glass);}sign(p.kind==='desk'?'CHECK IN · E':'BAR / NO TAB',[x,p.kind==='desk'?.77:1.05,z-.62],2,.35);}
    if(p.kind==='bath'){box('bath mat',[x,.012,z],[1.7,.025,2],stone);box('vanity',[x,.55,z+.65],[1.7,1.1,.65],wood);sphere('basin',[x,1.12,z+.65],[.7,.13,.4],white);cylinder('tap',[x,1.25,z+.85],.28,.06,gold);box('mirror frame',[x,1.95,z+1.05],[1.8,1.3,.08],gold);const mirrorMat=mat('mirror','#bcc6c9',.05,1),mirror=box('mirror',[x,1.95,z+1],[1.65,1.15,.015],mirrorMat,null,true);mirrors.push(mirror);}

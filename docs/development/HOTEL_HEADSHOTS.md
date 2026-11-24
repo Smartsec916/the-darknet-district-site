@@ -34,7 +34,7 @@ Defensive poses alternate between forehead cover, palms-out and crossed forearms
 
 The games list has a Hotel Headshots card in root and static copies. Cabinet 1 (`arcade-cab-01`, formerly LASER MOTH) now runs `hotel-headshots/index.html` through the existing isolated arcade iframe. TURBO KELP remains unused. The cabinet has its own title, colors, poster, interaction and four-frame attract image captured from the game's actual opening screen. The existing anti-WarFlying screen is retained in place; only its obsolete `replaces: laser-moth` metadata is removed.
 
-The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-5`.
+The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-6`.
 
 No Sleeping Pod, music-player, account/save implementation, production API, merchandise, entitlement, payment or licensed-model file changed. The District HTML entrypoints remain unchanged and byte-identical.
 
@@ -58,3 +58,9 @@ See the checked screenshots in `hotel-headshots/` alongside this document. Do no
 The ground-floor lobby now has a side food area, NIGHT BITES, with two dining tables, chairs, noodle bowls, cups, napkins, chopsticks, reactive bottles and a hot-food counter. Two existing guest slots become seated diners, keeping difficulty counts unchanged. They animate eating with a held spoon, remain seated before check-in, and stand at different speeds when approached after check-in or alerted by foam. Their chair exits are walkable; the normal chase/retreat rules resume after standing. Seated hit volumes follow the same skeleton. Dining activity and standing progress survive floor revisits. Other floors retain their lounges. Updated plans show the food area.
 
 Dining validation: ten Hotel Headshots rule/model tests pass, including clear diner exit routes. The resident browser suite confirms eating before payment, two stand-up transitions, walkable pursuit starts, sleeper timing, bathroom pursuit and both swimmers leaving the pool, with no page errors. Checked image: `hotel-headshots/lobby-dining.png`. Seating and eating use procedural skeleton poses, not motion capture.
+
+## Guest-room furnishings — 24 November 2026
+
+All 32 bedrooms across five floors now include two bedside cabinets with drawers, lamps and a room phone, a writing desk with stationery and mug, a desk chair, and a wall-mounted TV displaying hotel information. Every room has its own existing enclosed bathroom, usable bathroom door, vanity/mirror, shower and toilet. Explicit bathroom-door and furniture data make completeness testable. Small bedside cabinets use fitted collision bounds so they cannot seal off narrow rooms. Tests cover bedroom-to-bathroom/entry/awake-position paths, including sampling actual player collision along each path with doors open.
+
+Furnishing validation: all 12 Hotel Headshots rule/model tests passed; the complete resident browser suite passed with no page errors; both new room previews were visually checked. Screenshots: `hotel-headshots/furnished-room.png` and `hotel-headshots/room-desk-tv.png`. The TV currently displays the hotel information channel.
