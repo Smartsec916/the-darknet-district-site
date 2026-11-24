@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "ef4cd855f1b5e57c",
+  "revision": "7673636813228825",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79715,7 +79715,7 @@
     },
     {
       "source": "void-runner/npc-escort-across.js",
-      "line": 52,
+      "line": 57,
       "text": "else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}",
       "kind": "source-reference"
     },
@@ -82537,7 +82537,7 @@
     "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "c5e12d6d5e0cda420f3f4f8896f530f380bb19bb0c9f1264908818dc049f9297",
-    "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
+    "void-runner/npc-escort-across.js": "124d770aeac5cb083b266eeaaa05348e11936d38a032d5abf0aca27eb757f2ad",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "a4f216484f4e566718a1f9977a3b4a3adc28e8155216d2b722a98483e09ba300",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
