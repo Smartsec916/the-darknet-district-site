@@ -1,3 +1,9 @@
+# Current implementation on PR #552
+
+Both editors load the same rig-workshop.mjs and rig-motion.mjs modules on demand. The six Companion Studio requirements are idle, talk, walk, sit, sit-enter and sit-exit. Run is an additional requested clip. The workshop reads real weight, joint and animation samples, bounds, bind matrices and hierarchy, preserves existing usable tracks, and bakes donor rotations in the target rest frame with hip scaling and foot-contact correction. Binary edits stay local. Original bytes are retained for undo. Game-owned companion motions and the shipped run are the built-in export sources. Private ActorCore motion remains available through its existing runtime preview path.
+
+Run node --test tests/rig-workshop.test.cjs tests/shared-rig.test.cjs tests/vr-companion-studio.test.cjs. Set RIG_REGRESSION_FILES to a JSON array of authorized local GLB paths to add private regression examples. Use node tests/rig-workshop-browser.cjs for offline browser testing. It uses transient local developer fixtures, never production accounts. Nomi and Se7en originals are read-only. Ambiguous mappings need review. Nonuniform scales, multiple active skins and sparse rig streams currently require Blender. Mobile uses the existing downsizer for the 15 MiB limit.
+
 # Shared rigging upgrade — implementation handoff (2026-11-24)
 
 Base: main 79627a80a37b51135426d9f00fb29590a1c8f308. Work only on chatgpt/shared-npc-rigging; coordinate with #551 and the NPC interaction queue (no changes to their branches). Existing rig-buffer repair #510 is already represented in the current downsizer.

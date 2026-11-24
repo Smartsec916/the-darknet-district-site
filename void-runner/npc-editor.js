@@ -773,8 +773,19 @@
    const world=useImportedProfile(p);if(world)summary.append(world);
    main.append(summary);
   }
-  const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height};await saveRec(rec);draw();}};
+  const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{let compatibility=null;if(/\.glb$/i.test(rec.fileName)){try{const w=await import('./rig-workshop.mjs'),r=await w.check(rec.blob);compatibility={bound:r.rig.state!=='unrigged',ready:r.rig.ready,missing:r.missing,issues:r.rig.issues};}catch(err){compatibility={bound:true,ready:false,missing:[],issues:[err.message]};}}
+   rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height,compatibility};await saveRec(rec);draw();}};
   previewBox(main,e,null,[],pv,file);
+  if(/\.glb$/i.test(rec.fileName)){
+   const workshop=el('div');main.append(workshop);
+   import('./rig-workshop.mjs').then(w=>{
+    if(!workshop.isConnected)return;
+    w.panel(workshop,{get:()=>rec.blob,set:async blob=>{
+     if(!DTX()?.authorized||!workshop.isConnected)throw Error('Reopen the signed-in NPC editor.');
+     const updated={...rec,blob,bytes:blob.size,info:null};await saveRec(updated);Object.assign(rec,updated);
+    },preview:async blob=>{ui.preview?.dispose();const stage=el('div');workshop.append(stage);ui.preview=root.VoidNPCPreview.mount(stage);ui.previewFor=e.id;await ui.preview.show({file:blob});return ui.preview;}});
+   }).catch(err=>workshop.textContent=err.message);
+  }
   const ck=el('section','','me-check',{'data-npc-checklist':rec.id});ck.append(el('h4','Checklist'),hint(HELP.check));
   const verdict=rec.info?X().importCheck(rec.info):null;
   if(!verdict)ck.append(el('p','Press SHOW 3D PREVIEW to measure the model.','me-small me-warn'));else for(const it of verdict.items)ck.append(el('p',(it.level==='ok'?'✓ ':it.level==='warn'?'△ ':'✗ ')+it.text,it.level==='ok'?'me-ok':it.level==='warn'?'me-warn':'me-bad',{'data-npc-check':it.level}));
