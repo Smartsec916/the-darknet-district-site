@@ -154,7 +154,7 @@ const originalRookConversation=rookConversation;
 // Rook's cargo network (campaign.js): he pays what he owes first, then shows the jobs on his board.
 // Each job says what it is, where it goes, how much hold it takes, what it pays and who pays.
 // Rook's payment line approved by the owner, 2026-10-27.
-let freightBusy=false,freightRetry=0;
+let freightBusy=false,freightRetry=0,freightDelivered=null;
 async function accountFreight(action,id){
  if(freightBusy||globalThis.VoidDevTest?.active)return;
  const campaign=state,account=globalThis.VoidAccount,user=account?.user,service=globalThis.VoidConsumableGame;
@@ -170,13 +170,15 @@ async function accountFreight(action,id){
   const status=await service.request('rook/freight');
   if(!same())return;
   const f=campaign.story.flags,active=status.active;
-  if(active?.stage==='aboard'&&f.rookLedger!==active.id || active?.stage==='delivered'&&f.rookLedger!==active.id || f.rookLedger&&status.lastPaid===f.rookLedger){
+  const loadedElsewhere=active&&active.stage!=='offered'&&f.rookLedger!==active.id;
+  if(loadedElsewhere||f.rookLedger&&status.lastPaid===f.rookLedger){
    announce('Resume the account’s saved freight campaign to continue this contract.');return;
   }
   if(active?.stage==='aboard'&&action==='offer'){
    render('Your freight is assigned to '+(C.stations[active.destination]?.name||active.destination)+'. Dock there to register delivery.');return;
   }
   if(active?.stage==='delivered'&&action==='offer')action='collect';
+  if(action==='deliver'&&active?.stage==='delivered'){freightDelivered=active.id;return;}
   if(action==='deliver'&&(!active||active.stage!=='aboard'||campaign.location!==active.destination||!C.rookOwed(campaign)))return;
   if(!account.profileReady)throw Error('Wait for your account save to finish loading.');
   if(action==='offer'&&!f.rookLedger&&account.cloud?.story?.flags?.deviceSerial!==f.deviceSerial&&account.cloud&&!confirm('Use this campaign for freight? Its current progress will replace your other cloud campaign.'))return;
@@ -204,13 +206,13 @@ async function accountFreight(action,id){
    VoidMissions.sync(campaign,C);save();hud();
    if(action==='accept'){VoidMissions.track(campaign,mid,C);save();resumeWalking();announce('Cargo loaded. Destination tracked.');}
    else render('Delivery confirmed. Here are your '+active.payment+' credits.',[['MORE FREIGHT','freight-offer']]);
-  }else if(action==='deliver')announce('Delivery registered. Return to Rook at Meridian for payment.');
+  }else if(action==='deliver'){freightDelivered=active.id;announce('Delivery registered. Return to Rook at Meridian for payment.');}
  }catch(error){if(same()){announce(error.message||'Freight desk unavailable. Try again.');}}
  finally{freightBusy=false;}
 }
 function checkFreightDelivery(){
  const flags=state?.story?.flags;
- if(!flags?.rookLedger||!flags.rookOwed||freightBusy||Date.now()<freightRetry||!globalThis.VoidAccount?.profileReady)return;
+ if(!flags?.rookLedger||flags.rookLedger===freightDelivered||!flags.rookOwed||freightBusy||Date.now()<freightRetry||!globalThis.VoidAccount?.profileReady)return;
  const entry=C.rookLog(state).find(j=>j.status==='owed');
  if(entry?.destination!==state.location)return;
  freightRetry=Date.now()+20000;void accountFreight('deliver',flags.rookLedger);

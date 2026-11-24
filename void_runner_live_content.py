@@ -2817,7 +2817,13 @@ def summary(db):
     state = _state_ref(db).get().to_dict() or {}
     numbers = {str(k): v for k, v in shipped_numbers().items()}
     numbers.update(state.get('numbers') or {})
-    return {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    result = {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    if state.get('live'):
+        record = _version_ref(db, state['live']).get().to_dict() or {}
+        cfg = (record.get('content') or {}).get('rookFreight')
+        if cfg:
+            result['rookFreight'] = cfg
+    return result
 
 
 def public(db, now=None):
@@ -2926,7 +2932,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight')):
         raise DraftError('There is nothing to publish.', 422)
     missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
     if missing:
