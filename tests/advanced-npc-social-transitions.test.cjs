@@ -53,6 +53,7 @@ async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=
  const policy={tier,enabled:true,session,leg:0,allowGate:(_id,_gate,a,b)=>[from,to].includes(a)&&[from,to].includes(b)};
  let arrival=null,stay=null;
  const root={VoidQuarters:Q,VoidNPCEscort:E,VoidNPCAreas:A,VoidNPCPaths:X,VoidDistrictArea:{KEY:{street:'street'}},
+  VoidGateTransit:{busy:true,state:'EXCHANGE',lane:lane.key},
   VoidRoadTaxi:{crossing:riding},VoidStreetPair:{live:()=>({escort:{[id]:actor}})},
   VoidLiveContent:{plans:()=>({[id]:plan}),socialTravelPolicy:()=>tier>=2?policy:null,replan(){},setCarry:(_,c)=>stay=c,
    arriveSocial:(_id,key,origin,p)=>{assert.equal(key,session);assert.equal(origin,from);arrival=p;}}};
@@ -68,3 +69,37 @@ test('only a seated advanced passenger transfers through a successful taxi bay e
  const ok=await gateVisit({riding:true,seated:true,tier:3});assert.equal(ok.arrival?.ride,'in-cab');assert.equal(ok.arrival.area,'oldtown');
  for(const args of [{seated:false},{seated:true,load:false},{seated:true,near:false},{seated:true,scanned:false}])assert.equal((await gateVisit({riding:true,...args})).arrival,null);
 });
+
+
+ // A gateLane option is only a destination hint, not proof of a live scanner exchange.
+ async function checkedTransit(controller,riding=false){
+  const lane={key:riding?'north:bay-s':'north:foot-w',gate:'north',kind:riding?'bay':'foot'},g={shut:false},id='iris',session='social:iris:1';
+  const P={mode:'escort',social:true,key:session,step:session,kind:'they-follow',area:'avenue',set:{}};
+  const L={id:'neochinatown',area:'street',quarter:'avenue'},walker={x:3,z:4},actor={npc:id,key:session,here:true,...walker,phase:'follow',ride:riding?'in-cab':null};
+  const arrivals=[],stays=[];
+  const root={VoidGateTransit:controller,VoidRoadTaxi:{crossing:riding},VoidDistrictArea:{KEY:{street:'street'}},
+   VoidQuarters:{valid:()=>true,lane:()=>lane,gate:()=>g},
+   VoidNPCAreas:{here:(_a,q)=>[q],areaOf:(_p,fallback)=>fallback},
+   VoidNPCPaths:{MOVABLE:{iris:{name:'Iris'}}},VoidStreetPair:{live:()=>({escort:{iris:actor}})},
+   VoidNPCEscort:{across:()=>{},linkBetween:()=>null,linkById:()=>({ends:{oldtown:{ahead:{x:10,z:4}}}}),mayEnter:()=>({ok:true}),
+    socialGateLeg:()=>({via:'gate:'+lane.key}),socialGateCross:()=>({area:'oldtown',leg:0,x:10,z:4})},
+   VoidLiveContent:{plans:()=>({iris:P}),socialTravelPolicy:()=>({session,leg:0,allowGate:()=>true}),setCarry:(_id,c)=>stays.push(c),arriveSocial:(_id,_key,_from,c)=>arrivals.push(c),replan(){}}
+  };
+  const enter=new Function('globalThis','document','walker','walkingLocation','enterWalking',source+'\nreturn enterWalking;')(root,{},walker,L,async()=>{L.quarter='oldtown';return true;});
+  await enter('street',{quarter:'oldtown',spawn:[10,1.7,4],gateLane:lane.key});
+  return {arrivals,stays};
+ }
+ test('social foot crossing requires the active scanner exchange for the exact lane',async()=>{
+  const good={busy:true,state:'EXCHANGE',lane:'north:foot-w'};
+  assert.equal((await checkedTransit(good)).arrivals.length,1);
+  for(const controller of [undefined,{...good,busy:false},{...good,state:'SCAN'},{...good,state:'RECOVERY'},{...good,lane:'north:foot-e'}]){
+   const result=await checkedTransit(controller);assert.equal(result.arrivals.length,0);assert.equal(result.stays.length,1);
+  }
+ });
+ test('social taxi crossing also requires the active exchange for the exact bay',async()=>{
+  const good={busy:true,state:'EXCHANGE',lane:'north:bay-s'};
+  assert.equal((await checkedTransit(good,true)).arrivals.length,1);
+  for(const controller of [undefined,{...good,busy:false},{...good,state:'SCAN'},{...good,state:'RECOVERY'},{...good,lane:'north:foot-w'}]){
+   const result=await checkedTransit(controller,true);assert.equal(result.arrivals.length,0);assert.equal(result.stays.length,1);
+  }
+ });

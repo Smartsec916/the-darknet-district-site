@@ -37,7 +37,7 @@
  function socialArrival(h,from,to,o,me,riding){
   const C=LC(),R=E(),Q=root.VoidQuarters,P=h.plan,policy=C.socialTravelPolicy?.(h.npc,P.step);
   const lane=o?.gateLane&&Q?.lane?.(o.gateLane),g=lane&&Q.gate(lane.gate);
-  if(!policy||!g||g.shut||!to||P.area!==from||!policy.allowGate(h.npc,'gate:'+lane.key,from,to))return null;
+  if(!policy||!g||g.shut||!to||P.area!==from||root.VoidGateTransit?.busy!==true||root.VoidGateTransit.state!=='EXCHANGE'||root.VoidGateTransit.lane!==lane.key||!policy.allowGate(h.npc,'gate:'+lane.key,from,to))return null;
   if(riding){
    if(lane.kind!=='bay'||h.ride!=='in-cab'||!Array.isArray(o.spawn)||Math.hypot(h.x-me.x,h.z-me.z)>12)return null;
    const x=o.spawn[0],z=o.spawn[2];
