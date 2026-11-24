@@ -7,6 +7,13 @@
    {id:'kiosk-far-1',name:'Supply kiosk',x:12.4,z:44.1},
    {id:'kiosk-far-2',name:'Equipment kiosk',x:15.4,z:44.1}
   ];
+  // Freeze one published placement for the whole zone visit, shared by its meshes, solids and prompts.
+  function configuredKiosks(vendors=root.VoidNPCServices?.kiosks||[]){
+   const spec=typeof module!=='undefined'?require('./consumable-spec.js'):root.VoidConsumableSpec;
+   return storeKiosks.map(k=>{const v=vendors.find(v=>v?.entity===k.id),r=v?.rules||{},bay=spec?.kioskSlots?.[r.slot],kit=spec?.kioskModels?.[r.model]?.kit;
+    return {...k,x:bay?.x??k.x,z:bay?.z??k.z,name:typeof v?.name==='string'?v.name.slice(0,60):k.name,vendor:v?.id||k.id,kit:kit||'scanner_kiosk_1m',screen:/^#[a-f0-9]{6}$/i.test(r.screen)?r.screen:null};
+   });
+  }
   const base=typeof document!=='undefined'&&document.currentScript?new URL('.',document.currentScript.src):null;
   // Stock of the sleeping pods' built-in vending unit, taken from the owner's Tesana pod (src/pod/vending.ts): [name, category, price, shape, description, label colours...]. Display and flavour only: nothing is charged and nothing enters the inventory.
   const POD_VENDING=[["AQUA//NULL","DRINKS",1.2,"bottle","Triple-filtered condensation water. Zero minerals, zero memories.","#d6f1ff","#77bde8","#0b2a44","#ffffff"],["SYNTH COLA","DRINKS",1.8,"bottle","Lab-grown cola flavour with extra fizz. Tastes like somebody else’s nostalgia.","#5a1c22","#2a0a10","#ffffff","#ff4fbf"],["VOLT RUSH","DRINKS",2.4,"can","High-voltage citrus energy drink. Keeps you wired through any night shift.","#1b1b22","#08080c","#e9ff3a","#e9ff3a"],["KAIJU FUEL","DRINKS",2.6,"can","Monster-sized yuzu-ginger energy. Not responsible for any stomping.","#7a2cc9","#3a0f6e","#ffb347","#ff7a1a"],["MOCHI MILK","DRINKS",1.6,"stubby","Sweet peach soy milk in a stubby can. A capsule-hotel favourite.","#ffd9e4","#ff9fbf","#7a2346","#ffffff"],["GREEN NEON","SMOKABLES",14.0,"jar","Hand-trimmed herbal buds sealed fresh in a clear jar. Grown under pod lights on level B3.","#ffffff","#eaf6e2","#174a1c","#2fbf4f"],["MIDNIGHT KUSH","SMOKABLES",16.5,"jar","Dense, frosty buds with orange hairs. Strictly fictional, strictly after hours.","#f4fff0","#d8f0d0","#0f3a18","#1f9a3a"],["CRUNCH//CORE","SNACKS",1.4,"bag","Sea-salt kelp crisps. Loud enough to wake the neighbouring pod.","#2b7cff","#103c9c","#ffffff","#ffe066"],["NIGHT BENTO","FOOD",4.8,"bento","Rice, pickles and printed “salmon”. Best before tomorrow, probably.","#f4f4ec","#d8e8d0","#14402a","#2fbf71"],["DREAMLEAF","SMOKABLES",7.2,"tin","Herbal smoking blend in a pocket tin. Lavender, mugwort and something else.","#4a3a6a","#24183a","#d8c8ff","#9a7aff"],["BLACK ORCHID","SMOKABLES",5.5,"pack","Dark clove cigarettes, 20 per pack. Fictional — and still bad for you.","#141016","#050406","#d9b45a","#d9b45a"],["KOI MENTHOL","SMOKABLES",5.2,"pack","Ice-cold menthol slims. Smoking permitted in designated pods only.","#22c4b8","#0a6a6a","#ffffff","#ff6a3a"],["HAZE STIK","VAPES",6.9,"vape","Disposable vapour stick, about 3000 puffs. Flavour: Neon Grape.","#ff4fd0","#4fc8ff","#ffffff","#1a0a2a"],["VAPR PODS","VAPES",4.4,"carts","Three refill cartridges, Mango Ice. Fits most street-market vape sticks.","#ffcf3a","#ff7a2a","#2a1206","#ffffff"],["PATCH-UP KIT","MEDICAL",12.0,"medkit","Wound-sealant spray, gauze, painkillers and a foil blanket.","#f6f6f8","#dcdce4","#1a2a24","#20c070"],["ICEBREAKER","ELECTRONICS",19.99,"chip","4 TB data shard, pre-loaded with… you didn’t buy this here.","#101418","#04060a","#4fe8ff","#4fe8ff"],["CELL-PAK ×4","POWER",3.3,"cells","Long-life power cells for remotes, cyberdecks and wake-up lamps.","#1a1a1e","#2a2a30","#ff9a2a","#ff9a2a"],["LINK CABLE","ELECTRONICS",3.8,"cable","Braided universal data and charge cable. One metre of pure connection.","#e8e4ee","#bcb4cc","#2a1a3a","#b24ad4"],["O₂ BOOST","MEDICAL",4.9,"spray","Emergency oxygen can for smog days and very long elevator rides.","#ffffff","#cfe8ff","#1a4a8a","#4f8cff"],["PARCEL ???","BLACK MARKET",33.0,"parcel","Taped, unmarked and slightly warm. No refunds. No questions.","#b08a5a","#8a6638","#2a1a0a","#c02020"],["NULL OG","DISPENSARY",18.0,"tub","Loose flower in a clear tub on the dispenser stand. Dense, pale green, sticky.","#e8f4e0","#cfe6c4","#0c0c10","#3fd6ff"],["B3 HAZE","DISPENSARY",15.5,"pouch","A zip pouch of small buds from the level B3 grow. Bright and grassy.","#2f8f3a","#1b5a26","#0c0c10","#b8ff5a"],["PINK STATIC","DISPENSARY",21.0,"tub","Purple-tinged flower with a sweet, sharp smell. Sold by the tub.","#f0e0f4","#dcc4e6","#0c0c10","#ff5bd0"],["LOW TIDE","DISPENSARY",12.0,"pouch","Mellow evening blend in a resealable pouch. Slow and quiet.","#3a7a8f","#1e4a5a","#0c0c10","#7fe6ff"],["ROSIN CARTS","DISPENSARY",24.0,"tub","Pressed rosin cartridges racked upright in a clear tub.","#f4e8c8","#e6c890","#0c0c10","#ffb347"]].map((d,i)=>({code:'ABCDE'[Math.floor(i/5)]+(i%5+1),name:d[0],category:d[1],price:d[2],kind:d[3],description:d[4],art:d.slice(5)}));
@@ -147,10 +154,22 @@
   // The layout split by where each piece belongs (street, District or terrace), using zone(). The data-level seam for loading the interior on its own.
   function layoutByArea(){const l=layout(),out={street:{solids:[],interactions:[]},district:{solids:[],interactions:[]},terrace:{solids:[],interactions:[]}};
     for(const k of ['solids','interactions'])for(const item of l[k])out[zone({x:item.position[0],z:item.position[2]}).area][k].push(item);return out;}
+  function withKiosks(location){
+    const kiosks=configuredKiosks();
+    if(JSON.stringify(kiosks)===JSON.stringify(location.kiosks))return location;
+    const byId=new Map(kiosks.map(k=>[k.id,k]));
+    function positioned(row,prompt){
+      const k=byId.get(row.id);if(!k)return row;
+      const [x,z]=toWorld(k.x,k.z+(prompt?.48:0));
+      return {...row,position:[x,row.position[1],z],...(prompt?{vendor:k.vendor,label:'SHOP · '+k.name.toUpperCase()}:{})};
+    }
+    return {...location,kiosks,solids:location.solids.map(s=>positioned(s,false)),interactions:location.interactions.map(i=>positioned(i,true))};
+  }
   function fullLayout(){
-    const placed=solids.map(s=>{const [x,z]=toWorld(s.position[0],s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
-    const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
-    return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
+    const kiosks=configuredKiosks(),byId=new Map(kiosks.map(k=>[k.id,k]));
+    const placed=solids.map(s=>{const k=byId.get(s.id);const [x,z]=toWorld(k?.x??s.position[0],k?.z??s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
+    const items=interactions.map(i=>{const k=byId.get(i.id);const [x,z]=toWorld(k?.x??i.position[0],k?k.z+.48:i.position[2]);return {...i,...(k?{vendor:k.vendor,label:'SHOP · '+k.name.toUpperCase()}:{}),position:[x,i.position[1],z]};});
+    return {kiosks,id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
     solids:[...placed,...(club?club.solids():[]),...MK.solids(),...(BA?BA.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},
      // The club's bar (ncz-nightclub.js), when the club is there.
@@ -172,7 +191,7 @@
 
   // ---- Presentation -------------------------------------------------------
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
-  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
+  function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null,kiosks=configuredKiosks()}){
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
     const QK=area==='street'?QT.valid(quarter):null;let free=false;
     // The underground (ncz-underground.js): only the tunnel network is built in its quarter (no city above, no crowd, no weather); the handle has the street's shape.
@@ -993,9 +1012,10 @@
     // Admin & Iris shop: counter, display cases, shelves, workstation.
     // Interior rebuild, phase E: Blender-made shop fittings. kitAt puts a piece against a wall: `facing` is the way the piece looks, `face` the wall surface behind it,
     // `s` where it starts along the wall (its low end) and `len`/`depth` its size.
-    for(const k of storeKiosks){
-     const mesh=kitAt('scanner_kiosk_1m','+z',k.z-.3,k.x-.3,.6,.6,0,[]);
-     if(!mesh){box(k.id+'-stand',[.62,1.1,.5],[k.x,.55,k.z],mat('store-kiosk','#24383f'));box(k.id+'-screen',[.54,.26,.08],[k.x,1.15,k.z+.23],glowMat('store-kiosk-screen','#68e0db',.7));}
+    for(const k of kiosks){
+     const mesh=kitAt(k.kit,'+z',k.z-.3,k.x-.3,.6,.6,0,[]);
+     if(mesh&&k.screen)box(k.id+'-screen-light',[.37,.08,.035],[k.x,1.1,k.z+.32],glowMat('screen-'+k.id,k.screen,.65),false);
+     if(!mesh){box(k.id+'-stand',[.62,1.1,.5],[k.x,.55,k.z],mat('store-kiosk','#24383f'));box(k.id+'-screen',[.54,.26,.08],[k.x,1.15,k.z+.23],glowMat('store-kiosk-screen-'+k.id,k.screen||'#68e0db',.7));}
     }
     const shopCounter=kitAt('shop_counter_8m','-z',47.75,6,8,1.1),shopKit=!!shopCounter;
     // The model's flat coloured trays come off the counter: the display cases and their goods (district-rooms.js) stand there now.
@@ -1532,5 +1552,5 @@
    'ncz:outskirts-containers':{src:'assets/models/ncz/outskirts-containers.vrpak'},'ncz:outskirts-solar':{src:'assets/models/ncz/outskirts-solar.vrpak'},'ncz:outskirts-dish':{src:'assets/models/ncz/outskirts-dish.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
-  const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE,quarters:QT};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
+  const api={configuredKiosks,withKiosks,layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE,quarters:QT};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
 })(globalThis);

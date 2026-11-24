@@ -210,10 +210,11 @@ screen.addEventListener('change', async e => {
 let walkRetry=null;document.addEventListener('click',e=>{if(e.target.closest?.('button')?.dataset.action!=='walk-retry'||!walkRetry)return;const r=walkRetry;walkRetry=null;enterWalking(r.id,r.options);});
 // options: silent (no preparation panel; the caller shows its own transition), spawn [x,y,z] and yaw (appear here instead of at the location's spawn).
 async function enterWalking(id, options = {}) {
-  const def = VoidExplorationData.locations[id];
+  let def = VoidExplorationData.locations[id];
   if (!def) return;
   if (id !== 'hangar' && def.kind!=='workshop' && !VoidExplorationData.solAvailable(state)) return;
   if (VoidGraphics.busy) return;
+  if(id==='darknet-district'&&globalThis.VoidNeoChinatown?.withKiosks){def=VoidNeoChinatown.withKiosks(def);VoidExplorationData.locations[id]=def;}
   VoidGraphics.busy = true;
   const token = ++preparationGeneration;
   if (options.silent) { mode = 'preparing'; clearInput(); flightUI(false); } else preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>', false);

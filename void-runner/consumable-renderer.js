@@ -10,12 +10,14 @@
  function sample(active,now){
   const effects=new Map(),modifiers={};
   for(const a of active){
-   const t=now-a.startedAt;
+   if(a.until!=null&&now>=a.until)continue;
+   const t=now-a.startedAt,gain=a.gain||1,extension=a.extension||0;
    for(const m of a.definition.modifiers||[]){
-    if(t>=m.delay&&t<m.delay+m.duration)modifiers[m.stat]=(modifiers[m.stat]||0)+m.amount;
+    const weight=envelope({...m,duration:m.duration+extension,intensity:1},t);
+    if(weight)modifiers[m.stat]=(modifiers[m.stat]||0)+m.amount*weight*gain;
    }
    for(const e of a.definition.effects||[]){
-    const k=envelope(e,t);if(k<=0)continue;
+    const k=Math.min(1,envelope({...e,duration:e.duration+extension},t)*gain);if(k<=0)continue;
     const values=effects.get(e.type)||[],instance={weight:k,params:e.params,time:(t-e.delay)*e.speed};
     if(e.stacking==='replace')effects.set(e.type,[instance]);
     else if(e.stacking==='max'){if(!values.length||k>=values[0].weight)effects.set(e.type,[instance]);}

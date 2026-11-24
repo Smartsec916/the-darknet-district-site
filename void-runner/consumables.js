@@ -8,7 +8,7 @@
  const L=S.limits,ID=/^[a-z][a-z0-9-]{0,39}$/,num=(v,lo,hi)=>typeof v==='number'&&Number.isFinite(v)&&v>=lo&&v<=hi,int=(v,lo,hi)=>Number.isInteger(v)&&v>=lo&&v<=hi;
  const plain=(v,n)=>typeof v==='string'&&v.length<=n&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v);
  const hasOnly=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
- const EFFECT_KEYS=['id','type','intensity','delay','duration','fadeIn','fadeOut','speed','stacking','params'],MOD_KEYS=['stat','amount','delay','duration'];
+ const EFFECT_KEYS=['id','type','intensity','delay','duration','fadeIn','fadeOut','speed','stacking','params'],MOD_KEYS=['stat','amount','delay','duration','fadeIn','fadeOut'];
  function effectProblems(e,at){const out=[],n=at+': ';
   if(!hasOnly(e,EFFECT_KEYS))return [n+'an effect has unknown fields'];
   const def=S.effects[e.type];if(!def)return [n+'unknown effect "'+e.type+'"'];
@@ -23,6 +23,7 @@
  function modifierProblems(m,at){const n=at+': ';if(!hasOnly(m,MOD_KEYS))return [n+'a modifier has unknown fields'];const d=S.modifiers[m.stat];
   if(!d)return [n+'unknown gameplay modifier "'+m.stat+'"'];if(!d.supported)return [n+d.label+' is not available: '+d.help];
   const out=[];if(!num(m.amount,d.min,d.max))out.push(n+d.label+' is from '+d.min+' to '+d.max);
+  if(!num(m.fadeIn??0,0,60)||!num(m.fadeOut??0,0,120)||(m.fadeIn||0)+(m.fadeOut||0)>m.duration)out.push(n+'modifier fades must fit within the duration');
   if(!num(m.delay,0,L.delay))out.push(n+'delay is 0 to '+L.delay);if(!num(m.duration,1,L.duration))out.push(n+'duration is 1 to '+L.duration);return out;}
  const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound','service'];
  function itemProblems(it,cats){const out=[],n=(it&&it.id||'item')+': ';
@@ -50,16 +51,19 @@
   if(!S.statuses.includes(it.status))out.push(n+'status is '+S.statuses.join(', '));
   if(!int(it.cooldown||0,0,L.cooldown))out.push(n+'cooldown is 0 to '+L.cooldown+' seconds');
   if(it.registryId!=null&&!S.registryItems[it.registryId])out.push(n+'registryId is not an item the game already has');
-  if(it.consumable!=null){const c=it.consumable;if(!hasOnly(c,['effects','modifiers']))out.push(n+'consumable has unknown fields');
-   else{const ef=c.effects||[],mo=c.modifiers||[];if(!Array.isArray(ef)||ef.length>L.effects)out.push(n+'at most '+L.effects+' effects');
+  if(it.consumable!=null){const c=it.consumable;if(!hasOnly(c,['effects','modifiers','repeat','group','maxStacks','maxSeconds']))out.push(n+'consumable has unknown fields');
+   else{if(!S.repeatPolicies.includes(c.repeat??'refresh')||c.group&&!ID.test(c.group)||!int(c.maxStacks??3,1,8)||!int(c.maxSeconds??1800,1,3600))out.push(n+'invalid repeat-use settings');
+    const ef=c.effects||[],mo=c.modifiers||[];if(!Array.isArray(ef)||ef.length>L.effects)out.push(n+'at most '+L.effects+' effects');
     else{const ids=new Set();ef.forEach((e,i)=>{out.push(...effectProblems(e,n+'effect '+(i+1)));if(e&&ids.has(e.id))out.push(n+'two effects share the id "'+e.id+'"');ids.add(e&&e.id);});}
     if(!Array.isArray(mo)||mo.length>L.modifiers)out.push(n+'at most '+L.modifiers+' gameplay modifiers');else mo.forEach((m,i)=>out.push(...modifierProblems(m,n+'modifier '+(i+1))));}}
   return out;}
  const ENTRY_KEYS=['item','price','stock','maxStock','restock','available','rules'];
  function sellerRules(r){
   if(r==null)return [];
-  if(!hasOnly(r,['opens','closes','minRep','mission','color','message','sound','model']))return ['Unknown vendor setting'];
-  const bad=[];for(const key of ['opens','closes'])if(key in r&&!int(r[key],0,23))bad.push('Hours must be 0–23');
+  if(!hasOnly(r,['opens','closes','minRep','mission','color','message','sound','model','slot','screen']))return ['Unknown vendor setting'];
+  const bad=[];if(r.slot&&!Object.hasOwn(S.kioskSlots,r.slot))bad.push('Choose a District kiosk bay');
+  if(r.screen&&!/^#[a-f0-9]{6}$/i.test(r.screen))bad.push('Choose a valid kiosk screen color');
+  for(const key of ['opens','closes'])if(key in r&&!int(r[key],0,23))bad.push('Hours must be 0–23');
   if('minRep' in r&&!int(r.minRep,-100,100))bad.push('Reputation must be -100 to 100');
   if(r.mission&&!ID.test(r.mission))bad.push('Choose a valid mission ID');
   if('message' in r&&!plain(r.message,160))bad.push('Promotional message is too long');
@@ -92,6 +96,10 @@
    if(!plain(v.name,L.name)||!v.name)out.push(n+'name is required');if(!plain(v.location,60))out.push(n+'location is too long');
    if(!Array.isArray(v.entries)||v.entries.length>L.entries)out.push(n+'at most '+L.entries+' entries');
    else{const seen=new Set();v.entries.forEach((en,i)=>{out.push(...entryProblems(en,n+'entry '+(i+1),ids));if(v.kind!=='npc'&&c.items.some(it=>it?.id===en?.item&&it.kind==='service'))out.push(n+'services require an NPC vendor');if(en&&seen.has(en.item))out.push(n+'sells "'+en.item+'" twice');seen.add(en&&en.item);});}}
+  const occupied=new Set();for(const reg of S.vendorRegistry.filter(r=>r.kind==='kiosk')){
+   const v=c.vendors.find(x=>x?.entity===reg.entity),slot=v?.rules?.slot||reg.entity;
+   if(occupied.has(slot))out.push('Two kiosks occupy the same bay');occupied.add(slot);
+  }
   const ents=c.vendors.map(v=>v&&v.entity);if(new Set(ents).size!==ents.length)out.push('Two vendors use the same seller.');
   if(!Array.isArray(c.presets)||c.presets.length>L.presets)return out.concat(['At most '+L.presets+' presets.']);
   const pids=new Set();for(const p of c.presets){if(!hasOnly(p,['id','name','effects'])||typeof p.id!=='string'||!ID.test(p.id)||!plain(p.name,L.name)||!Array.isArray(p.effects)||p.effects.length>L.effects){out.push('A preset needs an id, a name and up to '+L.effects+' effects.');continue;}

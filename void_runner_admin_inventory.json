@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "42b40273e7f50a10",
+  "revision": "71a3a92a41709821",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74491,13 +74491,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 252,
+      "line": 253,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 295,
+      "line": 296,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -74625,6 +74625,36 @@
       "source": "void-runner/character-catalog.js",
       "line": 2,
       "text": "(function(r){r.VoidCharacterCatalog={\"version\":1,\"note\":\"Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances. Accessories whose id starts with \\\"gear-\\\" are the cyberpunk gear parts (assets/models/gear): a look lists them with no mesh names because they are separate files skinned to the shared skeleton. None is ever a default.\",\"bases\":{\"male\":{\"label\":\"MALE\",\"height\":1.78,\"eyeHeight\":1.68,\"note\":\"Standard heights in metres. The body is scaled uniformly (never stretched) so its top of head equals this value; eye height places the camera. Change here to retune; nothing else needs editing.\"},\"female\":{\"label\":\"FEMALE\",\"height\":1.66,\"eyeHeight\":1.55}},\"looks\":{\"district-smuggler\":{\"base\":\"male\",\"model\":\"district-smuggler\",\"label\":\"SMUGGLER\",\"preset\":true,\"outfit\":\"district_smuggler.male_casualsuit01\",\"shoes\":\"district_smuggler.shoes03\",\"nativeHair\":\"district_smuggler.short04\",\"accessories\":{\"hat\":[\"district_smuggler.fedora_cocked\"],\"eyewear\":[\"district_smuggler.shades0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"hat\",\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"male\",\"model\":\"district-smuggler\"},\"body\":\"district_smuggler.body\",\"retired\":true,\"replacedBy\":\"street-casual-m\"},\"hacker-01\":{\"base\":\"male\",\"model\":\"hacker-01\",\"label\":\"NETRUNNER\",\"outfit\":\"hacker_01.male_casualsuit05\",\"shoes\":\"hacker_01.shoes03\",\"nativeHair\":\"hacker_01.short02\",\"accessories\":{\"eyewear\":[\"hacker_01.visor0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"hacker_01.body\",\"retired\":true,\"replacedBy\":\"street-hacker\"},\"regular-01\":{\"base\":\"male\",\"model\":\"regular-01\",\"label\":\"WORKER\",\"outfit\":\"regular_01.male_worksuit01\",\"shoes\":\"regular_01.shoes03\",\"nativeHair\":\"regular_01.short03\",\"accessories\":{\"mask\":[\"regular_01.mask0\",\"regular_01.mask0.slit0\",\"regular_01.mask0.slit1\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"regular_01.body\",\"retired\":true,\"replacedBy\":\"street-office-m\"},\"vesper-trader\":{\"base\":\"male\",\"model\":\"vesper-trader\",\"label\":\"TRADER\",\"outfit\":\"vesper_trader.male_casualsuit03\",\"shoes\":\"vesper_trader.shoes01\",\"nativeHair\":\"vesper_trader.short02\",\"accessories\":{\"hat\":[\"vesper_trader.fedora01\"],\"mask\":[\"vesper_trader.mask0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"hat\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"vesper_trader.body\",\"retired\":true,\"replacedBy\":\"street-office-m-warm\"},\"district-resident\":{\"base\":\"female\",\"model\":\"district-resident\",\"label\":\"RESIDENT\",\"preset\":true,\"outfit\":\"district_resident.female_sportsuit01\",\"shoes\":\"district_resident.shoes04\",\"nativeHair\":\"district_resident.braid01\",\"accessories\":{\"mask\":[\"district_resident.mask0\",\"district_resident.mask0.slit0\",\"district_resident.mask0.slit1\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"female\",\"model\":\"district-resident\"},\"body\":\"district_resident.body\",\"retired\":true,\"replacedBy\":\"street-casual-f\"},\"ncz-neon\":{\"base\":\"female\",\"model\":\"ncz-neon\",\"label\":\"NEON\",\"outfit\":\"ncz_neon.female_sportsuit01\",\"shoes\":\"ncz_neon.shoes05\",\"nativeHair\":\"ncz_neon.long01\",\"accessories\":{\"collar\":[\"ncz_neon.co",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/cinematic-editor.js",
+      "line": 83,
+      "text": "const labels={start:'Start time',duration:'Duration',mode:'Camera mode',x:'Start X',y:'Start Y',z:'Start Z',toX:'End X',toY:'End Y',toZ:'End Z',targetX:'Look at X',targetY:'Look at Y',targetZ:'Look at Z',yaw:'Yaw (degrees)',pitch:'Tilt (degrees)',fov:'Field of view (degrees)',zoom:'Zoom',shake:'Camera shake',easing:'Movement easing',focus:'Focus distance (0 disables depth of field)',brightness:'Light intensity',fog:'Fog density',color:'Color',clip:'Animation clip',src:'Recording',text:'Overlay text',volume:'Volume',offset:'Recording trim start',kind:'Transition'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/cinematic-project.js",
+      "line": 4,
+      "text": "const tracks=['Camera','Movement','Animation','Dialogue','Music','Sound effects','Lighting','Environment','Text','Transition'];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/cinematic-project.js",
+      "line": 10,
+      "text": "Movement:{x:-1,y:0,z:0,toX:1,toY:0,toZ:0},Animation:{clip:'idle'},Dialogue:{src:'',volume:1,offset:0},Music:{src:'',volume:.6,offset:0},'Sound effects':{src:'',volume:1,offset:0},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/cinematic-project.js",
+      "line": 11,
+      "text": "Lighting:{brightness:1,color:'#cbdcff'},Environment:{fog:0,color:'#172e38'},Text:{text:'',color:'#ffffff'},Transition:{kind:'Fade in',color:'#000000'}};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/cinematic-renderer.js",
+      "line": 48,
+      "text": "const active=[...C.on(project,'Music',t),...C.on(project,'Dialogue',t),...C.on(project,'Sound effects',t)].filter(c=>c.src);",
       "kind": "source-reference"
     },
     {
@@ -75691,7 +75721,7 @@
     },
     {
       "source": "void-runner/item-catalog-editor.js",
-      "line": 56,
+      "line": 57,
       "text": "field('line','Dialogue',step.line||'')+'<button data-drop-step=\"'+i+'\">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';",
       "kind": "source-reference"
     },
@@ -79675,19 +79705,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 988,
+      "line": 1007,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1156,
+      "line": 1176,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1277,
+      "line": 1297,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -80407,7 +80437,7 @@
     },
     {
       "source": "void-runner/npc-services.js",
-      "line": 23,
+      "line": 27,
       "text": "return !!root.talkChoice([{who:v.name,text:v.rules?.message||'What can I help you with?',ambient:true,silent:true}],[",
       "kind": "source-reference"
     },
@@ -81283,7 +81313,7 @@
     },
     {
       "source": "void-runner/sound-studio-editor.js",
-      "line": 96,
+      "line": 104,
       "text": "function render(){stop();body.replaceChildren();if(tab==='Library')library().catch(notify);else if(tab==='Mixer'){for(const ch of S.channels){const inp=field(body,ch==='duck'?'Dialogue ducking':ch,c.mix,ch,[0,1]);inp.type='range';inp.step='.01';inp.oninput=()=>{c.mix[ch]=Number(inp.value);if(mixerPreview)root.VoidAudio.setStudioMix(c.mix);};}",
       "kind": "source-reference"
     },
@@ -82888,8 +82918,8 @@
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "6d86cb9e2de2f43b2e1b8ca92ded2a8c93458997bb87a6a533a79b46789282bc",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "01376f363d13b961b915828265aba53eedadd20bbd420ec4c7d7e92a5c4b61a3",
-    "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
+    "void-runner/babylon-integration.js": "55012a61372b0fa09255f974494c1e69a343ea5bf7f2ebce5cd1c2eabd14116b",
+    "void-runner/babylon-renderer.js": "6f806aecd39faf5670f2d752829daf4476c60fb1a64aceaf64ca270ae0a53d89",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -82905,6 +82935,11 @@
     "void-runner/character-creator.js": "cfd0082b0171c612f0881f485a9879e677a1af7e5d84d66d5a14d39c97c39d86",
     "void-runner/character-finish.js": "4fc7c0c8dd611061b6664284fe9dbee2708169cf01147e4db9afc0cb6a40908d",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
+    "void-runner/cinematic-editor.js": "5fdcf40104ceff8a06a53449d8c3b563076ab25f70c21084b5e731e28d88a316",
+    "void-runner/cinematic-locations.js": "c6ddd2b2b9f3f68cba4ad3c9a1552090c2c247a83394dab9645302ef46896a47",
+    "void-runner/cinematic-presentation.js": "2dbeba72a9edb91ec379f3e4d5dd8fba8d7cf0170e939d35345cfbed55a7a76d",
+    "void-runner/cinematic-project.js": "37f3e0b256ada78fba8f83427d65e2efc616e574b6629649405d203b5d6f5bce",
+    "void-runner/cinematic-renderer.js": "ff6dc39e63eec6d2c459928a5ced3965bb2dd3cdf7b460dd22fc314235cf7940",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
@@ -82915,11 +82950,11 @@
     "void-runner/companion-mobile.js": "e8a56f9ad38d68d87397f40ed29b9ca1e32b0c745ac3e26214c09aa0a8d7a929",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/consumable-audio.js": "455264d71994edf623ea49940524c66f804b397d1dcf74be4031dd37c718e81e",
-    "void-runner/consumable-gameplay.js": "4e92a885e7c70a9745d702ae3241e5bfdd25cd4b2116e66f019e7b44b034f106",
-    "void-runner/consumable-renderer.js": "06edd54b8d3a1a4b2a20c54674e4b0d18aa95952d607386faeba0799bc282117",
-    "void-runner/consumable-spec.js": "ad175465b52ed6575d747bdc53c440155b677a38f673c93245b7019aedf98533",
-    "void-runner/consumable-studio.js": "4706ac8580ef4c9b9763394b83903f4a0351b37e66d31727834d47c1758ff110",
-    "void-runner/consumables.js": "430eb6dc709d247a40516b7c7d0a5e09f5b653a64e24ac07122457b041c26f4e",
+    "void-runner/consumable-gameplay.js": "7853c92fd3df71825b284a1faec8f61b09ec542ee67818556e2a9f7d065bd949",
+    "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
+    "void-runner/consumable-spec.js": "b56b96f11301a84c9b5c4a4ac727e1e9e3665c9c05eb4ded464ff3af43559392",
+    "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
+    "void-runner/consumables.js": "eb55038948395091d3637849062f1d3d98ad6354042ac63f6b237f54be34083c",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -82939,7 +82974,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "2c77fe3119fbd3d4e77be6967d3b5256ecc0af56e08c24e31bf119370d36b2fe",
+    "void-runner/dev-tools.js": "2c8d09866c998ca9ce11ae5fe46192d2cbb41214424b9243bd6dbf8d24585bdf",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -82963,7 +82998,7 @@
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
-    "void-runner/exploration-controller.js": "d562ae13844f4785b470fa95cfa52d3b615e84cc4a4ebe7cbe8bc955877bc6a9",
+    "void-runner/exploration-controller.js": "ccf30f55a584958c4db6a705f5901a2476f7910b27cfd72ee19f7cd1e57929d5",
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
@@ -82996,7 +83031,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "6946d71404de2f49c4be8a67f378bb2c9cfde30070c50f318d27cfbc8b803a30",
+    "void-runner/item-catalog-editor.js": "3080629bfbce16879ef7be6332a47488a72a78f002761edaf197298be5f85ccb",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "e50ab198206c06a8c013c86b47886df5101052e812a53884fa10b7b705ff376f",
@@ -83059,7 +83094,7 @@
     "void-runner/ncz-street-pair.js": "cb53bba3b41cb93cfedac2262d1b860f2db2c836b9786fd192a0cf3f9efc9179",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
-    "void-runner/neochinatown.js": "d385ee980e58cd50a3acb7f436f76129c4782260a594d7f09f5f0ed220f3d132",
+    "void-runner/neochinatown.js": "15150fc3e8dc990c27c804332364bc10458c1bd6363c4bd8f19f8d7c855abdf8",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "710466e49762a766b72fc5c5dcfba6e0f9f1b08828ece07c43d83f8574ac2188",
@@ -83079,7 +83114,7 @@
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "fe86a49b9e0360bbd5b2ecf862e1db5994305b7d8bc78874721ae83c627af790",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
-    "void-runner/npc-services.js": "3b3e750975360dd92a94203604a821da9d68760db6d359aef406d72d00627be2",
+    "void-runner/npc-services.js": "72aa9d104d395c57e85eaa2668a089daf81fcade5f12f254ea37c13bfebd0912",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
@@ -83121,8 +83156,8 @@
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "3b7205101d6e6f651bef09f0846b0caa2b20d87f5b0a221e348816ae84bd8af0",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
-    "void-runner/sound-studio-editor.js": "ab4efa4bc4d5a29e84297c74f1f9f091276f6b92def5a5e7caae25fc0c0cc492",
-    "void-runner/sound-studio-runtime.js": "7ad31510f7fa02bb14b76050adae62bc92e967d38df7272dd6c72f7c1d90bb91",
+    "void-runner/sound-studio-editor.js": "18382f9f26e4641af878e9436a2a668f8129ccca1bd32e2daf72654fbdcb4b04",
+    "void-runner/sound-studio-runtime.js": "4dc408d955f1e7efc8d46dbae5fbbcbba7dfceb30a958d1aa26396feab11e66b",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",
@@ -83168,7 +83203,7 @@
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",
-    "void-runner/zone-integration.js": "ddd68b8f919d2d22dc0fd24ba5fef24cdee5bd151c06082671b8e1e84750f567",
+    "void-runner/zone-integration.js": "ef3729c94039128a20e150c53f117c43fe199aadb0dc0433d6dcfc2ac93760c1",
     "void-runner/zones.js": "d5b1201f90f4a4edbcab30e2408061df4ff8b331e7c40ead1e3c79c9bae3ccc5",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
     "tools/admin-inventory.cjs": "685af14f4e20d69a0eaa0cdbc7aadd28f7a1dc685e0846c50bc2d9b8bb4002dd",

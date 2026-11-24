@@ -108,7 +108,7 @@
  // ---------------------------------------------------------------- the frame: the chip, the enemies, the player's health
  let down=false,lastTick=performance.now(),calmSince=0,zoneTimer=0,lastBuildCheck=0,stepBusy=false;
  const solidsBlocked=(x,z)=>{try{return root.VoidExplorer.blocked(x,z,walkingLocation);}catch{return false;}};
- function hurtPlayer(dmg,from){try{groundState.health=Math.max(0,Math.round(groundState.health-dmg));}catch{return;}calmSince=performance.now();hitEl.classList.add('on');setTimeout(()=>hitEl.classList.remove('on'),140);
+ function hurtPlayer(dmg,from){try{groundState.health=Math.max(0,Math.round(groundState.health-dmg*(1-(root.VoidConsumableGame?.modifier('damageResist')||0))));}catch{return;}calmSince=performance.now();hitEl.classList.add('on');setTimeout(()=>hitEl.classList.remove('on'),140);
   try{root.VoidAudio?.tone?.(90,.12,'square',.03);}catch{}if(groundState.health<=0)takenDown();}
  function frame(){requestAnimationFrame(frame);const t=performance.now(),dt=Math.min(.1,(t-lastTick)/1000);lastTick=t;
   if(flashMesh&&t>flashOff){flashMesh.setEnabled(false);if(flashLight)flashLight.intensity=0;}
@@ -126,7 +126,7 @@
    if(o.shot){stats.enemyShots++;v.flash.setEnabled(true);x.flash=t+70;bang(Math.hypot(e.x-walker.x,e.z-walker.z));if(o.hit){stats.enemyHits++;hurtPlayer(o.damage,x);}}
    if(x.flash&&t>x.flash){v.flash.setEnabled(false);x.flash=0;}}
   // health comes back slowly after 8 s without a hit
-  try{const mx=c.footPlayerHealth;if(groundState.health<mx&&t-calmSince>8000){groundState.regen=(groundState.regen||0)+dt*4;if(groundState.regen>=1){const n=Math.floor(groundState.regen);groundState.regen-=n;groundState.health=Math.min(mx,groundState.health+n);}}}catch{}}
+  try{const mx=c.footPlayerHealth;const recovery=(t-calmSince>8000?4:0)+mx*(root.VoidConsumableGame?.modifier('healthRecovery')||0);if(groundState.health<mx&&recovery>0){groundState.regen=(groundState.regen||0)+dt*recovery;if(groundState.regen>=1){const n=Math.floor(groundState.regen);groundState.regen-=n;groundState.health=Math.min(mx,groundState.health+n);}}}catch{}}
  requestAnimationFrame(frame);
  // "Change zone" steps complete the moment they are reached
  function dueSteps(){if(stepBusy||!LC()?.zoneStep)return;for(const {m,rec} of taken()){const d=Z.dueNow(m,rec);if(d){stepBusy=true;try{LC().zoneStep(d.mission+'/'+d.step);}finally{stepBusy=false;}}}}
