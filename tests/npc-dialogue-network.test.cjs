@@ -1,0 +1,21 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {NpcDialogue}=require('../tools/district-hub/npc-dialogue.cjs');
+test('a shared turn survives interruption by one listener and the last departure starts cooldown',()=>{
+ let now=0;
+ const events=[];
+ const book=new NpcDialogue(()=>now,(to,event)=>events.push({to,...event}));
+ const peer=conn=>({conn,room:'district-interior',placed:true,x:1,z:2});
+ const a=peer('one'), b=peer('two'), other={...peer('three'),room:'another'};
+ const request={t:'npc-ready',group:'pair',cooldown:5};
+ book.handle(a,request);book.handle(b,request);book.handle(other,request);
+ now=700;book.handle(b,request);
+ assert.deepEqual(events.map(e=>[e.to,e.turn]),[['one',0],['two',0]]);
+ const end={t:'npc-end',group:'pair',token:events[0].token};
+ book.handle(other,end);book.handle(b,{...end,token:0});book.handle(a,end);
+ now=10000;book.handle(a,request);assert.equal(events.length,2);
+ book.depart(b);
+ now=14999;book.handle(a,request);assert.equal(events.length,2);
+ now=15200;book.handle(a,request);assert.equal(events.at(-1).turn,1);
+ assert.equal(events.length,3);
+});

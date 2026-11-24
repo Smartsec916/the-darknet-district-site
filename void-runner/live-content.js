@@ -386,7 +386,17 @@
     if(members.length<2||members.some(missionBusy))continue;
     const near=nearbyGroup(members,table);
     const lines=Object.fromEntries(members.map(id=>[id,String(table[id].advanced.group.lines||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean)]));
-    const step=A.groupStep(groupCoordinator,{id:group.id,members,order:group.order,cooldownMs:group.cooldown*1000,lines,index:groupIndex,near,hold:true});
+    let step;
+    const remote=root.VoidRemotePlayers;
+    if(remote?.connected&&remote.features?.npcDialogue&&!env.draft){
+     const present=members.filter(id=>near.has(id)&&lines[id].length);
+     if(present.length<2)continue;
+     const key=[walkingLocation.quarter||walkingLocation.area||'world',group.id,members.map(id=>present.includes(id)?1:0).join('')].join(':');
+     const turn=remote.npcTurn(key,group.cooldown);
+     if(!turn)continue;
+     const speaker=present[turn.turn%present.length],pool=lines[speaker];
+     step={speaker,line:pool[Math.floor(turn.turn/present.length)%pool.length],poses:Object.fromEntries(present.map(id=>[id,id===speaker?'talk':'idle'])),finish:()=>remote.endNpcTurn(turn)};
+    }else step=A.groupStep(groupCoordinator,{id:group.id,members,order:group.order,cooldownMs:group.cooldown*1000,lines,index:groupIndex,near,hold:true});
     if(!step.line)continue;
     const giver=env.givers.find(g=>g.id===step.speaker),who=giver?.say||step.speaker,now=Date.now();
     groupPlayback={speaker:step.speaker,members,scene:walkingLocation,finish:step.finish,
