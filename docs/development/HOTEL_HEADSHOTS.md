@@ -174,3 +174,10 @@ Cabinet integration validation: character creation, Sleeping Pod exit, Hotel Hea
 The attract loop now stages animated guests in every vignette: receptionist and passing lobby guests; two swimmers and a poolside walker; two diners and a passing dining guest; three approaching pursuers cycling the three real guard poses. It reuses existing guest models and animation code. Demo actors are isolated from gameplay and rebuilt with normal residents on CHECK IN. The dining camera is framed to include the seated guests. The cabinet's 16-frame capture is regenerated from these scenes; capture checks verify guest counts, swimming/eating activity, and movement toward the camera. Build 2026-11-24-hotel-headshots-20.
 
 Validation: final 16-frame strip visually inspected; all four scenes show guests. Browser checks passed for guest counts, swimming/eating poses, approaching pursuers, sponsor transition, and restoration of normal enabled residents/resistance on start. Node suite: 1,181 passed, one skipped; cabinet artwork remains within the existing size budget.
+
+
+## 24 Nov 2026 — cabinet exterior correction
+
+Owner correction: no flowers on the outside; show NPCs getting hit by foam or blocking. Replaced all three exterior floral panels with captures of the actual game characters shielding themselves and receiving visible nonlethal foam impacts. The front uses a three-character action composition; the sides use a closer palms-out guard. `tests/hotel-headshots-cabinet-art.cjs` produces both images directly from the game renderer against a plain dark background. Interior hotel paintings are unchanged. This supersedes the botanical cabinet decoration above. Build 2026-11-24-hotel-headshots-21.
+
+Validation: both action-art captures and the final District cabinet preview inspected; no exterior floral texture remains. Node suite: 1,181 passed, one skipped. District startup, creator and Sleeping Pod exit passed during the preview.

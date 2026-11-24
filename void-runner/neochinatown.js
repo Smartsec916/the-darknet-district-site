@@ -1199,10 +1199,10 @@
      for(const key of Object.keys(GAMES)){const [name,a,b2]=GAMES[key];screens[key]=new B.DynamicTexture('ncz-arcade-screen-'+key,{width:ART.has(key)?320:160,height:ART.has(key)?256:128},scene,false,B.Texture.NEAREST_SAMPLINGMODE);textures.push(screens[key]);drawScreen(key,0);screenMats[key]=texMat('arcade-screen-'+key,screens[key],{glow:true});
       marqueeMats[key]=texMat('arcade-marquee-'+key,texture('arcade-marquee-'+key,256,72,(g,W,H)=>{const gr=g.createLinearGradient(0,0,W,0);gr.addColorStop(0,a);gr.addColorStop(1,b2);g.fillStyle=gr;g.fillRect(0,0,W,H);g.fillStyle='rgba(0,0,0,.72)';g.fillRect(6,6,W-12,H-12);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';let size=30;g.font='900 '+size+'px Arial,Helvetica,sans-serif';while(g.measureText(name).width>W-28){size--;g.font='900 '+size+'px Arial,Helvetica,sans-serif';}g.shadowColor=a;g.shadowBlur=10;g.fillText(name,W/2,H/2+1);}),{glow:true});
       sideMats[key]=glowMat('arcade-side-'+key,a,.8);}
-     // Hotel Headshots: repeat the hotel's botanical paintings in a worn walnut cabinet surround.
+     // Hotel Headshots: show the actual guests blocking foam hits; no exterior flower artwork.
      const hotelWood=texMat('hotel-cabinet-walnut',texture('hotel-cabinet-walnut',128,512,(g,W,H)=>{g.fillStyle='#39251f';g.fillRect(0,0,W,H);for(let i=0;i<90;i++){g.strokeStyle=i%3?'#69433255':'#b78b6040';g.lineWidth=i%4+1;g.beginPath();for(let y=0;y<=H;y+=8)g.lineTo((i*19)%W+Math.sin(y*.025+i)*2,y);g.stroke();}}));hotelWood.emissiveColor=new B.Color3(.09,.065,.045);
-     const hotelBrass=mat('hotel-cabinet-aged-brass','#a17b46',{rough:.5,metal:.7}),hotelFlowers=new B.Texture('hotel-headshots/assets/art/flowers-and-bees-atlas.png',scene);textures.push(hotelFlowers);hotelFlowers.uScale=hotelFlowers.vScale=.498;hotelFlowers.uOffset=.501;hotelFlowers.vOffset=.001;hotelFlowers.wrapU=hotelFlowers.wrapV=B.Texture.CLAMP_ADDRESSMODE;
-     const hotelPainting=texMat('hotel-cabinet-flower-bee-painting',hotelFlowers);hotelPainting.emissiveColor=new B.Color3(.18,.16,.13);
+     const hotelBrass=mat('hotel-cabinet-aged-brass','#a17b46',{rough:.5,metal:.7});
+     const hotelAction=kind=>{const t=new B.Texture('void-runner/art/arcade/hotel-headshots-cabinet-'+kind+'.jpg',scene);textures.push(t);t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;const m=texMat('hotel-cabinet-npc-action-'+kind,t);m.emissiveColor=new B.Color3(.18,.16,.15);return m;},hotelFront=hotelAction('front'),hotelSide=hotelAction('side');
      const hotelPlaque=texMat('hotel-cabinet-check-in-plaque',texture('hotel-cabinet-check-in-plaque',512,96,(g,W,H)=>{g.fillStyle='#211b1c';g.fillRect(0,0,W,H);g.strokeStyle='#b18a54';g.lineWidth=5;g.strokeRect(4,4,W-8,H-8);g.textAlign='center';g.fillStyle='#efdbc0';g.font='bold 30px Georgia';g.fillText('THE GRAND LIABILITY',W/2,39);g.fillStyle='#d79bad';g.font='bold 18px monospace';g.fillText('FIVE FLOORS · NO REFUNDS',W/2,72);}));hotelPlaque.emissiveColor=new B.Color3(.3,.25,.2);
      // Interior rebuild, phase D: each cabinet gets a Blender-made body with the classic side profile round the parts built below (which keep the live screen,
      // marquee, controls and lights); stools at the cabinets that are not switched on yet (the playable one is kept clear); a change machine by the north wall.
@@ -1220,11 +1220,11 @@
       for(const sx of [-1,1]){box('arcade-cab-side',[.015,1.3,.06],[sx*.368,1.05,-.3],key==='hotel-headshots'?hotelWood:sideMats[key]);box('arcade-cab-side',[.015,.05,.5],[sx*.368,1.72,0],key==='hotel-headshots'?hotelWood:sideMats[key]);}box('arcade-cab-coin',[.2,.26,.02],[0,key==='hotel-headshots'?.16:.5,-.36],trim);box('arcade-cab-coin-slot',[.03,.07,.02],[0,key==='hotel-headshots'?.18:.55,-.375],c.playable?red:yellow);
       if(key==='hotel-headshots'){
        box('hotel-cabinet-art-backing',[.65,.65,.12],[0,.65,-.405],hotelWood);
-       plane('hotel-cabinet-front-painting',.57,.57,[0,.65,-.467],hotelPainting);
+       plane('hotel-cabinet-front-action',.57,.57,[0,.65,-.467],hotelFront);
        for(const x of [-.305,.305])box('hotel-cabinet-walnut-frame',[.04,.65,.035],[x,.65,-.477],hotelWood);
        for(const y of [.345,.955])box('hotel-cabinet-walnut-frame',[.65,.04,.035],[0,y,-.477],hotelWood);
        plane('hotel-cabinet-hotel-plaque',.57,.107,[0,.278,-.48],hotelPlaque);
-       for(const sx of [-1,1]){plane('hotel-cabinet-side-painting',.58,.8,[sx*.382,.57,.04],hotelPainting,sx*Math.PI/2);for(const z of [-.27,.35])box('hotel-cabinet-side-frame',[.03,.88,.035],[sx*.385,.57,z],hotelWood);for(const y of [.15,.99])box('hotel-cabinet-side-frame',[.03,.035,.65],[sx*.385,y,.04],hotelWood);box('hotel-cabinet-brass-bezel',[.025,.61,.024],[sx*.326,1.38,-.09],hotelBrass);}
+       for(const sx of [-1,1]){plane('hotel-cabinet-side-action',.58,.8,[sx*.382,.57,.04],hotelSide,sx*Math.PI/2);for(const z of [-.27,.35])box('hotel-cabinet-side-frame',[.03,.88,.035],[sx*.385,.57,z],hotelWood);for(const y of [.15,.99])box('hotel-cabinet-side-frame',[.03,.035,.65],[sx*.385,y,.04],hotelWood);box('hotel-cabinet-brass-bezel',[.025,.61,.024],[sx*.326,1.38,-.09],hotelBrass);}
        for(const y of [1.085,1.675])box('hotel-cabinet-brass-bezel',[.675,.022,.024],[0,y,-.09],hotelBrass);
       }
       const cs=Math.cos(c.ry),sn=Math.sin(c.ry);for(const m of framed){const x=m.position.x,z=m.position.z;m.position.x=c.x+x*cs+z*sn;m.position.z=c.z-x*sn+z*cs;m.rotation.y+=c.ry;}framed=null;}
