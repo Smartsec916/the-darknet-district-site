@@ -58,6 +58,9 @@
   const current=()=>resolve(gameMode(),surface,away||document.hidden,manual,root.VoidTeaDuo?.seated);
   function clear(){
     if(typeof walkingKeys!=='undefined')walkingKeys.clear();
+    for(const player of [typeof walker==='undefined'?null:walker,root.VoidSkirmish?.active?.player]){
+      if(player){player.vx=0;player.vz=0;player.jumpRequested=false;}
+    }
     if(typeof clearInput==='function')clearInput();
     root.VoidInput?.virtual?.clear();
     if(typeof groundState!=='undefined')groundState.aim=false;
