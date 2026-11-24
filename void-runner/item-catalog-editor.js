@@ -57,11 +57,11 @@
     filter('vendor','Vendor',c.vendors.map(v=>[v.id,v.name]))+filter('vendorType','Vendor type',spec.vendorKinds)+filter('location','Location',[...new Set(c.vendors.map(v=>v.location))])+
     filter('status','Availability',spec.statuses)+filter('effect','Effect',Object.entries(spec.effects).map(([k,v])=>[k,v.label]))+
     '<label><input type="checkbox" data-instock '+(s.filter.stock?'checked':'')+'> In stock</label><p><label>Items <select data-picker>'+options([['','Choose an item'],...list.map(v=>[v.id,v.name])],s.id)+'</select></label> '+list.length+' items</p>'+
-    field('newId','New item ID','')+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
+    field('newId','New item ID','')+'<label>Template <select data-example>'+options([['','Blank item'],...Object.entries(root.VoidConsumableStudio?.examples||{}).map(([id,v])=>[id,v[0]])],'')+'</select></label>'+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
     (it?'<fieldset><legend>'+esc(it.name)+' · '+esc(it.id)+'</legend>'+field('name','Name',it.name)+field('description','Description',it.description)+field('category','Category',it.category,cats)+
      field('kind','Item type',it.kind,spec.kinds)+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
      field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+
-     field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset>'+
+     ('<button data-effects type="button">Open Consumables Studio</button>')+field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset>'+
      '<h4>Sold at</h4><p>'+esc(where.map(v=>v.name+' · '+v.location).join(', ')||'No vendors assigned')+'</p>'+assignments(it):'')+
     '<p>'+button('category','Add category')+button('save','Save draft')+button('publish','Publish draft')+button('reload','Reload saved draft')+'</p>'+
     '<label>Import catalog <input type="file" data-import accept=".json,application/json"></label>'+button('export','Export JSON')+
@@ -113,14 +113,18 @@
    if(el.matches('[data-assigned]')||k==='mode')draw();else host.querySelector('[role=status]').textContent=s.message;
   };
   host.onclick=e=>{
+   if(e.target.closest('[data-effects]')&&item()&&!s.busy&&current()){
+    root.VoidConsumableStudio.open(item(),s.data.presets,(effects,presets)=>{item().consumable=effects;s.data.presets=presets;mark();draw();},()=>host.isConnected&&!host.closest('[hidden]')&&current());return;
+   }
    const act=e.target.closest('[data-catalog]')?.dataset.catalog;if(!act||!current()||s.busy)return;
+   const template=host.querySelector('[data-example]')?.value;
    const idText=host.querySelector('[data-field=newId]')?.value.trim(),target=Number(host.querySelector('[data-version]')?.value);
    work(async()=>{
     if(act==='reload'){if(!s.dirty||confirm('Discard unsaved edits and reload?'))await reload();return;}
     if(act==='new'||act==='duplicate'){
-     const id=idText||uniqueId(s.data.items,act==='new'?'new-item':item().id+'-copy');
+     const id=idText||uniqueId(s.data.items,act==='new'?(template||'new-item'):item().id+'-copy');
      if(!rules.ID.test(id)||s.data.items.some(i=>i.id===id))throw Error('Choose a unique ID starting with a letter, using lowercase letters, digits and hyphens.');
-     const it=act==='new'?rules.newItem(id,'New item'):{...rules.clone(item()),id,name:item().name+' copy',status:'draft'};s.data.items.push(it);s.id=id;s.filter={};mark();
+     const it=act==='new'?(template?root.VoidConsumableStudio.example(template,id):rules.newItem(id,'New item')):{...rules.clone(item()),id,name:item().name+' copy',status:'draft'};s.data.items.push(it);s.id=id;s.filter={};mark();
     }else if(act==='category'){
      const name=prompt('Category name');if(!name?.trim())return;const id=uniqueId(s.data.categories,name);s.data.categories.push({id,name:name.trim()});mark();
     }else if(act==='save')await save();

@@ -157,7 +157,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
     }));
     return this.catalogScripts.get(src);
    };
-   ['consumable-spec','consumables','item-catalog-editor'].reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
+   ['consumable-spec','consumables','consumable-studio','item-catalog-editor'].reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
     if(host.isConnected&&this.authorized&&this.uid===uid)VoidItemCatalogEditor.mount(host,this);
    }).catch(error=>{host.textContent=error.message;});
    return;
