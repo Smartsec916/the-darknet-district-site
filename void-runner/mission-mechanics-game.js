@@ -33,18 +33,22 @@
  const yOf=c=>Number.isFinite(c.y)?c.y:/^under-/.test(c.place)?-3:0;
  function wantNow(){const s=st_();if(!on()||!s)return [];let list=[];try{list=MC().castNow(s,LC().env);}catch{}const L=wl(),p=me();if(!L||!p||md()!=='walking')return [];
   const byPlace={};return list.map(c=>{const i=byPlace[c.place]=(byPlace[c.place]??-1)+1;return {...c,key:c.mission+'/'+c.id,idx:i};}).filter(c=>{if(L.apt)return false;const sc=sceneOf(c);if(sc==='corporate'?L.id!=='corporate':(L.id!=='neochinatown'||L.area!=='street'))return false;
+   const quarter=placeOf(c.place)?.enter?.quarter;if(sc==='neochinatown'&&quarter&&L.quarter!==quarter)return false;
    const sp=spotOf(c,c.idx);return !!sp&&Math.hypot(sp.x-p.x,sp.z-p.z)<90;});}
- const asked=new Set();
+ const retryAfter=new Map();
  function build(c){const B=root.BABYLON,S=root.VoidBabylon?.scene,A=root.VoidAssets;if(!B||!S)return null;const sp=spotOf(c,c.idx),y=yOf(c);let node=null,anim=null;
   if(c.model==='marker'){node=new B.TransformNode('mission-cast-'+c.id,S);node.position.set(sp.x,y,sp.z);}
-  else{if(!A||!A.instance)return null;if(!A.container?.('crowd:'+c.model)){if(!asked.has(c.model)){asked.add(c.model);Promise.resolve(A.load('crowd:'+c.model,{src:root.VoidMadeNPCs?.fileOf?.(c.model)||'assets/models/crowd/'+c.model+'.glb',background:true},S)).catch(()=>{});}return null;}
+  else{if(!A||!A.instance)return null;if(!A.container?.('crowd:'+c.model)){const now=performance.now();if(now>=(retryAfter.get(c.model)||0)){
+    retryAfter.set(c.model,now+5000);
+    A.requestModel('crowd:'+c.model,{src:root.VoidMadeNPCs?.fileOf?.(c.model)||'assets/models/crowd/'+c.model+'.glb'},S);
+   }return null;}
    const holder=new B.TransformNode('mission-cast-'+c.id,S),fig=A.instance('crowd:'+c.model,holder);if(!fig){holder.dispose();return null;}node=holder;fig.metadata={...fig.metadata,character:c.id,displayName:c.name||c.id,missionCast:true};for(const m of fig.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}   // the asset pipeline instances into a parent node (asset-pipeline.js instance)
    node.position.set(sp.x,y,sp.z);node.rotation.y=Number.isFinite(c.yaw)?c.yaw:0;try{anim=root.VoidCrowd?.animate?.(fig,c.model,c.clip||'idle')||null;}catch{}}
   try{root.VoidPhotoSubjects?.set(c.id,node,{name:c.name||c.id,role:'mission'});}catch{}
   return {c,node,anim,pos:{x:sp.x,z:sp.z,yaw:node.rotation?node.rotation.y:0},model:c.model,tail:null};}
  function drop(k){const x=cast.get(k);if(!x)return;cast.delete(k);try{root.VoidPhotoSubjects?.remove(x.c.id,x.node);}catch{}try{x.anim?.dispose?.();}catch{}try{x.node.dispose();}catch{}}
  let builtFor=null;
- function castTick(){const L=wl();if(L!==builtFor){for(const k of [...cast.keys()])drop(k);builtFor=L;}const want=wantNow(),keys=new Set(want.map(c=>c.key));
+ function castTick(){const L=wl();if(L!==builtFor){retryAfter.clear();for(const k of [...cast.keys()])drop(k);builtFor=L;}const want=wantNow(),keys=new Set(want.map(c=>c.key));
   for(const k of [...cast.keys()])if(!keys.has(k))drop(k);for(const c of want)if(!cast.has(c.key)){const x=build(c);if(x)cast.set(c.key,x);}}
  /* Where a person is now: a cast member of a running mission (the nearest key), else anyone the camera can identify in this scene. */
  function posOf(id,mission){for(const [k,x] of cast)if(x.c.id===id&&(!mission||k.startsWith(mission+'/')))return x.pos;const S=root.VoidPhotoSubjects?.get?.(id);if(S&&S.node&&!S.node.isDisposed?.()){const p=S.node.getAbsolutePosition?.()||S.node.position;return p?{x:p.x,z:p.z}:null;}return null;}
@@ -84,12 +88,19 @@
   if(!on()){sub.hidden=true;meter.hidden=true;return;}const blocked=(()=>{try{return LC().nearBlocked();}catch{return true;}})(),p=me(),list=nowList();let subShown=false,meterUsed=false;
   for(const x of list){if(x.delayed)continue;const o=x.o,k=x.kind;
    if(k==='wait-game'){if(x.wait&&x.wait.due){fire({type:'game-wait',step:x.key});return;}continue;}
+   if(k==='overhear'){
+    // A named speaker must be present before her turn can advance, even on Low or after re-entry.
+    const speakers=(x.cast||[]).filter(c=>(o.say||[]).some(l=>l.who===c.id));
+    if(speakers.some(c=>!cast.has(x.mission+'/'+c.id))){delete run[x.key];hush(x.key);continue;}
+   }
    if(blocked)continue;
    if(x.unseen&&md()==='walking'){meterUsed=true;if(seenCheck(x,dt))return;}
    if(k==='observe'||k==='overhear'||k==='tail'){const d=dist(p,k==='tail'?(cast.get(x.mission+'/'+o.npc)||{}).pos:posOf(o.npc,x.mission));
     if(k==='observe'){const r=MM.observeStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),hold:MM.hold(o)});run[x.key]=r.st;if(r.noticed&&!run[x.key+'|n']){run[x.key+'|n']=1;say('Too close: they notice you. Back off a little.');}if(!r.noticed)delete run[x.key+'|n'];if(r.done){delete run[x.key];fire({type:'observe',step:x.key});return;}}
     else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>heardSecs(lines[i])});run[x.key]=r.st;
-     if(r.noticed){say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');hush(x.key);}if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;voiceHeard(x.key,r.show,lines[r.show]);}
+     if(r.noticed){say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');hush(x.key);}if(r.show>=0&&lines[r.show]){const speaker=lines[r.show].who;
+      for(const c of x.cast||[]){if((o.say||[]).some(l=>l.who===c.id))cast.get(x.mission+'/'+c.id)?.anim?.play?.(c.id===speaker?'talk':'idle');}
+      showSub(speaker,lines[r.show].text);subShown=true;voiceHeard(x.key,r.show,lines[r.show]);}
      // walked away part-way (Awakening QA 20 Nov 2026: the subtitle just vanished): say why it paused, until they are in range again
      else if(!r.noticed&&!(r.st.noticed>0)&&(r.st.line>0||r.st.at>0)&&!(d<=MM.near(o))){showSub('','Too far away to hear them. Move closer (not right beside them).',true);subShown=true;}
      if(r.done){delete run[x.key];sub.hidden=true;fire({type:'overhear',step:x.key});return;}}
