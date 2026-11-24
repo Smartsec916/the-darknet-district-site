@@ -1196,6 +1196,9 @@ def change_sound_project(db, uid, action):
         if request.content_length is not None and request.content_length > sound_studio.MAX:
             raise DraftError('Audio files must be at most 20 MiB.', 413)
         return jsonify(sound_studio.upload(db, request.stream.read(sound_studio.MAX + 1)))
+    if action == 'validate':
+        data = request.get_json(silent=True)
+        return jsonify(content=sound_studio.checked(data.get('content') if isinstance(data, dict) else None))
     if action not in ('draft', 'publish'):
         raise DraftError('Unknown sound operation.', 404)
     return jsonify(sound_studio.save(db, uid, request.get_json(silent=True), publish=action == 'publish'))

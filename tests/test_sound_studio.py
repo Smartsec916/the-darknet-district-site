@@ -63,3 +63,15 @@ class SoundTests(unittest.TestCase):
         content['events'] = [dict(id='door', asset=['unknown'])]
         response = self.client.post(PRIVATE+'/draft', headers=self.header, json=dict(content=content,revision=0))
         self.assertEqual(response.status_code, 422)
+
+    def test_import_validation_does_not_save_or_publish(self):
+        content = copy.deepcopy(studio.EMPTY)
+        content['mix']['master'] = .65
+        url = PRIVATE + '/validate'
+        self.assertEqual(self.client.post(url, json={'content': content}).status_code, 401)
+        result = self.client.post(url, headers=self.header, json={'content': content})
+        self.assertEqual(result.json['content'], content)
+        self.assertIsNone(self.client.get(PRIVATE, headers=self.header).json['draft']['content'])
+        self.assertEqual(self.client.get(PUBLIC).json['version'], 0)
+        content['mix']['master'] = 3
+        self.assertEqual(self.client.post(url, headers=self.header, json={'content': content}).status_code, 422)

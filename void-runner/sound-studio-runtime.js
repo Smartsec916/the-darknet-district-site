@@ -14,16 +14,39 @@
  let project=empty(),loaded=false,active=null,nextAt=0,track=null,order=[],index=0,exhausted=false;
  const emitters=new Map(),resume=new Map(),effects=new Set();
  const limit=(v,min,max)=>Math.min(max,Math.max(min,v));
+ // Two crossfaded delay lines transpose a streaming recording without moving its playback clock.
+ function transpose(ctx,input,semitones){
+  const span=.08,ratio=2**(semitones/12),period=span/Math.abs(1-ratio);
+  const curve=ctx.createBuffer(2,2048,ctx.sampleRate);
+  const delayCurve=curve.getChannelData(0),gainCurve=curve.getChannelData(1);
+  for(let i=0;i<curve.length;i++){
+   const phase=i/curve.length;
+   delayCurve[i]=.005+span*(semitones>0?1-phase:phase);
+   gainCurve[i]=Math.sin(phase*Math.PI)**2;
+  }
+  const output=ctx.createGain(),voices=[];
+  for(const offset of [0,.5]){
+   const clock=ctx.createBufferSource(),split=ctx.createChannelSplitter(2),delay=ctx.createDelay(.12),level=ctx.createGain();
+   clock.buffer=curve;clock.loop=true;clock.playbackRate.value=curve.duration/period;
+   delay.delayTime.value=0;level.gain.value=0;
+   clock.connect(split);split.connect(delay.delayTime,0);split.connect(level.gain,1);
+   input.connect(delay);delay.connect(level);level.connect(output);clock.start(ctx.currentTime,offset*curve.duration);
+   voices.push({clock,split,delay,level});
+  }
+  return {output,dispose(){for(const v of voices){v.clock.stop();input.disconnect(v.delay);for(const n of Object.values(v))n.disconnect();}output.disconnect();}};
+ }
  function player(a,channel,volume,options={}){
   const media=new Audio(),owner=root.VoidAudio?.connectMedia?.(media,channel);
   if(!owner)return null;
   const ctx=owner.context,g=owner.gain.gain;
   let closed=false,tail=null,ended=false,additional=null;
   media.crossOrigin='anonymous';media.preload='auto';media.src=options.url||mediaUrl(a.src);
-  media.preservesPitch=!a.pitch;
-  media.playbackRate=limit(a.rate*Math.pow(2,a.pitch/12),.0625,16);
+  media.preservesPitch=true;
+  media.playbackRate=limit(a.rate,.25,4);
+  let output=owner.gain,pitch;
+  if(a.pitch){const bus=root.VoidAudio.bus(channel).node;output.disconnect(bus);pitch=transpose(ctx,output,a.pitch);output=pitch.output;output.connect(bus);}
   const level=limit(a.volume*volume,0,1);g.value=0;
-  function dispose(){if(closed)return;closed=true;clearTimeout(tail);media.pause();media.removeAttribute('src');media.load();owner.dispose();additional?.disconnect();}
+  function dispose(){if(closed)return;closed=true;clearTimeout(tail);media.pause();media.removeAttribute('src');media.load();pitch?.dispose();owner.dispose();additional?.disconnect();}
   function fade(seconds){if(closed||tail)return;if(seconds<=0){dispose();return;}
    g.cancelScheduledValues(ctx.currentTime);g.setValueAtTime(g.value,ctx.currentTime);g.linearRampToValueAtTime(0,ctx.currentTime+seconds);tail=setTimeout(dispose,seconds*1000+30);}
   function start(){if(closed)return;media.currentTime=limit(options.seek??a.start,a.start,Math.max(a.start,(a.end||media.duration)-.02));
@@ -36,7 +59,7 @@
   return {media,get remaining(){return ((a.end||media.duration)-media.currentTime)/media.playbackRate;},get ended(){return ended||closed;},fade,dispose,
    spatial(x,y,z,yaw,near,far,attenuation){const p=ctx.createPanner();p.panningModel='HRTF';p.distanceModel='inverse';p.refDistance=near;p.maxDistance=far;p.rolloffFactor=attenuation;
     p.setPosition(x,y,-z);p.setOrientation(Math.sin(yaw),0,-Math.cos(yaw));p.coneInnerAngle=180;p.coneOuterAngle=340;p.coneOuterGain=.35;
-    owner.gain.disconnect();owner.gain.connect(p);p.connect(root.VoidAudio.bus(channel).node);additional=p;},
+    output.disconnect();output.connect(p);p.connect(root.VoidAudio.bus(channel).node);additional=p;},
    level(multiplier){if(!closed&&!tail)g.setTargetAtTime(level*multiplier,ctx.currentTime,.12);}};
  }
  function stopPlaylist(){if(active?.resume)resume.set(active.id,{order:[...order],index,time:track?.media.currentTime});
@@ -79,6 +102,6 @@
   for(const old of effects)if(old.ended)effects.delete(old);
   if(effects.size>=16)return false;
   const p=player(a,'effects',1,{loop:false,done:()=>effects.delete(p)});if(!p)return false;effects.add(p);return true;}
- const api={categories,channels,empty,asset,base,mediaUrl,playlist,hourMatches,player,apply,update,event,stop,get project(){return project;}};
+ const api={categories,channels,empty,asset,base,mediaUrl,playlist,hourMatches,transpose,player,apply,update,event,stop,get project(){return project;}};
  if(typeof module!=='undefined')module.exports=api;else root.VoidSoundStudio=api;
 })(globalThis);
