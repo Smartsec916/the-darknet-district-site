@@ -113,9 +113,16 @@
   if(st.kind==='they-follow'&&P.final&&Math.hypot(her.x-walker.x,her.z-walker.z)<=Math.max(10,(P.set&&P.set.wait)||8))return {position:[P.final.x,1.7,P.final.z],route:true,label:g.label||''};
   return null;}catch{return null;}}
  root.missionEscortGoal=escortGoal;
+ let portBoard=null;
  function missionPlaceRoute(g){
   try{const ag=aptGoal(g);if(ag)return ag;
-   if(!(g&&g.apt)){const wo=wayOut();if(wo)return wo;}
+   if(!g?.apt&&(g?.place||g?.target||g?.interaction||g?.made)){const wo=wayOut();if(wo)return wo;}
+   if(g?.interaction==='board'){
+    if(!['neochinatown','milked','temple','corporate'].includes(walkingLocation?.id))return null;
+    portBoard??=root.VoidNeoChinatown.layout('street','port').interactions.find(i=>i.id==='board');
+    if(!portBoard||portBoard.when&&!root.VoidStory.matches(state,portBoard.when))return null;
+    return sceneExit('neochinatown',g.label)||{position:portBoard.position.slice(),quarter:'port',route:true,label:g.label};
+   }
    const mp=milkedPerson(g);if(mp)return mp;const md=madePerson(g);if(md)return md;
    if(g?.interaction&&['temple','corporate'].includes(walkingLocation?.id)&&(root.VoidMilked?.INTERACTIONS?.some(i=>i.id===g.interaction)||(typeof districtInteraction==='function'&&districtInteraction(g.interaction))))return sceneExit('neochinatown',g.label);
    if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;

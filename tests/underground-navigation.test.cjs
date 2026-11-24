@@ -44,17 +44,37 @@ for (const [street, start] of Object.entries(starts)) {
   }
 }
 
+function browserGuide(globals) {
+  const document = { createElement: () => ({ dataset: {}, setAttribute() {} }),
+    body: { appendChild() {} }, head: { appendChild() {} } };
+  const context = { document, setInterval() {}, ...globals };
+  require('node:vm').runInNewContext(require('node:fs').readFileSync(require.resolve('../void-runner/mission-guide'), 'utf8'), context);
+  return context;
+}
+
+test('a freight or cargo step guides the player from the underground to their ship once boarding is allowed', () => {
+  const context = browserGuide({ VoidNeoChinatown: city, VoidStory: require('../void-runner/story'),
+    state: { story: { flags: { shipAccess: 'granted' } } }, walkingLocation:city.layout('street','underground') });
+  const objective = { interaction:'board', label:'Board your ship' };
+  const goal = context.missionPlaceRoute(objective);
+  const dock = city.layout('street','port').interactions.find(i => i.id === 'board');
+  assert.equal(goal.quarter, 'port');
+  assert.deepEqual(Array.from(goal.position), dock.position);
+  const route = guide.plan(guide.graphFor('neochinatown'), {x:tea[0], z:tea[1], quarter:'underground'},
+    {x:goal.position[0], z:goal.position[2], quarter:goal.quarter});
+  assert.ok(route.some(next => next.transition));
+  context.state.story.flags.shipAccess='none';
+  assert.equal(context.missionPlaceRoute(objective),null);
+});
+
 test('mission navigation uses the Reyes access point until the door is hacked and the Veyra cab for its other floor', () => {
   const modules = require('../void-runner/modules');
   const escort = require('../void-runner/npc-escort');
   const missions = require('../void-runner/main-story').trees().flatMap(t => t.missions);
-  const document = { createElement: () => ({ dataset: {}, setAttribute() {} }),
-    body: { appendChild() {} }, head: { appendChild() {} } };
   let instance, room;
-  const context = { document, setInterval() {}, VoidModules: modules, VoidNPCEscort: escort,
+  const context = browserGuide({ VoidModules: modules, VoidNPCEscort: escort,
     VoidLiveContent: { env: { trees: [{ missions }] } },
-    VoidApartments: { open: () => [instance], insideMod: () => room } };
-  require('node:vm').runInNewContext(require('node:fs').readFileSync(require.resolve('../void-runner/mission-guide'), 'utf8'), context);
+    VoidApartments: { open: () => [instance], insideMod: () => room } });
   function enter(apt, mod) {
     const mission = missions.find(m => m.apartments?.some(a => a.id === apt));
     const loc = mission.apartments.find(a => a.id === apt);

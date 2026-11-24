@@ -17,6 +17,10 @@ The production content manifest was version 3. It supplied interaction overrides
 | 011 Leverage | District meeting room and Admin. Waiting and calls keep their existing timers. |
 | 012 First Cargo Delivery | Port, landing pad and station arrival. Boarding, flight and the ship app have separate guidance. |
 
+After mission 012, Rook's generated freight runs use the same boarding prompt and station handback. From an underground or private location the route first takes the player outside, then to the spacecraft at the Port. The prompt respects the existing ship-access requirement. The freight suites cover board generation, saved jobs, destination selection, arrival and returning to Rook. The older beginner chain is retired in the District campaign.
+
+Nine additional collision-driven walks reached published targets from legal starts, including Juno and the Blackrock associate at the fight pit from different streets, the pit from the tea room, the Far South entrance from two approaches, NULL, Milked and the two Avenue apartment doors.
+
 ## Reproducing the route checks
 
 Run `node --test tests/guide-route*.test.cjs tests/underground-navigation.test.cjs tests/underground.test.cjs tests/awakening-qa.test.cjs`. The underground regression starts in Old Town at (15, −75), the Avenue at (25, 6), and Far South at (36, −190). For each start it walks to the underground tea room, then separately walks back from the tea room. It uses the game's player collision radius, forward movement and smoothed arrow bearing. Runtime tests also cover alternate starts, backtracking, a changed objective, closed and unlocked apartment doors, an elevator floor change, and a barrier that increases the indicated walking distance.
