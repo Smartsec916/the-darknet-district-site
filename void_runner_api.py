@@ -1,4 +1,5 @@
 """Account-bound saves and Stripe fulfillment. No secrets or ownership in the browser."""
+import re
 import hashlib
 import os
 import time
@@ -1211,3 +1212,46 @@ def public_sound_media(recording):
 def private_sound_media(db, uid, recording):
     items_admin(uid)
     return sound_studio.media(db, recording, private=True)
+
+
+@api.route('/developer/studio/cinematics', methods=['GET', 'POST'])
+@signed_in
+def cinematic_projects(db, uid):
+    """Owner-private portable edit lists. Rendering and recording run in the browser."""
+    items_admin(uid)
+    ref = db.collection('vr_cinematic_projects').document(sound_studio.digest(uid.encode()))
+    if request.method == 'GET':
+        return jsonify(ref.get().to_dict() or {'revision': 0, 'projects': {}})
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or type(data.get('revision')) is not int:
+        raise DraftError('A project revision is required.', 422)
+    projects = data.get('projects')
+    if not isinstance(projects, dict) or len(projects) > 50 or len(json.dumps(projects)) > 600000:
+        raise DraftError('A library can contain up to 50 projects and 600 KB of edits.', 422)
+    for key, project in projects.items():
+        if not re.fullmatch(r'[a-zA-Z0-9-]{1,64}', key) or not isinstance(project, dict):
+            raise DraftError('Invalid cinematic project.', 422)
+        if set(project) != {'name','place','actor','resolution','aspect','fps','clips'} or not isinstance(project['name'], str) or not project['name'].strip() or len(project['name']) > 140:
+            raise DraftError('Choose a valid project name and settings.', 422)
+        if project['resolution'] not in (720,1080,1440,2160) or project['aspect'] not in ('16:9','9:16','1:1') or project['fps'] not in (30,60):
+            raise DraftError('Unsupported recording settings.', 422)
+        clips = project['clips']
+        if not isinstance(clips,list) or len(clips)>240:
+            raise DraftError('Choose up to 240 timeline clips.',422)
+        for clip in clips:
+            if not isinstance(clip,dict) or not sound_studio.number(clip.get('start'),0,600) or not sound_studio.number(clip.get('duration'),.05,600) or clip['start']+clip['duration']>600:
+                raise DraftError('Invalid timeline range.',422)
+            if 'src' in clip and clip['src'] and (not isinstance(clip['src'],str) or not (sound_studio.HASH.fullmatch(clip['src']) or clip['src'] in sound_studio.packaged_recordings())):
+                raise DraftError('Choose a game recording.',422)
+    from firebase_admin import firestore
+
+    @firestore.transactional
+    def commit(tx):
+        old = ref.get(transaction=tx).to_dict() or {}
+        if old.get('revision',0) != data['revision']:
+            raise DraftError('This library changed in another window. Reopen before saving.',409)
+        new = {'revision':data['revision']+1,'projects':projects}
+        tx.set(ref,new)
+        return new['revision']
+
+    return jsonify(revision=commit(db.transaction()))
