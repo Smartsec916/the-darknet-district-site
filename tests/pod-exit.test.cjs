@@ -8,7 +8,7 @@ function input(mode,locked){
  const doc={hidden:false,pointerLockElement:locked,addEventListener:(name,fn)=>listeners.set(name,fn),
    exitPointerLock(){released.push(this.pointerLockElement);this.pointerLockElement=null;},
    createElement:()=>({style:{}}),body:{append(){}}};
- const ctx={mode,performance,document:doc,addEventListener(){},dispatchEvent(){},Event,clearInput:()=>cleared.push(true),
+ const ctx={mode,walker:{vx:2,vz:-1,jumpRequested:true},performance,document:doc,addEventListener(){},dispatchEvent(){},Event,clearInput:()=>cleared.push(true),
    MutationObserver:class{observe(){}},requestAnimationFrame(){},openGameMenu(){assert.fail('pointer lock changes must preserve gameplay');}};
  require('node:vm').runInNewContext(read('void-runner/input-state.js'),ctx);
  return {doc,ctx,cleared,released,change:()=>listeners.get('pointerlockchange')()};
@@ -16,7 +16,7 @@ function input(mode,locked){
 test('a game-requested release preserves the mode for every element that owned the mouse',()=>{
  for(const id of ['space','pod-wake']){
   const h=input('walking',{id});h.doc.exitPointerLock();h.change();
-  assert.equal(h.ctx.mode,'walking');assert.equal(h.cleared.length,1);assert.equal(h.released[0].id,id);
+  assert.deepEqual(h.ctx.walker,{vx:0,vz:0,jumpRequested:false});assert.equal(h.ctx.mode,'walking');assert.equal(h.cleared.length,1);assert.equal(h.released[0].id,id);
  }
 });
 test('the pod releases the mouse through document.exitPointerLock before it leaves',()=>{

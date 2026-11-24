@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "cd2d2ecf2bdba22b",
+  "revision": "e5243f3b12d4dc74",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75059,25 +75059,25 @@
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 86,
+      "line": 89,
       "text": "if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation','floating'].includes(surface)){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 126,
+      "line": 129,
       "text": "const dismiss=panel.querySelector('[data-input-dismiss],.conversation-minimize');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 132,
+      "line": 135,
       "text": "if(!['conversation','activity'].includes(current().name))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 133,
+      "line": 136,
       "text": "const choices=[...panel.querySelectorAll('.speech-controls #speech-next,.speech-controls [data-talk-choice],.tea-duo-choices button,.choice-menu button[data-action]')].filter(visible);",
       "kind": "source-reference"
     },
@@ -82492,7 +82492,7 @@
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "c4ba5152fe63754f78ec10f50fc503d26a0e5f008e0b5a8a7c29a37e130852c7",
+    "void-runner/input-state.js": "ff140346e56ce4d0d43aa0baf45551daf7e49204ffdd58aea907b0bfa5fe241a",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
