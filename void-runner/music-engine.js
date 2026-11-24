@@ -102,6 +102,13 @@
  function update(target){
   if(!target||!ensure()||ctx.state!=='running')return;
   const now=ctx.currentTime;
+  if(target.authored){
+   if(main){retire(main);main=null;}
+   if(speakerInst){retire(speakerInst);speakerInst=null;}
+   retiring=retiring.filter(inst=>{if(now<inst.until)return true;dispose(inst);return false;});
+   for(const inst of world)if(!inst.suspended)run(inst,now);
+   return;
+  }
   if(!main||main.id!==target.style){const old=main;main=revive(target.style)||start(target.style,old);retire(old);}
   if(!main)return;
   main.intensity=target.intensity;main.tension=target.tension;
@@ -119,7 +126,7 @@
   const cl=target.cityLevel==null?1:Math.max(0,Math.min(1,target.cityLevel));if(cl!==cityLevel){cityLevel=cl;city.gain.setTargetAtTime(cl,now,.05);}
   for(const inst of world)if(!inst.suspended)run(inst,now);
  }
- function stop(){for(const inst of [main,speakerInst,...retiring])if(inst)retire(inst);main=speakerInst=null;}
+ function stop(){root.VoidSoundStudio?.stop();for(const inst of [main,speakerInst,...retiring])if(inst)retire(inst);main=speakerInst=null;}
 
  // A persistent source for a place in the world (the club): its own song, played into `dest` instead of the city mix.
  // It keeps its place in the song: while suspended nothing is scheduled, and resume() lands where the song would be by now
