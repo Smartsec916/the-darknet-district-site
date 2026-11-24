@@ -50,7 +50,7 @@
   const watched='#screen,#personal-device,.pod-vend,.vr-companion-menu,'+
     surfaces.map(([,selector])=>selector.replaceAll(/:has\([^)]+\)/g,'')).join(',');
   const visible=el=>!el.closest('[hidden],.hidden,[aria-hidden="true"]')&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden';
-  let surface=null,panel=null,manual=false,away=document.hidden,previous=null,tip=null;
+  let surface=null,panel=null,manual=false,away=document.hidden||document.hasFocus?.()===false,previous=null,tip=null;
   const gameMode=()=>typeof mode==='string'?mode:'menu';
   const current=()=>resolve(gameMode(),surface,away||document.hidden,manual,root.VoidTeaDuo?.seated);
   function clear(){
@@ -78,7 +78,7 @@
     const priorPanel=panel;panel=null;surface=null;
     for(const [name,selector] of surfaces){
       panel=Array.from(document.querySelectorAll(selector)).find(visible);
-      if(panel){surface=name;break;}
+      if(panel){surface=panel.id==='screen'&&name==='menu'&&gameMode()==='equipment'?'store':name;break;}
     }
     if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation'].includes(surface)){
       const first=[...panel.querySelectorAll('button:not([disabled]),[role="button"]')].find(visible);
@@ -125,7 +125,12 @@
     }
   },true);
   root.addEventListener('keyup',e=>{if(manual&&e.code===root.VoidInput?.bindings?.cursor){manual=false;refresh();}},true);
-  root.VoidInputState={get current(){return current();},refresh,scan};
+  function capture(element){
+    if(!current().pointerLock||!element?.requestPointerLock||document.pointerLockElement===element||
+      (navigator.userActivation&&!navigator.userActivation.isActive))return;
+    return element.requestPointerLock();
+  }
+  root.VoidInputState={get current(){return current();},refresh,scan,capture};
   // Mode changes can occur without adding or removing a panel.
   function frame(){if(current()!==previous)refresh();requestAnimationFrame(frame);}
   requestAnimationFrame(()=>{scan();frame();});

@@ -128,7 +128,10 @@ function initializeAuth(){
       if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,receiveIdentity,()=>{
         unsubscribe?.();unsubscribe=null;authInitialization=null;account.authStatus='unavailable';VoidNetwork.report('identity','degraded');
       });
-      await firebase.auth.authStateReady?.();
+      if(firebase.auth.authStateReady){
+        await firebase.auth.authStateReady();
+        receiveIdentity(firebase.auth.currentUser);
+      }
       await firebase.getRedirectResult(firebase.auth);
       try{const done=await (await identity()).completeEmailLink();
         if(done){await afterIdentityChange();announce(done.result==='secured'?'Handle secured. You can now sign in anywhere with your email.':done.result==='switched'?'That email already had an account. You are now signed in to it.':'Signed in with your email link.');}
@@ -144,7 +147,7 @@ function requestAction(action){
   if(['play','pause'].includes(mode))return;
   if(action==='account-resume'){accountFromGame=false;resumeMenu();return;}
   if(action==='account-game'&&mode==='walking'){openGameMenu();accountFromGame=true;accountPage();return;}
-  if(action==='account'){accountFromGame=false;accountPage();return;}
+  if(action==='account'){accountFromGame=!!VoidMenu.returnTo;accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}
   if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||(account.user.isAnonymous&&!account.handle))throw new Error('Register a District handle first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');globalThis.VoidRemotePlayers?.reconnect?.();});return;}
   // Read typed values first: run() redraws the page (busy state) before the action starts.

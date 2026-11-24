@@ -5,7 +5,7 @@
  let unavailable=false,swallowing=false;
  function lock(){
   if(!VoidInputState.current.pointerLock||locked()||unavailable||!canvas.requestPointerLock)return;
-  try{canvas.requestPointerLock()?.catch?.(error=>{if(error.name==='NotSupportedError')unavailable=true;});}catch{}
+  try{VoidInputState.capture(canvas)?.catch?.(error=>{if(error.name==='NotSupportedError')unavailable=true;});}catch{}
  }
  for(const type of ['mousedown','mouseup','click'])addEventListener(type,e=>{
   if(e.target!==canvas)return;
