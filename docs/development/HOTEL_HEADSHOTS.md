@@ -181,3 +181,12 @@ Validation: final 16-frame strip visually inspected; all four scenes show guests
 Owner correction: no flowers on the outside; show NPCs getting hit by foam or blocking. Replaced all three exterior floral panels with captures of the actual game characters shielding themselves and receiving visible nonlethal foam impacts. The front uses a three-character action composition; the sides use a closer palms-out guard. `tests/hotel-headshots-cabinet-art.cjs` produces both images directly from the game renderer against a plain dark background. Interior hotel paintings are unchanged. This supersedes the botanical cabinet decoration above. Build 2026-11-24-hotel-headshots-21.
 
 Validation: both action-art captures and the final District cabinet preview inspected; no exterior floral texture remains. Node suite: 1,181 passed, one skipped. District startup, creator and Sleeping Pod exit passed during the preview.
+
+
+## 24 Nov 2026 — games-list card attract previews
+
+Hotel Headshots remains listed exactly once, with its real 16-frame NPC attract sequence. Every product card on `games-list.html` now has a silent looping preview: the four arcade games reuse their cabinet captures; the District and Origins use new actual-game screenshots captured by `tests/games-attract-capture.cjs`; Project X and Raven have explicitly labeled coming-soon teasers; the referral card has a Star Citizen promo animation. Raven's status now matches its actual coming-soon page. The existing blank referral logo was replaced by the text-based promo. Existing referral URL and offer are unchanged.
+
+Shared `games-attract.js` / `.css` provide one lightweight canvas loop, visible-card-only redraws, hidden-tab suspension, a pause/play control, and reduced-motion defaults. The static directory mirror uses the same previews for its existing card selection. No game engines or audio run within the directory. New screenshots live in `assets/game-previews/`.
+
+Validation: Node suite 1,181 passed / one skipped; browser checks passed at 1440, 390 and 320px, including frame advancement, pause/resume, reduced-motion behavior, no horizontal overflow, the Hotel Headshots link, and static-mirror asset loading. Screenshots: `.test-temp/hotel-headshots/games-list-attract-*.png`. No merge or deployment.
