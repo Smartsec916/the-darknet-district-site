@@ -56,3 +56,20 @@ test('there is one Dax, she is a licensed model that is not in this repository, 
  const spec=JSON.parse(fs.readFileSync(path.join(__dirname,'..','tools/animation-pipeline/characters/npc-dax.json'),'utf8'));
  assert.deepEqual(spec.clips.map(c=>c==='walk-game'?'walk':c).sort(),C.clips['npc-dax'].slice().sort());assert.equal(D.EYE.length,4);
 });
+
+test('Dax uses saved active play, conduct and civilian reputation at inclusive thresholds',()=>{
+ const balance=require('../void-runner/balance.js'),clock=require('../void-runner/game-clock.js');
+ const cfg={...balance.defaults,daxRecruitPlayMinutes:1,daxBountyPlayMinutes:2,
+  daxRecruitCivilianReputation:5,daxBountyCivilianReputation:-3};
+ const s={story:{flags:{}},universe:{missions:{'legal-run':{completed:true}}},progression:{reputation:{civilian:5}}};
+ const ticker=clock.clock(),active=()=>clock.realMinutes(clock.minutes(s));
+ const tick=(seconds,on=true)=>{for(let i=0;i<seconds;i++)ticker.add(s,1,on);};
+ tick(30);s.story.flags.area='street';tick(50,false);tick(29);
+ assert.equal(D.interest(s,cfg,active()),null);
+ tick(1);assert.equal(D.interest(s,balance.defaults,active()),null);
+ assert.equal(D.interest(JSON.parse(JSON.stringify(s)),cfg,active()),'recruit');
+ s.story.flags.daxRecruitContact=true;assert.equal(D.interest(s,cfg,active()),null);
+ s.progression.reputation.civilian=-3;s.contract={legal:false};tick(60);
+ assert.equal(D.interest(s,cfg,active()),'bounty');
+ s.story.flags.daxBountyContact=true;assert.equal(D.interest(s,cfg,active()),null);
+});

@@ -1,6 +1,11 @@
 /* UI visibility is not authorization: every private read/write is verified by the API. */
 // What each balance value does, in plain words, grouped as the game uses them (the owner, 2026-10-24).
 const balanceHelp={
+ 'Dax encounters':{
+  daxRecruitPlayMinutes:['Recruitment · active minutes','Set a minimum accumulated playtime. A negative value disables recruitment.'],
+  daxBountyPlayMinutes:['Bounty · active minutes','Set a minimum accumulated playtime. A negative value disables bounty contact.'],
+  daxRecruitCivilianReputation:['Minimum civilian reputation','Recruitment also requires lawful contract history or a current lawful contract.'],
+  daxBountyCivilianReputation:['Maximum civilian reputation','Bounty contact also requires unlawful contract history or a current unlawful contract.']},
  'Your ship':{
   playerHull:['Kestrel hull','How much damage your ship can take before it is destroyed. Bigger hulls scale from this.'],
   playerShield:['Base shield','Shield points before any shield module. Shields soak damage before the hull.'],
