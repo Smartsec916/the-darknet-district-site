@@ -69,7 +69,7 @@
  const DB='void-npc-imports',ST='models';
  function db(){return new Promise((ok,fail)=>{try{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore(ST,{keyPath:'id'});};r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);}catch(e){fail(e);}});}
  async function dbAll(){try{const d=await db();return await new Promise((ok,fail)=>{const q=d.transaction(ST).objectStore(ST).getAll();q.onsuccess=()=>ok(q.result||[]);q.onerror=()=>fail(q.error);});}catch{return [];}}
- async function dbPut(rec){const d=await db();await new Promise((ok,fail)=>{const t=d.transaction(ST,'readwrite');t.objectStore(ST).put(rec);t.oncomplete=ok;t.onerror=()=>fail(t.error);});}
+ async function dbPut(rec){const d=await db();try{await new Promise((ok,fail)=>{const t=d.transaction(ST,'readwrite');t.oncomplete=ok;t.onerror=t.onabort=()=>fail(t.error||Error('Import save aborted'));t.objectStore(ST).put(rec);});}finally{d.close();}}
  async function dbDel(id){const d=await db();await new Promise((ok,fail)=>{const t=d.transaction(ST,'readwrite');t.objectStore(ST).delete(id);t.oncomplete=ok;t.onerror=()=>fail(t.error);});}
  async function loadImports(){imports=(await dbAll()).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));importsLoaded=true;}
  // ---------------------------------------------------------------- the draft (shared with the Mission Editor)
@@ -791,7 +791,13 @@
   }
   const ck=el('section','','me-check',{'data-npc-checklist':rec.id});const heading=el('div','','me-row'),exception=el('label'),toggle=el('input','','',{type:'checkbox','data-npc-triangle-exception':rec.id});
   toggle.checked=rec.allowOverTriangleLimit===true;
-  toggle.onchange=async()=>{rec.allowOverTriangleLimit=toggle.checked;await saveRec(rec);draw();};
+  toggle.onchange=async()=>{
+   rec.allowOverTriangleLimit=toggle.checked;
+   // The checklist and package controls use the current choice even while IndexedDB saves the model.
+   draw();
+   try{await dbPut(rec);}
+   catch(err){status='Triangle setting applied for this session. Browser storage could not save it: '+err.message;draw();}
+  };
   exception.append(toggle,' Allow over '+X().IMPORT.maxTriangles.toLocaleString('en')+' triangles for this model');
   heading.append(el('h4','Checklist'),exception,hint(HELP.check));ck.append(heading);
   const verdict=rec.info?X().importCheck(rec.info,rec.allowOverTriangleLimit):null;
