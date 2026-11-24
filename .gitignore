@@ -73,3 +73,5 @@ void-runner/art/nightclub-local/
 tools/blackout-tesana/dist/
 void-runner/assets/models/crowd/npc-nomi.vrpak
 void-runner/assets/models/crowd/npc-se7en.vrpak
+.npc-workshop/
+void-runner/assets/models/anim/anim-meshy.vrpak

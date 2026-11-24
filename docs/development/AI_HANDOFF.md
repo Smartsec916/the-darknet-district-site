@@ -97,6 +97,8 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+Advanced NPC workshop development branch, local previews and validation: [resume report](ADVANCED_NPC_WORKSHOP.md).
+
 ### 24 Nov 2026 (newest): NOMI AND SE7EN ARE ALIVE FOR AS LONG AS THE PLAYER IS IN THE ROOM (branch `claude/nomi-se7en-4`, build `2026-11-23-nomi-se7en-4`)
 
 The owner (playing nomi-se7en-3): "Nomi and Se7en don't move, they only had a few lines. Then they were quiet the rest of the time."

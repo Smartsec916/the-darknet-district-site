@@ -29,9 +29,9 @@
   {id:'ac-3sit-chat-drink-g2-f3',title:'Seated conversation with a drink, set 2, third seat',category:'group-sit',seconds:17.6,loop:true,root:'free',needs:'seat',group:'3sit-g2',part:3},
   {id:'ac-cuddle-kiss-f',title:'Cuddle and kiss (her part)',category:'together',seconds:19,loop:false,root:'free',group:'cuddle-kiss',part:1,partner:'missing'},
   {id:'ac-sit-cuddle-hug-f',title:'Seated cuddle and hug (her part)',category:'together',seconds:12,loop:false,root:'free',needs:'seat',group:'sit-cuddle-hug',part:1,partner:'missing'}
- ]};
- const FILES={actorcore:'assets/models/anim/anim-actorcore.vrpak'};
- const SOURCES={actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
+ ],meshy:[{id:'meshy-run',title:'Running in place',category:'locomotion',seconds:.67,loop:true,root:'inplace'}]};
+ const FILES={meshy:'assets/models/anim/anim-meshy.vrpak',actorcore:'assets/models/anim/anim-actorcore.vrpak'};
+ const SOURCES={meshy:{name:'Meshy running export',skeleton:'Mixamo-named humanoid',licence:'Owner-supplied Meshy export, private asset storage'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
  const bare=n=>String(n||'').split(':').pop();
  const all=()=>Object.entries(CLIPS).flatMap(([lib,list])=>list.map(c=>({...c,library:lib})));
  const clip=id=>all().find(c=>c.id===id)||null;
@@ -71,7 +71,14 @@
   loaded.set(key,{scene,promise});return promise;}
  /* Give a figure the library's clips. node: the figure's root (its bones are transform nodes under it); look: its look id (for VoidCrowd.clips);
     only: clip ids wanted (default: all). Returns the ids added. Safe to call twice. */
- async function apply(node,look,{library='actorcore',only=null,scene=null,catalog=true}={}){
+ async function apply(node,look,{library=null,only=null,scene=null,catalog=true}={}){
+  if(!library&&only){
+   const grouped=new Map();
+   for(const id of only){const source=clip(id)?.library||'actorcore';if(!grouped.has(source))grouped.set(source,[]);grouped.get(source).push(id);}
+   const added=[];for(const [source,ids] of grouped)added.push(...await apply(node,look,{library:source,only:ids,scene,catalog}));
+   return added;
+  }
+  library=library||'actorcore';
   const sc=scene||node.getScene(),B=root.BABYLON,L=await load(library,sc);if(!L||node.isDisposed())return [];
   const bones=new Map();for(const t of node.getDescendants(false))if(t.rotationQuaternion!==undefined&&t.getClassName?.()==='TransformNode'){const b=bare(t.name);if(!bones.has(b))bones.set(b,t);}
   if(!compatible([...bones.keys()]))return [];
