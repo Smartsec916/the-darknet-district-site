@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "71a3a92a41709821",
+  "revision": "72a3ae240504078a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75397,7 +75397,7 @@
     },
     {
       "source": "void-runner/guide-route.js",
-      "line": 226,
+      "line": 278,
       "text": "const COLOR={rgb:'255,214,120',hex:'#ffd678',text:'#ffe7a8',ink:'#1a1206'};",
       "kind": "source-reference"
     },
@@ -78835,67 +78835,67 @@
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 114,
+      "line": 163,
       "text": "/* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 116,
+      "line": 165,
       "text": "if(st.kind==='photo'){if(v.camera)return {id:'shoot',text:'Put the target in the frame · <b>LEFT CLICK</b> takes a picture'};if(v.deviceOpen)return v.app?{id:'camera',text:'Go back (<b>Esc</b>) and select the <b>Camera</b> app'}:{id:'camera',text:'Select the <b>Camera</b> app'};return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 117,
+      "line": 166,
       "text": "if(st.kind==='send-photo'){const who=v.name(st.npc);if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 118,
+      "line": 167,
       "text": "if(v.app!=='messages')return v.app?{id:'messages',text:'Go back (<b>Esc</b>) and open <b>Messages</b>'}:{id:'messages',text:'Open <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 119,
+      "line": 168,
       "text": "if(v.thread!==st.npc)return {id:'thread',text:'Select <b>'+who+'</b>’s conversation (INBOX)'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 120,
+      "line": 169,
       "text": "if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 124,
+      "line": 173,
       "text": "if(st.kind==='call'&&!v.deviceOpen)return {id:'call',text:'A call is coming in on your V1 · answer it with <b>'+v.key+'</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 126,
+      "line": 175,
       "text": "if(app&&!v.feed){const t=({missions:'Mission Log',loadout:'Ship Loadout',map:'Map'})[app]||String(app).toUpperCase();if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>'+t+'</b>'};if(v.app!==app)return v.app?{id:'app',text:'Go back (<b>Esc</b>) and open <b>'+t+'</b>'}:{id:'app',text:'Open <b>'+t+'</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 127,
+      "line": 176,
       "text": "if(st.kind==='report')return {id:'report',text:'Press <b>REPORT TO '+String(v.name(st.npc)).toUpperCase()+'</b> on this mission'};if(st.kind==='feed')return {id:'feed',text:'Press <b>OPEN REMOTE FEED</b> on this mission'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 134,
+      "line": 183,
       "text": "const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 135,
+      "line": 184,
       "text": "root.VoidMissionGuide={missionPlaceRoute,escortGoal,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};",
       "kind": "source-reference"
     },
@@ -82741,13 +82741,13 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 254,
+      "line": 256,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 265,
+      "line": 267,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -83022,7 +83022,7 @@
     "void-runner/game.js": "600ab5014edde3fc0591d9b6ccdc02c52eb4938d6c8743d2826ed4685ef43738",
     "void-runner/glb-downsizer.js": "b306d69bdbcb49713e9f6ee4eb2f8ae640c6962a492ac8ddfad23121d33df507",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
-    "void-runner/guide-route.js": "bd80fc52a4e50a9b9bd8f6b63d31fab12718cdfddb5235183fc53c0cab98152c",
+    "void-runner/guide-route.js": "644184de23777f5addd84e92d4848206807f285ae7a7592cd694fe49377a17f1",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
@@ -83057,16 +83057,16 @@
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "d0f272652c33d37c3770bf5d1bc1965db57c8e600269f56afac616dc6814310f",
     "void-runner/mission-givers.js": "c4a245cb379f48617d79db9c689a39186cf697a98b7cba4f3a8f00e235e05de9",
-    "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
+    "void-runner/mission-guide.js": "2af62790c980f97d364d7600cdcd87f6f5a938140199814d25d639aed3a28c31",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
     "void-runner/mission-mechanics-game.js": "65df4c501381f56b4117abf44f6b4cee07c41e80732113c381c781e9f9714166",
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
     "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "a3a719c20ea0fd3d8d99744a63d2cfc2858fab5ee9510057fb24df1fe5b41847",
+    "void-runner/module-build.js": "ec7d7f4df27ae5572f886ed2cb63da8dd33afdbe0cad60020bdaebb76891a68e",
     "void-runner/module-editor.js": "67cdac049bb19024d04685cfbccfb94c5f31be8ef9c9fd4f5d280a63a2567cfc",
-    "void-runner/module-integration.js": "d10abadfdfb95e82521ea8ebe2888b989a79a6ec43a3fce53862d3408fb283e4",
+    "void-runner/module-integration.js": "c2b8ec3c6c09a4dec8c54c47c56dd73b163276c0c137d9edd27572b9e02ef7bc",
     "void-runner/modules.js": "baac3cc82c2f01a78418e588c7ec1210a99d392cc759c4bc710b6af49e240c3f",
     "void-runner/mouse-control.js": "33d7d3da26d2dde7a1f1c0cd88b05e15b6263ac8214f4fa8719e9d751fa3865b",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
@@ -83078,7 +83078,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "2e523f3f667932a38a99af7a57d7180626834258ea1b79402fd6dcbc1d21274a",
+    "void-runner/ncz-backalleys.js": "3a2e038547e5191a3de2a9cff1e76d247c85e32b806c6e7341ec403c5b6fce34",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
@@ -83093,7 +83093,7 @@
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
     "void-runner/ncz-street-pair.js": "cb53bba3b41cb93cfedac2262d1b860f2db2c836b9786fd192a0cf3f9efc9179",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
-    "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
+    "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
     "void-runner/neochinatown.js": "15150fc3e8dc990c27c804332364bc10458c1bd6363c4bd8f19f8d7c855abdf8",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
@@ -83198,8 +83198,8 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "551329bfe46ac7f5fdb7a97a65dec80a4dc779281d074d6840d31665c73cd4ff",
-    "void-runner/world-markers.js": "a46dbb285be035cb9a3d8543a14cdaf06af63201e89d4c1a5af77d1dd4897346",
+    "void-runner/world-integration.js": "ba2f873acd56444e5c22c8d6c3a3c43f980e08776f4e687f7a12d7c93007c838",
+    "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",
