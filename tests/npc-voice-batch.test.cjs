@@ -18,9 +18,9 @@ test('edited text becomes missing while unchanged recordings are retained',()=>{
  const result=plan(sample,{id:'desire',voice,recordings:[{text:'Old line'},{text:'Hello there'}]});
  assert.equal(result.missing,2);
 });
-test('voice changes invalidate explicitly voice-bound recordings but preserve manually imported unbound audio',()=>{
+test('changing the selected voice preserves every recording of unchanged text',()=>{
  const a=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there',voiceId:'ZYXWVUTSRQPONMLKJIHG'}]});
- assert.equal(a.missing,3);
+ assert.equal(a.missing,2);
  const b=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there'}]});
  assert.equal(b.missing,2);
 });

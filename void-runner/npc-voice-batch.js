@@ -14,18 +14,8 @@
   const p=Studio.profile(raw);
   const rows=Studio.voiceBatch({...p,id});
   const existing=Array.isArray(recordings)?recordings:Object.values(recordings||{});
-  const normalized=existing.filter(x=>x&&typeof x.text==='string');
-  const matches=(line)=>{
-   return normalized.some(r=>{
-    if(r.text!==line.text)return false;
-    // Existing manual recordings are preserved unless a recorded voice ID
-    // explicitly says this recording belongs to a different selected voice.
-    if(voice?.voiceId && r.voiceId && voice.voiceId!==r.voiceId)return false;
-    if(voice?.model && r.model && voice.model!==r.model)return false;
-    return true;
-   });
-  };
-  const missing=rows.filter(r=>!matches(r));
+  const recorded=new Set(existing.filter(r=>typeof r?.text==='string').map(r=>r.text));
+  const missing=rows.filter(row=>!recorded.has(row.text));
   const selected=voice?.kind==='elevenlabs'&&Voices.ID.test(voice.voiceId||'')&&(!voice.model||Voices.modelOk(voice.model));
   const spoken=missing.map(r=>Voices.speakText(r.text,voice));
   const estimate=Voices.estimate(spoken,voice?.model);

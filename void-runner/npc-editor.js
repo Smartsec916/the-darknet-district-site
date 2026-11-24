@@ -37,10 +37,10 @@
   request:'Ask for an animation that is not available yet (e.g. “leaning on the wall, arms crossed”). The list is downloaded and sent to Claude or Codex, who retarget it onto her rig on your PC. Licensed No AI models are marked “local retarget only”: never Meshy or any AI tool.',
   lines:'Every line this NPC says, in missions and outside them. Edit a line here or in the Mission Editor; RE-VOICE queues it for recording.',
   lineSearch:'Type words to show only the lines that contain them.',
-  import:'Load a .glb, self-contained .gltf or Companion Studio .vrcompanion package from your computer to try the character on The Avenue. Companion packages keep their personality and recorded voices in a private draft. No model is uploaded or made public by importing.',
+  import:'Load a .glb, self-contained .gltf or Companion Studio .vrcompanion package from your computer to try the character on The Avenue. Companion packages keep their personality and recorded voices in a private draft. Import stores the model in this browser.',
   check:'What the game needs from a street NPC. Red: refused (over a hard limit). Amber: allowed, but someone should reduce it before it goes in the game.',
   licence:'Required before it can be sent: where the model is from, its licence, and whether that licence forbids AI tools (No AI). A licensed or unknown model never goes into the public files by itself.',
-  addToGame:'Downloads the model and its integration package. For a .vrcompanion import it also includes the original companion transfer so voices and separate motion files survive. Send all files to Claude or Codex for licensed asset integration; this button does not publish.',
+  addToGame:'Downloads the model and its integration package. For a .vrcompanion import it also includes an updated companion transfer with the current personality, voices and separate motion files. Send all files to Claude or Codex for licensed asset integration; this button does not publish.',
   crowd:'An anonymous street figure: the street picks people from this pool, so there is no single person to move yet.',
   looks:'Change how they look without touching the model file: hide an accessory, recolour their clothes, add pieces from the character creator (only on figures built like the creator’s), and save it as a named look. A look belongs to the model: everyone the game draws with this model can wear it. Every change is part of your DRAFT (UNDO works); PLAY THIS DRAFT shows it in the street.',
   lookPick:'Which saved look you are changing. “As made” is the model exactly as it is in the file (it cannot be changed). + NEW LOOK starts a new one from “as made”.',
@@ -487,21 +487,53 @@
   mine.forEach((q,i)=>{const row=el('div','','me-row',{'data-npc-request':String(i)});row.append(el('span','• '+q.want+' · '+(q.route==='local-retarget-only'?'local retarget only':'retarget or library'),'me-small'),btn('×',()=>{const d=S().local();d.animRequests=(d.animRequests||[]).filter(x=>x!==d.animRequests.find(y=>y.at===q.at&&y.npc===q.npc));S().saveLocal(d);draw();},'me-x',{'aria-label':'Remove request'}));box.append(row);});
   main.append(box);}
  // ---- lines & voice (the old "All lines for an NPC")
- function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));const own=S().local().characters?.[e.id],cp=own?.companionProfile;if(own?.relationships?.length){const rel=el('details');rel.append(el('summary','Transferred relationships'));for(const r of own.relationships)rel.append(el('p',r.target+' · '+r.type+' · '+r.activity+' · '+r.distance+' m'),...r.lines.map(t=>el('p',t)));box.append(rel);}if(cp){const profile=el('details');profile.append(el('summary','Transferred companion personality'),el('p',cp.about||'No description'),el('p','Walking speed and conversation initiative apply outside missions. Other traits are available as authoring reference.'));for(const [k,v] of Object.entries(cp.personality))profile.append(el('p',k+': '+v));for(const [k,v] of Object.entries(cp.dialogue)){if(v.length)profile.append(el('h5',k),...v.map(t=>el('p',t)));}box.append(profile);}if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));
+ function rosterPersonality(e,current){
+  const details=el('details','','me-check');
+  const area=el('textarea','','',{'aria-label':'NPC personality JSON',rows:'10'});
+  area.value=JSON.stringify(current||{about:'',personality:{},dialogue:{}},null,2);
+  const message=el('p','','me-small',{role:'status'});
+  details.append(el('summary','Edit NPC personality JSON'),area,message,btn('SAVE PERSONALITY JSON',async()=>{
+   try{
+    await ensureCompanionImporter();
+    const profile=root.VoidVRCompanionStudio.profile(JSON.parse(area.value)),d=S().local();
+    const character=d.characters?.[e.id];
+    if(!character||!root.VoidMadeNPCs.validProfile(profile))throw Error('Use a valid personality profile for this world NPC.');
+    d.characters[e.id]={...character,companionProfile:profile};
+    S().saveLocal(d);
+    status='Saved personality for '+e.name+' in the mission draft.';
+    draw();
+   }catch(err){message.textContent=err.message;}
+  },'me-play'));
+  return details;
+ }
+ function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));const own=S().local().characters?.[e.id],cp=own?.companionProfile;if(own?.relationships?.length){const rel=el('details');rel.append(el('summary','Transferred relationships'));for(const r of own.relationships)rel.append(el('p',r.target+' · '+r.type+' · '+r.activity+' · '+r.distance+' m'),...r.lines.map(t=>el('p',t)));box.append(rel);}if(cp){const profile=el('details');profile.append(el('summary','Transferred companion personality'),el('p',cp.about||'No description'),el('p','Walking speed and conversation initiative apply outside missions. Other traits are available as authoring reference.'));for(const [k,v] of Object.entries(cp.personality))profile.append(el('p',k+': '+v));for(const [k,v] of Object.entries(cp.dialogue)){if(v.length)profile.append(el('h5',k),...v.map(t=>el('p',t)));}box.append(profile);}if(own)box.append(rosterPersonality(e,cp));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));
   const q=el('input','','',{'aria-label':'Find in the lines',placeholder:'Find words in the lines','data-npc-line-search':'1'});q.value=ui.lineSearch;const inner=el('div');
   q.oninput=()=>{ui.lineSearch=q.value;inner.replaceChildren();S().linesView(inner,e.id,{search:ui.lineSearch});};box.append(q,hint(HELP.lineSearch),inner);S().linesView(inner,e.id,{search:ui.lineSearch});main.append(box);}
  const download=(name,data)=>{const a=document.createElement('a');a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
  // ---------------------------------------------------------------- import a model (this browser only)
  function importPick(){const f=document.createElement('input');f.type='file';f.accept='.glb,.gltf,.vrcompanion,model/gltf-binary,model/gltf+json';f.dataset.npcImportFile='1';f.style.display='none';document.body.append(f);
   f.onchange=async()=>{const file=f.files&&f.files[0];f.remove();if(file)await importFile(file);};f.click();}
- // Studio is loaded on demand, after developer authorization, not for ordinary players.
- async function ensureCompanionImporter(){
-  for(const [prop,src] of [['VoidVRCompanionStudio','void-runner/vr-companion-studio.js'],['VoidNPCCompanionImport','void-runner/npc-companion-import.js']]){
+ // Load editor-only scripts once, even when more than one control needs them.
+ const scriptLoads=new Map(),activeVoiceBatches=new Set();
+ async function loadImportTools(...tools){
+  for(const [prop,name] of tools){
    if(root[prop])continue;
-   await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(Error('Could not load '+src));document.head.append(s);});
-   if(!root[prop])throw Error('Missing companion importer: '+src);
+   if(!scriptLoads.has(prop))scriptLoads.set(prop,new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src=name;
+    script.onload=()=>root[prop]?resolve():reject(Error('Missing editor tool: '+name));
+    script.onerror=()=>reject(Error('Could not load '+name));
+    document.head.append(script);
+   }));
+   try{await scriptLoads.get(prop);}catch(err){scriptLoads.delete(prop);throw err;}
   }
+ }
+ async function ensureCompanionImporter(){
+  await loadImportTools(['VoidVRCompanionStudio','void-runner/vr-companion-studio.js'],['VoidNPCCompanionImport','void-runner/npc-companion-import.js']);
   return root.VoidNPCCompanionImport;
+ }
+ async function loadVoiceBatch(){
+  await ensureCompanionImporter();
+  await loadImportTools(['VoidNPCVoices','void-runner/npc-voices.js'],['VoidNPCVoiceBatch','void-runner/npc-voice-batch.js']);
  }
  async function importFile(file){
   const ext=(file.name.match(/\.[a-z0-9]+$/i)||[''])[0].toLowerCase(),transfer=ext==='.vrcompanion';
@@ -515,14 +547,14 @@
      personality:inspected.personality,dialogue:inspected.dialogue,worldBehavior:inspected.worldBehavior,
      relationships:inspected.relationships,residence:inspected.residence,roomPlan:inspected.roomPlan,
      voices:inspected.voices,motions:inspected.motions,
-     animationNames:inspected.animationNames,warnings:inspected.warnings,
+     animationNames:inspected.animationNames,warnings:inspected.warnings,voiceSelection:inspected.voiceSelection,
      dialogueLineCount:inspected.dialogueLineCount,recordedLineCount:inspected.recordedLineCount,
      missingVoiceLines:inspected.missingVoiceLines};
    }
    if(model.size>X().IMPORT.maxBytes)throw Error('Model exceeds the '+(X().IMPORT.maxBytes/1048576).toFixed(0)+' MB limit. Reduce it in Blender.');
    X().importDocument(await model.arrayBuffer(),transfer?'.glb':ext);
   }catch(err){status='Import refused: '+err.message;draw();return null;}
-  const rec={id:'imp-'+Date.now().toString(36),name:(companion?.name||file.name.replace(/\.[^.]+$/,'')).slice(0,60),
+  const rec={id:'imp-'+crypto.randomUUID(),name:(companion?.name||file.name.replace(/\.[^.]+$/,'')).slice(0,60),
    fileName:modelName,sourceFileName:file.name,type:model.type||'model/gltf-binary',bytes:model.size,
    blob:model,transferBlob:original,companion,createdAt:new Date().toISOString(),
    licence:{source:'',type:'',noAI:null},placement:null,info:null};
@@ -531,7 +563,55 @@
   status='Imported '+file.name+' privately. Press SHOW 3D PREVIEW to check its model and animations.';
   root.VoidEditorGuide?.focusNext();draw();return rec;
  }
- async function saveRec(rec){await dbPut(rec);await loadImports();}
+ async function saveRec(rec){await dbPut(rec);imports=imports.map(item=>item.id===rec.id?rec:item);}
+ function useImportedProfile(companion){
+  const characters=S().local().characters||{};
+  const ids=Object.keys(characters);
+  if(!ids.length)return null;
+  const pane=el('details','','me-check');
+  const select=el('select','','',{'aria-label':'World NPC for imported profile'});
+  select.append(new Option('Choose a world NPC',''));
+  for(const id of ids)select.append(new Option(characters[id].name,id));
+  const message=el('p','','me-small',{role:'status'});
+  const apply=btn('COPY PERSONALITY AND RECORDINGS TO DRAFT',async()=>{
+   const id=select.value;
+   if(!id){message.textContent='Choose an existing world NPC.';return;}
+   if(!root.confirm('Replace the personality and dialogue pools for '+characters[id].name+' in your mission draft? Their existing recordings and model will be kept.'))return;
+   apply.disabled=true;
+   try{
+    const profile=root.VoidVRCompanionStudio.profile(companion);
+    if(!root.VoidMadeNPCs.validProfile(profile))throw Error('This personality is invalid for a world NPC.');
+    await loadImportTools(['VoidVoiceImports','void-runner/voice-imports.js']);
+    const V=root.VoidVoiceImports,active=new Set(Object.values(profile.dialogue).flat()),prepared=[];
+    const existing=new Set(Object.values(S().local().clips||{}).map(r=>V.keyOf(r.who,r.text)));
+    const seen=new Set();
+    for(const voice of companion.voices||[]){
+     const text=voice.record?.text,key=V.keyOf(id,text);
+     if(!active.has(text)||existing.has(key)||seen.has(key))continue;
+     const clip=await V.prepare(new File([voice.blob],voice.record.name||'companion-audio',{type:voice.record.type||''}));
+     if(!clip.ok)throw Error(clip.why);
+     prepared.push(V.record({...clip,who:id,text}));
+     if(!await V.store(clip.hash,clip.type,clip.data,clip.duration))throw Error('Audio storage is unavailable.');
+     seen.add(key);
+    }
+    const draft=S().local(),character=draft.characters?.[id];
+    if(!character)throw Error('This world NPC was removed from the draft.');
+    const clips={...draft.clips},kept=new Set(Object.values(clips).map(r=>V.keyOf(r.who,r.text)));
+    for(const recording of prepared){
+     const key=V.keyOf(id,recording.text);
+     if(!kept.has(key))clips['companion-profile:'+key]=recording;
+    }
+    if(Object.keys(clips).length>V.LIMIT.clips)throw Error('This would exceed the draft recording limit.');
+    draft.characters[id]={...character,companionProfile:profile};
+    draft.clips=clips;
+    S().saveLocal(draft);
+    message.textContent='Saved in your draft. Test the world NPC in draft play or use Publish & versions to release the changes.';
+   }catch(err){message.textContent=err.message;}
+   finally{apply.disabled=false;}
+  },'me-play');
+  pane.append(el('summary','Use this profile on an existing world NPC'),select,apply,message);
+  return pane;
+ }
  function importDetail(main,rec,pv){
   main.append(el('p','LOCAL TEST ONLY · not in the live game · kept in this browser · '+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
   if(rec.companion){
@@ -540,6 +620,41 @@
     el('p',Object.values(p.dialogue||{}).reduce((n,arr)=>n+arr.length,0)+' dialogue entries · '+(p.recordedLineCount||0)+' recorded lines · '+(p.missingVoiceLines||[]).length+' missing voice lines','me-small'),
     el('p',(p.animationNames||[]).length+' model animations · '+(p.motions||[]).length+' companion motion files','me-small'));
    for(const warning of p.warnings||[])summary.append(el('p',warning,'me-warn'));
+   if(p.motions?.length){
+    const motions=el('select','','',{'aria-label':'Companion transfer animation'});
+    p.motions.forEach((motion,i)=>motions.append(new Option(motion.name,String(i))));
+    const motionStatus=el('p','','me-small',{role:'status'});
+    summary.append(motions,btn('PREVIEW TRANSFER ANIMATION',async()=>{
+     try{
+      if(!ui.preview||ui.previewFor!=='import:'+rec.id)throw Error('Show the character in 3D first.');
+      const motion=p.motions[Number(motions.value)],library='local-motion-'+rec.id+'-'+motions.value;
+      const gltf=X().importDocument(await motion.blob.arrayBuffer(),'.glb');
+      if(!gltf.skins?.length||!gltf.animations?.some(clip=>clip.name===motion.clip&&clip.channels?.length))throw Error('The motion has no matching rigged clip.');
+      root.VoidAnimLibrary.registerLocal(library,motion.blob,[{id:library,clip:motion.clip,title:motion.name}]);
+      const result=await ui.preview.tryLibrary(library,'import-preview',library);
+      motionStatus.textContent=result.ok?'Playing '+motion.name:result.why;
+     }catch(err){motionStatus.textContent=err.message;}
+    }),motionStatus);
+   }
+   const audio=el('details','','me-check');
+   audio.append(el('summary','Recorded dialogue'));
+   const available=(p.voices||[]).filter(v=>Object.values(p.dialogue||{}).some(lines=>lines.includes(v.record?.text)));
+   if(available.length){
+    const clips=el('select','','',{'aria-label':'Recorded companion line'});
+    available.forEach((v,i)=>clips.append(new Option(v.record.text,String(i))));
+    const playbackStatus=el('p','','me-small',{role:'status'});
+    audio.append(clips,btn('PLAY RECORDING',async()=>{
+     try{
+      const voice=available[Number(clips.value)];
+      const url=URL.createObjectURL(new Blob([voice.blob],{type:voice.record.type||voice.blob.type}));
+      const player=new Audio(url),release=()=>URL.revokeObjectURL(url);
+      player.onended=player.onerror=release;
+      try{await player.play();}catch(err){release();throw err;}
+      playbackStatus.textContent='Playing recording.';
+     }catch(err){playbackStatus.textContent=err.message;}
+    }),playbackStatus);
+   }else audio.append(el('p','No recordings match the current dialogue.'));
+   summary.append(audio);
    summary.append(el('p','Personality, recordings and motion attachments are stored privately in this browser. ElevenLabs generation below requires an authorized developer and an explicit confirmation. Publishing remains a separate step.','me-small'));
    const detail=el('details','','me-check',{'data-npc-companion-personality':'1'});
    detail.append(el('summary','Edit personality and dialogue JSON (local draft)'));
@@ -558,6 +673,7 @@
     }catch(err){status='Could not copy the prompt: '+err.message;}draw();
    },'',{'data-npc-personality-prompt':'1'}));
    row.append(btn('VALIDATE & IMPORT JSON',async()=>{
+    if(activeVoiceBatches.has(rec.id)){importError.textContent='Wait for voice generation to finish.';return;}
     try{
      await ensureCompanionImporter();
      const profile=root.VoidVRCompanionStudio.profile(JSON.parse(area.value));
@@ -576,20 +692,15 @@
    voiceBox.append(el('summary','Voices · ElevenLabs missing-line batch'));
    const voiceId=el('input','','',{'aria-label':'ElevenLabs voice ID (20 characters)',maxlength:'20',placeholder:'ElevenLabs voice ID'});
    voiceId.value=p.voiceSelection?.voiceId||'';
-   const models=el('select','','',{'aria-label':'ElevenLabs model'});
-   const choices=[['eleven_v4','Eleven v4'],['eleven_v3','Eleven v3'],['eleven_multilingual_v2','Multilingual v2'],['eleven_flash_v2_5','Flash v2.5'],['eleven_turbo_v2_5','Turbo v2.5']];
-   for(const [key,label] of choices)models.append(new Option(label,key));
-   models.value=p.voiceSelection?.model||'eleven_v4';
-   voiceBox.append(el('p','Select the voice, then preview exactly which lines still need recording. Existing matching recordings will not be replaced. This is a private estimate, not an ElevenLabs request.','me-small'),voiceId,models);
+   const selection=()=>({kind:'elevenlabs',voiceId:voiceId.value.trim(),model:'eleven_v4'});
+   voiceBox.append(el('p','Select an ElevenLabs voice ID for Eleven v4. Preview shows the lines without recordings and the estimated cost.','me-small'),voiceId);
    const voiceStatus=el('p','','me-small',{'data-npc-voice-batch-status':'1'});
    voiceBox.append(btn('PREVIEW MISSING VOICES',async()=>{
     try{
-     await ensureCompanionImporter();
-     for(const [name,url] of [['VoidNPCVoices','void-runner/npc-voices.js'],['VoidNPCVoiceBatch','void-runner/npc-voice-batch.js']]){
-      if(root[name])continue;
-      await new Promise((ok,no)=>{const s=document.createElement('script');s.src=url;s.onload=ok;s.onerror=()=>no(Error('Could not load '+url));document.head.append(s);});
-     }
-     const voice={kind:'elevenlabs',voiceId:voiceId.value.trim(),model:models.value};
+     if(activeVoiceBatches.has(rec.id))return;
+     await loadVoiceBatch();
+     if(activeVoiceBatches.has(rec.id))return;
+     const voice=selection();
      const planned=root.VoidNPCVoiceBatch.plan(p,{id:p.id,recordings:(p.voices||[]).map(v=>v.record),voice});
      if(!planned.canGenerate)throw Error('Enter a valid 20-character ElevenLabs voice ID.');
      p.voiceSelection=voice;
@@ -600,19 +711,16 @@
    },'',{'data-npc-voice-batch-preview':'1'}),voiceStatus);
    // Generate only on an explicit, owner-confirmed click. The backend holds the ElevenLabs key.
    // Each successful line is saved immediately, so a failed batch can resume missing-only.
-   let generating=false;
    voiceBox.append(btn('GENERATE ALL MISSING VOICES',async()=>{
-    if(generating)return;
+    if(activeVoiceBatches.has(rec.id))return;
     const dev=DTX();
     if(!dev?.authorized||typeof dev.request!=='function'){voiceStatus.textContent='Developer authentication is required.';return;}
+    activeVoiceBatches.add(rec.id);
+    voiceId.disabled=true;
     try{
-     await ensureCompanionImporter();
-     for(const [name,url] of [['VoidNPCVoices','void-runner/npc-voices.js'],['VoidNPCVoiceBatch','void-runner/npc-voice-batch.js'],['VoidVoiceImports','void-runner/voice-imports.js']]){
-      if(root[name])continue;
-      await new Promise((ok,no)=>{const s=document.createElement('script');s.src=url;s.onload=ok;s.onerror=()=>no(Error('Could not load '+url));document.head.append(s);});
-     }
-     const voice={kind:'elevenlabs',voiceId:voiceId.value.trim(),model:models.value};
-     if(voice.model!=='eleven_v4')throw Error('The authenticated generation endpoint currently supports Eleven v4. Choose Eleven v4.');
+     await loadVoiceBatch();
+     await loadImportTools(['VoidVoiceImports','void-runner/voice-imports.js']);
+     const voice=selection();
      const current=()=>root.VoidNPCVoiceBatch.plan(rec.companion,{id:rec.companion.id,
       recordings:(rec.companion.voices||[]).map(v=>v.record),voice});
      const preview=current();
@@ -620,43 +728,46 @@
      if(!preview.missing){voiceStatus.textContent='Every dialogue line already has a recording.';return;}
      if(!root.confirm('Generate '+preview.missing+' missing ElevenLabs recordings for '+rec.name+
       '? Estimated '+preview.estimate.credits+' credits; actual credits depend on your ElevenLabs plan. Existing recordings will not be replaced.'))return;
-     generating=true;let saved=0;
+     let saved=0;
      try{
       for(const job of preview.jobs){
        if(!DTX()?.authorized||DTX()?.request!==dev.request)throw Error('Developer session changed; batch stopped.');
-       if(voiceId.value.trim()!==voice.voiceId||models.value!==voice.model)throw Error('Voice selection changed; batch stopped.');
        const now=current();
        if(!now.jobs.some(x=>x.text===job.text))continue;
        if(!Object.values(rec.companion.dialogue||{}).flat().includes(job.text))throw Error('Dialogue changed; batch stopped.');
        if(job.speakText.length>700)throw Error('One dialogue line exceeds the 700-character generation limit.');
        voiceStatus.textContent='Generating '+(saved+1)+' of '+preview.missing+' missing voice lines…';
        const output=await dev.request('developer/companion-voice',{voiceId:voice.voiceId,text:job.speakText});
-       if(!DTX()?.authorized)throw Error('Developer session changed; batch stopped.');
+       if(!DTX()?.authorized||DTX()?.request!==dev.request)throw Error('Developer session changed; batch stopped.');
        const bytes=Uint8Array.from(atob(output.audio||''),c=>c.charCodeAt(0));
        const file=new File([bytes],job.id+'.mp3',{type:'audio/mpeg'});
        const prepared=await root.VoidVoiceImports.prepare(file);
        if(!prepared.ok||!await root.VoidVoiceImports.store(prepared.hash,prepared.type,prepared.data,prepared.duration))
         throw Error('Generated audio could not be stored; the batch was stopped.');
        if(!current().jobs.some(x=>x.text===job.text))continue;
-       rec.companion.voices=[...(rec.companion.voices||[]),{
-        record:{...root.VoidVoiceImports.record({...prepared,who:rec.companion.id,text:job.text}),voiceId:voice.voiceId,model:voice.model},
-        blob:file
+       const voices=[...(rec.companion.voices||[]),{
+        record:root.VoidVoiceImports.record({...prepared,who:rec.companion.id,text:job.text}),
+        blob:new Blob([prepared.data],{type:prepared.type})
        }];
-       rec.companion.voiceSelection=voice;
-       const updatedCount=current();
-       rec.companion.recordedLineCount=updatedCount.existing;
-       rec.companion.missingVoiceLines=updatedCount.jobs.map(line=>line.text);
-       await saveRec(rec);
+       const updatedCount=root.VoidNPCVoiceBatch.plan(rec.companion,{
+        id:rec.companion.id,recordings:voices.map(v=>v.record),voice
+       });
+       const companion={...rec.companion,voices,voiceSelection:voice,recordedLineCount:updatedCount.existing,
+        missingVoiceLines:updatedCount.jobs.map(line=>line.text)};
+       await saveRec({...rec,companion});
+       Object.assign(rec.companion,companion);
+       imports=imports.map(item=>item.id===rec.id?rec:item);
        saved++;
       }
       const remaining=current().missing;
       voiceStatus.textContent=saved+' recordings generated and saved privately. '+remaining+' lines still missing. Use the normal package/publish workflow to make voices available to players.';
      }catch(err){voiceStatus.textContent=saved+' saved. Batch stopped: '+err.message;}
-     finally{generating=false;}
     }catch(err){voiceStatus.textContent='Could not generate: '+err.message;}
+    finally{activeVoiceBatches.delete(rec.id);voiceId.disabled=false;}
    },'me-play',{'data-npc-voice-batch-generate':'1'}));
    voiceBox.append(el('p','Eleven v4 uses the existing developer-authorized voice endpoint. This generates and saves private recordings only; publishing NPC assets and voice clips is still a separate approval step.','me-warn'));
    summary.append(voiceBox);
+   const world=useImportedProfile(p);if(world)summary.append(world);
    main.append(summary);
   }
   const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height};await saveRec(rec);draw();}};

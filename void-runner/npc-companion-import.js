@@ -14,7 +14,7 @@
   const transfer=await studio.unpackTransfer(file);
   const meta=transfer.meta;
   if(!meta||typeof meta.id!=='string'||!/^[a-z][a-z0-9-]{1,39}$/.test(meta.id)
-    ||typeof meta.name!=='string'||!meta.name.trim()||meta.name.length>40)
+    ||typeof meta.name!=='string'||!meta.name.trim()||meta.name.length>40||/[<>\u0000-\u001f]/.test(meta.name))
    throw Error('Invalid companion identity.');
   // Validate exported personality using Studio's own schema, never trust package metadata as executable content.
   const profile=studio.profile(meta);
@@ -40,6 +40,8 @@
   return {
    id:meta.id,name:meta.name,sex:meta.sex||null,about:profile.about,
    personality:profile.personality,dialogue:profile.dialogue,
+   voiceSelection:meta.voiceSelection?.kind==='elevenlabs'&&/^[a-z0-9]{20}$/i.test(meta.voiceSelection.voiceId||'')?
+    {kind:'elevenlabs',voiceId:meta.voiceSelection.voiceId,model:'eleven_v4'}:null,
    worldBehavior:meta.worldBehavior||null,relationships:meta.relationships||[],
    residence:meta.residence||null,roomPlan:meta.roomPlan||null,
    model,modelBytes:model.size,gltf,
@@ -69,7 +71,8 @@
   const byText=new Map();
   for(const v of draft.voices){
    if(!v||!v.blob||typeof v.record?.text!=='string'||!active.has(v.record.text))continue;
-   byText.set(v.record.text,{meta:{kind:'voice',record:v.record},blob:v.blob});
+   const {voiceId,model,...record}=v.record; // Older importer drafts added fields outside the Studio recording schema.
+   byText.set(record.text,{meta:{kind:'voice',record},blob:v.blob});
   }
   const parts=originalParts.parts.filter(p=>p.meta.kind==='model'||p.meta.kind==='motion');
   if(parts.filter(p=>p.meta.kind==='model').length!==1)throw Error('The original transfer needs exactly one model.');

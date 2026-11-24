@@ -1,45 +1,17 @@
-# NPC importer / Companion Studio bridge (Issue #520)
+# NPC importer and Companion Studio transfers
 
-## Implemented in PR #521 (not yet merged)
+Issue #520 and PR #521 extend Developer Tools → NPCs → Import Model. The editor accepts a GLB, a self-contained glTF or a Companion Studio transfer containing one GLB. It keeps imported files in IndexedDB and uses the existing NPC import size and self-contained model checks. It reports static models and lets developers try compatible transfer motions through the existing retargeting preview.
 
-- A local-only `.vrcompanion` parser using the **actual** Companion Studio `unpackTransfer()` and existing NPC GLB validator.
-- Validation of imported personality JSON through Companion Studio's `profile()` schema; rejects recordings unrelated to current dialogue.
-- Counts recorded and missing voice lines so a future ElevenLabs missing-only generation action can use them.
-- **NPC Editor import file picker now accepts `.vrcompanion` alongside `.glb` and `.gltf`.** On import it loads the companion parser on demand, extracts the model as a private browser draft, stores the original companion transfer and its voice/motion attachments in browser IndexedDB, and displays personality, voice, and animation metadata plus warnings.
-- The existing `SHOW 3D PREVIEW`, local placement test, licensing checklist and import-package export remain the path for the extracted GLB.
-- When downloading an import integration package, an imported companion downloads both the extracted GLB and its **original `.vrcompanion`** to prevent losing voice and separate motion binary attachments.
-- Added tests in `tests/npc-companion-import.test.cjs` and `tests/npc-companion-editor.test.cjs`.
+## Developer workflow
 
-## Safety and limits
+1. Import the package. Show the character in 3D to run the model checklist and try available animations.
+2. Open the personality editor to paste or edit Studio JSON. The preview and transfer use the current dialogue pools. Recordings for unchanged dialogue stay attached.
+3. Choose an ElevenLabs voice ID and preview the Eleven v4 batch. The preview is local. Generation requires a developer session and confirmation. It saves each successful line before continuing, so a retry queues only dialogue without a recording.
+4. Set a test placement to see the model in a throwaway play session. Download the integration package after completing the licence checklist. The updated companion transfer carries the model, motion files and active recordings.
+5. To use the personality and audio with an existing made world NPC, copy the profile into the mission draft, then test the existing NPC and use **Publish & versions**. The action preserves the target NPC's identity, model, placement and matching draft recordings. Registering a new model still uses the normal licensed asset integration process.
 
-- **Not live.** The new code is only in PR #521; merging and deployment require passing checks and appropriate validation.
-- Import is local-only. It does not register an NPC in published content, upload the model, or call ElevenLabs.
-- Companion motions stored as separate transfer parts are not automatically merged into the extracted GLB's runtime animation groups. Current preview can play only the clips supported by its actual model or the existing compatible game library.
-- The personality is retained as import metadata; this does not yet mean personality traits drive the ordinary world NPC runtime.
-- Private character/model/voice binaries must never be committed to the public repository without appropriate rights.
+## Validation and follow-up
 
-## Outstanding work (for ChatGPT Work only if unfinished)
-
-1. Investigate and resolve any Node, Python, Babylon/browser CI failures. Run manual browser integration with real user-supplied `.vrcompanion` examples and check preservation after browser refresh, local preview, animation playback and export.
-2. Implement the separate **NPC Personality** ChatGPT prompt / JSON paste-and-validate UI for regular roster NPCs, with edit/preview/save, using Companion Studio's schema. Confirm game runtime consumes appropriate traits rather than merely displaying them.
-3. Implement **NPC Voices** ElevenLabs voice selection and **Generate All Missing Voices** as an explicit user-triggered batch, leveraging Companion Studio's voice batch and the existing secure voice backend. Preserve unchanged recordings and handle changed text, retries, progress, and credit limits. Do not generate billable audio on import.
-4. Integrate extracted companion motion and compatible profile/audio into the real NPC asset registration and publish mechanism without duplicate actors. Respect scene permissions, licensing and private assets. Provide rigging/retargeting where technically possible with accurate warnings.
-5. Complete full regression + runtime tests, merge after passing checks, deploy to live, and verify ordinary-player visibility.
-
-Progress should be recorded here, in PR #521, and in Issue #520. Related Dax editor change is **separate issue #522 / draft PR #523**; Desire is queued as #524.
-
-## Further implementation after the first handoff update (23 November)
-
-- Added `void-runner/npc-voice-batch.js` as a pure missing-line voice planner with model-aware ElevenLabs credit estimates, deduplication and tests.
-- Imported NPC drafts now expose a **Voices** section: choose ElevenLabs voice/model, PREVIEW MISSING VOICES, and an explicit owner-confirmed **GENERATE ALL MISSING VOICES** action. It calls the same authenticated `developer/companion-voice` endpoint as Companion Studio, saves each successful audio file immediately, retries only missing lines, and reports progress. No billable calls happen on import or preview.
-- Added `VoidNPCCompanionImport.repack()` so the **downloaded .vrcompanion contains updated personality JSON plus all newly generated active voice blobs**. Previously the export downloaded the original unmodified transfer and could lose the new recordings. Round-trip tests verify that the generated bytes survive export/import.
-- Imported companion names are limited to the 40-character transfer schema on the draft form.
-- Existing GLB/glTF import remains untouched.
-
-### Current honest status / remaining only
-
-- This is **still draft PR #521**, not merged or published. The UI and voice requests need owner-authenticated browser testing against the actual ElevenLabs service, ideally with a low-cost single line first, and verification of private voice persistence after refresh/export.
-- The ordinary NPC **roster** still needs the same ChatGPT personality JSON import and missing-voice workflow; current working controls are in the newly imported NPC draft. Preserve the existing NPC registry and avoid duplicate shadow characters when adding this.
-- Publishing a newly imported NPC asset, with animations/voices/placement, is still not automated end to end. Continue the standard licensing/release path.
-- Current Node CI blocked by generated `void_runner_admin_inventory.json` drift: regenerate with `node tools/admin-inventory.cjs`, commit it, then rerun full CI. Earlier focused importer tests passed; later runs may be queued.
-- Then test with real owner-supplied packages, verify voice use in ordinary gameplay and multiplayer, and merge/deploy only when fully passing.
+- Run `node tools/admin-inventory.cjs` after editing indexed game source. The inventory test checks the generated file for deterministic drift.
+- The importer is a private draft tool. Keep owner transfers and licensed binaries out of Git. Generic story NPCs keep their authored dialogue and use their existing Conversations & Interactions or Lines & voice tools.
+- Generated voice playback and publishing use the existing authenticated and content-addressed APIs. The PR was tested with fixture audio and a mocked developer generation endpoint. Testing used zero paid ElevenLabs credits.
