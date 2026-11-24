@@ -34,7 +34,7 @@ Defensive poses alternate between forehead cover, palms-out and crossed forearms
 
 The games list has a Hotel Headshots card in root and static copies. Cabinet 1 (`arcade-cab-01`, formerly LASER MOTH) now runs `hotel-headshots/index.html` through the existing isolated arcade iframe. TURBO KELP remains unused. The cabinet has its own title, colors, poster, interaction and four-frame attract image captured from the game's actual opening screen. The existing anti-WarFlying screen is retained in place; only its obsolete `replaces: laser-moth` metadata is removed.
 
-The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-8`.
+The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-9`.
 
 No Sleeping Pod, music-player, account/save implementation, production API, merchandise, entitlement, payment or licensed-model file changed. The District HTML entrypoints remain unchanged and byte-identical.
 
@@ -78,3 +78,9 @@ The owner requested four spoken reactions: Eww!, Ahhh!, Ohhh!, and Oh My God! Th
 `reactions.js` decodes these files once after the Start gesture. Confirmed NPC foam hits trigger a shuffled selection, mild voice-pitch variation, stereo position and distance attenuation. At most two voices overlap, with 180 ms global and 1.1 s per-guest cooldowns. There is no queued speech. Pause, mute, floor changes, restart and game-over stop active voices. No generation/API service is contacted during gameplay. Browser checks cover actual projectile-hit playback, all four decoded files, nonconsecutive repeats, cooldown, overlap cap, pause and mute.
 
 Final reaction validation: full Node suite 1,171 passed, 0 failed, 1 skipped; 14 Hotel Headshots checks passed. `node tests/hotel-headshots-residents-browser.cjs --audio` passed with the final WAVs, including a real projectile hit producing a live audio source, a two-voice overlap cap, cooldown, shuffle, pause and mute. Automated checks do not certify the sound of physical speakers.
+
+## Botanical paintings — 24 November 2026
+
+Owner-requested original oil-painting artwork: flowers only, bees flying around flowers, bees landed on blooms, and a mixed flying/landed composition. One generated square four-panel atlas is shared by four materials. 104 paintings across the five floors: every guest room, guest corridors, front lobbies, pool decks and stair landings. Frames are modeled walnut rails and inset edges with a shared wood-grain texture. Existing abstract placeholders are replaced. Paintings remain projectile-pickable and can receive temporary foam splatters. Frames are merged with other static geometry; no extra lights or animation loops are added.
+
+Validation: all 15 Hotel Headshots rules/assets checks passed, including artwork coverage and unobstructed viewing positions on all floors. The browser artwork check verifies loaded textures, matching placement counts, wood-frame materials and no page errors; screenshots of flowers only, flying bees and landed bees are checked visually.

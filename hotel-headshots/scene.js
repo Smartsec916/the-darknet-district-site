@@ -77,9 +77,18 @@
   for(const zc of [8,14])for(const xc of [1,19]){const x=R.world(xc),z=R.world(zc),n=new B.TransformNode('curtain',scene);n.position=V(x,3.2,z);for(let i=0;i<9;i++){const m=box('pleated velvet',[0,-1.25,(i-4)*.17],[.13+Math.sin(i)*.04,2.5,.19],cloth,n,true);m.metadata={curtain:n};}curtains.push({node:n,sway:0});cylinder('curtain finial',[x,3.3,z],.12,.22,gold);}
   for(const [gx,gz] of map.refills){const x=R.world(gx),z=R.world(gz);const n=new B.TransformNode('refill',scene);n.position=V(x,0,z);cylinder('foam tank',[0,.65,0],1.25,.55,white,n,true);box('refill case',[0,.35,.2],[.9,.7,.6],dark,n,true);sign('E · FREE FOAM',[x,1.6,z-.35],1.9,.45);refills.push({x,z});}
   for(const [text,x,z] of map.roomLabels)sign(text,[R.world(x),3.1,R.world(z)],3,.45);
-  // Framed abstract paintings and service tables give long walls a human scale.
-  const painting=mat('torn posters','#302a3c',.98);
-  for(let z=7;z<18;z+=4)for(const side of [1,19]){const x=R.world(side),wz=R.world(z),dir=side===1?1:-1;box('picture frame',[x-dir*1.05,2.1,wz],[.09,1.05,1.5],gold);box('artwork',[x-dir*.99,2.1,wz],[.02,.92,1.37],painting);for(let j=0;j<5;j++)box('paint stroke',[x-dir*.97,1.8+j*.13,wz+(j%2?-.14:.14)],[.025,.04,.7-j*.08],j%2?stone:wood);}
+  // Original botanical paintings share one atlas and real wood frames across the hotel.
+  const frameWood=mat('walnut picture frames','#82512f',.78),frameEdge=mat('dark walnut inset','#42291c',.86);
+  {const t=new B.DynamicTexture('walnut grain',128,scene,false),g=t.getContext();g.fillStyle='#986640';g.fillRect(0,0,128,128);for(let i=0;i<100;i++){g.strokeStyle=i%3?'#3c211731':'#d6a06e45';g.lineWidth=1;g.beginPath();for(let y=0;y<=128;y+=8)g.lineTo((i*19)%128+Math.sin(y*.05+i)*2,y);g.stroke();}t.update();frameWood.albedoTexture=t;frameWood.albedoColor=B.Color3.White();}
+  const artworkMaterials=Array.from({length:4},(_,i)=>{const m=mat('botanical oil painting '+i,'#ffffff',1),t=new B.Texture('assets/art/flowers-and-bees-atlas.png',scene);t.uScale=t.vScale=.498;t.uOffset=(i%2)*.5+.001;t.vOffset=(i<2?.5:0)+.001;t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;m.albedoTexture=t;m.emissiveTexture=t;m.emissiveColor=new B.Color3(.08,.08,.08);return m;});
+  const artworkMeshes=[];
+  for(const art of map.artworks){const w=1.32,h=1.32,y=2.18,angle=art.rotation,right=V(Math.cos(angle),0,-Math.sin(angle)),normal=V(-Math.sin(angle),0,-Math.cos(angle));
+   const pos=(u,v,depth)=>[art.x+right.x*u+normal.x*depth,y+v,art.z+right.z*u+normal.z*depth];
+   function piece(name,u,v,depth,size,material){const mesh=box(name,pos(u,v,depth),size,material);mesh.rotation.y=angle;return mesh;}
+   piece('painting backing',0,0,-.035,[w+.2,h+.2,.06],frameEdge);
+   const canvas=B.MeshBuilder.CreatePlane('flowers and bees '+art.zone,{width:w,height:h},scene);finish(canvas,artworkMaterials[art.variant],pos(0,0,.006),null,true);canvas.rotation.y=angle;canvas.metadata={artwork:art.variant,zone:art.zone,room:art.room};artworkMeshes.push(canvas);
+   for(const side of [-1,1]){piece('wood frame side',side*(w/2+.065),0,.025,[.13,h+.26,.12],frameWood);piece('wood frame rail',0,side*(h/2+.065),.025,[w,.13,.12],frameWood);piece('wood inset bevel',side*(w/2+.012),0,.018,[.025,h,.05],frameEdge);piece('wood inset bevel',0,side*(h/2+.012),.018,[w,.025,.05],frameEdge);}
+  }
   for(const [gx,gz] of [[8,5],[12,15],[16,4]])if(!R.blocked(map,gx,gz)){const x=R.world(gx),z=R.world(gz);cylinder('side table stem',[x,.4,z],.8,.09,gold);cylinder('side table',[x,.8,z],.08,.6,wood);cylinder('table lamp base',[x,.9,z],.15,.13,gold);cylinder('table lamp shade',[x,1.2,z],.28,.35,lampMat);for(let j=0;j<3;j++)box('magazine',[x+.12,.87+j*.02,z+.08],[.18,.02,.24],j%2?cloth:white);}
   const sx=R.world(map.stairs[0]),sz=R.world(map.stairs[1]);
   sign('STAIRS / '+(map.index===4?'ROOFTOP EXIT':'FLOOR '+(map.index+2)),[sx,3.3,sz+.8],3,.5);
@@ -103,7 +112,7 @@
   const characters=HotelCharacters.prepare(scene,shadow);
   const person=characters.person;
   function weapon(){const n=new B.TransformNode('foam blaster',scene);n.parent=camera;n.position=V(0,-.21,.28);n.scaling=V(.62,.72,.72);const tan=mat('blaster tan','#b89a72',.65,.04);const barrel=cylinder('foam pressure barrel',[0,0,.1],.47,.17,tan,n,true);barrel.rotation.x=Math.PI/2;const nozzle=cylinder('tan nozzle',[0,0,.37],.1,.1,tan,n,true);nozzle.rotation.x=Math.PI/2;box('tan grip',[0,-.12,-.07],[.12,.24,.13],tan,n,true);for(const m of n.getChildMeshes()){m.isPickable=false;m.renderingGroupId=1;}return n;}
-  return {scene,camera,shadow,windows,person,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
+  return {scene,camera,shadow,windows,artworkMeshes,person,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
  }
  root.HotelScene={build};
 })(globalThis);

@@ -48,7 +48,13 @@
   if(index===3)prop('couch',27,15);
   roomLabels.push(['FRONT LOBBY',15,4],['GUEST CORRIDOR',15,15],['POOL / SPA',19,26]);
   for(let z=7;z<24;z++)for(let x=1;x<30;x++)if(grid[z][x]==='.'&&(z===15||x===15))spawns.push([x,z]);
-  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,start:[12,2],stairs:[28,28],down:[15,2],reception:[12,4],receptionNPC:[11.65,4.65]};
+  const artworks=[];
+  const art=(x,z,rotation,zone,room=null)=>artworks.push({x,z,rotation,zone,room,variant:(artworks.length+index)%4});
+  for(const room of rooms){const [x0,z0,x1]=room.bounds;art(world(x0+2)+1.26,world(z0+1),-Math.PI/2,'room',room.id);const front=room.door[1]===13;art(world(x0+1),world(room.door[1])+(front?1.26:-1.26),front?Math.PI:0,'hall');}
+  for(const x of [4,9,21,26])art(world(x),world(6)-1.26,0,'lobby');
+  for(const x of [4,17,22])art(world(x),world(30)-1.26,0,'pool');
+  art(world(28),world(30)-1.26,0,'stairs');
+  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,start:[12,2],stairs:[28,28],down:[15,2],reception:[12,4],receptionNPC:[11.65,4.65]};
  }
  function inside(bounds,p){const x=cell(p.x),z=cell(p.z);return x>=bounds[0]&&x<=bounds[2]&&z>=bounds[1]&&z<=bounds[3];}
  function residents(map,count){return Array.from({length:count},(_,i)=>{const room=map.rooms[i%map.rooms.length];let role,point;

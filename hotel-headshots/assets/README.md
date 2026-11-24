@@ -13,3 +13,7 @@ Rebuild requires the existing local MPFB installation/assets and Blender; run Bl
 ## Hit-reaction audio
 
 `audio/*.wav` are the four owner-requested NPC exclamations generated on 24 November 2026 through the connected ElevenLabs workspace, using Lana - Young & Lively with eleven_v4. They are separate from the CC0 character assets above and are governed by the provider terms for that workspace. `audio/manifest.json` records prompts/direction, voice identity, generation IDs, processing and source/output hashes. Only the trimmed local WAVs ship; no ElevenLabs credentials, runtime API calls, voice clone, or change to the District voice registry is included.
+
+## Botanical artwork
+
+`art/flowers-and-bees-atlas.png` was generated for the owner request on 24 November 2026 using the built-in image-generation tool. It contains four original botanical oil-painting compositions in a 2-by-2 atlas: flowers, flying bees, landed bees, and mixed bees. No external artwork, named artist imitation or stock imagery was used. Wooden frames are game geometry with an original procedural walnut-grain material. The atlas is shared across floors; it is separate from the CC0 character assets above.
