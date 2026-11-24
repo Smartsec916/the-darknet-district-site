@@ -107,7 +107,7 @@
     }
   } catch {}
   let context, buses, engine, engineGain, sub, subGain, bed, ambient, tension, speaking = false,
-    speechTimer, token = 0,
+    speechTimer, token = 0, voiceLine = null, voicePending = false,
     activated = false,
     voiceProvider = null,
     profile = 'menu',
@@ -134,6 +134,8 @@
   function cancel() {
     token++;
     speaking = false;
+    voiceLine = null;
+    voicePending = false;
     clearTimeout(speechTimer);
     try {
       root.speechSynthesis?.cancel();
@@ -408,9 +410,10 @@
     const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
     return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
   }
-  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false) {
+  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false, key = token + 1) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
+    voiceLine = {id,text,ordinary,key};
     const p = profileOf(id);
     // Recorded clips when the line has one; otherwise (or if a clip fails) the browser voice.
     if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text, ordinary))) {
@@ -424,7 +427,7 @@
           profile: p,
           volume: settings.master * settings.voice,
           bus: buses?.voice
-        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary);}).finally(() => {
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary, key);}).finally(() => {
           if (token === current) {
             speaking = false;
             mix();
@@ -440,8 +443,9 @@
     try {
       refreshVoices();
       if (!voices.length && !waitedForVoices) {
+        voicePending = true;
         const current = token;
-        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, false, ordinary); }, 1000);
+        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key); }, 1000);
         return true;
       }
       const selected = selectVoice(id);
@@ -484,6 +488,7 @@
     voiceChoice: id => voiceChoices[id] || '',
     availableVoices() { refreshVoices(); return voices; },
     get ready() { return !!context && context.state === 'running'; },
+    get voiceStatus() { return voiceLine ? {...voiceLine,active:speaking||voicePending} : null; },
     mediaActive(value) { mediaPlaying = value === true; },
     composerActive(value) { composer = value === true; },
     trim(name, value) { if (name in trims) trims[name] = Math.max(0, Math.min(1, +value || 0)); },

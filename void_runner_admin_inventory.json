@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "402077bfef53df23",
+  "revision": "0989e245bcf0c852",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75479,49 +75479,55 @@
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 284,
-      "text": "function groupTick(){try{syncOrdinaryInteractions();const A=root.VoidAdvancedInteractions;if(!A||nearBlocked()||(typeof speech!=='undefined'&&speech))return false;if(groupCoordinator==null)groupCoordinator=A.createDialogueCoordinator(()=>Date.now());const table=env.interactions||{},seen=new Set();let spoken=false;for(const [id,r] of Object.entries(table)){const g=r.advanced?.group;if(!g||seen.has(g.id))continue;seen.add(g.id);const members=g.members.filter(m=>table[m]?.advanced?.group&&JSON.stringify(table[m].advanced.group.members)===JSON.stringify(g.members)&&table[m].advanced.group.id===g.id&&table[m].advanced.group.order===g.order);if(members.length<2||members.some(missionBusy))continue;const near=new Set(members.filter(m=>giverDistance(m,walkingLocation,walker.x,walker.z)<=(table[m].distance||3)+.75));const lines={};for(const m of members)lines[m]=String(table[m].advanced.group.lines||'').split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);const step=A.groupStep(groupCoordinator,{id:g.id,members,order:g.order,cooldownMs:g.cooldown*1000,lines,index:groupIndex,near});if(!step.line)continue;const who=env.givers.find(x=>x.id===step.speaker);announce((who?.name||step.speaker)+' · '+step.line);root.VoidAudio?.speak?.(who?.say||step.speaker,step.line,false,false,true);for(const [m,clip] of Object.entries(step.poses||{}))poseUntil(m,clip);spoken=true;break;}return spoken;}catch{return false;}}",
+      "line": 333,
+      "text": "if(!A||nearBlocked()||(typeof speech!=='undefined'&&speech)||root.VoidAudio?.voiceStatus?.active||callBusy())return false;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 285,
+      "line": 349,
+      "text": "const giver=env.givers.find(g=>g.id===step.speaker),who=giver?.say||step.speaker,now=Date.now();",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/live-content.js",
+      "line": 360,
       "text": "function ordinaryTick(){try{syncOrdinaryInteractions();if((typeof document!=='undefined'&&document.hidden)||nearBlocked()||(typeof speech!=='undefined'&&speech)||!env.interactions)return;const now=Date.now();for(const [id,r] of Object.entries(env.interactions)){if(!r.near)continue;const d=giverDistance(id,walkingLocation,walker.x,walker.z),p=ordinaryNear.get(id)||{inside:false,last:-Infinity,index:0};ordinaryNear.set(id,p);if(d>r.distance+.75){p.inside=false;continue;}if(d>r.distance||p.inside)continue;const g=env.givers.find(x=>x.id===id);if(!g||g.targets.some(t=>beginnerWants(t.action))||(treesOn()&&MC.treeWants(state,env,[id])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 286,
+      "line": 361,
       "text": "if(walkingLocation.quarter==='underground'){const at=giverPoint(id),U=root.VoidUnderground;if(!at||!U||U.placeAt(...at)!==U.placeAt(walker.x,walker.z)){p.inside=false;continue;}}if(!MC.interactionDue(r,p,d,now))continue;const line=MC.interactionPick(r.near,p);announce(g.name+' · '+line);root.VoidAudio?.speak?.(g.say||id,line,false,false,true);p.last=now;break;}}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 287,
-      "text": "const missionNearTick=nearTick;nearTick=function(){const result=missionNearTick(),blocked=!!(result?.offered||result?.objective||result?.prompt||nearBlocked()||(typeof speech!=='undefined'&&speech)||(typeof document!=='undefined'&&document.hidden));if(!roomTick(blocked)&&!blocked&&!groupTick())ordinaryTick();return result;};",
+      "line": 365,
+      "text": "const blocked=!!(result?.offered||result?.objective||result?.prompt||nearBlocked()||(typeof speech!=='undefined'&&speech)||(typeof document!=='undefined'&&document.hidden));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 309,
+      "line": 392,
       "text": "world (nearBlocked: not in a conversation, menu, the pod's wake-up, the creator or the KeyMap) and the tab is shown. Whole seconds are kept in story.flags.md_<mission>",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 371,
+      "line": 454,
       "text": "function onEscort(x){try{if(!x)return;if(String(x.step||'').startsWith('social:')){if(x.event==='done'){const f=env.interactions?.[x.npc]?.advanced?.follow;social.delete(x.npc);planAt=0;saySocial(x.npc,f?.arrive);}return;}if(!treesOn())return;try{root.VoidEscortIndoors?.onStreet?.(x);}catch{}escortLog.push({event:x.event,phase:x.phase,npc:x.npc,step:x.step,at:Date.now()});if(escortLog.length>40)escortLog.shift();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 377,
+      "line": 460,
       "text": "const say={enter:null,in:null,wait:who+' waits for you to catch up.',paused:who+' has stopped: you are too far away. Go back to them.','caught-up':who+' catches up with you.','wrong-stop':who+' is going to '+(((root.VoidQuarters?.STOPS||[]).find(q=>q.id===planCache[x.npc]?.stop)||{}).name||'another stop')+', not there: they stay out of this cab.','hail-failed':who+' could not get a cab: '+(x.reason||'try again in a moment.'),'in-cab':who+' gets in the cab.','ride-out':who+' gets out with you.','no-cab':x.npc===root.VoidStreetPair?.CAT_ID?'The cat does not ride in cabs: it waits here for you.':who+' stays in the city: she does not ride there. She waits here for you.',across:x.text||null}[x.event];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 378,
+      "line": 461,
       "text": "if(say)try{announce(say);}catch{}}catch{}}",
       "kind": "source-reference"
     },
@@ -80694,66 +80700,66 @@
     {
       "source": "void-runner/ship-audio.js",
       "line": 110,
-      "text": "speechTimer, token = 0,",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 137,
-      "text": "clearTimeout(speechTimer);",
+      "text": "speechTimer, token = 0, voiceLine = null, voicePending = false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
       "line": 139,
-      "text": "root.speechSynthesis?.cancel();",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 370,
-      "text": "voices = (root.speechSynthesis?.getVoices() || []).filter(v => /^en(?:-|_)/i.test(v.lang)).sort((a,",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 376,
-      "text": "root.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 439,
-      "text": "if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return false;",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 444,
-      "text": "speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, false, ordinary); }, 1000);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 449,
-      "text": "const u = new root.SpeechSynthesisUtterance(text);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/ship-audio.js",
-      "line": 461,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
+      "line": 141,
+      "text": "root.speechSynthesis?.cancel();",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 372,
+      "text": "voices = (root.speechSynthesis?.getVoices() || []).filter(v => /^en(?:-|_)/i.test(v.lang)).sort((a,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 378,
+      "text": "root.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 442,
+      "text": "if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return false;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 448,
+      "text": "speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key); }, 1000);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 453,
+      "text": "const u = new root.SpeechSynthesisUtterance(text);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
       "line": 465,
+      "text": "clearTimeout(speechTimer);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ship-audio.js",
+      "line": 469,
       "text": "root.speechSynthesis.speak(u);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 466,
+      "line": 470,
       "text": "speechTimer = setTimeout(() => {",
       "kind": "source-reference"
     },
@@ -82455,7 +82461,7 @@
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "9c35d012f1d125d6c93bdf4a0eda94d0ccdd6fbd9ebe97b9e04aa32f2a016843",
-    "void-runner/live-content.js": "69c09767d3a05cff6c2a0a7dc682cde39222e719a4ff08af3d9cc7a293cc05d2",
+    "void-runner/live-content.js": "9966487628160570ba32ae19f5a34be1fae3daf0e55e89c543ec10f2363961f7",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
@@ -82518,7 +82524,7 @@
     "void-runner/neochinatown.js": "a546cff053ccdd2bed8cf0b773487ce99a3a731075db57d095579feb3728a3bc",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-advanced-interactions.js": "dac2a8fc5cbe7e0e6a09384510fb72145041152fa1c28fb6f2ee59d7bf06a45f",
+    "void-runner/npc-advanced-interactions.js": "9d9ef03277885abfd54edb92314a54b6cd63025dbb4e5eae77c78f6108da8750",
     "void-runner/npc-areas.js": "429ffa6f16f3a0cafe3de9f78ca3d06cfaee2119bbde04e66b98f6a2243648d8",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
@@ -82569,7 +82575,7 @@
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
-    "void-runner/ship-audio.js": "90e60ba617a3ec513f84dc2509b4e4af786ada46f6aab6a5568525f8ac544cbc",
+    "void-runner/ship-audio.js": "ddc20614a00142f4b4b61eb8be79aaf64ac7ae0964cf5ebc11ef93dfa326f52e",
     "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",

@@ -261,7 +261,7 @@
   for(const n of nearWatch){const r=recs[n.mission];if(r&&(r.acquired||r.completed))continue;if(!(n.npc in nearD)||nearD[n.npc]===Infinity)nearD[n.npc]=giverDistance(n.npc,walkingLocation,walker.x,walker.z);if(MC.nearHit(nearD[n.npc],n.metres))hit=true;}
   for(const id of MC.denyRearm(state,env,nearD))delete promptAt[id];   // a denied walked-near offer whose wait is over comes back once the player has been out of its distance
   if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)offerPrompt(r.prompt);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);if(r.lines&&r.lines.length)show(r.lines,r);else{const a=inlineAsk(r);if(a)openAsk(a);}return r;}catch{return null;}}   // walked near: the giver says her offer lines (and a choice in them shows its buttons)
- const ordinaryNear=new Map(),roomVisits=new Map(),social=new Map(),socialPoses=new Map(),groupIndex={};let ordinaryFor=null,roomFor=null,roomScene=null,groupCoordinator=null;
+ const ordinaryNear=new Map(),roomVisits=new Map(),social=new Map(),socialPoses=new Map(),groupIndex={};let ordinaryFor=null,roomFor=null,roomScene=null,groupCoordinator=null,groupPlayback=null;
  function socialPose(id){const p=socialPoses.get(id);return p&&p.until>Date.now()?p.clip:null;}
  function poseUntil(id,clip,ms=2800){if(id)socialPoses.set(id,{clip,until:Date.now()+ms});}
  function missionBusy(id){try{const g=env.givers.find(x=>x.id===id);if(g&&g.targets.some(t=>beginnerWants(t.action)))return true;if(treesOn()&&(MC.treeWants(state,env,[id])||MC.escortNow(state,env)[id]))return true;}catch{}return false;}
@@ -280,11 +280,94 @@
    const next=A.roomDialogueStep(room,roomVisits.get(id),{inside,npcPresent:!!point,audible,blocked:busy,now});roomVisits.set(id,next.state);if(!next.line)continue;
    announce(g.name+' · '+next.line);root.VoidAudio?.speak?.(g.say||id,next.line,false,false,true);spoken=true;if(r.near)ordinaryNear.set(id,{...ordinaryNear.get(id),inside:true,last:now,index:ordinaryNear.get(id)?.index||0});
   }return spoken;}catch{return false;}}
- function syncOrdinaryInteractions(){if(ordinaryFor===env.interactions)return;ordinaryFor=env.interactions;ordinaryNear.clear();ordinaryTalkCounts.clear();groupCoordinator?.clear();groupCoordinator=null;for(const k of Object.keys(groupIndex))delete groupIndex[k];}
-  function groupTick(){try{syncOrdinaryInteractions();const A=root.VoidAdvancedInteractions;if(!A||nearBlocked()||(typeof speech!=='undefined'&&speech))return false;if(groupCoordinator==null)groupCoordinator=A.createDialogueCoordinator(()=>Date.now());const table=env.interactions||{},seen=new Set();let spoken=false;for(const [id,r] of Object.entries(table)){const g=r.advanced?.group;if(!g||seen.has(g.id))continue;seen.add(g.id);const members=g.members.filter(m=>table[m]?.advanced?.group&&JSON.stringify(table[m].advanced.group.members)===JSON.stringify(g.members)&&table[m].advanced.group.id===g.id&&table[m].advanced.group.order===g.order);if(members.length<2||members.some(missionBusy))continue;const near=new Set(members.filter(m=>giverDistance(m,walkingLocation,walker.x,walker.z)<=(table[m].distance||3)+.75));const lines={};for(const m of members)lines[m]=String(table[m].advanced.group.lines||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);const step=A.groupStep(groupCoordinator,{id:g.id,members,order:g.order,cooldownMs:g.cooldown*1000,lines,index:groupIndex,near});if(!step.line)continue;const who=env.givers.find(x=>x.id===step.speaker);announce((who?.name||step.speaker)+' · '+step.line);root.VoidAudio?.speak?.(who?.say||step.speaker,step.line,false,false,true);for(const [m,clip] of Object.entries(step.poses||{}))poseUntil(m,clip);spoken=true;break;}return spoken;}catch{return false;}}
+ function syncOrdinaryInteractions(){
+  if(ordinaryFor===env.interactions)return;
+  finishGroup(true);
+  ordinaryFor=env.interactions;ordinaryNear.clear();ordinaryTalkCounts.clear();
+  groupCoordinator?.clear();groupCoordinator=null;for(const k of Object.keys(groupIndex))delete groupIndex[k];
+ }
+ function groupAudio(line){
+  const active=root.VoidAudio?.voiceStatus;
+  return active?.key===line.voiceKey ? active : null;
+ }
+ function finishGroup(cancel){
+  if(!groupPlayback)return;
+  const line=groupPlayback;groupPlayback=null;
+  if(cancel&&groupAudio(line)?.active)root.VoidAudio?.cancel();
+  line.finish();
+ }
+ function nearbyGroup(members,table,margin=0){
+  const p=where(),L=walkingLocation,A=root.VoidAdvancedInteractions;
+  if(!p||!Number.isFinite(p.y))return new Set();
+  const near=members.filter(id=>{
+   if(giverDistance(id,L,p.x,p.z)>(table[id].distance||3)+margin)return false;
+   const point=giverPoint(id);
+   if(!point)return false;
+   if(L.quarter==='underground'){
+    const U=root.VoidUnderground;
+    if(!U||U.placeAt(...point)!==U.placeAt(p.x,p.z))return false;
+   }
+   return A.clearRoomLine([p.x,p.y,p.z],[point[0],p.y-.12,point[1]],L.solids);
+  });
+  return new Set(near);
+ }
+ function groupPlaybackTick(blocked){
+  syncOrdinaryInteractions();
+  const line=groupPlayback;if(!line)return false;
+  const scene=typeof walkingLocation==='undefined'?null:walkingLocation;
+  const near=!blocked&&line.scene===scene?nearbyGroup(line.members,env.interactions,.75):new Set();
+  if(near.size<2||!near.has(line.speaker)||line.members.some(missionBusy)){
+   finishGroup(true);return false;
+  }
+  if(Date.now()>=line.limit){finishGroup(true);return false;}
+  if(line.voiceKey!==null?!groupAudio(line)?.active:Date.now()>=line.readUntil){
+   finishGroup(false);return false;
+  }
+  poseUntil(line.speaker,'talk',650);
+  return true;
+ }
+ function groupTick(){
+  try{
+   syncOrdinaryInteractions();
+   const A=root.VoidAdvancedInteractions;
+   if(!A||nearBlocked()||(typeof speech!=='undefined'&&speech)||root.VoidAudio?.voiceStatus?.active||callBusy())return false;
+   if(!groupCoordinator)groupCoordinator=A.createDialogueCoordinator(()=>Date.now());
+   const table=env.interactions||{},seen=new Set();
+   for(const r of Object.values(table)){
+    const group=r.advanced?.group;
+    if(!group||seen.has(group.id))continue;
+    seen.add(group.id);
+    const members=group.members.filter(id=>{
+     const other=table[id]?.advanced?.group;
+     return other&&other.id===group.id&&other.order===group.order&&JSON.stringify(other.members)===JSON.stringify(group.members);
+    });
+    if(members.length<2||members.some(missionBusy))continue;
+    const near=nearbyGroup(members,table);
+    const lines=Object.fromEntries(members.map(id=>[id,String(table[id].advanced.group.lines||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean)]));
+    const step=A.groupStep(groupCoordinator,{id:group.id,members,order:group.order,cooldownMs:group.cooldown*1000,lines,index:groupIndex,near,hold:true});
+    if(!step.line)continue;
+    const giver=env.givers.find(g=>g.id===step.speaker),who=giver?.say||step.speaker,now=Date.now();
+    groupPlayback={speaker:step.speaker,members,scene:walkingLocation,finish:step.finish,
+     voiceKey:null,readUntil:now+Math.min(6500,1800+step.line.length*35),limit:now+46000};
+    announce((giver?.name||step.speaker)+' · '+step.line);
+    if(root.VoidAudio?.speak?.(who,step.line,false,false,true))groupPlayback.voiceKey=root.VoidAudio.voiceStatus?.key??null;
+    for(const [id,clip] of Object.entries(step.poses))poseUntil(id,clip,650);
+    return true;
+   }
+   return false;
+  }catch{finishGroup(false);return false;}
+ }
  function ordinaryTick(){try{syncOrdinaryInteractions();if((typeof document!=='undefined'&&document.hidden)||nearBlocked()||(typeof speech!=='undefined'&&speech)||!env.interactions)return;const now=Date.now();for(const [id,r] of Object.entries(env.interactions)){if(!r.near)continue;const d=giverDistance(id,walkingLocation,walker.x,walker.z),p=ordinaryNear.get(id)||{inside:false,last:-Infinity,index:0};ordinaryNear.set(id,p);if(d>r.distance+.75){p.inside=false;continue;}if(d>r.distance||p.inside)continue;const g=env.givers.find(x=>x.id===id);if(!g||g.targets.some(t=>beginnerWants(t.action))||(treesOn()&&MC.treeWants(state,env,[id])))continue;
   if(walkingLocation.quarter==='underground'){const at=giverPoint(id),U=root.VoidUnderground;if(!at||!U||U.placeAt(...at)!==U.placeAt(walker.x,walker.z)){p.inside=false;continue;}}if(!MC.interactionDue(r,p,d,now))continue;const line=MC.interactionPick(r.near,p);announce(g.name+' · '+line);root.VoidAudio?.speak?.(g.say||id,line,false,false,true);p.last=now;break;}}catch{}}
- const missionNearTick=nearTick;nearTick=function(){const result=missionNearTick(),blocked=!!(result?.offered||result?.objective||result?.prompt||nearBlocked()||(typeof speech!=='undefined'&&speech)||(typeof document!=='undefined'&&document.hidden));if(!roomTick(blocked)&&!blocked&&!groupTick())ordinaryTick();return result;};
+ const missionNearTick=nearTick;
+ nearTick=function(){
+  const result=missionNearTick();
+  const blocked=!!(result?.offered||result?.objective||result?.prompt||nearBlocked()||(typeof speech!=='undefined'&&speech)||(typeof document!=='undefined'&&document.hidden));
+  const groupPlaying=groupPlaybackTick(blocked);
+  const roomSpoke=roomTick(blocked||groupPlaying);
+  if(!roomSpoke&&!groupPlaying&&!blocked&&!groupTick())ordinaryTick();
+  return result;
+ };
  setInterval(nearTick,250);
  /* "…AND ONLY WHEN" (start-conditions.js, 20 Nov 2026): what the game measures for a start's extra conditions. mission-content.js asks for it (env.world) only while a
     mission that has such conditions could start, once per event. People: every animated figure in the scene (crowd.js figures: the street crowd, residents, characters made in
@@ -392,6 +475,6 @@ const r=MC.treeEvent(state,env,{type:'escort',step:x.step},root.VoidMissions,roo
  const feedSaved=job=>job&&job.feed?aptRun({type:'feed',ap:job.ap,feed:job.feed,mission:job.mission,step:job.key}):null;
  /* A new throwaway draft session (mission-editor.js play, PLAY FROM THE START OF THIS TREE): forget what the running game remembers about the missions played before it
     (animation and step-timer countdowns, follow / lead / cab steps that had started, offers asked, walked-near distances), so the session starts clean. The saved state is the new session's own. */
- function resetRun(){for(const o of [animRun,timerLeft,promptAt,needAt,nearD])for(const k of Object.keys(o))delete o[k];ordinaryNear.clear();roomVisits.clear();roomScene=null;ordinaryTalkCounts.clear();social.clear();socialPoses.clear();groupCoordinator=null;for(const k of Object.keys(groupIndex))delete groupIndex[k];for(const o of [askShown])for(const k of Object.keys(o))delete o[k];escOn.clear();for(const k of Object.keys(holdAt))delete holdAt[k];for(const k of Object.keys(carry))delete carry[k];for(const k of Object.keys(escHome))delete escHome[k];planCache={};planAt=0;escortLog.length=0;nearFor=null;nearWatch=[];nearLast=null;lastContact=null;askOpen=null;try{root.VoidEscortIndoors?.resetRun?.();}catch{}}
+ function resetRun(){for(const o of [animRun,timerLeft,promptAt,needAt,nearD])for(const k of Object.keys(o))delete o[k];ordinaryNear.clear();roomVisits.clear();roomScene=null;ordinaryTalkCounts.clear();social.clear();socialPoses.clear();finishGroup(true);groupCoordinator=null;for(const k of Object.keys(groupIndex))delete groupIndex[k];for(const o of [askShown])for(const k of Object.keys(o))delete o[k];escOn.clear();for(const k of Object.keys(holdAt))delete holdAt[k];for(const k of Object.keys(carry))delete carry[k];for(const k of Object.keys(escHome))delete escHome[k];planCache={};planAt=0;escortLog.length=0;nearFor=null;nearWatch=[];nearLast=null;lastContact=null;askOpen=null;try{root.VoidEscortIndoors?.resetRun?.();}catch{}}
  root.VoidLiveContent={report,deliver,show:(l,r)=>show(l,r),nearBlocked:()=>{try{return nearBlocked();}catch{return true;}},socialPose,zoneStep,treesOn:()=>{try{return treesOn();}catch{return false;}},denyClock,skipButton,denyWaits:()=>{try{return treesOn()?MC.denyWaits(state,env):[];}catch{return [];}},resetRun,askTick,askNow:()=>{try{return treesOn()?MC.askNow(state,env):[];}catch{return [];}},apartments,hackedDoors,hacks,doorsInUse,aptUse,stepWants,hack,feedSaved,offerPrompt,plans,replan:()=>{planAt=0;},onEscort,setCarry,escortWhere,carried:id=>carry[id]?{...carry[id]}:null,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),onlyNow:()=>{try{return treesOn()?MC.onlyNow(state,env):[];}catch{return [];}},peopleNear:(id,m,c=true)=>{try{return peopleNear(id,m,c);}catch{return null;}},get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

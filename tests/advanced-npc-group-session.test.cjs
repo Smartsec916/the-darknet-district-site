@@ -61,36 +61,61 @@ function runtimeGroupHarness(source=runtimeSource){
  assert.ok(groupStart>=0&&end>groupStart,'walking group adapter not found');
  const adapter=source.slice(syncStart>=0&&syncStart<groupStart?syncStart:groupStart,end);
  let time=0;
- const spoken=[],members=['iris','admin'];
+ const spoken=[],members=['iris','admin'],poses=[],cancelled=[];
  const makeTable=()=>Object.fromEntries(members.map(id=>[id,{distance:3,advanced:{group:{
   id:'store',members:[...members],order:'alternate',cooldown:5,lines:id==='iris'?'A1\nA2':'B1\nB2'
  }}}]));
  const env={interactions:makeTable(),givers:members.map(id=>({id,name:id,say:id}))};
- const control={blocked:false,speaking:false,busy:new Set(),distance:{},now:()=>time};
- const root={VoidAdvancedInteractions:A,VoidAudio:{speak:(id,line)=>spoken.push([id,line])}};
- const tick=new Function('root','env','control','spoken',
-  'let ordinaryFor=null,groupCoordinator=null,groupIndex={},ordinaryNear=new Map(),ordinaryTalkCounts=new Map(),walkingLocation={},walker={x:0,z:0},speech=false;'+
-  'const Date={now:control.now},nearBlocked=()=>control.blocked,missionBusy=id=>control.busy.has(id),giverDistance=id=>control.distance[id]??0,announce=()=>{},poseUntil=()=>{};'+
-  adapter+';return ()=>{speech=control.speaking;return groupTick();};'
- )(root,env,control,spoken);
- return {tick,spoken,control,env,makeTable,advance:t=>{time=t;}};
+ const control={blocked:false,speaking:false,busy:new Set(),distance:{},now:()=>time,newScene:false,line:null};
+ const root={VoidAdvancedInteractions:A,VoidAudio:{
+  speak(id,text){spoken.push([id,text]);control.line={id,text,ordinary:true,active:true,key:spoken.length};return true;},
+  get voiceStatus(){return control.line;},
+  cancel(){cancelled.push(control.line?.text);control.line=null;}
+ }};
+ const tick=new Function('root','env','control','poses',
+  'let ordinaryFor=null,groupCoordinator=null,groupPlayback=null,groupIndex={},ordinaryNear=new Map(),ordinaryTalkCounts=new Map(),walkingLocation={solids:[]},walker={x:0,y:1.7,z:0},speech=false;'+
+  'const Date={now:control.now},nearBlocked=()=>control.blocked,callBusy=()=>false,missionBusy=id=>control.busy.has(id),giverDistance=id=>control.distance[id]??0,announce=()=>{},poseUntil=(...a)=>poses.push(a),where=()=>walker,giverPoint=()=>[0,0];'+
+  adapter+';return ()=>{speech=control.speaking;if(control.newScene){walkingLocation={solids:[]};control.newScene=false;}return groupPlaybackTick(control.blocked||speech)||groupTick();};'
+ )(root,env,control,poses);
+ return {tick,spoken,poses,cancelled,control,env,makeTable,advance:t=>{time=t;},ended(){control.line.active=false;}};
 }
-test('walking group adapter initializes before its first speech and preserves cooldown and alternating turns',()=>{
+test('walking group holds the speaker and pose until the audio ends, then applies cooldown',()=>{
  const h=runtimeGroupHarness();
  assert.equal(h.tick(),true);
- h.advance(250);assert.equal(h.tick(),false);
+ h.advance(5500);
+ assert.equal(h.tick(),true);
  assert.deepEqual(h.spoken,[['iris','A1']]);
- h.advance(5000);assert.equal(h.tick(),true);
+ assert.deepEqual(h.poses.at(-1),['iris','talk',650]);
+ h.ended();assert.equal(h.tick(),false);
+ h.advance(10499);assert.equal(h.tick(),false);
+ h.advance(10500);assert.equal(h.tick(),true);
  assert.deepEqual(h.spoken,[['iris','A1'],['admin','B1']]);
- h.advance(10000);assert.equal(h.tick(),true);
- assert.deepEqual(h.spoken,[['iris','A1'],['admin','B1'],['iris','A2']]);
 });
-test('walking group adapter resets line positions and coordinator when published interactions change',()=>{
- const h=runtimeGroupHarness();h.tick();h.advance(5000);h.tick();
- h.advance(10000);h.tick();h.env.interactions=h.makeTable();
- h.advance(10250);assert.equal(h.tick(),true);
- assert.deepEqual(h.spoken.at(-1),['iris','A1']);
- h.advance(10500);assert.equal(h.tick(),false);
+test('walking group adapter clears the active line and turn when published interactions change',()=>{
+ const h=runtimeGroupHarness();
+ h.tick();h.ended();h.advance(3500);h.tick();
+ h.advance(8500);h.tick();h.env.interactions=h.makeTable();
+ h.advance(8750);assert.equal(h.tick(),true);
+ assert.deepEqual(h.spoken,[['iris','A1'],['admin','B1'],['iris','A1']]);
+ assert.deepEqual(h.cancelled,['B1']);
+});
+test('two walking runtime clients keep independent audio and cancel only the line they own',()=>{
+ const a=runtimeGroupHarness(),b=runtimeGroupHarness();
+ a.tick();b.tick();
+ a.advance(1000);a.control.distance.iris=20;assert.equal(a.tick(),false);
+ assert.deepEqual(a.cancelled,['A1']);assert.deepEqual(b.cancelled,[]);
+ b.advance(8000);assert.equal(b.tick(),true);
+ assert.deepEqual(b.spoken,[['iris','A1']]);
+ b.control.line={id:'admin',text:'Mission call',ordinary:false,active:true,key:2};
+ b.control.speaking=true;assert.equal(b.tick(),false);
+ assert.deepEqual(b.cancelled,[],'mission speech belongs to another caller');
+});
+test('changing scenes or preempting the group with a mission releases the active line',()=>{
+ for(const change of [c=>{c.newScene=true;},c=>{c.busy.add('iris');}]){
+  const h=runtimeGroupHarness();h.tick();h.advance(1000);
+  change(h.control);h.tick();
+  assert.deepEqual(h.cancelled,['A1']);
+ }
 });
 test('walking group adapter respects mission ownership, mismatched group definitions and blocked speech',()=>{
  const h=runtimeGroupHarness();h.control.busy.add('iris');assert.equal(h.tick(),false);

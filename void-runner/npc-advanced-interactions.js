@@ -119,9 +119,10 @@ function groupStep(coordinator,spec){
  if(!token)return {line:null,poses:{}};
  const index=spec.index?.[speaker]||0,line=lines[index%lines.length];
  if(spec.index)spec.index[speaker]=index+1;
- coordinator.release(token,present);
+ const finish=()=>coordinator.release(token,present);
+ if(!spec.hold)finish();
  const poses={};for(const id of members)if(near.has(id))poses[id]=id===speaker&&line?'talk':'idle';
- return {speaker,line,poses};
+ return {speaker,line,poses,...(spec.hold?{finish}:{})};
 }
 function followStep({phase='invite',waited=0}={},input){
  const {dt=0,accepted=false,declined=false,near=false,atDestination=false,playerArrived=false,maxWait=30}=input;
