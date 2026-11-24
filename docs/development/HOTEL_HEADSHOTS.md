@@ -124,3 +124,8 @@ The owner's final ending supersedes the original rooftop victory: reaching the p
 `raid.js` owns deterministic multi-floor pursuit and projectile collision; the game owns rendering, sound, pause behavior and the ending. The raid persists across floor changes and resets on a new run. Older victory-test notes above are historical.
 
 Validation: 21 focused hotel tests; full Node suite 1,178 passed / one skipped; all-floor gameplay browser passed with the penthouse trigger, police gunfire ending, final-score persistence, restart and 4:3 checks. Police/entrance browser confirms all four entry routes, sealed-exit interaction, uniform rendering and the non-graphic ending. Also simulated police following the player back down from floor five to reception.
+
+
+## 24 Nov 2026 — lower foam-blaster grip
+
+Added the owner-reference rounded tan lower grip, with three shallow rounded ridges and a side bolster. It sits partly behind the HUD and moves vertically by 0.02 local units with recoil before settling. The blaster remains centered and tan-only. Mouse-down now fires immediately, including the click that reacquires mouse capture; held-fire retains the 0.19-second shot interval. This treats the reported firing delay as unwanted lag, not a requested wind-up.
