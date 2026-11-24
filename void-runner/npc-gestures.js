@@ -42,7 +42,6 @@
   for(const c of (C&&C.clips&&C.clips[look])||[])if(!NO.test(c)&&!banned.test(c))add(c,'own');
   if(M&&X.libraryOffer)for(const o of X.libraryOffer(id))if(o.ok&&o.library==='actorcore')add(o.id,'library');
   // These verified shared motions can be selected directly on a mission step without editing the NPC's default routine.
-  if(M&&X.missionClips)for(const a of X.missionClips(id))if(!NO.test(bare(a)))add(a,'library');
   if(M&&plan&&Array.isArray(plan.anims))for(const a of plan.anims)if(typeof a==='string'&&!X.animAllowed(id,a)&&!NO.test(bare(a)))add(a,'added');
   return {ok:out.length>0,why:out.length?'':'No animations for this character yet.',look,clips:out};}
  /* Why clip cannot be used by NPC id ('' when it can). */

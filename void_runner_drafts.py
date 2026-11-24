@@ -267,7 +267,7 @@ def validate_workspace(doc):
                 raise DraftError('Invalid daily schedule: ' + problems[0], 422)
     if b.get('npcs') or b.get('trees'):
         from void_runner_live_content import forbidden_spot_problems
-        adults = {k for k, c in (b.get('characters') or {}).items() if isinstance(c, dict) and c.get('adult') is True and c.get('model') not in ('npc-grey-reverie', 'npc-ethereal-lace', 'npc-street-cat')}
+        adults = {k for k, c in (b.get('characters') or {}).items() if isinstance(c, dict) and c.get('adult') is True and c.get('model') != 'npc-street-cat'}
         problems = forbidden_spot_problems(b.get('npcs') or {}, b.get('trees') or [], None, adults)
         if problems:
             raise DraftError('Invalid NPC placement: ' + problems[0], 422)

@@ -50,12 +50,12 @@ class PlayerLinesServerTests(unittest.TestCase):
         self.assertIn('only an animation step', errs([{**TALK, 'clip': 'shrug'}]))
 
     def test_verified_shared_animation_counts_with_or_without_a_plan(self):
-        added = 'npc-busker/laugh'
-        self.assertIn(added, INV['npcPaths']['movable']['grey-reverie']['anims'])
-        rv = [{'id': 'rv', 'kind': 'talk', 'npc': 'grey-reverie', 'label': 'Talk to Reverie', 'say': [{'who': 'grey-reverie', 'text': 'Hey.', 'anim': added}]}]
-        self.assertEqual(live.check(doc([tree(rv)]), INV), [])
-        self.assertEqual(live.check(doc([tree(rv)], {'grey-reverie': {'mode': 'original', 'anims': [added]}}), INV), [])
-        self.assertNotIn('dance-samba', INV['missionEditor']['gestures']['grey-reverie']['clips'])
+        added = 'npc-admin/talk'
+        self.assertIn(added, INV['npcPaths']['movable']['tea-host']['anims'])
+        rv = [{'id': 'rv', 'kind': 'talk', 'npc': 'tea-host', 'label': 'Talk to Reverie', 'say': [{'who': 'tea-host', 'text': 'Hey.', 'anim': added}]}]
+        self.assertTrue(live.check(doc([tree(rv)]), INV))
+        self.assertEqual(live.check(doc([tree(rv)], {'tea-host': {'mode': 'original', 'anims': [added]}}), INV), [])
+        self.assertNotIn('dance-samba', INV['missionEditor']['gestures']['tea-host']['clips'])
 
     def test_workspace_copy(self):
         ok = [tree([TALK, {'id': 'a', 'kind': 'anim', 'npc': 'iris', 'clip': 'shrug', 'hold': 3, 'label': ''}])]

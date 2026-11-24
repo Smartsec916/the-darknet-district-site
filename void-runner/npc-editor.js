@@ -4,7 +4,7 @@
    "just have a cap on poly counts for each import", "also short description on things in the npc editor", and the old "All lines for an NPC" moved here ("Lines & voice").
    - The list: everyone the giver roster knows (voice registry, District residents, story characters, the monk), the street crowd's figures, and models imported here.
    - For one NPC: look (the model file), where they are, their voice (a registered Kokoro voice is READ-ONLY; an ElevenLabs voice can be chosen in Lines & voice: npc-voices.js), a 3D preview with their clips, MAKE GIVER (a new draft
-     mission given by them: no lore, no lines are written), placement (only NPCs the editor can move: Reverie and Lace today; their own routine / stay at a spot / a route of
+     mission given by them: no lore, no lines are written), placement (NPCs the editor can move; their own routine / stay at a spot / a route of
      points with actions from their own clip list), added animations (the shared library, allowed clips only), animation requests (exported for Claude/Codex; No AI models
      are marked local retarget only), and their lines and voice.
    - Placements are part of the Mission Editor's DRAFT (localStorage + the server copy), PLAY THIS DRAFT, and PUBLISH (content.npcs, checked by mission-content.js and the server).
@@ -104,13 +104,13 @@
  /* "What do you want to do?" (the owner: make it for someone who has never done it): big choices that open the right screen. */
  function startCard(){const d=el('details','','npc-start',{'data-npc-start':'1'});d.open=ui.start;d.ontoggle=()=>{ui.start=d.open;};d.append(el('summary','What do you want to do?'));const grid=el('div','','npc-cards');
   const pick=(id,fn)=>()=>{ui.id=id;ui.start=false;status='';if(fn)fn();draw();setTimeout(()=>{const t=host.querySelector(fn&&fn.focus||'[data-npc-facts]');t&&t.scrollIntoView({block:'start'});},50);};
-  const first=x=>entries().find(e=>e.group===x)||{};const rev='grey-reverie';
+  const first=x=>entries().find(e=>e.group===x)||{};const rev='street-cat';
   const card=(icon,title,text,go,attrs)=>{const b=btn('',go,'npc-card',attrs);b.append(el('span',icon,'npc-card-icon',{'aria-hidden':'true'}),el('b',title),el('span',text,'me-small'));grid.append(b);};
   const stay=()=>{if(!plan(rev)||plan(rev).mode!=='stay')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'stay',x:100,z:-6.4,yaw:Math.PI,actions:stayDefault(rev)});};stay.focus='[data-npc-place]';
   const route=()=>{if(!plan(rev)||plan(rev).mode!=='path')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'path',points:[]});root.VoidEditorGuide?.focusNext();};route.focus='[data-npc-place]';
   const look=()=>{};look.focus='[data-npc-preview]';const lines=()=>{};lines.focus='[data-npc-lines]';const giv=()=>{};giv.focus='[data-npc-giver]';
-  card('📍','Move a character to a spot','Pick where Reverie (or Lace) stands and what she does there.',pick(rev,stay),{'data-npc-start-card':'stay'});
-  card('🚶','Make a character walk a route','Click points on the street; she walks them in order.',pick(rev,route),{'data-npc-start-card':'route'});
+  card('📍','Move a character to a spot','Pick where the street cat stays and what it does there.',pick(rev,stay),{'data-npc-start-card':'stay'});
+  card('🚶','Make a character walk a route','Click points on the street for the cat to follow.',pick(rev,route),{'data-npc-start-card':'route'});
   const beh=()=>{};beh.focus='[data-npc-behaviour]';const sched=()=>{};sched.focus='[data-npc-schedule]';
   card('🕒','Give a character a daily schedule','Different things at different hours of the in-game day (a walk in the morning, a seat at lunch …).',pick(rev,sched),{'data-npc-start-card':'schedule'});
   card('🤖','Describe it to ChatGPT','Copy a ready-made prompt, say what you want in words, paste ChatGPT’s answer back: the editor checks it and shows it on the map.',pick(rev,beh),{'data-npc-start-card':'chatgpt'});
@@ -187,7 +187,6 @@
  function appearanceBox(main,e,asset){const box=el('section','','me-check',{'data-npc-appearance':e.id});box.append(el('h4','Appearance'),hint(HELP.looks));main.append(box);
   if(!asset||!NL()){box.append(el('p','No model file to change: this person is drawn by their scene’s own code.','me-small'));return;}
   if(NL().LICENSED.test(asset))box.append(el('p','A licensed model: you can recolour it and hide its accessories; nothing is added to it, and its file is never sent to any AI tool.','me-small me-warn'));
-  if(NL().STREET.includes(asset))box.append(el('p','Reverie and Lace stay in ordinary street clothing: you can change their colours only.','me-small me-warn'));
   const users=entries().filter(x=>x.look===asset&&x.id!==e.id).map(x=>x.name);box.append(el('p','A look belongs to the model “'+asset+'”'+(users.length?': '+users.slice(0,4).join(', ')+(users.length>4?' and others':'')+' use it too.':'.'),'me-small'));
   const body=el('div','','',{'data-npc-look-body':asset});box.append(body);
   {const sr=el('div','','me-row');sr.append(btn('SEE IT ON THE STREET',()=>S().jumpTo(100,-8,e.id,'your NPC looks',RETURN),'',{'data-npc-look-street':asset,title:'A throwaway test session on The Avenue with your draft applied. Your real save is never touched; LEAVE brings you back.'}),hint('Plays your draft on The Avenue (your real save is never touched; LEAVE brings you back).'));box.append(sr);}
@@ -217,7 +216,7 @@
  function lookSections(body,asset,c,cur,edit){const L=NL(),adv=advanced();
    // (a) parts
    const pa=el('div','','npc-look-sec',{'data-npc-look-parts':asset});pa.append(el('b','Parts you can take off'),hint(HELP.parts));const hid=new Set(cur.hide||[]),open=c.groups.filter(g=>g.hideable),locked=c.groups.filter(g=>!g.hideable);
-   if(!open.length)pa.append(el('p',c.street?'Reverie and Lace keep every part.':'Nothing to take off: this model is made in one piece (or its pieces are all clothing, body or face, which always stay).','me-small'));
+   if(!open.length)pa.append(el('p','Nothing to take off: this model is made in one piece (or its pieces are all clothing, body or face, which always stay).','me-small'));
    for(const g of open){const lab=el('label','','me-check-row'),cb=el('input','','',{type:'checkbox','data-npc-look-part':g.id});cb.checked=!g.names.every(n=>hid.has(n));cb.onchange=()=>edit(l=>{const h=new Set(l.hide||[]);for(const n of g.names)cb.checked?h.delete(n):h.add(n);l.hide=[...h];if(l.hair&&!L.HAIR[l.hair].hatOk&&c.hair.hats.some(x=>!h.has(x)))delete l.hair;},(cb.checked?'Showing ':'Hiding ')+g.label.toLowerCase()+'.');
     lab.append(cb,document.createTextNode(' Show: '+g.label+(adv?' ('+g.names.join(', ')+')':'')));pa.append(lab);}
    if(locked.length&&open.length)pa.append(adv?el('p','Always stay: '+locked.map(g=>g.label+' ('+g.why+')').join('; '),'me-small'):el('p','Clothing that covers the body, the body and the face always stay.','me-small'));body.append(pa);
@@ -249,7 +248,7 @@
  const MAKE=[['model','Model'],['name','Name'],['look','Look'],['device','Device'],['ship','Ship'],['items','Items'],['voice','Voice'],['anims','Animations'],['place','Place'],['done','Done']];
  const MHELP={model:'Pick the 3D model your new character is made from: any person the game already has. Street people are the safest choice. A licensed model can only be recoloured and have accessories hidden (its licence), and it is never sent to any AI tool. Press “Show me in 3D” to look at it.',
   name:'Their name, in your own words (this is what players see). The short role line is optional and only for you and the editor (it is never said in the game). The internal id is made from the name.',
-  adult:'Tick only for a grown-up character. Only characters marked adult (18+) may be placed in the adult places (Milked’s side street, service alley and reception, NULL, the District bar, the VR area, the arcade, the smoking terrace). Reverie’s and Lace’s models can never be marked adult.',
+  adult:'Tick only for a grown-up character. Only characters marked adult (18+) may be placed in the adult places (Milked’s side street, service alley and reception, NULL, the District bar, the VR area, the arcade, the smoking terrace). ',
   look:'Change how this one character looks: hide accessories, recolour clothes, add creator pieces where the model allows. It changes only this character, never other people drawn with the same model.',
   device:'The device they carry and how they use it in the street: V1 (teal hologram), V2 (another colour), V3 // SHADOW (streamed into the eye: the left eye glows a little while they use it), or none.',
   ship:'A ship they own, for your missions (for example a mission that needs “their ship”). It is data only: no new ship appears in the world.',
@@ -294,7 +293,7 @@
   const r1=el('label','','me-field');r1.append(el('span','Name (required)'),nm,idl);const r2=el('label','','me-field');r2.append(el('span','Role line (optional)'),rl);box.append(r1,r2);adultBox(box,m.id,m);}
  function adultBox(box,id,m){const c=id?madeOf(id):null,model=c?c.model:m&&m.model,ok=model&&MD().adultAllowed(model);const lab=el('label','','me-check-row'+(ok?'':' me-disabled')),cb=el('input','','',{type:'checkbox','data-npc-make-adult':'1'});cb.checked=!!(c?c.adult:m&&m.adult);cb.disabled=!ok;
   cb.onchange=()=>{if(c)editMade(id,x=>{if(cb.checked)x.adult=true;else delete x.adult;},cb.checked?'Marked adult (18+): the adult places can be used for them.':'Not marked adult: the adult places are closed to them again.');else m.adult=cb.checked;};
-  lab.append(cb,document.createTextNode(' This character is an adult (18+)'));box.append(lab,hint(ok?MHELP.adult:'Reverie’s and Lace’s models read youthful: a character made from them can never be marked adult.'));
+  lab.append(cb,document.createTextNode(' This character is an adult (18+)'));box.append(lab,hint(ok?MHELP.adult:'This model is unavailable for adult characters.'));
   if(c&&!c.adult&&plan(id)&&X().planProblems(id,plan(id)).some(t=>/adult/.test(t)))box.append(el('p','Their place is in an adult place: tick the box, or move them.','me-bad'));}
  const taken=()=>new Set([...(S().givers||[]).map(g=>g.id),...Object.keys(S().local().characters||{})]);
  function makeCreate(m){const name=String(m.name||'').trim();if(!name||/[<>]/.test(name)){m.tried=true;draw();return false;}const id=MD().idFor(name,taken());
@@ -326,7 +325,11 @@
  function madeBox(main,e){const id=e.id,c=madeOf(id);if(!c)return;const box=el('section','','me-check',{'data-npc-made':id});box.append(el('h4','Mission giver made by you'),hint('Everything you chose in the creator. Change it here or step by step.'));
   box.append(summary(c));const r=el('div','','me-row');
   r.append(btn('CHANGE STEP BY STEP',()=>{ui.make={step:1,id,model:c.model,name:c.name,role:c.role||'',adult:!!c.adult,tried:false};ui.id=id;draw();},'',{'data-npc-made-edit':id}),
-   btn('DELETE THIS CHARACTER',()=>{if(!confirm('Delete '+c.name+' from your draft? UNDO (top right) brings them back.'))return;const d=S().local();delete d.characters[id];if(d.npcs)delete d.npcs[id];if(d.voices)delete d.voices[id];S().saveLocal(d);ui.id=null;status=c.name+' was deleted from your draft (UNDO brings them back). Missions they gave keep their text.';draw();},'me-x',{'data-npc-made-delete':id}));
+   btn('DELETE THIS CHARACTER',()=>{const d=S().local(),refs=MD().deletionReferences(d,id);
+    if(refs.length){status='Reassign this character in '+refs.join(', ')+' before deleting.';draw();return;}
+    if(!confirm('Delete '+c.name+' and their placement, dialogue, voice settings and animation requests from this draft?'))return;
+    if(!MD().deleteCharacter(d,id))return;
+    S().saveLocal(d);ui.id=null;status=c.name+' was deleted from your draft (UNDO brings them back). Their associated draft records were removed.';draw();},'me-x',{'data-npc-made-delete':id}));
   box.append(r);const left=root.VoidMissionContent?.madeNeeds?.(S().local(),S().givers,id)||[];if(left.length)box.append(el('p','Not in the game yet: '+left.map(x=>x.replace(/^[^:]+: /,'')).join(' '),'me-warn',{'data-npc-made-needs':id}));
   const dv=el('div');dv.append(el('b','Device'));deviceStep(dv,id);const sh=el('div');sh.append(el('b','Ship'));shipStep(sh,id);const its=el('details','','me-npc-group');its.append(el('summary','Items'));itemsStep(its,id);box.append(dv,sh,its);
   main.append(box);whenStep(main,id);}
@@ -351,7 +354,7 @@
  // ---- placement (stay / route / own routine)
  function placeBox(main,e,clips){const id=e.id,M=X().MOVABLE[id],box=el('section','','me-check',{'data-npc-place':id});box.append(el('h4','Where they are in the game'),hint(M?.placementOnly?'Place Dax in the District. She uses the route or spot you publish, or waits at her hallway post if no routine is configured.':HELP.place));
   if(!M){const why=e.giver.group==='earlier'?'Not in the District today.':/district-people|District/.test(e.giver.where||'')?'Placed by the District’s own room code (a fixed spot in a building).':e.giver.where?'Placed by its scene’s own code ('+e.giver.where.replace(/\s*\(.*$/,'')+').':'No figure in the walking game.';
-   box.append(el('p','Cannot be moved from here yet: '+why+' Today only Reverie, Lace and the street cat can be moved (their walking code follows a plan).','me-small me-warn',{'data-npc-place-locked':id}));main.append(box);return;}
+   box.append(el('p','Cannot be moved from here yet: '+why+'','me-small me-warn',{'data-npc-place-locked':id}));main.append(box);return;}
   const whole=plan(id),bi=blockOf(id),p=curPlan(id),mode=p&&p.mode!=='original'?p.mode:'own',acts=X().actionsFor(id,whole&&whole.anims||[]),probs=whole?X().planProblems(id,whole):[],she=M.it?'it':'she',her=M.it?'its':'her';
   // put: write the all-day plan, or the time block being edited (Daily schedule)
   const put=o=>{if(bi==null)return setPlan(id,o);const w=plan(id),sch=w.schedule.slice(),b=sch[bi],{anims,schedule,...rest}=o||{mode:'original'};sch[bi]={from:b.from,to:b.to,...(b.name?{name:b.name}:{}),...rest};setPlan(id,{...w,schedule:sch});};
@@ -364,7 +367,7 @@
     else if(m_==='stay'){const s0=M.placementOnly?M.home:root.VoidStreetPair?.SEAT||{x:104.4,z:-6.4};put({...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:(M.placementOnly?s0.z:-6.4),yaw:p&&p.mode==='stay'?p.yaw:(M.placementOnly?s0.yaw:Math.PI),actions:p&&p.mode==='stay'?p.actions:stayDefault(id)});}
     else{put({...(p&&p.anims?{anims:p.anims}:{}),mode:'path',points:p&&p.mode==='path'?p.points:[]});root.VoidEditorGuide?.focusNext();}
     draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));
-  box.append(modes,hint(mode==='own'&&M.placementOnly?'No routine configured. Dax waits at her hallway post.':mode==='own'&&M.made?'Not in the world yet: press “Keep her at one spot” (then click the map) or “Make her walk a route”. Pick the area on the map first.':mode==='own'?(M.it?'It does what the game has it do now: goes to whichever of Reverie and Lace is out, rubs round her legs, sits by her; with neither out it potters about by the LAUNDRY door.':'She does what the game has her do now: walks her stretch of the Avenue, sits on the ledges, plays with the cat.'):mode==='stay'?HELP.stay:HELP.route));
+  box.append(modes,hint(mode==='own'&&M.placementOnly?'No routine configured. Dax waits at her hallway post.':mode==='own'&&M.made?'Not in the world yet: press “Keep her at one spot” (then click the map) or “Make her walk a route”. Pick the area on the map first.':mode==='own'?(M.it?'The cat wanders by the laundry door and can approach the player.':'The character follows their usual routine.'):mode==='stay'?HELP.stay:HELP.route));
   const markers=[],live=root.VoidStreetPair?.live?.();if(live&&live.her&&live.her.id===id)markers.push({id:'live',x:live.her.x,z:live.her.z,ghost:true,color:'#ffd34d',label:M.name+' now'});
   for(const t of S().local().trees||[])for(const m of t.missions)if(m.giver===id&&m.waitAt)markers.push({id:'w-'+m.id,x:m.waitAt.x,z:m.waitAt.z,yaw:m.waitAt.yaw,ghost:true,color:'#c08aff',label:'waits for “'+(m.title||m.id)+'”'});
   if(mode==='stay')markers.push({id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#ff8ad8',label:M.name+' stays here',drag:true,facing:true,bad:X().spotProblems(id,p).length>0});
@@ -389,7 +392,7 @@
   const act=el('div','','me-row me-actions');act.append(btn('PLAY THIS DRAFT',()=>playNpc(e),'me-play',{'data-npc-play':id,...(probs.length?{disabled:'',title:'Fix the problems first.'}:{})}),hint(HELP.play));box.append(act);
   main.append(box);}
  // ---- DAILY SCHEDULE (queue item 1): time blocks on the in-game clock (npc-paths.js scheduleProblems / blockAt); each block is a stay, a route or "the usual thing",
- // changed on the map above with EDIT ON THE MAP. Reverie and Lace keep their real-time street shift: a schedule says what she does while she is out.
+ // changed on the map above with EDIT ON THE MAP.
  const BLOCK_COLOURS=['#ff8ad8','#58ffe1','#f2b33d','#9d8cff','#7dff8a','#ff9a5c','#5cb8ff','#e0e070'];
  function gameNow(){try{return typeof state!=='undefined'&&state&&root.VoidClock?root.VoidClock.now(state):null;}catch{return null;}}
  function freeSlot(sch){for(let h=8;h<32;h++){const f=(h%24)*60,ok=[...Array(60).keys()].every(k=>X().blockAt(sch,(f+k)%1440)<0);if(ok)return {from:X().hhmm(f),to:X().hhmm(f+60)};}return null;}
@@ -466,7 +469,7 @@
  // ---- add animation: every clip in the game, grouped, searchable; usable ones can be tried and added, the rest say why (npc-paths.js libraryOffer, npc-clip-index.json)
  function animBox(main,e,asset){const id=e.id,mv=!!X().MOVABLE[id],box=el('section','','me-check',{'data-npc-anims':id});box.append(el('h4','Add animation'),hint(HELP.anim));
   if(!root.VoidNPCClipIndex){box.append(el('p','Reading the list of every animation in the game…','me-small'));fetch('void-runner/npc-clip-index.json',{cache:'no-cache'}).then(r=>r.json()).then(j=>{root.VoidNPCClipIndex=j;draw();}).catch(()=>{});main.append(box);return;}
-  if(!mv){box.append(el('p','Only characters the editor can move (Reverie and Lace today) can use added animations in the game.','me-small me-warn'));main.append(box);return;}
+  if(!mv){box.append(el('p','Only characters the editor can move can use added animations in the game.','me-small me-warn'));main.append(box);return;}
   const p=plan(id),have=new Set((p&&p.anims)||[]),offer=X().libraryOffer(id),q=String(ui.animSearch||'').toLowerCase(),show=ui.animAll?offer:offer.filter(o=>o.ok||have.has(o.id));
   const bar=el('div','','me-row'),s_=el('input','','',{'aria-label':'Find an animation',placeholder:'Find an animation (e.g. wave, dance, laugh)','data-npc-anim-search':'1'});s_.value=ui.animSearch||'';s_.onchange=()=>{ui.animSearch=s_.value;draw();};
   const all=el('label','','me-small'),ac=el('input','','',{type:'checkbox','data-npc-anim-all':'1'});ac.checked=!!ui.animAll;ac.onchange=()=>{ui.animAll=ac.checked;draw();};all.append(ac,' also show the ones she cannot use, and why');
@@ -786,8 +789,12 @@
     },preview:async blob=>{ui.preview?.dispose();const stage=el('div');workshop.append(stage);ui.preview=root.VoidNPCPreview.mount(stage);ui.previewFor=e.id;await ui.preview.show({file:blob});return ui.preview;}});
    }).catch(err=>workshop.textContent=err.message);
   }
-  const ck=el('section','','me-check',{'data-npc-checklist':rec.id});ck.append(el('h4','Checklist'),hint(HELP.check));
-  const verdict=rec.info?X().importCheck(rec.info):null;
+  const ck=el('section','','me-check',{'data-npc-checklist':rec.id});const heading=el('div','','me-row'),exception=el('label'),toggle=el('input','','',{type:'checkbox','data-npc-triangle-exception':rec.id});
+  toggle.checked=rec.allowOverTriangleLimit===true;
+  toggle.onchange=async()=>{rec.allowOverTriangleLimit=toggle.checked;await saveRec(rec);draw();};
+  exception.append(toggle,' Allow over '+X().IMPORT.maxTriangles.toLocaleString('en')+' triangles for this model');
+  heading.append(el('h4','Checklist'),exception,hint(HELP.check));ck.append(heading);
+  const verdict=rec.info?X().importCheck(rec.info,rec.allowOverTriangleLimit):null;
   if(!verdict)ck.append(el('p','Press SHOW 3D PREVIEW to measure the model.','me-small me-warn'));else for(const it of verdict.items)ck.append(el('p',(it.level==='ok'?'✓ ':it.level==='warn'?'△ ':'✗ ')+it.text,it.level==='ok'?'me-ok':it.level==='warn'?'me-warn':'me-bad',{'data-npc-check':it.level}));
   main.append(ck);
   const compatible=el('section','','me-check');compatible.append(el('h4','Compatible game animations (preview)'),hint('Candidates are matched by skeleton and rest pose. Try each on the preview before using it. Nothing is published.'));
@@ -800,7 +807,7 @@
   const refused=verdict&&!verdict.ok;
   // placement (local test)
   const clips=(rec.info&&rec.info.clips)||[],bx=el('section','','me-check',{'data-npc-place':'import:'+rec.id});bx.append(el('h4','Where it stands in the test'),hint('Put it on The Avenue’s north pavement for a local test: STAY HERE at a spot doing its own clips, or a ROUTE of points. Only in a throwaway test session in this browser.'));
-  if(refused)bx.append(el('p','Refused: it is over a hard limit (see the checklist), so it cannot be tried.','me-bad'));
+  if(refused)bx.append(el('p','Resolve the failed checklist items before trying this model.','me-bad'));
   else{const p=rec.placement,mode=p?p.mode:'none',modes=el('div','','me-row');
    for(const [m_,n] of [['stay','STAY HERE'],['path','ROUTE']])modes.append(btn(n,async()=>{rec.placement=m_==='stay'?{mode:'stay',x:p&&p.x||100,z:p&&p.z||-6.4,yaw:p&&Number.isFinite(p.yaw)?p.yaw:Math.PI,actions:[clips.find(c=>/idle/.test(c))||clips[0]||'wait']}:{mode:'path',points:p&&p.points||[]};await saveRec(rec);draw();},mode===m_?'on':'',{'data-npc-mode':m_}));bx.append(modes);
    if(p){const markers=p.mode==='stay'?[{id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#7fe0ff',label:rec.name,drag:true,facing:true}]:[];
@@ -838,7 +845,8 @@
   main.append(lic);}
  function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
   model:{triangles:I.triangles|0,bytes:rec.bytes|0,textures:I.textures||[],joints:(I.bones||[]).length,bones:(I.bones||[]).slice(0,80),clips:I.clips||[],height:Number.isFinite(I.height)?Math.round(I.height*100)/100:null},
-  caps:{maxTriangles:X().IMPORT.maxTriangles,target:X().IMPORT.target,maxBytes:X().IMPORT.maxBytes,texWarn:X().IMPORT.texWarn},checklist:I.triangles!=null?X().importCheck(I).items:[],
+  allowOverTriangleLimit:rec.allowOverTriangleLimit===true,
+  caps:{maxTriangles:X().IMPORT.maxTriangles,target:X().IMPORT.target,maxBytes:X().IMPORT.maxBytes,texWarn:X().IMPORT.texWarn},checklist:I.triangles!=null?X().importCheck(I,rec.allowOverTriangleLimit).items:[],
   companion:rec.companion?{id:rec.companion.id,about:rec.companion.about,personality:rec.companion.personality,dialogue:rec.companion.dialogue,dialogueLineCount:rec.companion.dialogueLineCount,recordedLineCount:rec.companion.recordedLineCount,missingVoiceLines:rec.companion.missingVoiceLines,originalPackage:rec.sourceFileName,voiceAndMotionFiles:'Included only in original .vrcompanion transfer'}:null,
   placement:rec.placement||null,licence:{source:rec.licence?.source||'',type:rec.licence?.type||'',noAI:rec.licence?.noAI},
   note:'Local test import from Developer Tools > NPCs. Not in the live game. Check the licence before committing; a licensed or unknown-licence model never goes into the public repository; a No AI model is processed locally only (never Meshy or any AI tool).'};}
@@ -869,7 +877,7 @@
    if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}
    return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play="'+CSS.escape(e.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}
   if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});
-   if(r.info&&!X().importCheck(r.info).ok){Gd.clear(sc);return null;}
+   if(r.info&&!X().importCheck(r.info,r.allowOverTriangleLimit).ok){Gd.clear(sc);return null;}
    if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});
    if(!L.source)needs.push({sel:'[data-npc-lic="source"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic="type"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai="true"]',text:'answer “No AI licence?”'});
    return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}

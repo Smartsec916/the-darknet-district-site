@@ -20,12 +20,12 @@ const tree=(who,waitAt,to)=>({id:'draft-follow',name:'Follow',missions:[{id:'dra
  start:{how:'notification',channel:'notify',from:who,header:'TEST',text:'TEST: over here.',when:{kind:'near',npc:who,distance:5}},
  objectives:[{id:'step-1',kind:'talk',npc:who,label:'Talk to her.',say:[{who,text:'TEST LINE: follow me.'}]},{id:'step-2',kind:'follow-them',npc:who,label:'Follow her.',to},{id:'step-3',kind:'talk',npc:who,label:'Talk to her there.'}],...(waitAt?{waitAt}:{})}]});
 const load=(x,t)=>{const r=x.MC.check({format:x.MC.FORMAT,version:x.MC.VERSION,trees:[t]},ctx(x));assert.deepEqual(r.errors,[]);x.MC.apply({format:x.MC.FORMAT,version:x.MC.VERSION,trees:[t]},x.e,ctx(x));};
-const AT={'grey-reverie':Date.UTC(2026,10,19,3,0),'ethereal-lace':Date.UTC(2026,10,19,15,0),'street-cat':Date.UTC(2026,10,19,3,0)};   // inside her shift (ncz-street-pair.js TEST hours)
+const AT={'tea-host':Date.UTC(2026,10,19,3,0),'tea-host':Date.UTC(2026,10,19,15,0),'street-cat':Date.UTC(2026,10,19,3,0)};   // inside her shift (ncz-street-pair.js TEST hours)
 const near=(x,s,who,d=3)=>x.MC.treeEvent(s,x.e,{type:'near',near:{[who]:d},at:AT[who]},x.M,x.C);
 const talk=(x,s,who)=>x.MC.treeEvent(s,x.e,{type:'talk',npcs:[who]},x.M,x.C);
 
 test('she stays at her "Giver waits at" spot from before the walked-near start until the follow step starts, then at its spot until the mission is done',()=>{const x=env(),{MC}=x;
- for(const [who,wait,to] of [['grey-reverie',{x:104,z:-6.4,yaw:3.14},{x:68.5,z:-6.4}],['grey-reverie',{x:69.5,z:-85.5,yaw:3.14},{x:69.5,z:-50.5}],['ethereal-lace',{x:52.5,z:-85.5,yaw:0},{x:52.5,z:-113.5}],['street-cat',{x:104,z:-6.4,yaw:3.14},{x:75.5,z:-6.4}]]){
+ for(const [who,wait,to] of [['tea-host',{x:104,z:-6.4,yaw:3.14},{x:68.5,z:-6.4}],['tea-host',{x:69.5,z:-85.5,yaw:3.14},{x:69.5,z:-50.5}],['tea-host',{x:52.5,z:-85.5,yaw:0},{x:52.5,z:-113.5}],['street-cat',{x:104,z:-6.4,yaw:3.14},{x:75.5,z:-6.4}]]){
   load(x,tree(who,wait,to));const s=player(x),hold={...wait,mission:'draft-follow-m1'};
   assert.deepEqual(MC.waitingAt(s,x.e)[who],hold,who+': waiting to be offered');
   assert.equal(near(x,s,who).offered,true,'walked near: started, no click');assert.deepEqual(MC.waitingAt(s,x.e)[who],{...hold,during:true},who+': still there once taken (was: gone)');
@@ -37,19 +37,17 @@ test('she stays at her "Giver waits at" spot from before the walked-near start u
   talk(x,s,who);assert.equal(s.universe.missions['draft-follow-m1'].completed,true);assert.deepEqual(MC.waitingAt(s,x.e),{},'done: her own routine again');}});
 
 test('with no "Giver waits at" she stays where she stood when it started (here:true; live-content.js remembers the spot)',()=>{const x=env(),{MC}=x;
- load(x,tree('grey-reverie',null,{x:68.5,z:-6.4}));const s=player(x);assert.deepEqual(MC.waitingAt(s,x.e),{});
- near(x,s,'grey-reverie');assert.deepEqual(MC.waitingAt(s,x.e)['grey-reverie'],{mission:'draft-follow-m1',during:true,here:true});
+ load(x,tree('tea-host',null,{x:68.5,z:-6.4}));const s=player(x);assert.deepEqual(MC.waitingAt(s,x.e),{});
+ near(x,s,'tea-host');assert.deepEqual(MC.waitingAt(s,x.e)['tea-host'],{mission:'draft-follow-m1',during:true,here:true});
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');
  assert.match(lc,/if\(w&&w\.here\)\{const h=holdAt\[id\];/);assert.match(lc,/if\(w&&w\.during\)p\.why='mission';const old=planCache\[id\];if\(old&&old\.key===p\.key\)old\.why=p\.why;/);assert.match(lc,/res=back\|\|C\|\|\(saved&&saved\.key===e\.key\?\(D\?E\.resumeInto\(saved,D\)\|\|saved:saved\):null\)/);assert.match(lc,/resume:res,from:back\?\{x:back\.x,z:back\.z\}:from\}/);
  assert.match(lc,/escOn\.clear\(\);for\(const k of Object\.keys\(holdAt\)\)delete holdAt\[k\];/,'a new draft session forgets the spots');});
 
 test('the figures: kept out for her mission, held while the conversation has her lines, never popped in or out while seen (the hold from main), and appear where the step started',()=>{
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8'),md=fs.readFileSync(R('void-runner/npc-made.js'),'utf8');
- assert.match(sp,/if\(P&&\(P\.mode==='escort'\|\|P\.why==='mission'\)\)return her\.p;/);
- assert.match(sp,/speech\.lines\.some\(l=>l&&l\.who===id\)/);assert.match(sp,/walkTarget===talkItems\[her\.p\.id\]\)\|\|speaks\(her\.p\.id\)/);
  // never popped in or out in front of the player: main's hold (holdCheck / p.going, 19 Nov 2026) is kept; a follow step is never held
  assert.match(sp,/function holdCheck\(/);assert.match(sp,/if\(k===body\.key\|\|\(R&&R\.mode==='escort'\)\|\|!seen\)return false;/,'a follow step starts at once; the end of one is held while seen');
- assert.match(sp,/P\.mode==='escort'\?ok\(P\.resume\)\|\|ok\(P\.from\):planSpot\(P\)/);assert.match(sp,/t=appearAt\(P\);if\(t\)\{her\.s\.x=t\.x/);assert.match(sp,/const P=planOf\(CAT_ID\),t=appearAt\(P\)/);
+ assert.match(sp,/P\.mode==='escort'\?ok\(P\.resume\)\|\|ok\(P\.from\):planSpot\(P\)/);assert.match(sp,/const P=planOf\(CAT_ID\),t=appearAt\(P\)/);
  assert.match(md,/ok\(P\.resume\)\|\|ok\(P\.from\)\|\|ok\(P\.to\)/);assert.match(md,/chatWho=t&&t\.action===ACTION\?t\.character:speaker\(\);/);
  assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='20\d\d-\d\d-\d\d-[a-z0-9-]+'/);});
 

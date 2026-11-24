@@ -118,14 +118,8 @@
  // Studio 3: Dex's dances (Meshy library hip hop and groove moves, Kai's samba, his own loop), retargeted onto his licensed rig on our own machine (his model never goes
  // to Meshy or any AI tool: CGTrader "No AI" licence). Studio 4: Auburn's own Meshy rig, club dances from the Meshy library. Clip names are in crowd.js.
  const DANCES={dex:['dance-hiphop','dance-hiphop-2','dance-hiphop-3','dance-groove','dance-bass','dance-samba','dance'],auburn:['dance-allnight','dance-shake','dance-lovepop','dance-denim','dance-omg']};
- // Always show in Milked Studio 1 the OTHER resident from the Avenue's real-time UTC shift.
- // Keep the same 00:00 and 12:00 boundaries as ncz-street-pair.js, independent of save/game time. ms: the STREET clock (VoidStreetPair.streetTime: a draft test may simulate it).
- function studioOnePerformer(ms=root.VoidStreetPair?.streetTime?.()??Date.now()){
-  const street=root.VoidStreetPair?.onShift?.(ms)?.id||(new Date(ms).getUTCHours()<12?'grey-reverie':'ethereal-lace');
-  return {look:street==='grey-reverie'?'npc-ethereal-lace':'npc-grey-reverie',clips:['dance-groove','dance-bop','idle'],dances:['dance-groove','dance-bop'],library:null};
- }
  const STUDIOS=[
-  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{...studioOnePerformer(),id:'milked-dancer-1'}},
+  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:null},
   {n:2,room:'studio-2',light:'green',theme:'fern',window:[90,92.4],door:[92.55,93.35],dancer:{id:'milked-dancer-2',look:'studio-warrior',file:'studio-warrior.vrpak',clips:['slow-dance','dance','idle'],library:'ac-sensual-movement-1'}},
   {n:3,room:'studio-3',light:'mixed',theme:'arcade',window:[86.6,89],door:[85.65,86.45],dancer:{id:'milked-dancer-3',look:'vr-companion-bm',clips:['dance-hiphop','dance','idle'],library:'ac-stand-curve-2',dances:DANCES.dex}},
   {n:4,room:'studio-4',light:'mixed',theme:'mirror',window:[90.6,93],door:[89.65,90.45],dancer:{id:'milked-auburn',name:'Auburn',look:'npc-milked-auburn',clips:['dance-allnight','dance','idle'],library:'ac-stand-curve-3',dances:DANCES.auburn}}];   // Auburn: the owner's own Meshy model (an adult woman of 21, his statement of 18 Nov 2026)
@@ -174,7 +168,7 @@
  const gateAtLocal=p=>{if(!p)return null;for(const g of Object.values(GATES))if(inRect(g.zone,p.x,p.z))return g;return null;};
  // Which doors an environment may open ('street' or the interior).
  const openable=(d,area)=>d.side===(area===AREA?'interior':'street');
- const LOCAL={studioOnePerformer,STAFF_DOOR,CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,DANCES,danceTurn,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
+ const LOCAL={STAFF_DOOR,CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,DANCES,danceTurn,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
 
  // ---- the same things in WORLD metres: what the rest of the game reads ----
  const [OX,OZ]=OFFSET;
@@ -209,6 +203,6 @@
  const OLD_BLOCK=[FOOTPRINT[0]-1,Math.max(LANE[1],ALLEY[1])+1,FOOTPRINT[2]-4,LANE[3]+1];
  const fromOld=(x,z)=>inRect(OLD_BLOCK,x,z)?[x+OX,z+OZ]:null;
 
- const api={studioOnePerformer,STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,DANCES,danceTurn,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
+ const api={STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,DANCES,danceTurn,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMilked=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
