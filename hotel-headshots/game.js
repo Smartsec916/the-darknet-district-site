@@ -112,7 +112,20 @@
   if(result.fired)sound(90,.12,'sawtooth',.18,35);
   if(result.hit){run.caught=true;run.ended=true;$('hurt').style.opacity='.7';sound(65,.4,'triangle',.15,30);end();}
  }
- function attract(time,dt=0){const phase=Math.floor(time/7)%4,shots=[[28.8,6,0,'CHECK IN. HOLD ON TO YOUR WALLET.'],[34,64.8,-1.57,'POOL ACCESS · SURPRISE FEES INCLUDED'],[49,9,.8,'COMPLIMENTARY BREAKFAST. COSTLY COMPANY.'],[36,36,0,'AIM HIGH · KEEP MOVING · FIND THE STAIRS']];const [x,z,a,caption]=shots[phase];art.camera.position.set(x,1.68,z);art.camera.rotation.set(phase===3?-.025:.03,a+Math.sin(time*.2)*.1,0);frame.classList.toggle('attract-tour',phase!==0);$('attract-caption').textContent=caption;gun.setEnabled(phase===3);gun.position.y=-.12;if(phase===3){const n=npcs[0];if(n){n.view.node.position.set(36,0,41);n.view.node.rotation.y=0;n.retreat=false;n.resistance=10000;n.view.activity={kind:'stand'};}const shot=Math.floor(time/1.2);if(shot!==attractShot&&dt>0){attractShot=shot;run.ammo=48;releaseShot();}}for(const n of npcs){n.shield=Math.max(0,n.shield-dt);n.view.animate(dt,0,n.shield>0);}projectiles(dt);}
+ function attract(time,dt=0){
+  const phase=Math.floor(time/7)%4,local=time%7,shots=[[28.8,6,0,'CHECK IN. HOLD ON TO YOUR WALLET.'],[34,64.8,-1.57,'POOL ACCESS · SURPRISE FEES INCLUDED'],[49,6,.95,'COMPLIMENTARY BREAKFAST. COSTLY COMPANY.'],[36,36,0,'AIM HIGH · KEEP MOVING · FIND THE STAIRS']];
+  const [x,z,a,caption]=shots[phase];art.camera.position.set(x,1.68,z);art.camera.rotation.set(phase===3?-.025:phase===1?.16:.03,a+(phase===3?0:Math.sin(time*.2)*.06),0);frame.classList.toggle('attract-tour',phase!==0);$('attract-caption').textContent=caption;gun.setEnabled(phase===3);gun.position.y=-.12;
+  // Reuse the real guest models in isolated, staged demo vignettes. Starting a run rebuilds all residents.
+  for(const n of npcs)n.view.node.setEnabled(false);
+  const actor=(i,x,z,kind,rotation=0,speed=0,guard=false)=>{const n=npcs[i];if(!n)return;n.view.node.setEnabled(true);n.view.node.position.set(x,0,z);n.view.node.rotation.y=rotation;n.retreat=false;n.resistance=10000;n.activity=kind;n.shield=guard?1:0;n.view.guardStyle=(i+Math.floor(local/2))%3;n.view.activity={kind};n.view.time=time+i*.7;n.view.walkTime=time*Math.max(.35,speed/1.45);n.view.animate(dt,speed,guard);};
+  if(receptionist){receptionist.node.setEnabled(phase===0);receptionist.animate(dt,0,false);}
+  if(phase===0){actor(0,25.8+local*.35,8.2,'stand',Math.PI/2,.8);actor(1,31.7,10.8-local*.15,'stand',0,.55);}
+  if(phase===1){actor(0,26.5+Math.sin(local*.65),64.2,'swim',Math.cos(local*.65)>0?Math.PI/2:-Math.PI/2);actor(1,23.8+Math.sin(local*.65+2),65.6,'swim',Math.cos(local*.65+2)>0?Math.PI/2:-Math.PI/2);actor(2,31.2,66.6-local*.2,'stand',0,.65);}
+  if(phase===2){actor(0,52.8,9.6,'eating');actor(1,57.6,9.6,'eating');actor(2,61,6.5+local*.25,'stand',Math.PI,.65);}
+  if(phase===3){for(let i=0;i<3;i++)actor(i,36+(i===1?-.9:i===2?.9:0),42+i*1.2-local*.3,'stand',0,1.2,(local+i*.45)%1.8>.6);const shot=Math.floor(time/1.2);if(shot!==attractShot&&dt>0){attractShot=shot;run.ammo=48;releaseShot();}}
+  projectiles(dt);
+ }
+
  function update(dt){if(!art.readyState)return;ambientTime+=dt;art.update(dt);if(mode!=='playing'){if(mode==='title'){attract(ambientTime,dt);}return;}
   run.time+=dt;shotTimer=Math.max(0,shotTimer-dt);recoil=Math.max(0,recoil-dt*6);music(dt);
   const forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS')),side=Number(keys.has('KeyD'))-Number(keys.has('KeyA')),length=Math.hypot(forward,side)||1,speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?5.8:3.6)*dt;

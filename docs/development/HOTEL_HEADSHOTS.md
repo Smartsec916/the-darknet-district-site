@@ -167,3 +167,10 @@ Presentation and District-host checks passed: sponsor logo/fades, fresh-run bala
 The owner requested a cabinet theme drawn from the game. Reused the original flower-and-bee painting atlas already displayed throughout the hotel: a framed front panel and two side panels, walnut-grain control deck and trim, aged brass around the screen, muted rose/gold marquee accents, and a THE GRAND LIABILITY / FIVE FLOORS · NO REFUNDS plaque. The coin slot sits below the artwork. Existing screen, attract loop, controls, footprint and launch action remain functional. This adds one reused atlas texture and small decorative meshes; other cabinets are unchanged. Build 2026-11-24-hotel-headshots-19. Node suite: 1,181 passed, one skipped.
 
 Cabinet integration validation: character creation, Sleeping Pod exit, Hotel Headshots launch, sponsor/start sequence, and return to the District passed without page errors. Full-cabinet preview is captured by `node tests/hotel-headshots-district-browser.cjs --cabinet-only`.
+
+
+## 24 Nov 2026 — populated attract scenes
+
+The attract loop now stages animated guests in every vignette: receptionist and passing lobby guests; two swimmers and a poolside walker; two diners and a passing dining guest; three approaching pursuers cycling the three real guard poses. It reuses existing guest models and animation code. Demo actors are isolated from gameplay and rebuilt with normal residents on CHECK IN. The dining camera is framed to include the seated guests. The cabinet's 16-frame capture is regenerated from these scenes; capture checks verify guest counts, swimming/eating activity, and movement toward the camera. Build 2026-11-24-hotel-headshots-20.
+
+Validation: final 16-frame strip visually inspected; all four scenes show guests. Browser checks passed for guest counts, swimming/eating poses, approaching pursuers, sponsor transition, and restoration of normal enabled residents/resistance on start. Node suite: 1,181 passed, one skipped; cabinet artwork remains within the existing size budget.
