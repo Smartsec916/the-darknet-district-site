@@ -147,3 +147,16 @@ Foam now follows a gravity-driven 3D arc instead of a straight ray. Launch speed
 
 Validation: 1,179 Node tests passed (one skipped). The live ballistics check confirmed visible downward travel and a floor splatter before the distant corridor wall; ammo consumption and projectile cleanup passed.
 The full browser regression also passed: live projectile headshot, three shield poses, theft/refill, all five floors, police ending, restart, persistent scores and 4:3 rendering. The firing check now waits for actual shot release and impact rather than a fixed wall-clock delay.
+
+
+## 24 Nov 2026 — liquid drips, attract tour and Milked sponsor
+
+Impacts leave opaque, glossy white streaks with slowly descending drops instead of alpha-fading clouds. Streak origins track animated NPC hit regions while flow remains world-down. Floor hits spread into shallow puddles; ceiling drops fall. Effects drain/shrink away after nine seconds, with a hard cap of 72 drops / 144 simple meshes. This is a lightweight visual approximation, not fluid simulation or skinned-surface fluid adhesion.
+
+The title now tours reception, pool, dining and a live firing/blocking demonstration. The District cabinet uses 16 captured 4:3 frames from those scenes, letterboxed inside its existing screen; its poster uses the same real capture. `tests/hotel-headshots-presentation-browser.cjs` owns capture so ordinary gameplay regressions do not overwrite it.
+
+CHECK IN fades to black, shows THIS GAME IS SPONSORED BY with Milked's established pink wordmark / three white droplets (standalone SVG recreation of the existing canvas logo), then fades into the lobby after assets are ready. Simulation and money are held during the intro; releasing capture during it pauses on entry. Restart uses the same sequence.
+
+Validation: 1,181 Node tests passed, one skipped; full five-floor gameplay browser regression passed. Dedicated tests cover downward flow, moving NPC regions, opacity, floor pooling, cleanup and the effect budget. Generated admin inventory refreshed because it fingerprints the District source. No deployment or production API/save changes.
+
+Presentation and District-host checks passed: sponsor logo/fades, fresh-run balance, NPC liquid creation, character creator, Sleeping Pod exit, cabinet launch and return. The 16-frame strip stays below the existing 200 KB budget. Local test hosting now serves SVG with the correct image MIME type. Visual captures: `.test-temp/hotel-headshots/milked-sponsor.png`, `liquid-npc.png`, and `cabinet.png`.
