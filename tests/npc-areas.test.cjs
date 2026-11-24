@@ -89,7 +89,8 @@ test('Corporate District and the Temple take Reverie, Lace, the cat and made cha
  assert.equal(A.check({x:30,z:-55},null,undefined,{adult:true,made:true}).area,'oldtown');assert.equal(A.here('milked').join(),'milked');});
 
 test('the server’s copy of the areas (admin inventory) matches npc-areas.js',()=>{const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths;
- assert.deepEqual(inv.areas,JSON.parse(JSON.stringify(A.inventory())));for(const id of Object.keys(P.MOVABLE))assert.deepEqual(inv.movable[id].areas,A.IDS);});
+ assert.deepEqual(inv.areas,JSON.parse(JSON.stringify(A.inventory())));for(const id of Object.keys(P.MOVABLE))assert.deepEqual(inv.movable[id].areas,id==='dax'?['district']:A.IDS);
+ assert.equal(inv.movable.dax.adult,true);});
 
 test('follow / lead / cab steps (npc-escort.js) happen in the area she is placed in for the mission: spots there, cab stops in its quarter',()=>{
  const E=require(R('void-runner/npc-escort.js')),alley=place('oldtown-alley-mouth'),ot=E.placedArea(REV,{waitAt:alley});assert.equal(ot,'oldtown');assert.equal(E.placedArea(REV,{plan:{mode:'stay',...place('outskirts-yard')}}),'outskirts');assert.equal(E.placedArea(REV,{}),'avenue');

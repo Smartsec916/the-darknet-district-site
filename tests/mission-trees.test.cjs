@@ -169,8 +169,10 @@ test('the NPC roster lists every registered NPC and keeps TALK as a capability r
  assert(by('admin').players&&by('admin').draft);assert(by('rook').draft&&!by('rook').players,'nobody reaches Meridian until a mission grants a ship (the beginner campaign is retired)');assert(!by('elara').players&&by('elara').draft);
  assert(!by('rin-takeda').canTalk&&!by('vr-ava').canTalk&&!by('elias').canTalk,'figures, companions and a recording still correctly report no walking TALK prompt');
  assert(!g.some(x=>['news-anchor','commercial-announcer'].includes(x.id)),'broadcast voices are not givers');
+ assert.deepEqual(by('dax').targets,[{action:'district-dax',character:'dax'}]);
+ assert(by('dax').canTalk&&by('dax').players&&by('dax').draft);
  // every TALK target named here exists in the game's own layouts and handlers
- const files=['neochinatown.js','meridian-interior.js','station-layouts.js','planets.js','milked-integration.js','temple.js','opening-data.js','ncz-street-pair.js','npc-made.js'].map(f=>fs.readFileSync(R('void-runner/'+f),'utf8')).join('\n');
+ const files=['neochinatown.js','meridian-interior.js','station-layouts.js','planets.js','milked-integration.js','temple.js','opening-data.js','ncz-street-pair.js','npc-made.js','dax.js'].map(f=>fs.readFileSync(R('void-runner/'+f),'utf8')).join('\n');
  for(const x of g)for(const t of x.targets){assert(files.includes("'"+t.action+"'")||files.includes('action:\''+t.action),x.id+' action '+t.action);if(t.character&&!['elara','marcus'].includes(t.character))assert(files.includes("'"+t.character+"'"),x.id+' character '+t.character);}
  assert.deepEqual(G.placesNow({walk:'neochinatown',area:'street',quarter:'far-south'}),['far-south']);assert.deepEqual(G.placesNow({walk:'neochinatown',area:'interior'}),['district']);assert.deepEqual(G.placesNow({location:'meridian',docked:true}),['meridian']);
  assert.deepEqual(G.whoAt(g,'talk','rook'),['rook']);assert.deepEqual(G.whoAt(g,'district-bar'),['bartender','nyx-district']);

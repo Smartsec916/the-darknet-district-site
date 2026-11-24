@@ -989,7 +989,7 @@
  async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;fresh();const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
   write(back||RETURN,{tree:ui.tree,mission:ui.mission,step:null,npc:npc||null,at:Date.now()},root.sessionStorage);
   const r=await root.VoidDevTest.session({banner:'VIEWING: '+(label||'a spot')+' — not your real save',leave:'LEAVE',kind:'draft',
-   apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
+   apply:()=>{if(c.ok){root.VoidLiveContent?.useDraft(content);if(npc==='dax')root.VoidDax?.previewAt(opts.minute);}},
    build:()=>{jumpTo.notes=streetClock([npc]);const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
    clock:clockText,enter:async()=>{state.location='earth';
