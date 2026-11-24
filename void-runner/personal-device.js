@@ -41,14 +41,14 @@
   return '<img class="pd-portrait" alt="Portrait of '+esc(p.name)+'" data-pk="'+esc(p.portrait.key)+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="112" height="112">';
  }
  /* Achievements on a profile (the owner, 15 Nov 2026): three shown, the hardest (and anything bought with real money) first; VIEW ALL opens the rest, and the list can be put
-    in order of most recent, difficulty or type. A resident's come from district-people.js; a player's come from the server's verified records, which do not exist yet,
-    so players show none for now (achievements.js: the browser never grants one). */
+    in order of most recent, difficulty or type. NPC records come from district-people.js; player Hotel Headshots records come from the account API. */
+ root.addEventListener('hotel-account-change',()=>{if(open)render({keepScroll:true});});
  const achView=new Map();   // profile key -> {open, sort}
- function achievementsHtml(p){const A=root.VoidAchievements,P=DP();if(!A?.profileList||p.kind!=='npc')return '';const held=P?.achievementsOf?.(p.key.slice(4))||[];if(!held.length)return '';
+ function achievementsHtml(p){const A=root.VoidAchievements,P=DP();if(!A?.profileList)return '';const held=p.kind==='npc'?(P?.achievementsOf?.(p.key.slice(4))||[]):(root.HotelAccount?.profile(p.name)?.achievements||[]);if(!held.length)return '';
   const v=achView.get(p.key)||{open:false,sort:'featured'},list=A.profileList(held,v.sort),shown=v.open?list:list.slice(0,A.SHOWN),day=t=>t?new Date(t).toISOString().slice(0,10):'';
   return '<div class="pd-ach"><h4>ACHIEVEMENTS · '+list.length+'</h4>'
    +(v.open?'<label class="pd-achsort">ORDER <select data-ach-sort="'+esc(p.key)+'">'+A.SORTS.map(([id,label])=>'<option value="'+id+'"'+(id===v.sort?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select></label>':'')
-   +shown.map(a=>'<div class="pd-achrow"><b>'+esc(a.icon||'◆')+'</b><div><strong>'+esc(a.name)+'</strong><small><span class="pd-stars" role="img" aria-label="Difficulty '+a.difficulty+' of 5">'+A.stars(a.difficulty)+'</span>'+(a.paid?' · Real purchase':'')+' · '+esc(a.category)+(a.at?' · '+day(a.at):'')+'</small></div></div>').join('')
+   +shown.map(a=>'<div class="pd-achrow"><b>'+esc(a.icon||'◆')+'</b><div><strong>'+esc(a.name)+(a.score!==null?' · $'+a.score.toLocaleString():'')+'</strong><small><span class="pd-stars" role="img" aria-label="Difficulty '+a.difficulty+' of 5">'+A.stars(a.difficulty)+'</span>'+(a.paid?' · Real purchase':'')+' · '+esc(a.category)+(a.at?' · '+day(a.at):'')+'</small></div></div>').join('')
    +(list.length>A.SHOWN?'<button type="button" class="pd-achmore" data-ach-more="'+esc(p.key)+'" aria-expanded="'+v.open+'">'+(v.open?'SHOW FEWER ▴':'VIEW ALL '+list.length+' ▾')+'</button>':'')+'</div>';}
  function profileCard(p,opts={}){
   return '<article class="pd-card"><div class="pd-prof">'+portraitHtml(p)+'<div style="flex:1;min-width:150px"><h3>'+esc(p.name)+'</h3>'+(p.subtitle?'<div class="pd-note">'+esc(p.subtitle)+'</div>':'')+'<p>'+esc(p.bio)+'</p>'

@@ -3,3 +3,6 @@
 h1 em{text-shadow:0 0 25px #2dcbd133,3px 2px 0 #c8328455}.hotel-seal{border-color:#df4b9b66;border-radius:0;transform:rotate(4deg);background:#15142a88}.tagline{font-family:monospace;font-size:20px}.primary{box-shadow:5px 5px 0 #b3368255}.rule{width:150px}.menu-content .eyebrow{color:#e466b7}
 
 #sponsor{position:absolute;inset:0;z-index:40;background:#000;display:grid;place-items:center;opacity:0;pointer-events:auto}#sponsor[hidden]{display:none}#sponsor div{text-align:center;opacity:0}#sponsor p{color:#ddd;font:16px monospace;letter-spacing:.22em;margin-bottom:30px}#sponsor img{object-fit:contain}#attract-caption{position:absolute;bottom:30px;right:35px;max-width:420px;text-align:right;color:#fff;font:700 18px monospace;text-shadow:0 2px 5px #000;pointer-events:none}.attract-tour .menu-content{background:#05070bd9;padding:22px;transform:scale(.72);transform-origin:top left}.attract-tour .hotel-seal{display:none}
+
+/* Keep account boards and actions inside the fixed 4:3 frame. */
+.dialog-content{max-height:690px;overflow:auto}#dialog-actions{flex-wrap:wrap}#global-scores{max-height:340px;overflow:auto}.dialog-content a,.fineprint a{color:#60edf2}

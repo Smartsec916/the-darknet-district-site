@@ -413,7 +413,7 @@
       "follow"
     ]
   },
-  "revision": "f671226f9fb359d7",
+  "revision": "d6c839ab077aa28e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14146,19 +14146,19 @@
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 26,
+      "line": 27,
       "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type=\"button\" data-hud-character=\"'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'\">CONVERSATIONS</button></div></article>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 31,
+      "line": 32,
       "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-filters\">'+filterButtons+(socialCharacter?'<button type=\"button\" data-hud-character=\"\">CLEAR CHARACTER</button>':'')+'</div><div class=\"social-thread\" aria-label=\"Conversation history\">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 32,
+      "line": 33,
       "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
       "kind": "source-reference"
     },
@@ -15948,7 +15948,7 @@
   "warnings": [],
   "sources": {
     "void-runner/account.js": "ab3f6e8a5e42651cddb4e84975b5341f0fda57b3e0d4a2ce079b1848e89806a4",
-    "void-runner/achievements.js": "cab7955857b96a393717d17d68d61229f478a28dbf407c7c9f65cf0ff8cfb067",
+    "void-runner/achievements.js": "3a44ec55663a40473f107997c8ec67fe3b001cfc6e4ca40d5a983526a96fe88b",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "bbdb0ddd518b7abf30b85125f2a1aaa7a54331626581a23ea7282f4b4512c47a",
     "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
@@ -15996,7 +15996,7 @@
     "void-runner/dev-tools.js": "28f2d3d80f905f5ebe5abe4934d34e3a45e248510b949b7547bdf85097f9a54a",
     "void-runner/device-camera.js": "b73c339368effd4afb11ca89470e6c122d8efd7887c75c150f515508a5d91506",
     "void-runner/device-gallery.js": "f3c1e528a3d28a466b6c8166cd98eb09a731d7b0127d080809608e5560f18b2c",
-    "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
+    "void-runner/device-gate.js": "69755eb313451dfdc5b9079e21610d4d6283c3142336aa345edd2733e8f07598",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
     "void-runner/device-v1.js": "fe32021bdece5cd2d8181fdd8398c0dfab816dd0a9471c75d4dfde7113c1c579",
     "void-runner/district-arcade.js": "454e312bdeb4c7393d0e61b66ffd501b32a496a013e60308d6b27a4fe32e9726",
@@ -16035,6 +16035,7 @@
     "void-runner/guide-route.js": "6b4a239286230724187c938153c4802032b7a3f847ea1af07ef33e34555adc6b",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
+    "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
@@ -16044,7 +16045,7 @@
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/main-story.js": "b50cf927deec8fc0c7e5b39e53424034eaeb9ae6d50e7c362508879655029dbb",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
-    "void-runner/menu.js": "e33945c3801486b0491f33a7253a44179550127b1efd02dab139be6b61082627",
+    "void-runner/menu.js": "5f98209db659e6b16a32fc4c1d6f5d86d1bb79373dd43ba55bff7c83e8323ed3",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
     "void-runner/meridian-interior-kit.js": "8ba96cf08df03ca3ae29397f5f71cbb20f4402195c6686ff120320ec81d1f846",
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",
@@ -16084,8 +16085,8 @@
     "void-runner/npc-look.js": "cc2d498066154935427bd4f52b5d2f0ad53360c5036dc3c95a1165882a6f9357",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
-    "void-runner/personal-device.js": "c76ebafbc10161c6639ce3c4afc835b1a08011f96cbdd70c8300786143ca6c57",
-    "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
+    "void-runner/personal-device.js": "d19d86255ed37dcf603a59ef183de8291308e3fe0606ad41a684c1e7c4b1dcd1",
+    "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "9ffa3ef07bad24d27dedb8d79fdea41fb3f57c97b1bfd0d134824bfde4a12412",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

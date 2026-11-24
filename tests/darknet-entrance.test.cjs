@@ -15,19 +15,19 @@ test('the existing homepage uses the readable green ENTER link and does not repl
 test('the homepage does not promise working multiplayer',()=>{
  assert.doesNotMatch(read('index.html'),/\bmultiplayer\b|\bother players\b/i);
 });
-test('the games page lists the District game under its own name, never as the old Void Runner card (the owner, 15 Nov 2026)',()=>{
+test('the games page calls the game Void Runner again (owner correction, 24 Nov 2026)',()=>{
  for(const f of ['games-list.html','static/games-list.html']){
   const page=read(f);
-  if(f==='games-list.html'){assert.match(page,/href="void-runner\.html">\s*<h3>The Darknet District - Game<\/h3>/);assert.doesNotMatch(page,/<h3>[^<]*VOID\/\/RUNNER/i);}else assert.doesNotMatch(page,/href="void-runner\.html"/);
+  if(f==='games-list.html'){assert.match(page,/href="void-runner\.html">\s*<h3>Void Runner<\/h3>/);assert.doesNotMatch(page,/<h3>The Darknet District - Game/i);}else assert.doesNotMatch(page,/href="void-runner\.html"/);
   for(const game of ['/origins/index.html','blackout-protocol/','raven.html'])assert.ok(page.includes('href="'+game+'"'),f+' '+game);
  }
  for(const f of ['void-runner.html','static/void-runner.html','void-runner-sw.js','void-runner-backdrop.js','void-runner/game.js','void-runner/save-manifest.json'])assert.ok(fs.existsSync(f),f);
 });
-test('game entrypoint displays The Darknet District, while internal filenames remain stable',()=>{
+test('game entrypoint displays Void Runner, while internal filenames remain stable',()=>{
  const html=read('void-runner.html'),menu=read('void-runner/menu.js');
- assert.ok(html.includes('THE DARKNET<br>DISTRICT'));
+ assert.ok(html.includes('VOID<br>RUNNER'));
  assert.ok(html.includes('void-runner/game.js'));
  assert.ok(read('void-runner/game.js').includes('SAVE_KEY'));
  assert.equal(html,read('static/void-runner.html'));
- assert.doesNotMatch(menu,/VOID\/\/RUNNER/);
+ assert.ok(menu.includes('VOID<br>RUNNER'));assert.ok(html.includes('<title>Void Runner</title>'));
 });

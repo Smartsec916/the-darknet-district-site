@@ -27,7 +27,7 @@ test('the cabinet runs the real game page in a frame and never reaches into it; 
 test('every game page offers a way back to the website, and inside the District arcade the way out is EXIT GAME',()=>{
  const ret=fs.readFileSync('site-return.js','utf8');assert.match(ret,/games-list\.html/);assert.match(ret,/window\.top!==window\.self/,'nothing is shown inside the arcade frame');
  for(const f of ['hotel-headshots/index.html','blackout-protocol/index.html','corporate-zombies/index.html','underground-overdrive/index.html','origins/index.html','raven.html','void-runner.html'])assert.match(fs.readFileSync(f,'utf8'),/site-return\.js/,f);
- assert.match(fs.readFileSync('void-runner/district-arcade.js','utf8'),/>EXIT GAME · RETURN TO THE DARKNET DISTRICT</);assert.match(fs.readFileSync('site-return.js','utf8'),/RETURN TO THE DARKNET DISTRICT/);assert.match(fs.readFileSync('games-list.html','utf8'),/href="void-runner\.html">\s*<h3>The Darknet District - Game<\/h3>/);
+ assert.match(fs.readFileSync('void-runner/district-arcade.js','utf8'),/>EXIT GAME · RETURN TO THE DARKNET DISTRICT</);assert.match(fs.readFileSync('site-return.js','utf8'),/RETURN TO THE DARKNET DISTRICT/);assert.match(fs.readFileSync('games-list.html','utf8'),/href="void-runner\.html">\s*<h3>Void Runner<\/h3>/);
 });
 
 test('a working cabinet shows its own game: an attract strip and a poster picture exist for every playable game, and the light-gun game has guns',()=>{
