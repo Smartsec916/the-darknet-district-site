@@ -205,7 +205,7 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'interactions', 'characters', 'zones', 'rookFreight']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'interactions', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
     if 'rookFreight' in content:
         import void_runner_freight as freight
