@@ -311,7 +311,7 @@
  function socialTravelPolicy(id,session){
   const f=env.interactions?.[id]?.advanced?.follow,tier=env.npcPlans?.[id]?.tier,s=social.get(id);
   if(!s||s.phase!=='active'||s.record!==f||session!=='social:'+id+':'+s.generation||!f?.districtTravel||![2,3].includes(tier)||missionBusy(id))return null;
-  return {enabled:true,tier,session,allowGate(npc,via,from,to){
+  return {enabled:true,tier,session,leg:s.leg||0,allowGate(npc,via,from,to){
    const Q=root.VoidQuarters,l=Q?.lane(via.slice(5)),g=l&&Q.gate(l.gate);
    const areas=[g?.ends?.lo?.quarter,g?.ends?.hi?.quarter].map(q=>q&&root.VoidNPCEscort.areaOfQuarter(q));
    return npc===id&&!!g&&!g.shut&&from!==to&&areas.includes(from)&&areas.includes(to);
@@ -319,8 +319,8 @@
  }
  function arriveSocial(id,session,from,point){
   const policy=socialTravelPolicy(id,session),s=social.get(id);
-  if(!policy||s.area!==from||!point?.area||!Number.isFinite(point.x)||!Number.isFinite(point.z))return false;
-  s.area=point.area;s.from={x:point.x,z:point.z};s.waitSince=null;carry[id]={...point,key:session};planAt=0;delete planCache[id];return true;
+  if(!policy||policy.leg!==point?.leg||s.area!==from||!point.area||!Number.isFinite(point.x)||!Number.isFinite(point.z))return false;
+  s.leg=policy.leg+1;s.area=point.area;s.from={x:point.x,z:point.z};s.waitSince=null;carry[id]={...point,key:session};planAt=0;delete planCache[id];return true;
  }
  function socialPlan(id){const s=social.get(id);if(!s||s.phase!=='active')return null;if(missionBusy(id)){endSocial(id,'preempt');return null;}const f=env.interactions?.[id]?.advanced?.follow,X=root.VoidNPCPaths;if(!f||f!==s.record||!X?.MOVABLE?.[id]){endSocial(id,'preempt');return null;}if(s.waitSince!=null&&Date.now()-s.waitSince>=f.maxWait*1000){endSocial(id,'timeout');return null;}
   const to=(f.place||f.role==='lead')?socialDestination(id,f):null;if((f.place||f.role==='lead')&&!to){endSocial(id,'cancel');return null;}

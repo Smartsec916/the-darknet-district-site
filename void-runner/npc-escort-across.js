@@ -42,14 +42,15 @@
    if(lane.kind!=='bay'||h.ride!=='in-cab'||!Array.isArray(o.spawn)||Math.hypot(h.x-me.x,h.z-me.z)>12)return null;
    const x=o.spawn[0],z=o.spawn[2];
    if(!Number.isFinite(x)||!Number.isFinite(z)||!R.mayEnter(h.npc,to,null).ok)return null;
-   return {area:to,x,z,yaw:o.yaw||0,phase:P.kind==='follow-them'?'walk':'follow',ride:'in-cab'};
+   return {area:to,leg:policy.leg,x,z,yaw:o.yaw||0,phase:P.kind==='follow-them'?'walk':'follow',ride:'in-cab'};
   }
   if(lane.kind!=='foot')return null;
   const via='gate:'+lane.key,link=R.linkById(via),dest=link?.ends?.[to]?.ahead;
   if(!dest)return null;
   const leg=P.leg||R.socialGateLeg(h.npc,{x:h.x,z:h.z,area:from},{...dest,area:to},{...policy,allowGate:(id,l,a,b)=>l===via&&policy.allowGate(id,l,a,b)});
   if(!leg||leg.via!==via||P.key!==policy.session)return null;
-  const at=R.socialGateCross(leg,{...h,area:from,key:P.key+':'+from+':'+via},{from,to,via,onFoot:true,riding:false,scanned:true,player:me},policy);
+  const key=P.key+':'+policy.leg+':'+from+':'+via;
+  const at=R.socialGateCross(leg,{...h,area:from,key},{from,to,via,key,onFoot:true,riding:false,scanned:true,player:me},policy);
   return at&&{...at,phase:P.kind==='follow-them'?'walk':'follow'};
  }
  function decide(id,o){const R=E(),C=LC(),A=AR();if(!R||!R.across||!C||!A||typeof walker==='undefined'||!walker)return;

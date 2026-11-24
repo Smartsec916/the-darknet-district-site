@@ -50,7 +50,7 @@ async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=
  const actual={id:'neochinatown',area:'street',quarter:from},walker={x:lane.mid[0],z:lane.mid[1]},point=riding?walker:link.ends[from].wait;
  const plan={mode:'escort',social:true,key:session,step:session,kind:'they-follow',area:from,set:{}};
  const actor={key:session,here:true,npc:id,...point,x:near?point.x:point.x-25,yaw:0,phase:'follow',ride:seated?'in-cab':null};
- const policy={tier,enabled:true,session,allowGate:(_id,_gate,a,b)=>[from,to].includes(a)&&[from,to].includes(b)};
+ const policy={tier,enabled:true,session,leg:0,allowGate:(_id,_gate,a,b)=>[from,to].includes(a)&&[from,to].includes(b)};
  let arrival=null,stay=null;
  const root={VoidQuarters:Q,VoidNPCEscort:E,VoidNPCAreas:A,VoidNPCPaths:X,VoidDistrictArea:{KEY:{street:'street'}},
   VoidRoadTaxi:{crossing:riding},VoidStreetPair:{live:()=>({escort:{[id]:actor}})},

@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "5ce7e33af3fbc40f",
+  "revision": "edcdd6ababe6bd06",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80227,7 +80227,7 @@
     },
     {
       "source": "void-runner/npc-escort-across.js",
-      "line": 78,
+      "line": 79,
       "text": "else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}",
       "kind": "source-reference"
     },
@@ -83082,7 +83082,7 @@
     "void-runner/item-catalog-editor.js": "3080629bfbce16879ef7be6332a47488a72a78f002761edaf197298be5f85ccb",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
-    "void-runner/live-content.js": "3ea073bdcb5a5b17c77f88c46a42b22f240d949d15a7b2456c90a4f0c691b5e3",
+    "void-runner/live-content.js": "19a52b5e8e455b72aa345dcc475c2ed849b1f3509b4be657ca138bba38cd708f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
@@ -83152,9 +83152,9 @@
     "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "78e6544639209c17033d70a0737a11c4134ff231439e33847b73aad49fca687f",
-    "void-runner/npc-escort-across.js": "c9286a216e971196d92f5e458958870c1d68df1e08b18742ac6e782cfa7c0296",
+    "void-runner/npc-escort-across.js": "f48a2fbf8c66912ef533f5cf19363e3ca589f0873e2448fdfc6a2e5a702aaf3a",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "23e451ad759b095143fca2d1c760dfd0a43a5ebf8979226231a7ccd4a03ac8d4",
+    "void-runner/npc-escort.js": "d15bb124039471cd324fbed9f9114e220ae0600025cb6a9c2a0d550dad967ab0",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
