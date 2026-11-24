@@ -15,7 +15,7 @@ Enter through the front door and pay the receptionist $250 from the initial $10,
 ## Implementation
 
 - `hotel-headshots/rules.js`: five different connected layouts, difficulty parameters, navigation, line of sight, payment/theft, resistance, progression and leaderboard sanitation. Runs in both Node and browsers.
-- `hotel-headshots/scene.js`: original procedural meshes and textures, adult-proportioned guests with six appearance variants, articulated walking/running/guard poses, neon hotel fixtures, furniture, doors, pool, mirrors, curtains, bottles and stairs. Uses the existing locally vendored Babylon 8.26 engine; no dependency or paid asset added.
+- `hotel-headshots/scene.js`: original procedural environment meshes and textures, neon hotel fixtures, furniture, doors, pool, mirrors, curtains, bottles and stairs. Uses the existing locally vendored Babylon 8.26 engine; no dependency or paid asset added.
 - `hotel-headshots/game.js`: input, swept projectile collision, nearest-mesh hit regions, damage/retreat, pursuit/search/roaming/pathfinding, NPC door opening, separation, theft cooldowns, recoil, temporary foam decals, environmental impacts, synthesized soundtrack and effects, menus and storage.
 - Head hits remove 100 resistance, torso/legs 50, arms/hands 15. Higher-floor guests have more resistance. Raised arm meshes physically intercept shots before the body. Retreating guests cannot steal and count only once.
 - Free tanks cannot soft-lock an empty-ammo run. Navigation routes around furniture and walls; doors can be opened by pursuing guests. Movement is normalized diagonally. Collision and effect counts are bounded.
@@ -26,13 +26,13 @@ Enter through the front door and pay the receptionist $250 from the initial $10,
 
 The games list has a Hotel Headshots card in root and static copies. Cabinet 1 (`arcade-cab-01`, formerly LASER MOTH) now runs `hotel-headshots/index.html` through the existing isolated arcade iframe. TURBO KELP remains unused. The cabinet has its own title, colors, poster, interaction and four-frame attract image captured from the game's actual opening screen. The existing anti-WarFlying screen is retained in place; only its obsolete `replaces: laser-moth` metadata is removed.
 
-The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-18-hotel-headshots-2`.
+The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-3`.
 
 No Sleeping Pod, music-player, account/save implementation, production API, merchandise, entitlement, payment or licensed-model file changed. The District HTML entrypoints remain unchanged and byte-identical.
 
 ## Verification
 
-- Full Node suite: **1,164 passed, 0 failed, 1 skipped** (1,165 total).
+- Full Node suite (24 Nov): **1,165 passed, 0 failed, 1 skipped** (1,166 total), including embedded model/animation integrity.
 - Save compatibility: **19 Python tests passed** (`tests.test_story_save`, `tests.test_progression_save`).
 - Account/API contracts: **35 Python tests passed** (`tests.test_void_runner_api`, `tests.test_identity_api`), using their fake services, not production data.
 - `node tests/hotel-headshots-browser.cjs`: real Edge/WebGL rendering; pointer lock, movement, entrance, payment, pause/resume, actual projectile headshot, arm interception, live theft and harmless retreat, refill, all floor transitions, victory, bankruptcy, persisted leaderboard and 4:3/native resolution. Also regenerates cabinet captures. Screenshots are inspected, not just created.
@@ -41,6 +41,6 @@ No Sleeping Pod, music-player, account/save implementation, production API, merc
 
 ## Visual limits / further polish
 
-This is playable original procedural art, **not a photorealistic or AAA character-asset pass**. Faces, swimwear, furniture and room fittings remain simplified, and the walking/guard poses use an articulated procedural rig rather than captured animation. The five floors are separate scenes connected through stair interactions, not one continuously loaded tower. Real-GPU performance, headset controls and audio by ear have not been certified. Local software-rendered browser checks prove operation, not a target hardware frame rate. No paid generation, model purchase or licensed asset import was performed.
+The NPC pass (24 November 2026) replaces the primitive figures with three adult MakeHuman/MPFB skinned bodies, textured faces/skin, eyes, hair and original opaque two-piece swimwear. Six clothing palettes and modest build variations are retained. Idle/walk clips are retargeted from the existing public companion; protective arm poses blend over locomotion. Bone-following hit volumes preserve head/body/arm combat. The receptionist uses the existing suited CC0 companion model. `characters.js` loads these assets before simulation starts. Build source: `tools/assets/hotel/build_characters.py`; asset provenance: `hotel-headshots/assets/README.md`. These are more detailed game characters, not photorealistic scans. Furniture and room fittings remain procedural. Running scales the walk cycle; dedicated sprint/retreat mocap is still a possible refinement. The five floors are separate scenes connected through stair interactions, not one continuously loaded tower. Real-GPU performance, headset controls and audio by ear have not been certified. Local software-rendered browser checks prove operation, not a target hardware frame rate. No paid generation, model purchase or licensed asset import was performed.
 
 See the checked screenshots in `hotel-headshots/` alongside this document. Do not publish without the owner's release instruction.

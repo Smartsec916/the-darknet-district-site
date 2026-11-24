@@ -244,3 +244,7 @@ muffled 124 BPM thump), nothing recorded or licensed.
 ## Store display sheets in the in-game shop (Nov 2026)
 
 `void-runner/assets/textures/store/store-apparel.png` is made from The Darknet District's own Shopify product pictures (the owner's designs). `store-survival.jpg` is made from the product photos in `attached_assets/` that the website's survival page already shows: they picture **other makers' products and brand names** (Leatherman, Holosun, MIRA Safety, Fenix and others). **Question for the owner, not yet answered:** whether showing those branded products inside the game is covered by the same arrangement as showing them on the store page. If not, replace that sheet with unbranded stand-ins (`tools/assets/store/build_atlas.py`).
+
+## Hotel Headshots NPC pass (24 November 2026)
+
+`hotel-headshots/assets/guest-{a,b,c}.glb`: adult MakeHuman/MPFB CC0 system bodies, skin, eyes and hair, with original fitted swimwear and guard poses. Idle/walk retarget the existing public CC0 companion described above; no private licensed asset imported. Full build/provenance record: `hotel-headshots/assets/README.md`.
