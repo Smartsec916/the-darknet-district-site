@@ -281,7 +281,11 @@
   if(info.bytes>IMPORT.maxBytes)add('bad','The file is '+mb(info.bytes)+'; the limit is '+mb(IMPORT.maxBytes)+'.');else add('ok','File size '+mb(info.bytes||0)+' (limit '+mb(IMPORT.maxBytes)+').');
   const big=(info.textures||[]).filter(x=>x.w>IMPORT.texWarn||x.h>IMPORT.texWarn);if(big.length)add('warn',big.length+' texture(s) larger than '+IMPORT.texWarn+' px ('+big.map(x=>x.w+'×'+x.h).join(', ')+'): they will be reduced before it goes in the game.');else add('ok',(info.textures||[]).length+' texture(s), none larger than '+IMPORT.texWarn+' px.');
   const bones=(info.bones||[]).map(b=>String(b).split(':').pop()),L=AL(),core=L&&L.CORE?L.CORE:[],missing=core.filter(c=>!bones.includes(c));
-  if(!bones.length)add('warn','No skeleton: it can stand still only (no walking or other clips).');
+  const rigCheck=info.compatibility;
+  if(rigCheck?.bound){if(!rigCheck.ready)add('bad','Review humanoid mapping and skin binding. '+rigCheck.issues.join(' '));
+   else if(rigCheck.missing.length)add('bad','Missing validated movements: '+rigCheck.missing.join(', ')+'. Use Auto-Fix All and preview again.');
+   else add('ok','Humanoid binding and required movement checks passed.');}
+  else if(!bones.length)add('warn','No skeleton: it can stand still only (no walking or other clips).');
   else{const rig=bones.length===24&&!missing.length?'the 24-joint Mixamo-named rig of the Meshy street people':bones.length>=50&&!missing.length?'the larger crowd rig (about 52 joints)':!missing.length?'a Mixamo-named rig ('+bones.length+' joints)':null;
    add(rig?'ok':'warn',bones.length+' joints'+(rig?': matches '+rig+', so library clips can be tried on it (the rest pose is checked when a clip is tried).':': not the game’s rig (missing '+missing.slice(0,6).join(', ')+(missing.length>6?'…':'')+'), so only its own clips can play.'));}
   add((info.clips||[]).length?'ok':'warn',(info.clips||[]).length?'Clips in the file: '+info.clips.join(', ')+'.':'No clips in the file.');
