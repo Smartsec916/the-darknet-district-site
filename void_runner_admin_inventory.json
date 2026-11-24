@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "1f0b0721c2988b5c",
+  "revision": "4f18434e7b8944c1",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80227,7 +80227,7 @@
     },
     {
       "source": "void-runner/npc-escort-across.js",
-      "line": 79,
+      "line": 80,
       "text": "else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}",
       "kind": "source-reference"
     },
@@ -83132,7 +83132,7 @@
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
     "void-runner/ncz-food-stands.js": "8376f76f0e961ddfd29e749c5c711c268e6991fff8d72b0b94a8bfc5e6e90710",
-    "void-runner/ncz-gate-transit.js": "1b02435e699b7ab3ca8042df47ac8ec5955f09548a7c1e31283a534e76eedb9f",
+    "void-runner/ncz-gate-transit.js": "03cb5f76638d05d3cf54392b2dc0dac8c8162be0f004682f5389a31caa65cdc0",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
     "void-runner/ncz-nightclub.js": "333b3963ce534b64b4eb29c348f3f75bca2b1c5eedda6d5db10702fe747e7eb4",
     "void-runner/ncz-nightlife.js": "cbdf405a66688c0f67da12e4fa3d246de3fbbd35449768875ad36af6a6874987",
@@ -83153,7 +83153,7 @@
     "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "78e6544639209c17033d70a0737a11c4134ff231439e33847b73aad49fca687f",
-    "void-runner/npc-escort-across.js": "575a2e8da25a514a946005b438e3ed4905a862ab1459c2b775e977df0bd9a3b3",
+    "void-runner/npc-escort-across.js": "84f2e986ad922dd6a23820a53c09decf9a8829faaa70c18644f125ba6a40d925",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "d15bb124039471cd324fbed9f9114e220ae0600025cb6a9c2a0d550dad967ab0",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
