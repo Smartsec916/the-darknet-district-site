@@ -486,7 +486,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const step=(t,m,o,quiet)=>{const c=costOf(m),pay=c&&c.when===o.id?c:null;if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount,needStep:o.id});return false;}   // a step that costs: not done until the player has the credits
    if(held(m,o))return false;if(!Missions.complete(s,m.id,o.id,Camp))return false;delete s.story.flags[delayFlag(m.id,o.id)];delete s.story.flags[waitFlag(m.id,o.id)];if(pay){const n=charge(s,m,pay);if(n){out.charged=(out.charged||0)+n;out.notes.push('−'+n+' CREDITS');}}Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
-   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else if(!quiet)out.lines.push(...speak(o.say));
+   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else if(!quiet&&o.kind!=='overhear')out.lines.push(...speak(o.say));
    if(MM){delete s.story.flags[MM.waitFlag(m.id,o.id)];if(o.kind==='collect'&&MM.addEvidence(s,o.evidence)){const d=MM.evidenceDefs(env.trees)[o.evidence];out.notes.push('EVIDENCE SAVED · '+((d&&d.title)||o.evidence).toUpperCase());out.evidence=o.evidence;}}
    settle(m,o.id);return true;};
   // A step's lines that reach the device instead of the dialogue window (a Comms call or a message from the NPC who says them): kept like a start notification.

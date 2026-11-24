@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "f616414344170f68",
+  "revision": "1d43e7f383449997",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -77588,7 +77588,7 @@
     {
       "source": "void-runner/mission-content.js",
       "line": 489,
-      "text": "else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else if(!quiet)out.lines.push(...speak(o.say));",
+      "text": "else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else if(!quiet&&o.kind!=='overhear')out.lines.push(...speak(o.say));",
       "kind": "source-reference"
     },
     {
@@ -78925,79 +78925,91 @@
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 65,
+      "line": 69,
       "text": "function showSub(who,text,note){sub.hidden=false;sub.innerHTML='<small>OVERHEARD</small>';const b=document.createElement('span');b.textContent=note?text:giverName(who)+': '+text;if(note)b.style.opacity='.75';sub.append(b);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 74,
+      "line": 78,
       "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 79,
+      "line": 83,
       "text": "if(a.warn){say('SPOTTED · get out of sight!');try{root.VoidDevTest?.stepNote?.('SPOTTED on the way out: '+MM.ALARM.grace+' s to get out of sight');}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 80,
+      "line": 84,
       "text": "if(a.clear)say('Out of sight. The guard goes back to his rounds.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 81,
+      "line": 85,
       "text": "if(a.alarm){try{R?.alarm?.();}catch{}say('ALARM · Security opens fire. Get out to the street.');try{root.VoidDevTest?.stepNote?.('still seen: the guards open fire');}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 90,
+      "line": 93,
+      "text": "const speakers=(x.cast||[]).filter(c=>(o.say||[]).some(l=>l.who===c.id));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-mechanics-game.js",
+      "line": 99,
       "text": "if(k==='observe'){const r=MM.observeStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),hold:MM.hold(o)});run[x.key]=r.st;if(r.noticed&&!run[x.key+'|n']){run[x.key+'|n']=1;say('Too close: they notice you. Back off a little.');}if(!r.noticed)delete run[x.key+'|n'];if(r.done){delete run[x.key];fire({type:'observe',step:x.key});return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 91,
+      "line": 100,
       "text": "else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>heardSecs(lines[i])});run[x.key]=r.st;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 92,
-      "text": "if(r.noticed){say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');hush(x.key);}if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;voiceHeard(x.key,r.show,lines[r.show]);}",
+      "line": 101,
+      "text": "if(r.noticed){say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');hush(x.key);}if(r.show>=0&&lines[r.show]){const speaker=lines[r.show].who;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 98,
+      "line": 102,
+      "text": "for(const c of x.cast||[]){if((o.say||[]).some(l=>l.who===c.id))cast.get(x.mission+'/'+c.id)?.anim?.play?.(c.id===speaker?'talk':'idle');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-mechanics-game.js",
+      "line": 109,
       "text": "if(r.reset)say(r.why==='noticed'?'He noticed you. Hang back further: he heads back to where he started.':'You lost him. He is back where you first saw him: follow again.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 101,
+      "line": 112,
       "text": "if(k==='feed'&&!run[x.key+'|note']){run[x.key+'|note']=1;try{root.VoidV1?.notify?.({app:'missions',key:'feed:'+x.key,from:'V1',text:((x.m.start&&x.m.start.header)||String(o.feed||'').toUpperCase())+' · open the feed from your Mission Log (L)',hint:{text:'open',help:true}});}catch{}}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 106,
+      "line": 117,
       "text": "function lines(d){const body=String(d.text||'').split('\\n').map(t=>t.trim()).filter(Boolean).join('\\n');return [{who:'V1',text:d.title,silent:true}].concat(body?[{who:'V1',text:body,silent:true}]:[]);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 138,
+      "line": 149,
       "text": "function openFeed(x){const F=root.VoidCameraFeed,f=((x.m.feeds)||[]).find(y=>y.id===x.o.feed);if(!F||!f){say('REMOTE FEED: no signal.');return;}if(F.active)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 141,
+      "line": 152,
       "text": ".then(r=>{if(!r.saved&&r.why)say('REMOTE FEED: '+String(r.why).toLowerCase()+'. Open the feed again from your Mission Log.');});},300);}",
       "kind": "source-reference"
     },
@@ -82916,7 +82928,7 @@
     "void-runner/apartments.js": "2510e10e118e5692a4fd58088be8ed44c175fc7552c80a9c9ae1dde89193cc92",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
-    "void-runner/asset-pipeline.js": "6d86cb9e2de2f43b2e1b8ca92ded2a8c93458997bb87a6a533a79b46789282bc",
+    "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "55012a61372b0fa09255f974494c1e69a343ea5bf7f2ebce5cd1c2eabd14116b",
     "void-runner/babylon-renderer.js": "6f806aecd39faf5670f2d752829daf4476c60fb1a64aceaf64ca270ae0a53d89",
@@ -83053,14 +83065,14 @@
     "void-runner/missiles.js": "14b71508e47646f83e1a5953f532eb7717995a4c92f03843cbaa10b1c33b9027",
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
     "void-runner/mission-blocks.js": "061c4b824827d796bb71755b250dcbbf04d875167ab816fb2c4ec34e8353f49e",
-    "void-runner/mission-content.js": "15e4d1e6c1a23f9280f3318dcfb4a33e4f99789f7a05fe49a884df64025f5905",
+    "void-runner/mission-content.js": "ccea78687687a96509f3c73e1d6505bd983aab2a137ff2524871ec556ba56c44",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "d0f272652c33d37c3770bf5d1bc1965db57c8e600269f56afac616dc6814310f",
     "void-runner/mission-givers.js": "c4a245cb379f48617d79db9c689a39186cf697a98b7cba4f3a8f00e235e05de9",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
-    "void-runner/mission-mechanics-game.js": "65df4c501381f56b4117abf44f6b4cee07c41e80732113c381c781e9f9714166",
+    "void-runner/mission-mechanics-game.js": "703b07439b7671f0fe5225738680fdf631af08dda6cbcfd52150a4b97b4e150f",
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
     "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
