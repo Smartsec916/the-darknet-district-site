@@ -83,11 +83,9 @@ function newJourney(){
   if(!VoidMissions.closed(state))VoidStory.emit(state,'campaignStart');save();hud();updateEquipmentHud();workshopOpening();
 }
 $('pause').onclick = pause;
-addEventListener('blur', () => { clearInput(); if (mode === 'play') pause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') pause(); });
 function aim(e) { const s = Math.min(W, H) * .9 / 14; target = { x: Math.max(-9, Math.min(9, (e.clientX - W / 2) / s)), y: Math.max(-5, Math.min(5, (e.clientY - H * .48) / s)) }; }
-canvas.onpointerdown = e => { if (mode !== 'play' || !VoidFlightSession.running() || e.button!==0) return; canvas.setPointerCapture(e.pointerId); pointer = true; firing = true; aim(e); };
-canvas.onpointermove = e => { if (mode === 'play' && (e.pointerType === 'mouse' || pointer)) aim(e); };
+canvas.onpointerdown = e => { if (mode !== 'play' || !VoidInputState.current.movement || !VoidFlightSession.running() || e.button!==0) return; canvas.setPointerCapture(e.pointerId); pointer = true; firing = true; aim(e); };
+canvas.onpointermove = e => { if (mode === 'play' && VoidInputState.current.camera && (e.pointerType === 'mouse' || pointer)) aim(e); };
 canvas.onpointerup = canvas.onpointercancel = () => { pointer = false; firing = false; };
 $('fire').onpointerdown = e => { if (mode !== 'play' || !VoidFlightSession.running()) return; e.preventDefault(); $('fire').setPointerCapture(e.pointerId); touchFiring = true; };
 $('fire').onpointerup = $('fire').onpointercancel = () => touchFiring = false;
