@@ -20,6 +20,12 @@ ALIASES = {'Chest': 'Spine1', 'UpperChest': 'Spine2', **{k: v for k, v in NAMES.
 ALIASES.update({'LeftLowerArm': 'LeftForeArm', 'RightLowerArm': 'RightForeArm'})
 CLIPS = ('idle-f', 'talk-f', 'walk', 'run', 'sit', 'sit-enter', 'sit-exit', 'recline', 'wave')
 
+# Anonymous source labels get display names only. IDs and provenance stay independent.
+DISPLAY_NAMES = {'pedestrian_a':'Orin Static', 'pedestrian_b':'Vela Fuse',
+                 'crowd_club':'Sable Circuit', 'crowd_exec':'Corvin Slate',
+                 'crowd_hood':'Hush Vey', 'crowd_punk':'Kestrel Coil'}
+PROFILE_VERSION = 2
+
 
 def glb_from(source):
     if '!' not in source:
@@ -89,6 +95,9 @@ def main():
     R.CHILD = {**R.CHILD, 'Spine': 'Spine2'}  # Studio donor has one chest joint above the spine.
     floor_reference(donor)
     args.output.mkdir(parents=True, exist_ok=True)
+    manifest = args.output / 'preparation.json'
+    prior = {r.get('id'): r for r in json.loads(manifest.read_text(encoding='utf8'))} if manifest.exists() else {}
+    donor_hash = hashlib.sha256(args.donor.read_bytes()).hexdigest()
     report = []
     with tempfile.TemporaryDirectory(dir=args.output) as temp:
         src = Path(temp) / 'review.glb'
@@ -103,9 +112,17 @@ def main():
                 if hashlib.sha256(data).hexdigest() != entry['sha256']:
                     raise ValueError('Source changed since inventory')
                 asset_id = 'imp-' + str(uuid.uuid5(uuid.NAMESPACE_URL, source + '#' + entry['sha256']))
-                name = Path(source).stem.replace('_', ' ').title()
+                previous = prior.get(asset_id, {})
+                previous_file = args.output / previous.get('file', '')
+                if (previous.get('donorHash') == donor_hash and previous.get('profileVersion') == PROFILE_VERSION
+                        and previous_file.parent == args.output and previous_file.is_file()
+                        and hashlib.sha256(previous_file.read_bytes()).hexdigest() == previous.get('sha256')):
+                    record.update(previous)
+                    continue
+                stem = Path(source).stem
+                name = DISPLAY_NAMES.get(stem, stem.replace('_', ' ').title())
                 filename = name + '.glb'
-                record.update(id=asset_id, name=name, file=filename)
+                record.update(id=asset_id, name=name, file=filename, donorHash=donor_hash, profileVersion=PROFILE_VERSION)
                 src.write_bytes(data)
                 prepared = Path(temp) / 'result.glb'
                 prepare(src, donor, prepared)
@@ -117,7 +134,11 @@ def main():
                 record.update(bytes=output.stat().st_size, sha256=hashlib.sha256(output.read_bytes()).hexdigest())
             except Exception as e:
                 record['error'] = str(e)
-            (args.output / 'preparation.json').write_text(json.dumps(report, indent=2), encoding='utf8')
+    merged = {**prior, **{r['id']:r for r in report if r.get('id')}}
+    result = list(merged.values()) + [r for r in report if not r.get('id')]
+    pending = args.output / 'preparation.partial'
+    pending.write_text(json.dumps(result, indent=2), encoding='utf8')
+    pending.replace(manifest)
 
 
 if __name__ == '__main__':

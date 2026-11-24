@@ -31,7 +31,7 @@
   {id:'ac-sit-cuddle-hug-f',title:'Seated cuddle and hug (her part)',category:'together',seconds:12,loop:false,root:'free',needs:'seat',group:'sit-cuddle-hug',part:1,partner:'missing'}
  ],meshy:[{id:'meshy-run',title:'Running in place',category:'locomotion',seconds:.67,loop:true,root:'inplace'}]};
  const FILES={meshy:'assets/models/anim/anim-meshy.vrpak',actorcore:'assets/models/anim/anim-actorcore.vrpak'};
- const SOURCES={meshy:{name:'Meshy running export',skeleton:'Mixamo-named humanoid',licence:'Owner-supplied Meshy export, private asset storage'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
+ const SOURCES={meshy:{name:'Meshy running export',reference:'vr-companion-f',skeleton:'Mixamo-named humanoid',licence:'Owner-supplied Meshy export, private asset storage'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
  const bare=n=>String(n||'').split(':').pop();
  const all=()=>Object.entries(CLIPS).flatMap(([lib,list])=>list.map(c=>({...c,library:lib})));
  const clip=id=>all().find(c=>c.id===id)||null;
@@ -90,6 +90,7 @@
   for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.group||c.id)||(c.clip?L.groups.get(c.clip)||[...L.groups.values()].find(g=>g.name.replace(/\.\d{3}$/,'')===c.clip):null);if(!src)continue;if(localFiles.has(library)&&src.targetedAnimations.some(ta=>!bones.has(bare(ta.target.name))))continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
    const g=new B.AnimationGroup(name,sc);
    for(const ta of src.targetedAnimations){const target=bones.get(bare(ta.target.name));if(!target)continue;let a=ta.animation;
+    if(a.targetProperty!=='rotationQuaternion'&&a.targetProperty!=='position')continue;
     if(a.targetProperty==='position'){if(bare(ta.target.name)!=='Hips')continue;a=a.clone();const rest=L.hipsRest,own=hips.position.clone();
      // the hips' travel from the library's rest spot, scaled to this figure, added to this figure's own rest spot
      a.setKeys(a.getKeys().map(k=>({frame:k.frame,value:new B.Vector3(own.x+(k.value.x-rest.x)*scale,own.y+(k.value.y-rest.y)*scale,own.z+(k.value.z-rest.z)*scale)})));}

@@ -1833,7 +1833,6 @@
           "walk-on"
         ],
         "anims": [
-          "meshy-run",
           "npc-busker/idle",
           "npc-busker/talk",
           "npc-busker/look",
@@ -2508,7 +2507,6 @@
           "walk-on"
         ],
         "anims": [
-          "meshy-run",
           "npc-busker/idle",
           "npc-busker/talk",
           "npc-busker/look",
@@ -3931,7 +3929,6 @@
           "walk-on"
         ],
         "anims": [
-          "meshy-run",
           "npc-admin/idle",
           "npc-admin/talk",
           "npc-admin/look",
@@ -17333,7 +17330,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -17656,7 +17652,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -18094,7 +18089,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -18421,7 +18415,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -18865,7 +18858,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -19107,7 +19099,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -19418,7 +19409,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-hacker/idle",
             "npc-hacker/talk",
             "npc-hacker/look",
@@ -19571,7 +19561,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-hacker/idle",
               "npc-hacker/talk",
               "npc-hacker/look",
@@ -19735,7 +19724,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -20074,7 +20062,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -20536,7 +20523,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -20871,7 +20857,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -21331,7 +21316,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -21471,7 +21455,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -21616,7 +21599,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -21829,7 +21811,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -22101,7 +22082,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -22239,7 +22219,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -22384,7 +22363,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -22675,7 +22653,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -23071,7 +23048,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -23334,7 +23310,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -23675,7 +23650,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -23980,7 +23954,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -24396,7 +24369,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -24689,7 +24661,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -25083,7 +25054,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -25362,7 +25332,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -25719,9 +25688,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -25851,9 +25818,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -25989,7 +25954,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -26304,7 +26268,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -26738,7 +26701,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-kei/idle",
             "npc-kei/talk",
             "npc-kei/look",
@@ -26884,7 +26846,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-kei/idle",
               "npc-kei/talk",
               "npc-kei/look",
@@ -27047,7 +27008,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -27300,7 +27260,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -27632,7 +27591,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -27820,7 +27778,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -28050,7 +28007,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -28351,7 +28307,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -28753,7 +28708,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -29070,7 +29024,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -29496,7 +29449,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -29797,7 +29749,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -30205,7 +30156,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -30532,7 +30482,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -30965,7 +30914,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -31264,7 +31212,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -31672,7 +31619,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -31841,7 +31787,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -32038,7 +31983,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -32256,7 +32200,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -32520,7 +32463,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -32867,7 +32809,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -33325,7 +33266,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -33654,7 +33594,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -34100,7 +34039,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -34256,7 +34194,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -34429,7 +34366,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-m/idle",
             "npc-casual-m/talk",
             "npc-casual-m/look",
@@ -34611,7 +34547,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-m/idle",
               "npc-casual-m/talk",
               "npc-casual-m/look",
@@ -34833,7 +34768,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -35150,7 +35084,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -35569,7 +35502,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -35756,7 +35688,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -35988,7 +35919,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -36279,7 +36209,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -36675,7 +36604,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -36887,9 +36815,7 @@
             "sit-knees",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -37013,9 +36939,7 @@
               "sit-knees",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -37151,7 +37075,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -37469,7 +37392,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -37799,7 +37721,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -38257,7 +38178,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -38474,7 +38394,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -38747,7 +38666,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -39085,7 +39003,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -39538,7 +39455,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -39716,7 +39632,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -39919,7 +39834,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -40212,7 +40126,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -40590,7 +40503,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -40915,7 +40827,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -41354,7 +41265,6 @@
             "sit-knees"
           ],
           "anims": [
-            "meshy-run",
             "npc-cyber-exec/idle",
             "npc-cyber-exec/talk",
             "npc-cyber-exec/look",
@@ -41506,7 +41416,6 @@
               "sit-knees"
             ],
             "anims": [
-              "meshy-run",
               "npc-cyber-exec/idle",
               "npc-cyber-exec/talk",
               "npc-cyber-exec/look",
@@ -41677,7 +41586,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -41868,7 +41776,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -42090,7 +41997,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -42253,7 +42159,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -42435,7 +42340,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -42675,7 +42579,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -42980,9 +42883,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -43104,9 +43005,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -43237,7 +43136,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -43574,7 +43472,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -44038,7 +43935,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -44351,7 +44247,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -44779,7 +44674,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -45031,7 +44925,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -45345,9 +45238,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -45469,9 +45360,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -45602,7 +45491,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-kei/idle",
             "npc-kei/talk",
             "npc-kei/look",
@@ -45742,7 +45630,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-kei/idle",
               "npc-kei/talk",
               "npc-kei/look",
@@ -45886,7 +45773,6 @@
             "walk-on"
           ],
           "anims": [
-            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -46220,7 +46106,6 @@
               "walk-on"
             ],
             "anims": [
-              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -55605,9 +55490,7 @@
             "shrug",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -55723,9 +55606,7 @@
               "shrug",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -55841,9 +55722,7 @@
             "wait",
             "idle"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -55950,9 +55829,7 @@
               "wait",
               "idle"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -56069,9 +55946,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -56191,9 +56066,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -56318,9 +56191,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -56440,9 +56311,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -56568,9 +56437,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -56693,9 +56560,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -57268,9 +57133,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -57390,9 +57253,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -57962,9 +57823,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -58084,9 +57943,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -58211,9 +58068,7 @@
             "work",
             "walk-on"
           ],
-          "anims": [
-            "meshy-run"
-          ],
+          "anims": [],
           "pathOnly": [
             "walk-on"
           ]
@@ -58333,9 +58188,7 @@
               "work",
               "walk-on"
             ],
-            "anims": [
-              "meshy-run"
-            ],
+            "anims": [],
             "pathOnly": [
               "walk-on"
             ]
@@ -62131,7 +61984,7 @@
       "spawn"
     ]
   },
-  "revision": "43d83adeb808aacc",
+  "revision": "b5012d30c85a957c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80628,19 +80481,19 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 135,
+      "line": 137,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 293,
+      "line": 295,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 322,
+      "line": 324,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
       "kind": "source-reference"
     },
@@ -83148,7 +83001,7 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
     "void-runner/ad-screens.js": "5792c93ef49ad52000b82b2a8e73e216d1d1430e1e111f1db295b83d8f5ab944",
-    "void-runner/anim-library.js": "ce7b653f6116f769b36f125cf023258ebd9a59bf170f8878810b0167920443b9",
+    "void-runner/anim-library.js": "6b5097c75ecb542f25848a56142e41c4283aac9af8ea047a1e1afbda8baf67b6",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
     "void-runner/apartment-integration.js": "53f7c9b66281794a5c697c0dd2e30ebe4ebc73157f476cb5b73bd04321b369b4",
@@ -83353,7 +83206,7 @@
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "90066ea7331e46c6aa8181aa1cfda52da3741163e73c65adf1dc03d2208d33b8",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
-    "void-runner/npc-paths.js": "1c267ca13475514ec8bfc552f502f003be6c189da5199b46122bd09231cc56de",
+    "void-runner/npc-paths.js": "76bc1f414483d4f4b9fa7360ed549209f07de7c77ed96c59892a6601c736a608",
     "void-runner/npc-preview.js": "17d6ef0ef7133f2540888558be89b034aeb11384d894d54ac8a8d64ec838724d",
     "void-runner/npc-services.js": "72aa9d104d395c57e85eaa2668a089daf81fcade5f12f254ea37c13bfebd0912",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",

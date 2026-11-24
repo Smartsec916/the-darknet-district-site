@@ -4,7 +4,7 @@ test('NPC importer offers .vrcompanion while retaining GLB and glTF',()=>{
  assert.match(source,/f\.accept='\.glb,\.gltf,\.vrcompanion,/);
  assert.match(source,/ensureCompanionImporter\(\)/);
  assert.match(source,/\.inspect\(file\)/);
- assert.match(source,/X\(\)\.importDocument\(await model\.arrayBuffer\(\),transfer\?'\.glb':ext\)/);
+ assert.match(source,/X\(\)\.importDocument\(buffer,transfer\?'\.glb':ext\)/);
 });
 test('companion import stores the original transfer privately and exports a repacked updated transfer',()=>{
  assert.match(source,/blob:model,transferBlob:original,companion/);
