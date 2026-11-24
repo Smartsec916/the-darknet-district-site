@@ -69,6 +69,23 @@
   const payment=Number(m[2]);if(payment<1)return null;
   return {units:Number(m[1]),payment,weightKg:Number(m[3]),cargo:m[4],title:m[5]||undefined};
  }
- const api={ORIGIN,MAX,hash,rng,validSeed,seedOf,freshSeed,distance,basePay,payBounds,board,encode,decode};
+ const destinations=Object.keys(U.locations).filter(id=>!RC.never.includes(id));
+ const defaults=()=>({destinations:[...destinations],excluded:[],cargo:RC.procedural.goods.map(g=>g.name),
+  difficulties:[...RC.districtBoard],minReward:350,maxReward:3500,unlockMission:'',
+  dialogue:[RC.lines.board,'You know the lanes. Pick a load and bring the delivery receipt back to me.']});
+ function configErrors(c){
+  const d=defaults(),errors=[];
+  if(!c||Object.keys(c).length!==Object.keys(d).length||Object.keys(d).some(k=>!Object.hasOwn(c,k)))return ['Incomplete freight configuration.'];
+  for(const k of ['destinations','excluded','cargo','difficulties']){
+   const a=c[k],choices=k==='excluded'?destinations:d[k];
+   if(!Array.isArray(a)||(k!=='excluded'&&!a.length)||a.some(x=>!choices.includes(x))||new Set(a).size!==a.length)errors.push('Invalid freight '+k+'.');
+  }
+  if(!errors.length&&c.destinations.every(x=>c.excluded.includes(x)))errors.push('Allow at least one freight destination.');
+  if(!Number.isInteger(c.minReward)||!Number.isInteger(c.maxReward)||c.minReward<1||c.minReward>c.maxReward||c.maxReward>999999)errors.push('Invalid freight payment range.');
+  if(typeof c.unlockMission!=='string'||c.unlockMission&&!/^[a-z0-9-]{1,80}$/.test(c.unlockMission))errors.push('Choose a registered freight unlock mission.');
+  if(!Array.isArray(c.dialogue)||!c.dialogue.length||c.dialogue.length>12||c.dialogue.some(l=>typeof l!=='string'||!l.trim()||l.length>200))errors.push('Enter one to twelve short freight offer lines.');
+  return errors;
+ }
+ const api={defaults,configErrors,ORIGIN,MAX,hash,rng,validSeed,seedOf,freshSeed,distance,basePay,payBounds,board,encode,decode};
  if(typeof module!=='undefined')module.exports=api;else root.VoidRookCargoGen=api;
 })(globalThis);

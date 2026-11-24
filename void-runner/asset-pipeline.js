@@ -225,8 +225,8 @@
     // Once the scene is ready, so background downloads and parsing never hold up its readiness check.
     if(later.length){
       // First presentation is the readiness boundary: background parsing must not re-block whenReadyAsync.
-      const batch={scene,items:later,observer:null};scheduled.add(batch);
-      batch.observer=scene.onAfterRenderObservable.addOnce(()=>{scheduled.delete(batch);if(gen===generation){queue.push(...later.map(([id,def])=>({id,def,scene,gen})));pump();}});
+      const batch={scene,items:later.slice(),observer:null};scheduled.add(batch);
+      batch.observer=scene.onAfterRenderObservable.addOnce(()=>{scheduled.delete(batch);if(gen===generation){queue.push(...batch.items.map(([id,def])=>({id,def,scene,gen})));pump();}});
     }
   }
   async function cached(def){try{return typeof caches!=='undefined'&&!!(await caches.match(new URL(def.src,base).href));}catch{return false;}}
@@ -237,7 +237,7 @@
   }
   function background({id,def,scene,gen}){
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(Error('Background model timed out.')),backgroundLimit);
-    const task={signal:controller.signal,check(){if(controller.signal.aborted)throw controller.signal.reason;}},job={controller,gen};jobs.add(job);
+    const task={signal:controller.signal,check(){if(controller.signal.aborted)throw controller.signal.reason;}},job={controller,gen,id};jobs.add(job);
     return loadContainer(def,scene,task,id).then(container=>{
       if(gen!==generation||scene.isDisposed){container.dispose();return false;}
       // Not a swap-in model (a timed-out prop or fitting): the finished download is now cached for the next visit.
@@ -251,6 +251,16 @@
       console.warn('[VOID optional model] failed',{id,asset:def.src,reason:error.message});failed.set(id,error.message);
       for(const listener of listeners)try{listener(id,false);}catch(e){console.warn('[VOID//RUNNER assets] listener',e);}return false;})
      .finally(()=>{clearTimeout(timer);jobs.delete(job);pump();});
+  }
+  // Mission actors use the same scene generation and cancellation as the background crowd.
+  // Promote an already queued model when a required actor needs it now.
+  function requestModel(id,def,scene){
+    if(!scene||scene.isDisposed||container(id)||[...jobs].some(job=>job.gen===generation&&job.id===id))return;
+    for(const batch of scheduled)batch.items=batch.items.filter(([key])=>key!==id);
+    const i=queue.findIndex(item=>item.gen===generation&&item.id===id);
+    if(i>=0)queue.splice(i,1);
+    queue.unshift({id,def:{...def,background:true},scene,gen:generation});
+    pump();
   }
   // Called with a model id whenever a background model becomes available for the current scene.
   function onLoaded(listener){listeners.add(listener);return ()=>listeners.delete(listener);}
@@ -268,7 +278,7 @@
   // The loaded container for an id (for builders that place many copies themselves), or null.
   function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
+    models,unload,container,requestModel,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     leadInEnd,leadOutStart,trimLeadIn,keepTrim,
     unpack,
