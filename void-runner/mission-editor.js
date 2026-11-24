@@ -239,11 +239,34 @@
   ul.append(el('li','Lines marked “needs a code change” are kept in your draft and in EXPORT MY EDITS for Claude or Codex to apply.'));
   box.append(ul);return box;}
  // ---------------- trees
+ function freightPanel(){
+  const box=el('section','','me-mission-panel',{'data-me-freight':'1'}),gen=root.VoidRookCargoGen;
+  const defaults=gen.defaults(),d=local(),config=structuredClone(d.rookFreight||server.live?.rookFreight||defaults);
+  box.append(el('h3','Rook freight contracts'),el('p','Meet Rook at Meridian → load cargo → deliver to the assigned station → return to Rook for payment. The next contract opens after collection.'));
+  function field(label,input){const row=el('label',label,'me-field');row.append(input);box.append(row);}
+  for(const [key,label] of [['destinations','Delivery locations'],['excluded','Excluded locations'],['cargo','Cargo types'],['difficulties','Contract difficulties']]){
+   const select=el('select');select.multiple=true;select.size=Math.min(6,(key==='excluded'?defaults.destinations:defaults[key]).length);
+   for(const id of key==='excluded'?defaults.destinations:defaults[key]){
+    const option=new Option(root.VoidCampaign?.stations?.[id]?.name||id,id);option.selected=config[key].includes(id);select.append(option);
+   }
+   select.onchange=()=>{config[key]=Array.from(select.selectedOptions,x=>x.value);};field(label,select);
+  }
+  for(const [key,label] of [['minReward','Minimum credits'],['maxReward','Maximum credits']]){
+   const input=el('input');input.type='number';input.min='1';input.max='999999';input.value=config[key];input.oninput=()=>{config[key]=input.valueAsNumber;};field(label,input);
+  }
+  const unlock=el('select');unlock.append(new Option('First Cargo Delivery',''));
+  for(const tree of built.trees.filter(t=>t.story))for(const m of tree.missions)if(m.id)unlock.append(new Option(m.title,m.id));
+  unlock.value=config.unlockMission;unlock.onchange=()=>{config.unlockMission=unlock.value;};field('Additional required mission',unlock);
+  const lines=el('textarea');lines.rows=4;lines.value=config.dialogue.join('\n');lines.oninput=()=>{config.dialogue=lines.value.split('\n').map(s=>s.trim()).filter(Boolean);};field('Rook offer dialogue (one line per variation)',lines);
+  box.append(btn('SAVE FREIGHT DRAFT',()=>{const errors=gen.configErrors(config);if(errors.length){setStatus(errors.join(' '));return;}const latest=local();latest.rookFreight=config;saveLocal(latest);setStatus('Freight draft saved. Review it in Publish.');}));
+  return box;
+ }
  function treeView(root_){
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'Mission trees'});
   const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS'],['archived','Removed from the game (archived)']];
   side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from your scripts)','me-small'));
   side.append(btn('+ NEW MISSION TREE',()=>{ui.newTree=true;root.VoidEditorGuide?.focusNext();draw();},ui.newTree?'on':'',{'data-me-new-tree':'1'}));
+  side.append(btn('Rook freight contracts',()=>{ui.tree='rook-freight';ui.newTree=false;ui.mission=null;draw();},ui.tree==='rook-freight'?'on':'',{'data-me-tree':'rook-freight'}));
   for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;
    // Archived trees sit in one collapsed group (open while one of them is shown): readable and copyable, never in the game.
    let box=side;if(st==='archived'){const d=el('details','','me-archived',{'data-me-archived':'1'});d.open=!!ui.archivedOpen||ts.some(t=>t.id===ui.tree);d.ontoggle=()=>{ui.archivedOpen=d.open;};d.append(el('summary',name+' ('+ts.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;}
@@ -252,6 +275,7 @@
     if(ui.tree===t.id)for(const m of t.missions){const mb=btn(m.title+(editCount(m)?' ✎':''),()=>{ui.mission=m.key;ui.step=null;draw();},'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key});box.append(mb);}}}
   const t=built.trees.find(x=>x.id===ui.tree)||built.trees[0];const main=el('div','','me-main');
   if(ui.newTree){main.append(newTreeForm());cols.append(side,main);root_.append(cols);return;}
+  if(ui.tree==='rook-freight'){main.append(freightPanel());cols.append(side,main);root_.append(cols);return;}
   if(t.ownerTree){main.append(ownerTreePanel(t));cols.append(side,main);root_.append(cols);if(ui.mission){const target=root_.querySelector('[data-me-tree-mission="'+CSS.escape(ui.mission.replace(/^tree:/,''))+'"]');if(target&&ui.scrollTo)setTimeout(()=>target.scrollIntoView({block:'start'}),0);ui.scrollTo=false;}return;}
   main.append(el('h3',t.title),el('p',t.statusText,'me-badge me-'+t.status),el('p',t.note,'dev-note'),el('p','Source: '+t.source,'me-small'));
   if(t.archived){const r=el('div','','me-row',{'data-me-archived-tree':t.id});r.append(el('b','NOT IN THE GAME','me-bad'),btn('COPY THIS TREE INTO A NEW TREE',()=>copyInto(t.missions,t.title),'',{'data-me-copy-tree':t.id}));main.append(r);}
@@ -1056,7 +1080,7 @@
   if(m.engine==='tree'){const b=MC().treeBlockers(m.raw,givers,items);return why?(b.length?'Cannot be played yet: '+b.join('; ')+'.':''):!b.length;}
   return why?(m.engine==='contract'?'Not playable as a draft yet: contracts are flown from the contract board and have no draft adapter.':m.engine==='data'?'Not playable: this mission is inactive data; nothing in the game starts it yet.':'Not playable from here.'):false;}
  const STAGE={'ground-training':['inheritance','vesper'],'flight-training':['inheritance','vesper'],'meet-rook':['arrival','meridian'],'first-station':['legal-offer','meridian'],'combat-qualification':['legal-offer','meridian'],'legal-run':['legal-run','meridian'],'return':['return','kepler'],'illegal-run':['illegal-run','meridian'],'meet-admin':['open','earth']};
- function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items,clipText:clipTextOf});}
+ function draftContent(){const draft={rookFreight:server.live?.rookFreight,...local()};return MC().fromDrafts({studio:studio(),local:draft,shippedBeginner:shipped().beginner,note:'draft play',givers,items,clipText:clipTextOf});}
  function checkCtx(){return {registry:src.registry,speakers:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName)),registryIds:new Set(Object.keys(shipped().registry).filter(id=>shipped().registry[id]?.beginner!==true)),
   registryObjectives:Object.fromEntries(Object.entries(shipped().registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),lines:new Set(index.keys()),
   givers:new Map(givers.map(g=>[g.id,g])),places:G().placeIds(),subjects:new Set(G().photoSubjects(givers).map(g=>g.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id)),numbers:serverNumbers()};}
@@ -1156,7 +1180,7 @@
   const shippedB=shipped().beginner.map(MC().strip),nextB=content.beginner||shippedB;
   chk.append(el('h5','Problems that block publishing ('+(c.errors.length+(ui.check?.errors||[]).length)+')'));for(const t of [...c.errors,...(ui.check?.errors||[])])chk.append(el('p',VoidUnits.text(t),'me-bad'));if(!c.errors.length&&!(ui.check?.errors||[]).length)chk.append(el('p','None.','me-ok'));
   const ch=MC().changes(shippedB,nextB),regN=Object.keys(content.registry||{}).length,linesN=(content.lines||[]).length;
-  chk.append(el('h5','What changes for players'));if(!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
+  chk.append(el('h5','What changes for players'));if(content.rookFreight)chk.append(el('p','Rook freight contracts: '+content.rookFreight.destinations.length+' configured destinations, '+content.rookFreight.minReward+' to '+content.rookFreight.maxReward+' credits.'));if(!content.rookFreight&&!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
   for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' mission(s) in '+(content.trees||[]).length+' tree(s) (the Main storyline is always sent), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));

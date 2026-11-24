@@ -205,8 +205,12 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'interactions', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'interactions', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
+    if 'rookFreight' in content:
+        import void_runner_freight as freight
+        missions = _json('void-runner/save-manifest.json')['storyMissions']
+        errors.extend(freight.config_errors(content['rookFreight'], missions))
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
         inv = inv or _json('void_runner_admin_inventory.json')
@@ -2813,7 +2817,13 @@ def summary(db):
     state = _state_ref(db).get().to_dict() or {}
     numbers = {str(k): v for k, v in shipped_numbers().items()}
     numbers.update(state.get('numbers') or {})
-    return {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    result = {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    if state.get('live'):
+        record = _version_ref(db, state['live']).get().to_dict() or {}
+        cfg = (record.get('content') or {}).get('rookFreight')
+        if cfg:
+            result['rookFreight'] = cfg
+    return result
 
 
 def public(db, now=None):
@@ -2922,7 +2932,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight')):
         raise DraftError('There is nothing to publish.', 422)
     missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
     if missing:

@@ -1083,6 +1083,30 @@ def voice_clip_public(clip_hash):
 
 # Consumables Studio and Items & Vendors (Developer Tools > Studios; void_runner_items.py). Admin-only edit and publish (VOID_ADMIN_UIDS, like every developer route);
 # players read the live catalog and buy and use items here. Price, stock, carrying limits, cooldowns and every effect amount are the server's own.
+import void_runner_freight as freight
+
+
+@api.get('/rook/freight')
+@signed_in
+def rook_freight_state(db, uid):
+    ref = player_ref(db, uid)
+    ledger = ref.collection('freight').document('desk').get().to_dict() or {}
+    return jsonify(active=ledger.get('active'), lastPaid=ledger.get('lastPaid'))
+
+
+@api.post('/rook/freight/<action>')
+@signed_in
+def rook_freight(db, uid, action):
+    if action not in ('offer', 'accept', 'deliver', 'collect'):
+        raise ApiError('Unknown freight operation.', 404)
+    live = live_content.public(db) if live_content.enabled() else {}
+    config = (live.get('content') or {}).get('rookFreight', freight.DEFAULT)
+    try:
+        return jsonify(freight.transact(db, player_ref(db, uid), action, request.get_json(silent=True), config))
+    except freight.FreightError as exc:
+        raise ApiError(str(exc), 409) from exc
+
+
 import void_runner_items as items_service
 
 
