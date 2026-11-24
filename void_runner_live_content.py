@@ -205,8 +205,12 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'interactions', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'interactions', 'characters', 'zones', 'rookFreight']):
         return ['The content record has an unknown shape.']
+    if 'rookFreight' in content:
+        import void_runner_freight as freight
+        missions = _json('void-runner/save-manifest.json')['storyMissions']
+        errors.extend(freight.config_errors(content['rookFreight'], missions))
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
         inv = inv or _json('void_runner_admin_inventory.json')

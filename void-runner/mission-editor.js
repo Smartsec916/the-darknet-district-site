@@ -239,11 +239,34 @@
   ul.append(el('li','Lines marked “needs a code change” are kept in your draft and in EXPORT MY EDITS for Claude or Codex to apply.'));
   box.append(ul);return box;}
  // ---------------- trees
+ function freightPanel(){
+  const box=el('section','','me-mission-panel',{'data-me-freight':'1'}),gen=root.VoidRookCargoGen;
+  const defaults=gen.defaults(),d=local(),config=structuredClone(d.rookFreight||server.live?.content?.rookFreight||defaults);
+  box.append(el('h3','Rook freight contracts'),el('p','Meet Rook at Meridian → load cargo → deliver to the assigned station → return to Rook for payment. The next contract opens after collection.'));
+  function field(label,input){const row=el('label',label,'me-field');row.append(input);box.append(row);}
+  for(const [key,label] of [['destinations','Delivery locations'],['excluded','Excluded locations'],['cargo','Cargo types'],['difficulties','Contract difficulties']]){
+   const select=el('select');select.multiple=true;select.size=Math.min(6,(key==='excluded'?defaults.destinations:defaults[key]).length);
+   for(const id of key==='excluded'?defaults.destinations:defaults[key]){
+    const option=new Option(root.VoidCampaign?.stations?.[id]?.name||id,id);option.selected=config[key].includes(id);select.append(option);
+   }
+   select.onchange=()=>{config[key]=Array.from(select.selectedOptions,x=>x.value);};field(label,select);
+  }
+  for(const [key,label] of [['minReward','Minimum credits'],['maxReward','Maximum credits']]){
+   const input=el('input');input.type='number';input.min='1';input.max='999999';input.value=config[key];input.oninput=()=>{config[key]=input.valueAsNumber;};field(label,input);
+  }
+  const unlock=el('select');unlock.append(new Option('First Cargo Delivery',''));
+  for(const tree of built.trees.filter(t=>t.story))for(const m of tree.missions)if(m.id)unlock.append(new Option(m.title,m.id));
+  unlock.value=config.unlockMission;unlock.onchange=()=>{config.unlockMission=unlock.value;};field('Additional required mission',unlock);
+  const lines=el('textarea');lines.rows=4;lines.value=config.dialogue.join('\n');lines.oninput=()=>{config.dialogue=lines.value.split('\n').map(s=>s.trim()).filter(Boolean);};field('Rook offer dialogue (one line per variation)',lines);
+  box.append(btn('SAVE FREIGHT DRAFT',()=>{const errors=gen.configErrors(config);if(errors.length){setStatus(errors.join(' '));return;}const latest=local();latest.rookFreight=config;saveLocal(latest);setStatus('Freight draft saved. Review it in Publish.');}));
+  return box;
+ }
  function treeView(root_){
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'Mission trees'});
   const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS'],['archived','Removed from the game (archived)']];
   side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from your scripts)','me-small'));
   side.append(btn('+ NEW MISSION TREE',()=>{ui.newTree=true;root.VoidEditorGuide?.focusNext();draw();},ui.newTree?'on':'',{'data-me-new-tree':'1'}));
+  side.append(btn('Rook freight contracts',()=>{ui.tree='rook-freight';ui.newTree=false;ui.mission=null;draw();},ui.tree==='rook-freight'?'on':'',{'data-me-tree':'rook-freight'}));
   for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;
    // Archived trees sit in one collapsed group (open while one of them is shown): readable and copyable, never in the game.
    let box=side;if(st==='archived'){const d=el('details','','me-archived',{'data-me-archived':'1'});d.open=!!ui.archivedOpen||ts.some(t=>t.id===ui.tree);d.ontoggle=()=>{ui.archivedOpen=d.open;};d.append(el('summary',name+' ('+ts.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;}
@@ -252,6 +275,7 @@
     if(ui.tree===t.id)for(const m of t.missions){const mb=btn(m.title+(editCount(m)?' ✎':''),()=>{ui.mission=m.key;ui.step=null;draw();},'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key});box.append(mb);}}}
   const t=built.trees.find(x=>x.id===ui.tree)||built.trees[0];const main=el('div','','me-main');
   if(ui.newTree){main.append(newTreeForm());cols.append(side,main);root_.append(cols);return;}
+  if(ui.tree==='rook-freight'){main.append(freightPanel());cols.append(side,main);root_.append(cols);return;}
   if(t.ownerTree){main.append(ownerTreePanel(t));cols.append(side,main);root_.append(cols);if(ui.mission){const target=root_.querySelector('[data-me-tree-mission="'+CSS.escape(ui.mission.replace(/^tree:/,''))+'"]');if(target&&ui.scrollTo)setTimeout(()=>target.scrollIntoView({block:'start'}),0);ui.scrollTo=false;}return;}
   main.append(el('h3',t.title),el('p',t.statusText,'me-badge me-'+t.status),el('p',t.note,'dev-note'),el('p','Source: '+t.source,'me-small'));
   if(t.archived){const r=el('div','','me-row',{'data-me-archived-tree':t.id});r.append(el('b','NOT IN THE GAME','me-bad'),btn('COPY THIS TREE INTO A NEW TREE',()=>copyInto(t.missions,t.title),'',{'data-me-copy-tree':t.id}));main.append(r);}

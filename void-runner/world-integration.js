@@ -154,7 +154,72 @@ const originalRookConversation=rookConversation;
 // Rook's cargo network (campaign.js): he pays what he owes first, then shows the jobs on his board.
 // Each job says what it is, where it goes, how much hold it takes, what it pays and who pays.
 // Rook's payment line approved by the owner, 2026-10-27.
+let freightBusy=false,freightRetry=0;
+async function accountFreight(action,id){
+ if(freightBusy||globalThis.VoidDevTest?.active)return;
+ const campaign=state,account=globalThis.VoidAccount,user=account?.user,service=globalThis.VoidConsumableGame;
+ if(!user||user.isAnonymous||!service){announce('Sign in to use the account freight desk.');return;}
+ const same=()=>account.user?.uid===user.uid&&state===campaign;
+ const render=(line,buttons=[])=>{
+  talk('',[{who:'rook',text:line}],resumeWalking,'RETURN TO STATION','Rook freight contracts');
+  const controls=screen.querySelector('.speech-controls');
+  if(controls&&buttons.length){speech.shown=line.length;controls.insertAdjacentHTML('afterbegin',buttons.map(([label,a])=>button(label,a)).join(''));screen.querySelector('.dialogue-window')?.classList.add('choice-menu');}
+ };
+ freightBusy=true;
+ try{
+  const status=await service.request('rook/freight');
+  if(!same())return;
+  const f=campaign.story.flags,active=status.active;
+  if(active?.stage==='aboard'&&f.rookLedger!==active.id || active?.stage==='delivered'&&f.rookLedger!==active.id || f.rookLedger&&status.lastPaid===f.rookLedger){
+   announce('Resume the account’s saved freight campaign to continue this contract.');return;
+  }
+  if(active?.stage==='aboard'&&action==='offer'){
+   render('Your freight is assigned to '+(C.stations[active.destination]?.name||active.destination)+'. Dock there to register delivery.');return;
+  }
+  if(active?.stage==='delivered'&&action==='offer')action='collect';
+  if(action==='deliver'&&(!active||active.stage!=='aboard'||campaign.location!==active.destination||!C.rookOwed(campaign)))return;
+  if(!account.profileReady)throw Error('Wait for your account save to finish loading.');
+  if(action==='offer'&&!f.rookLedger&&account.cloud?.story?.flags?.deviceSerial!==f.deviceSerial&&account.cloud&&!confirm('Use this campaign for freight? Its current progress will replace your other cloud campaign.'))return;
+  const snapshot=JSON.parse(JSON.stringify(campaign));
+  const sync=await service.request('save',{revision:account.revision,save:snapshot});
+  if(!same())return;
+  account.revision=sync.revision;account.cloud=snapshot;
+  const result=await service.request('rook/freight/'+action,{revision:sync.revision,id:id||active?.id});
+  if(!same())return;
+  account.revision=result.revision;account.cloud=result.save;account.savedAt=result.save.savedAt;
+  const job=result.active;
+  if(action==='offer'&&job?.stage==='offered'){
+   const name=C.stations[job.destination]?.name||job.destination;
+   render(job.line+' '+job.cargo+' to '+name+' · '+job.kind+' · '+job.units+' hold space(s) · '+job.payment+' credits on return.',
+    [['LOAD CARGO','freight-accept:'+job.id]]);return;
+  }
+  if(action==='accept'||action==='collect'){
+   const changed=result.save,mid='rook-run-'+(job||active).number;
+   for(const key of ['rookLedger','rookTerms','rookJob','rookRuns','rookRunTo','rookOwed','rookLog']){
+    if(Object.hasOwn(changed.story.flags,key))f[key]=changed.story.flags[key];else delete f[key];
+   }
+   campaign.contract=changed.contract;campaign.destination=changed.destination;
+   campaign.credits+=changed.credits-snapshot.credits;campaign.completed+=changed.completed-snapshot.completed;
+   campaign.universe.missions[mid]=changed.universe.missions[mid];campaign.universe.trackedMission=changed.universe.trackedMission;
+   VoidMissions.sync(campaign,C);save();hud();
+   if(action==='accept'){VoidMissions.track(campaign,mid,C);save();resumeWalking();announce('Cargo loaded. Destination tracked.');}
+   else render('Delivery confirmed. Here are your '+active.payment+' credits.',[['MORE FREIGHT','freight-offer']]);
+  }else if(action==='deliver')announce('Delivery registered. Return to Rook at Meridian for payment.');
+ }catch(error){if(same()){announce(error.message||'Freight desk unavailable. Try again.');}}
+ finally{freightBusy=false;}
+}
+function checkFreightDelivery(){
+ const flags=state?.story?.flags;
+ if(!flags?.rookLedger||!flags.rookOwed||freightBusy||Date.now()<freightRetry||!globalThis.VoidAccount?.profileReady)return;
+ const entry=C.rookLog(state).find(j=>j.status==='owed');
+ if(entry?.destination!==state.location)return;
+ freightRetry=Date.now()+20000;void accountFreight('deliver',flags.rookLedger);
+}
+addEventListener('online',()=>{freightRetry=0;checkFreightDelivery();});
+setInterval(checkFreightDelivery,5000);
 function rookFreightOffer(){
+ if(state.story.flags.rookLedger){void accountFreight('offer');return;}
+
  const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),place=id=>C.stations[id]?.name||id,far=id=>VoidUniverse.system(id)!==VoidUniverse.system(state.location);
  const owed=C.rookOwed(state);
  if(owed){const paid=C.collectRook(state);if(paid){VoidMissions.sync(state,C);save();hud();
@@ -177,9 +242,10 @@ function rookFreightOffer(){
  speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';
  screen.querySelector('.dialogue-window')?.classList.add('choice-menu');
  screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class="rook-board">'+jobs+'</ul>');
- screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));
+ screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+(district&&globalThis.VoidAccount?.user&&!globalThis.VoidAccount.user.isAnonymous?button('ACCOUNT FREIGHT CONTRACT','freight-offer'): '')+button('NOT NOW','walk-resume',true));
 }
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(!a||!state)return;
+ if(a==='freight-offer'||a.startsWith('freight-accept:')){void accountFreight(a==='freight-offer'?'offer':'accept',a.split(':')[1]);return;}
  if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();
   if(C.accept(state,a)){const r=C.rookRun(state);VoidMissions.track(state,r.id,C);save();announce((VoidMissions.closed(state)?'SIDE MISSION · ':'')+'Cargo loaded. '+(C.stations[r.destination]?.name||r.destination)+' tracked. '+(r.payAt==='rook'?'Rook pays when you are back.':'Paid on delivery.'));}
   else announce('Not enough free hold space for that job.');resumeWalking();}
