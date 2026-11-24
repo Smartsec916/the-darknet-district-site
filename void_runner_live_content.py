@@ -116,12 +116,14 @@ def room_record_ok(room):
 
 
 def follow_record_ok(follow, places=None):
-    if (not _keys(follow, ['role', 'invite', 'accept', 'decline', 'arrive', 'cancel', 'maxWait', 'place'])
+    if (not _keys(follow, ['role', 'invite', 'accept', 'decline', 'arrive', 'cancel', 'maxWait', 'place', 'districtTravel'])
             or follow.get('role') not in ('lead', 'follow') or not interaction_pool_ok(follow.get('invite'))
             or not _plain(follow.get('accept'), 60) or not _plain(follow.get('decline'), 60)
             or follow.get('accept') == follow.get('decline')):
         return False
     if 'arrive' in follow and not interaction_pool_ok(follow['arrive']) or 'cancel' in follow and not interaction_pool_ok(follow['cancel']):
+        return False
+    if 'districtTravel' in follow and type(follow['districtTravel']) is not bool:
         return False
     if type(follow.get('maxWait')) is not int or not 5 <= follow['maxWait'] <= 120:
         return False

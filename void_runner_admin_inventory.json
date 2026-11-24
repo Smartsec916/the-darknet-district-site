@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "431cfdb1e8980395",
+  "revision": "edcdd6ababe6bd06",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -76021,55 +76021,55 @@
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 327,
+      "line": 343,
       "text": "announce(g.name+' · '+next.line);root.VoidAudio?.speak?.(g.say||id,next.line,false,false,true);spoken=true;if(r.near)ordinaryNear.set(id,{...ordinaryNear.get(id),inside:true,last:now,index:ordinaryNear.get(id)?.index||0});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 379,
+      "line": 395,
       "text": "if(!A||nearBlocked()||(typeof speech!=='undefined'&&speech)||root.VoidAudio?.voiceStatus?.active||callBusy())return false;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 405,
+      "line": 421,
       "text": "const giver=env.givers.find(g=>g.id===step.speaker),who=giver?.say||step.speaker,now=Date.now();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 416,
+      "line": 432,
       "text": "function ordinaryTick(){try{syncOrdinaryInteractions();if((typeof document!=='undefined'&&document.hidden)||nearBlocked()||(typeof speech!=='undefined'&&speech)||!env.interactions)return;const now=Date.now();for(const [id,r] of Object.entries(env.interactions)){if(!r.near)continue;const d=giverDistance(id,walkingLocation,walker.x,walker.z),p=ordinaryNear.get(id)||{inside:false,last:-Infinity,index:0};ordinaryNear.set(id,p);if(d>r.distance+.75){p.inside=false;continue;}if(d>r.distance||p.inside)continue;const g=env.givers.find(x=>x.id===id);if(!g||g.targets.some(t=>beginnerWants(t.action))||(treesOn()&&MC.treeWants(state,env,[id])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 417,
+      "line": 433,
       "text": "if(walkingLocation.quarter==='underground'){const at=giverPoint(id),U=root.VoidUnderground;if(!at||!U||U.placeAt(...at)!==U.placeAt(walker.x,walker.z)){p.inside=false;continue;}}if(!MC.interactionDue(r,p,d,now))continue;const line=MC.interactionPick(r.near,p);announce(g.name+' · '+line);root.VoidAudio?.speak?.(g.say||id,line,false,false,true);p.last=now;break;}}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 421,
+      "line": 437,
       "text": "const blocked=!!(result?.offered||result?.objective||result?.prompt||nearBlocked()||(typeof speech!=='undefined'&&speech)||(typeof document!=='undefined'&&document.hidden));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 448,
+      "line": 464,
       "text": "world (nearBlocked: not in a conversation, menu, the pod's wake-up, the creator or the KeyMap) and the tab is shown. Whole seconds are kept in story.flags.md_<mission>",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 516,
+      "line": 532,
       "text": "const say={enter:null,in:null,wait:who+' waits for you to catch up.',paused:who+' has stopped: you are too far away. Go back to them.','caught-up':who+' catches up with you.','wrong-stop':who+' is going to '+(((root.VoidQuarters?.STOPS||[]).find(q=>q.id===planCache[x.npc]?.stop)||{}).name||'another stop')+', not there: they stay out of this cab.','hail-failed':who+' could not get a cab: '+(x.reason||'try again in a moment.'),'in-cab':who+' gets in the cab.','ride-out':who+' gets out with you.','no-cab':x.npc===root.VoidStreetPair?.CAT_ID?'The cat does not ride in cabs: it waits here for you.':who+' stays in the city: she does not ride there. She waits here for you.',across:x.text||null}[x.event];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 517,
+      "line": 533,
       "text": "if(say)try{announce(say);}catch{}}catch{}}",
       "kind": "source-reference"
     },
@@ -79928,7 +79928,7 @@
     {
       "source": "void-runner/npc-editor.js",
       "line": 155,
-      "text": "function advancedSocialBox(box,r){const d=el('details','','me-check',{'data-npc-advanced-social':'1'}),oldF=r.advanced?.follow||{},oldG=r.advanced?.group||{},P=root.VoidPlaces;d.open=!!(oldF.role||oldG.id);d.append(el('summary','Advanced · follow, lead and groups'),hint('Optional. They follow you, or lead you to a place, using the existing walk and obstacle routing. Mission escort and mission dialogue take priority and send them back. A linked group speaks one at a time. Each player keeps their own copy; other players are not moved.'));const role=el('select','','',{'aria-label':'Follow or lead'});for(const [id,name] of [['','Disabled'],['follow','They follow you'],['lead','They lead you to a place']]){const o=el('option',name);o.value=id;role.append(o);}role.value=oldF.role||'';const roleLab=el('label','','me-field');roleLab.append(el('span','Follow or lead'),role);d.append(roleLab);const place=el('select','','',{'aria-label':'Lead destination'});const put=(id,name)=>{const o=el('option',name);o.value=id;place.append(o);};put('','Choose a place');for(const o of P?.options?.()||[]){const n=P.node(o.id);if(o.id==='district-pods'||!o.selectable||!n?.rects?.length||!['place','venue','area'].includes(o.level))continue;put(o.id,o.label);}if(oldF.place&&![...place.options].some(o=>o.value===oldF.place))put(oldF.place,P?.label?.(oldF.place)||oldF.place);place.value=oldF.place||'';const placeLab=el('label','','me-field');placeLab.append(el('span','Destination, required when they lead'),place);d.append(placeLab);const text=(label,value,area=true,max=area?50100:60)=>{const w=el('label','','me-field'),i=el(area?'textarea':'input','','',{'aria-label':label,maxlength:String(max)});i.value=value||'';w.append(el('span',label),i);d.append(w);return i;};const invite=text('Invitation',oldF.invite),accept=text('Accept button',oldF.accept,false),decline=text('Decline button',oldF.decline,false),arrive=text('Arrival line',oldF.arrive),cancel=text('Cancel line',oldF.cancel),wait=el('input','','',{type:'number',min:'5',max:'120',step:'1','aria-label':'Invitation wait'});wait.value=String(oldF.maxWait??30);const waitLab=el('label','','me-field');waitLab.append(el('span','Invitation wait (seconds)'),wait);d.append(waitLab);d.append(el('h5','Linked group'));const gid=text('Group id, the same on every member',oldG.id,false,80),order=el('select','','',{'aria-label':'Group speaking order'});for(const [id,name] of [['alternate','Take turns'],['authored','Authored order']]){const o=el('option',name);o.value=id;order.append(o);}order.value=oldG.order==='authored'?'authored':'alternate';const orderLab=el('label','','me-field');orderLab.append(el('span','Speaking order'),order);d.append(orderLab);const members=text('Members, including this NPC, one id per line',(oldG.members||[]).join('\\n')),lines=text('This NPC’s lines in the group',oldG.lines),cool=el('input','','',{type:'number',min:'5',max:'600',step:'1','aria-label':'Group cooldown'});cool.value=String(oldG.cooldown??20);const coolLab=el('label','','me-field');coolLab.append(el('span','Group cooldown (seconds)'),cool);d.append(coolLab);box.append(d);return ()=>{const out={};if(role.value){const follow={role:role.value,invite:invite.value.trim(),accept:accept.value.trim(),decline:decline.value.trim(),maxWait:Number(wait.value)};if(place.value)follow.place=place.value;if(arrive.value.trim())follow.arrive=arrive.value.trim();if(cancel.value.trim())follow.cancel=cancel.value.trim();out.follow=follow;}const ids=members.value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);if(gid.value.trim()||ids.length||lines.value.trim())out.group={id:gid.value.trim(),members:ids,order:order.value,cooldown:Number(cool.value),lines:lines.value.trim()};return out;};}",
+      "text": "function advancedSocialBox(box,r){const d=el('details','','me-check',{'data-npc-advanced-social':'1'}),oldF=r.advanced?.follow||{},oldG=r.advanced?.group||{},P=root.VoidPlaces;d.open=!!(oldF.role||oldG.id);d.append(el('summary','Advanced · follow, lead and groups'),hint('Optional. They follow you, or lead you to a place, using the existing walk and obstacle routing. Mission escort and mission dialogue take priority and send them back. A linked group speaks one at a time. Each player keeps their own copy; other players are not moved.'));const role=el('select','','',{'aria-label':'Follow or lead'});for(const [id,name] of [['','Disabled'],['follow','They follow you'],['lead','They lead you to a place']]){const o=el('option',name);o.value=id;role.append(o);}role.value=oldF.role||'';const roleLab=el('label','','me-field');roleLab.append(el('span','Follow or lead'),role);d.append(roleLab);const travel=el('input','','',{type:'checkbox'});travel.checked=oldF.districtTravel===true;const travelLab=el('label','','me-field');travelLab.append(travel,el('span','Allow Tier 2 and Tier 3 escorts through district gates on foot or in a shared taxi'));d.append(travelLab);const place=el('select','','',{'aria-label':'Lead destination'});const put=(id,name)=>{const o=el('option',name);o.value=id;place.append(o);};put('','Choose a place');for(const o of P?.options?.()||[]){const n=P.node(o.id);if(o.id==='district-pods'||!o.selectable||!n?.rects?.length||!['place','venue','area'].includes(o.level))continue;put(o.id,o.label);}if(oldF.place&&![...place.options].some(o=>o.value===oldF.place))put(oldF.place,P?.label?.(oldF.place)||oldF.place);place.value=oldF.place||'';const placeLab=el('label','','me-field');placeLab.append(el('span','Destination, required when they lead'),place);d.append(placeLab);const text=(label,value,area=true,max=area?50100:60)=>{const w=el('label','','me-field'),i=el(area?'textarea':'input','','',{'aria-label':label,maxlength:String(max)});i.value=value||'';w.append(el('span',label),i);d.append(w);return i;};const invite=text('Invitation',oldF.invite),accept=text('Accept button',oldF.accept,false),decline=text('Decline button',oldF.decline,false),arrive=text('Arrival line',oldF.arrive),cancel=text('Cancel line',oldF.cancel),wait=el('input','','',{type:'number',min:'5',max:'120',step:'1','aria-label':'Invitation wait'});wait.value=String(oldF.maxWait??30);const waitLab=el('label','','me-field');waitLab.append(el('span','Invitation wait (seconds)'),wait);d.append(waitLab);d.append(el('h5','Linked group'));const gid=text('Group id, the same on every member',oldG.id,false,80),order=el('select','','',{'aria-label':'Group speaking order'});for(const [id,name] of [['alternate','Take turns'],['authored','Authored order']]){const o=el('option',name);o.value=id;order.append(o);}order.value=oldG.order==='authored'?'authored':'alternate';const orderLab=el('label','','me-field');orderLab.append(el('span','Speaking order'),order);d.append(orderLab);const members=text('Members, including this NPC, one id per line',(oldG.members||[]).join('\\n')),lines=text('This NPC’s lines in the group',oldG.lines),cool=el('input','','',{type:'number',min:'5',max:'600',step:'1','aria-label':'Group cooldown'});cool.value=String(oldG.cooldown??20);const coolLab=el('label','','me-field');coolLab.append(el('span','Group cooldown (seconds)'),cool);d.append(coolLab);box.append(d);return ()=>{const out={};if(role.value){const follow={role:role.value,invite:invite.value.trim(),accept:accept.value.trim(),decline:decline.value.trim(),maxWait:Number(wait.value)};if(travel.checked)follow.districtTravel=true;if(place.value)follow.place=place.value;if(arrive.value.trim())follow.arrive=arrive.value.trim();if(cancel.value.trim())follow.cancel=cancel.value.trim();out.follow=follow;}const ids=members.value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);if(gid.value.trim()||ids.length||lines.value.trim())out.group={id:gid.value.trim(),members:ids,order:order.value,cooldown:Number",
       "kind": "source-reference"
     },
     {
@@ -80227,7 +80227,7 @@
     },
     {
       "source": "void-runner/npc-escort-across.js",
-      "line": 57,
+      "line": 79,
       "text": "else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}",
       "kind": "source-reference"
     },
@@ -83082,7 +83082,7 @@
     "void-runner/item-catalog-editor.js": "3080629bfbce16879ef7be6332a47488a72a78f002761edaf197298be5f85ccb",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
-    "void-runner/live-content.js": "e50ab198206c06a8c013c86b47886df5101052e812a53884fa10b7b705ff376f",
+    "void-runner/live-content.js": "19a52b5e8e455b72aa345dcc475c2ed849b1f3509b4be657ca138bba38cd708f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
@@ -83101,7 +83101,7 @@
     "void-runner/missiles.js": "14b71508e47646f83e1a5953f532eb7717995a4c92f03843cbaa10b1c33b9027",
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
     "void-runner/mission-blocks.js": "061c4b824827d796bb71755b250dcbbf04d875167ab816fb2c4ec34e8353f49e",
-    "void-runner/mission-content.js": "ae07eb2399cfc66690afd1e55bb6d853f7095d95671a3c4867e2ee515e224d57",
+    "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "2de90150d45cc33edd140c92d96ba80aa6bb5cd9214c21a83cfc5706b32de044",
     "void-runner/mission-givers.js": "c4a245cb379f48617d79db9c689a39186cf697a98b7cba4f3a8f00e235e05de9",
@@ -83131,7 +83131,7 @@
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
     "void-runner/ncz-food-stands.js": "8376f76f0e961ddfd29e749c5c711c268e6991fff8d72b0b94a8bfc5e6e90710",
-    "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
+    "void-runner/ncz-gate-transit.js": "1b02435e699b7ab3ca8042df47ac8ec5955f09548a7c1e31283a534e76eedb9f",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
     "void-runner/ncz-nightclub.js": "333b3963ce534b64b4eb29c348f3f75bca2b1c5eedda6d5db10702fe747e7eb4",
     "void-runner/ncz-nightlife.js": "cbdf405a66688c0f67da12e4fa3d246de3fbbd35449768875ad36af6a6874987",
@@ -83151,10 +83151,10 @@
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
     "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "f61ae1e99a12abecfbc57461360fe8f98fa9f2b7d4dcab72d48a073d2741969b",
-    "void-runner/npc-escort-across.js": "124d770aeac5cb083b266eeaaa05348e11936d38a032d5abf0aca27eb757f2ad",
+    "void-runner/npc-editor.js": "78e6544639209c17033d70a0737a11c4134ff231439e33847b73aad49fca687f",
+    "void-runner/npc-escort-across.js": "f48a2fbf8c66912ef533f5cf19363e3ca589f0873e2448fdfc6a2e5a702aaf3a",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "10d0a30069e9982d2645a5f9de533d906f70a2252a7930332a13b4ca2e425dad",
+    "void-runner/npc-escort.js": "d15bb124039471cd324fbed9f9114e220ae0600025cb6a9c2a0d550dad967ab0",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
