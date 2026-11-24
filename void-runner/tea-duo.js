@@ -341,6 +341,9 @@
   MEMBERS.forEach((id,i)=>{const f=figs.get(id),at=s.actors[i];if(!f||!at)return;
    const factor=Math.min(1,dt*10);f.node.position.x+=(at[0]-f.node.position.x)*factor;f.node.position.z+=(at[1]-f.node.position.z)*factor;
    turnTo(f,at[2],10,dt);play(f,at[3]);
+   f.post=at[3]==='sit'||at[3]==='sit-talk'?'sit':'stand';f.want=f.post;
+   const gesture=at[4],pose=gesture&&Object.hasOwn(POSES,gesture[0])&&POSES[gesture[0]];
+   if(pose){const u=gesture[1];applyPose(f,pose.at(u,u*pose.dur,gesture[2],ease(u),{}));}
   });
   if(s.line!==observedLine){if(observedLine)stopSpeech();observedLine=s.line;
    if(s.line&&!isBlocked()){const who=s.line.split('-')[0],entry=allLines(who).find(l=>l.id===s.line);
@@ -534,7 +537,13 @@
     perform(r.line,info);visiting=true;
    }
    if(present&&inside&&root.VoidRemotePlayers?.teaState?.owner===root.VoidRemotePlayers?.me){
-    const actors=MEMBERS.map(id=>{const f=figs.get(id),p=f.node.position;return [+p.x.toFixed(3),+p.z.toFixed(3),+Math.atan2(Math.sin(f.node.rotation.y),Math.cos(f.node.rotation.y)).toFixed(3),f.clip||(f.post==='rising'?'sit-exit':'sit-enter')];});
+    const t=clock(),actors=MEMBERS.map(id=>{
+     const f=figs.get(id),p=f.node.position,yaw=f.node.rotation.y;
+     const at=[+p.x.toFixed(3),+p.z.toFixed(3),+Math.atan2(Math.sin(yaw),Math.cos(yaw)).toFixed(3),f.clip||(f.post==='rising'?'sit-exit':'sit-enter')];
+     const gesture=f.acts.find(a=>a.t0<=t&&t<a.t0+a.dur);
+     if(gesture)at.push([gesture.id,+((t-gesture.t0)/gesture.dur).toFixed(3),gesture.s]);
+     return at;
+    });
     root.VoidRemotePlayers?.teaPose?.({actors,activity:activity?.kind||null,seated:!!playerSeat,line:rec&&playing(now)?lineInfo(rec.id,rec.text)?.id||null:null});
    }
    if(duo&&!duo.queue.length&&!duo.waiting&&!playing(now)&&visiting&&duo.rounds>=ROUNDS){visiting=false;if(!activity)for(const f of figs.values())f.want='sit';}

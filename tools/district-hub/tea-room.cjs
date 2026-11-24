@@ -1,6 +1,8 @@
 // Multiplayer street poses encode underground x with a +2000 m offset.
 const inBedroom=(x,z)=>Number.isFinite(x)&&Number.isFinite(z)&&x>=-15.73&&x<=-9.73&&z>=-106.5&&z<=-100.5;
-const actor=a=>Array.isArray(a)&&a.length===4&&inBedroom(a[0],a[1])&&Number.isFinite(a[2])&&Math.abs(a[2])<=7&&typeof a[3]==='string'&&/^[a-z0-9-]{1,35}$/.test(a[3]);
+const gesture=g=>Array.isArray(g)&&g.length===3&&typeof g[0]==='string'&&/^[a-z-]{1,24}$/.test(g[0])&&
+ Number.isFinite(g[1])&&g[1]>=0&&g[1]<=1&&(g[2]===1||g[2]===-1);
+const actor=a=>Array.isArray(a)&&(a.length===4||a.length===5&&gesture(a[4]))&&inBedroom(a[0],a[1])&&Number.isFinite(a[2])&&Math.abs(a[2])<=7&&typeof a[3]==='string'&&/^[a-z0-9-]{1,35}$/.test(a[3]);
 const valid=m=>Object.keys(m).sort().join()==='activity,actors,line,seated,t'&&Array.isArray(m.actors)&&m.actors.length===2&&m.actors.every(actor)&&
   [null,'sit','hands','dance','relax'].includes(m.activity)&&typeof m.seated==='boolean'&&(m.line===null||typeof m.line==='string'&&/^(nomi|se7en)-[a-zA-Z]+-[0-9]{1,3}$/.test(m.line));
 class TeaRoom {

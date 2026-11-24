@@ -3,6 +3,8 @@ const {TeaRoom,valid}=require('../tools/district-hub/tea-room.cjs');
 test('only the current bedroom guest directs the pair, and departure clears the activity',()=>{
  const messages=[],room=new TeaRoom((conn,m)=>messages.push([conn,m]),()=>1000);
  const pose={t:'tea-pose',line:'nomi-greet-1',seated:true,activity:'sit',actors:[[-12,-102,1,'sit'],[-13,-102,1,'sit']]};
+ const gesture=(phase)=>({...pose,actors:[[...pose.actors[0],['reach-hand',phase,1]],pose.actors[1]]});
+ assert.ok(valid(gesture(.5)));assert.equal(valid(gesture(1.5)),false);
  assert.ok(valid(pose));assert.equal(valid({...pose,actors:[[0,0,0,'sit'],pose.actors[1]]}),false);
  const first={placed:true,x:1988,z:-103,room:'neochinatown-street',id:'a',conn:'a'};
  const second={...first,id:'b',conn:'b'},outside={...first,id:'c',conn:'c',x:12};
