@@ -7,6 +7,7 @@
   const states={
     exploration:policy('exploration',true,true,true,false,'game'),
     flight:policy('flight',false,true,true,false,'game'),
+    feed:policy('feed',true,true,false,false,'activity'),
     seated:policy('seated',true,true,false,false,'seat'),
     conversation:policy('conversation',false,false,false,true,'interface'),
     activity:policy('activity',false,false,false,true,'interface'),
@@ -20,7 +21,8 @@
   };
   function resolve(mode,surface,away,manual,seated){
     if(away)return states.background;
-    if(surface)return states[surface];
+    if(surface&&surface!=='feed')return states[surface];
+    if(surface==='feed')return manual?states.cursor:states.feed;
     if(/prepar|loading|transition/.test(mode))return states.loading;
     if(manual)return states.cursor;
     if(seated||['vr-seated','food-seated','pod-waking'].includes(mode))return states.seated;
@@ -41,6 +43,7 @@
     ['vr','#vr-menu,.vr-companion-menu'],
     ['store','#trade-window,#trade-toast:has(button),.pod-vend,#shop-here:has(button)'],
     ['activity','.tea-duo-choices,#milked-studio-request-panel,#arcade-play'],
+    ['feed','#cam-feed'],
     ['conversation','#screen.conversation-live,#screen:has(.dialogue-window)'],
     ['menu','#screen:has(button),[role="dialog"]:not(#personal-device)']
   ];
@@ -60,7 +63,8 @@
   function refresh(){
     const state=current(),lock=document.pointerLockElement;
     if(previous!==state){if(!state.movement)clear();previous=state;}
-    if(lock&&!state.pointerLock&&(!lock.closest('#cam-feed')||away||manual||surface))document.exitPointerLock?.();
+    // A pending pod request can resolve after the exit to walking. Only the current view may keep capture.
+    if(lock&&(!state.pointerLock||(lock.id==='pod-wake'&&gameMode()!=='pod-waking')))document.exitPointerLock?.();
     const game=['walking','skirmish-fps','food-seated','vr-seated'].includes(gameMode());
     if(!tip&&game){tip=document.createElement('div');tip.id='resume-hint';tip.style.cssText='position:fixed;bottom:7%;right:2%;padding:4px 8px;color:#9bded6;background:#08151bcc;font:11px monospace;letter-spacing:.07em;pointer-events:none;z-index:40';document.body.append(tip);}
     if(tip){

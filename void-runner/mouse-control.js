@@ -11,7 +11,7 @@
   if(e.target!==canvas)return;
   if(type==='mousedown'){
    swallowing=false;
-   if(!VoidInputState.current.pointerLock||locked()||unavailable||!canvas.requestPointerLock||e.button!==0||e.sourceCapabilities?.firesTouchEvents)return;
+   if(VoidInputState.current.name==='feed'||!VoidInputState.current.pointerLock||locked()||unavailable||!canvas.requestPointerLock||e.button!==0||e.sourceCapabilities?.firesTouchEvents)return;
    swallowing=true;e.preventDefault();e.stopImmediatePropagation();lock();return;
   }
   if(swallowing){e.stopImmediatePropagation();if(type==='click')swallowing=false;}

@@ -53,11 +53,11 @@
  function hideOthers(cv){const out=[];let n=cv;if(!n||!n.parentElement)return out;while(n&&n!==document.body&&n.parentElement){for(const s of n.parentElement.children){if(s===n||s===el||s.tagName==='SCRIPT'||s.tagName==='STYLE')continue;out.push([s,s.style.visibility]);s.style.visibility='hidden';}n=n.parentElement;}return out;}
  // keys: all blocked while the feed shows (the player is held); the arrows and WASD aim the camera (still never reaching the game)
  const AIM_KEYS={ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0],ArrowUp:[0,1],KeyW:[0,1],ArrowDown:[0,-1],KeyS:[0,-1]};
- const keyBlock=e=>{if(!F)return;e.preventDefault();e.stopImmediatePropagation();if(AIM_KEYS[e.code]){if(e.type==='keydown')F.keys.add(e.code);else F.keys.delete(e.code);}};
+ const keyBlock=e=>{if(!F||!root.VoidInputState.current.camera||e.altKey||e.metaKey)return;e.preventDefault();e.stopImmediatePropagation();if(AIM_KEYS[e.code]){if(e.type==='keydown')F.keys.add(e.code);else F.keys.delete(e.code);}};
  const zoomNow=()=>CR().ROOM.camera.zooms[F.zi];
  function onWheel(e){if(!F)return;e.preventDefault();e.stopImmediatePropagation();const z=CR().ROOM.camera.zooms,now=performance.now();F.wacc+=e.deltaY;if(Math.abs(F.wacc)<40||now-F.wlast<110)return;const was=F.zi;F.zi=Math.max(0,Math.min(z.length-1,F.zi+(F.wacc<0?1:-1)));F.wacc=0;F.wlast=now;$('zoom').textContent=z[F.zi]+'x';if(F.zi!==was)zoomSound(F.zi>was);}
  // the mouse: held (pointer lock) it aims by its movement; free, a left-button drag aims. Nothing reaches the game's own mouse handlers while the feed shows.
- function onMouse(e){if(!F)return;if(e.type==='mousemove'||e.type==='pointermove'){if(e.type==='mousemove'&&F.live&&(document.pointerLockElement||(e.buttons&1))){const d=CR().aimInput(e.movementX||0,e.movementY||0,F.zf);F.push.pan+=d.pan;F.push.tilt+=d.tilt;}}
+ function onMouse(e){if(!F||!root.VoidInputState.current.camera)return;if(e.type==='mousemove'||e.type==='pointermove'){if(e.type==='mousemove'&&F.live&&(document.pointerLockElement||(e.buttons&1))){const d=CR().aimInput(e.movementX||0,e.movementY||0,F.zf);F.push.pan+=d.pan;F.push.tilt+=d.tilt;}}
   else if(e.type==='mousedown'&&e.button===0&&!document.pointerLockElement){try{F.cv.requestPointerLock?.()?.catch?.(()=>{});}catch{}}
   e.stopImmediatePropagation();if((e.type==='mousedown'||e.type==='contextmenu')&&e.cancelable)e.preventDefault();}   // never preventDefault a pointer event: that would stop the mouse events a drag needs
  const MOUSE_EV=['mousedown','mouseup','mousemove','click','contextmenu','pointerdown','pointerup','pointermove'];
