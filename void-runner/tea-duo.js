@@ -435,6 +435,11 @@
   if(activity?.kind==='sit')endActivity();
   return true;
  }
+ function leaveSeat(){
+  if(standPlayer())return true;
+  if(activity?.kind!=='sit')return false;
+  endActivity();return true;
+ }
  function playerStep(w,moving,dt){
   if(!playerSeat||playerSeat.walker!==w)return false;
   if(moving.x||moving.z){standPlayer();return false;}
@@ -569,5 +574,5 @@
   }
  },true);
  setInterval(tick,250);
- root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};
+ root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};
 })(typeof globalThis!=='undefined'?globalThis:this);
