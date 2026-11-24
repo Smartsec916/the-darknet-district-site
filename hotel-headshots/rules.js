@@ -64,13 +64,16 @@
   if(index===3)prop('couch',27,15);
   roomLabels.push(['FRONT LOBBY',15,4],['GUEST CORRIDOR',15,15],['POOL / SPA',19,26]);
   for(let z=7;z<24;z++)for(let x=1;x<30;x++)if(grid[z][x]==='.'&&(z===15||x===15))spawns.push([x,z]);
+  const stairways=[{id:'east',up:[28,28],down:[28,25],landing:[28,26.5]},{id:'west',up:[2,4],down:[2,1],landing:[2,2.5]}];
+  const exits=index===0?[{id:'front',point:[15,0],label:'LOBBY / MAIN EXIT'},{id:'pool',point:[15,26],label:'REAR EXIT / POOL'},{id:'east-emergency',point:[30,25],label:'EMERGENCY EXIT / EAST STAIRS'},{id:'west-emergency',point:[2,0],label:'EMERGENCY EXIT / WEST STAIRS'}]:[];
+  for(const exit of exits){const existing=doors.find(d=>d.x===exit.point[0]&&d.z===exit.point[1]);if(existing)existing.label=exit.label;else door(...exit.point,exit.label);}
   const artworks=[];
   const art=(x,z,rotation,zone,room=null)=>artworks.push({x,z,rotation,zone,room,variant:(artworks.length+index)%4});
   for(const room of rooms){const [x0,z0,x1]=room.bounds;art(world(x0+2)+1.26,world(room.bath[1]),-Math.PI/2,'room',room.id);const front=room.door[1]===13;art(world(x0+1),world(room.door[1])+(front?1.26:-1.26),front?Math.PI:0,'hall');}
   for(const x of [4,9,21,26])art(world(x),world(6)-1.26,0,'lobby');
   for(const x of [4,17,22])art(world(x),world(30)-1.26,0,'pool');
   art(world(28),world(30)-1.26,0,'stairs');
-  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,start:[12,2],stairs:[28,28],down:[28,25],landing:[28,26.5],reception:[12,4],receptionNPC:[11.65,4.65]};
+  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,stairways,exits,start:[12,2],stairs:[28,28],down:[28,25],landing:[28,26.5],reception:[12,4],receptionNPC:[11.65,4.65]};
  }
  function inside(bounds,p){const x=cell(p.x),z=cell(p.z);return x>=bounds[0]&&x<=bounds[2]&&z>=bounds[1]&&z<=bounds[3];}
  function residents(map,count){return Array.from({length:count},(_,i)=>{const room=map.rooms[i%map.rooms.length];let role,point;
@@ -87,12 +90,13 @@
   if(!prev.has(end))return [];const route=[];for(let k=end;k!==start;k=prev.get(k))route.unshift({x:world(k%SIZE),z:world(Math.floor(k/SIZE))});return route;
  }
  function sight(map,a,b){const dist=Math.hypot(b.x-a.x,b.z-a.z),steps=Math.ceil(dist/.3);for(let i=1;i<steps;i++){const f=i/steps;if(blocked(map,cell(a.x+(b.x-a.x)*f),cell(a.z+(b.z-a.z)*f)))return false;}return true;}
- function newRun(difficulty='standard'){return {difficulty:DIFFICULTIES[difficulty]?difficulty:'standard',floor:0,money:10250,ammo:MAX_AMMO,repelled:0,paid:false,ended:false,won:false,time:0};}
+ function newRun(difficulty='standard'){return {difficulty:DIFFICULTIES[difficulty]?difficulty:'standard',floor:0,money:10250,ammo:MAX_AMMO,repelled:0,paid:false,topReached:false,raid:false,caught:false,ended:false,won:false,time:0};}
  function pay(run){if(run.paid||run.ended)return false;run.money=10000;run.paid=true;return true;}
  function steal(run){if(!run.paid||run.ended)return 0;const amount=Math.min(run.money,DIFFICULTIES[run.difficulty].theft+run.floor*45);run.money-=amount;if(!run.money)run.ended=true;return amount;}
  function hit(npc,part){if(npc.retreat)return 0;const damage=part==='head'?100:part==='arm'?15:50;npc.resistance=Math.max(0,npc.resistance-damage);if(npc.resistance===0)npc.retreat=true;return damage;}
- function advance(run,direction){if(!run.paid||run.ended)return false;if(direction<0){run.floor=Math.max(0,run.floor-1);return true;}if(run.floor===4){run.ended=true;run.won=true;}else run.floor++;return true;}
- function leaderboard(entries,result){return [...(Array.isArray(entries)?entries:[]).filter(e=>e&&Number.isFinite(e.money)&&e.money>=0&&e.money<=10000&&Object.hasOwn(DIFFICULTIES,e.difficulty)).slice(0,20),...(result?.won?[{money:result.money,difficulty:result.difficulty,time:Math.round(result.time),date:new Date().toISOString().slice(0,10)}]:[])].sort((a,b)=>b.money-a.money||a.time-b.time).slice(0,10);}
+ function advance(run,direction){if(!run.paid||run.ended)return false;if(direction<0){run.floor=Math.max(0,run.floor-1);return true;}if(run.floor===4)return false;run.floor++;if(run.floor===4){run.topReached=true;run.raid=true;}return true;}
+
+ function leaderboard(entries,result){return [...(Array.isArray(entries)?entries:[]).filter(e=>e&&Number.isFinite(e.money)&&e.money>=0&&e.money<=10000&&Object.hasOwn(DIFFICULTIES,e.difficulty)).slice(0,20),...((result?.won||(result?.caught&&result?.topReached))?[{money:result.money,difficulty:result.difficulty,time:Math.round(result.time),date:new Date().toISOString().slice(0,10)}]:[])].sort((a,b)=>b.money-a.money||a.time-b.time).slice(0,10);}
  const api={SIZE,TILE,MAX_AMMO,DIFFICULTIES,THEMES,level,inside,residents,cell,world,blocked,fits,path,sight,newRun,pay,steal,hit,advance,leaderboard};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.HotelRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

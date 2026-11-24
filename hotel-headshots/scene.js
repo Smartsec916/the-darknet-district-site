@@ -44,7 +44,7 @@
   const lightPoints=[[15,4],[15,10],[15,20],[5,15],[25,15],[18,27]];
   lightPoints.forEach(([x,z],i)=>{const wx=R.world(x),wz=R.world(z);cylinder('fixture cable',[wx,3.45,wz],.6,.025,dark);box('fluorescent housing',[wx,3.15,wz],[1.5,.12,.32],dark);box('fluorescent tube',[wx,3.07,wz],[1.35,.06,.15],i%2?cyan:lampMat);const l=new B.PointLight('neon practical '+i,V(wx,2.9,wz),scene);l.diffuse=B.Color3.FromHexString(i===0||i===5?'#fff1d6':i%2?'#58e2ed':map.theme.accent);l.intensity=i===0||i===5?1.6:2.4;l.range=22;});
   for(const [x,z] of [[2,2],[18,2],[2,18],[16,18]]){const wx=R.world(x),wz=R.world(z);cylinder('planter',[wx,.3,wz],.6,.65,dark);for(let i=0;i<7;i++){const a=i*2.4,m=sphere('palm',[wx+Math.sin(a)*.3,1.1+i*.08,wz+Math.cos(a)*.3],[.12,1.1,.35],leaf);m.rotation.z=Math.sin(a)*.7;m.rotation.x=Math.cos(a)*.5;}}
-  for(const d of map.doors){const x=R.world(d.x),z=R.world(d.z),side=map.grid[d.z-1]?.[d.x]==='#';d.side=side;box('door lintel',[x,3.25,z],side?[.35,.5,2.4]:[2.4,.5,.35],wood);const hinge=new B.TransformNode('door hinge',scene);hinge.position=side?V(x,0,z-1.13):V(x-1.13,0,z);hinge.rotation.y=side?Math.PI/2:0;const mesh=box('door',[1.13,1.5,0],[2.2,3,.12],wood,hinge,true);box('door inlay',[1.13,1.6,-.07],[1.82,2.2,.035],dark,hinge,true);sphere('handle',[1.95,1.2,-.16],[.12,.12,.12],gold,hinge,true);doors.push({data:d,hinge,mesh,angle:0,base:hinge.rotation.y});}
+  for(const d of map.doors){const x=R.world(d.x),z=R.world(d.z),side=map.grid[d.z-1]?.[d.x]==='#';d.side=side;box('door lintel',[x,3.25,z],side?[.35,.5,2.4]:[2.4,.5,.35],wood);const hinge=new B.TransformNode('door hinge',scene);hinge.position=side?V(x,0,z-1.13):V(x-1.13,0,z);hinge.rotation.y=side?Math.PI/2:0;const mesh=box('door',[1.13,1.5,0],[2.2,3,.12],wood,hinge,true);box('door inlay',[1.13,1.6,-.07],[1.82,2.2,.035],dark,hinge,true);sphere('handle',[1.95,1.2,-.16],[.12,.12,.12],gold,hinge,true);if(d.z===0){box('entrance inside panel',[1.13,1.6,.07],[1.82,2.2,.035],dark,hinge,true);sphere('inside handle',[1.95,1.2,.16],[.12,.12,.12],gold,hinge,true);}if(d.label.includes('EMERGENCY'))box('emergency panic bar',[1.13,1.15,d.z===0?.18:-.18],[1.5,.07,.08],gold,hinge,true);doors.push({data:d,hinge,mesh,angle:0,base:hinge.rotation.y});}
   function couch(x,z){box('sofa base',[x,.35,z],[1.9,.5,1.25],wood);box('sofa seat',[x,.65,z-.15],[1.65,.27,1],cloth);box('sofa back',[x,1.05,z+.47],[1.9,.95,.3],cloth);for(const s of [-1,1])box('sofa arm',[x+s*.91,.8,z],[.22,.65,1.25],cloth);for(const s of [-1,1])box('pillow',[x+s*.42,.92,z+.2],[.55,.4,.24],white);}
   function bottle(x,y,z,i){const n=new B.TransformNode('bottle',scene);n.position=V(x,y,z);const m=cylinder('bottle body',[0,.17,0],.34,.14,i%2?glass:gold,n,true);cylinder('bottle neck',[0,.4,0],.15,.065,glass,n,true);box('bottle label',[0,.18,-.073],[.095,.13,.008],white,n,true);const o={node:n,mesh:m,kind:'bottle',fall:0,base:y};for(const p of n.getChildMeshes())p.metadata={object:o};objects.push(o);}
   for(const p of map.props){const meshStart=scene.meshes.length;const x=R.world(p.x),z=R.world(p.z);
@@ -121,12 +121,15 @@
    for(const side of [-1,1]){piece('wood frame side',side*(w/2+.065),0,.025,[.13,h+.26,.12],frameWood);piece('wood frame rail',0,side*(h/2+.065),.025,[w,.13,.12],frameWood);piece('wood inset bevel',side*(w/2+.012),0,.018,[.025,h,.05],frameEdge);piece('wood inset bevel',0,side*(h/2+.012),.018,[w,.025,.05],frameEdge);}
   }
   for(const [gx,gz] of [[8,5],[12,15],[16,4]])if(!R.blocked(map,gx,gz)){const x=R.world(gx),z=R.world(gz);cylinder('side table stem',[x,.4,z],.8,.09,gold);cylinder('side table',[x,.8,z],.08,.6,wood);cylinder('table lamp base',[x,.9,z],.15,.13,gold);cylinder('table lamp shade',[x,1.2,z],.28,.35,lampMat);for(let j=0;j<3;j++)box('magazine',[x+.12,.87+j*.02,z+.08],[.18,.02,.24],j%2?cloth:white);}
-  const sx=R.world(map.stairs[0]),sz=R.world(map.stairs[1]);
-  sign('STAIRS / '+(map.index===4?'ROOFTOP EXIT':'FLOOR '+(map.index+2)),[sx,3.3,sz+.8],3,.5);
+  for(const stair of map.stairways){const sx=R.world(stair.up[0]),sz=R.world(stair.up[1]);
+  sign('STAIRS / '+(map.index===4?'TOP FLOOR':'FLOOR '+(map.index+2)),[sx,3.3,sz+.8],3,.5);
   for(let i=0;i<8;i++)box('stair tread',[sx,.07+i*.07,sz-2+i*.3],[2.2,.14+i*.14,.3],stone);
   for(const side of [-1,1]){for(let i=0;i<4;i++)cylinder('banister',[sx+side*1.03,.7+i*.2,sz-2+i*.6],1,.04,gold);const rail=box('stair handrail',[sx+side*1.03,1.5,sz-1],[.06,.06,2.8],gold);rail.rotation.x=-.35;}
-  if(map.index>0)sign('STAIRS DOWN / FLOOR '+map.index,[R.world(map.down[0]),2.5,R.world(map.down[1])-.9],3,.5,Math.PI);
-  sign('HOTEL // LIABILITY',[center,3.1,.95],6,.6,Math.PI);
+  if(map.index>0)sign('STAIRS DOWN / FLOOR '+map.index,[R.world(stair.down[0]),2.5,R.world(stair.down[1])-.9],3,.5,Math.PI);
+  }
+  const sx=R.world(map.stairs[0]),sz=R.world(map.stairs[1]);
+  for(const exit of map.exits){const x=R.world(exit.point[0]),z=R.world(exit.point[1]),side=exit.point[0]===30,front=exit.point[1]===0;sign(exit.label,[x-(side?1.25:0),3.1,z+(front?1.25:-1.25)],side?3.2:3.8,.45,side?Math.PI/2:front?Math.PI:0,'#9ce5aa');}
+  sign('HOTEL // LIABILITY',[R.world(10),3.1,.95],6,.6,Math.PI);
   sign('POOL / STAIRS',[R.world(15),2.8,R.world(24)-.2],2,.4);
   sign('POOL / SPA',[R.world(15),2.8,R.world(26)-.2],2,.4);
   // A visible ladder marks the only swimmers' exit; swimmers climb before pursuing.
@@ -134,7 +137,7 @@
   for(const side of [-1,1])cylinder('pool ladder rail',[ex,.2,ez+side*.4],1.5,.065,gold);
   for(let i=0;i<5;i++){const rung=cylinder('pool ladder rung',[ex,-.8+i*.3,ez],.8,.055,gold);rung.rotation.x=Math.PI/2;}
   for(const room of map.rooms){const meshStart=scene.meshes.length,x=R.world(room.bath[0]),z=R.world(room.bath[1]);box('shower tray',[x-.65,.04,z-.5],[.9,.08,1],white);cylinder('shower riser',[x-.9,1.3,z-.8],2.2,.04,gold);sphere('toilet bowl',[x+.55,.36,z-.5],[.5,.55,.75],white);box('toilet cistern',[x+.55,.65,z-.85],[.52,.65,.22],white);if(room.facing<0)for(const mesh of scene.meshes.slice(meshStart))mesh.position.z=2*z-mesh.position.z;}
-  if(map.index===4)sign('E · CHECK OUT',[sx,2.9,sz+.65],3,.55);
+  if(map.index===4)sign('PENTHOUSE / NO REFUNDS',[sx,2.9,sz+.65],3,.55);
   // Merge static architecture by material; interactive/hit-tested parts stay separate.
   for(const material of new Set(statics.map(m=>m.material))){const list=statics.filter(m=>m.material===material);if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.name='hotel '+material.name;merged.receiveShadows=true;}}}
   if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,1,-m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}
@@ -144,7 +147,20 @@
   const characters=HotelCharacters.prepare(scene,shadow);
   const person=characters.person;
   function weapon(){const n=new B.TransformNode('foam blaster',scene);n.parent=camera;n.position=V(0,-.21,.28);n.scaling=V(.62,.72,.72);const tan=mat('blaster tan','#b89a72',.65,.04);const barrel=cylinder('foam pressure barrel',[0,0,.1],.47,.17,tan,n,true);barrel.rotation.x=Math.PI/2;const nozzle=cylinder('tan nozzle',[0,0,.37],.1,.1,tan,n,true);nozzle.rotation.x=Math.PI/2;box('tan grip',[0,-.12,-.07],[.12,.24,.13],tan,n,true);for(const m of n.getChildMeshes()){m.isPickable=false;m.renderingGroupId=1;}return n;}
-  return {scene,camera,shadow,windows,artworkMeshes,person,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
+  const policeTracer=mat('police tracer','#ffca66',.5);policeTracer.emissiveColor=new B.Color3(1,.65,.2);
+  function officer(id){
+   const node=new B.TransformNode('police officer '+id,scene),uniform=mat('police navy','#182737',.9),armor=mat('police armor','#303b43',.72),skin=mat('officer skin','#a37e60',.9),visor=mat('police visor','#536b78',.3,.3);
+   const torso=sphere('uniform torso',[0,1.23,0],[.52,.65,.32],uniform,node,true);box('ballistic vest',[0,1.24,.13],[.46,.5,.12],armor,node,true);box('duty belt',[0,.91,0],[.46,.08,.34],dark,node,true);
+   sphere('officer head',[0,1.72,0],[.28,.34,.28],skin,node,true);sphere('police helmet',[0,1.83,-.01],[.34,.25,.34],armor,node,true);box('helmet visor',[0,1.74,.16],[.29,.13,.035],visor,node,true);
+   const legs=[];for(const side of [-1,1]){const leg=new B.TransformNode('uniform leg',scene);leg.parent=node;leg.position.set(side*.14,.85,0);cylinder('trouser leg',[0,-.3,0],.64,.19,uniform,leg,true);box('police boot',[0,-.76,.06],[.21,.18,.35],dark,leg,true);legs.push(leg);const arm=cylinder('uniform sleeve',[side*.27,1.23,.16],.48,.17,uniform,node,true);arm.rotation.x=-.8;sphere('gloved hand',[side*.19,1.15,.36],[.14,.15,.18],dark,node,true);}
+   box('police weapon',[.13,1.18,.48],[.12,.16,.56],dark,node,true);const barrel=cylinder('rifle barrel',[.13,1.2,.83],.26,.055,armor,node,true);barrel.rotation.x=Math.PI/2;
+   const flash=sphere('police muzzle flash',[.13,1.2,1],[.16,.13,.25],policeTracer,node,true);flash.isPickable=false;
+   const badge=box('police chest badge',[-.13,1.4,.21],[.07,.09,.02],gold,node,true);
+   const label=sign('POLICE',[0,1.29,.202],.34,.1,Math.PI,'#dce5ec');label.parent=node;
+   for(const mesh of node.getChildMeshes())shadow?.addShadowCaster(mesh);
+   return {node,animate(time,firing){legs[0].rotation.x=Math.sin(time)*.38;legs[1].rotation.x=-Math.sin(time)*.38;torso.rotation.z=Math.sin(time)*.015;flash.setEnabled(firing);}};
+  }
+  return {scene,camera,shadow,windows,artworkMeshes,person,officer,policeTracer,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
  }
  root.HotelScene={build};
 })(globalThis);

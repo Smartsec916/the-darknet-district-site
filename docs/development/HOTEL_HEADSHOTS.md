@@ -10,7 +10,7 @@ Five-floor, nonlethal first-person arcade shooter with money theft, evasive play
 
 Run `node tests/serve-modern.cjs`, then open `http://127.0.0.1:5187/hotel-headshots/index.html` on desktop. WASD moves, mouse aims, left click fires (hold for automatic fire), Shift sprints, E interacts, Escape pauses. The canvas renders at 1024 × 768 and the entire game frame, including menus, scales at 4:3. Pointer-lock loss, tab hiding and window blur pause the game.
 
-Begin inside the front lobby facing reception. Pay the receptionist $250 from the initial $10,250, leaving $10,000. Theft and active pursuit require payment; entering a room can wake its sleeper before payment. Free refill tanks replenish the 48-shot reservoir. Pass through the rear pool door, cross the deck to the enclosed east stairwell, climb the stairs and press E at the landing to load the next floor. Floors 2–5 also offer a return stair interaction. Money, ammo and repelled count carry across floors; revisited floors remember doors, guest resistance/retreat, and sleeping/waking/pool-exit activity. The fifth-floor rooftop checkout ends the run. Zero money ends it immediately.
+Begin inside the front lobby facing reception. Pay the receptionist $250 from the initial $10,250, leaving $10,000. Theft and active pursuit require payment; entering a room can wake its sleeper before payment. Free refill tanks replenish the 48-shot reservoir. Pass through the rear pool door, cross the deck to the enclosed east stairwell, climb the stairs and press E at the landing to load the next floor. Floors 2–5 also offer a return stair interaction. Money, ammo and repelled count carry across floors; revisited floors remember doors, guest resistance/retreat, and sleeping/waking/pool-exit activity. Reaching floor five triggers a police raid through all ground-floor entrances. Officers pursue across both stairways and shoot the player; the non-graphic ending records the remaining balance. There is no escape victory. Zero money ends it immediately.
 
 ## Implementation
 
@@ -113,3 +113,14 @@ Verified floor 1 and floor 5 screenshots, window parallax, clear glazing, six-me
 The opening lobby and pool now use warm daylight with a blue sky and white clouds overhead. Framed transparent skylights replace opaque ceiling sections over the lobby and indoor pool; the penthouse pool remains open to the daytime sky. Ambient illumination and sunlight are brighter, while lobby/pool practical lights use a neutral warm tint. Guest-wing ceilings and neon interior accents remain. Window exteriors retain daytime trees, grass, sky and clouds. The player still starts in the reception lobby.
 
 Validation: daytime lobby/pool/rooftop browser previews passed; cloud geometry excluded from neon bloom and projectile picking. Node suite: 1,174 passed, one skipped.
+
+
+## 24 Nov 2026 — entrances, emergency exits and police ending (current)
+
+The front entrance and main exit are in the lobby. The rear exit opens toward the pool. Both the east rear stairwell and west lobby stairway have signed emergency exits at their ground-floor bases. Either staircase works between every floor and preserves its matching arrival landing. The updated plans mark all four ground-floor doors.
+
+The owner's final ending supersedes the original rooftop victory: reaching the penthouse triggers a police raid. Four uniformed officers enter through the main lobby, rear pool doorway and two emergency entrances. They breach doors, follow room/corridor paths, climb or descend the stairs to the player's floor, aim and fire visible projectiles with muzzle flashes and gunshot sounds. Walls stop rounds. Sirens and the HUD announce the cordon; no exterior door grants a victory. A police hit ends the run with “BUSTED. NO CHECKOUT.” and saves the remaining money as the final score. No blood, wound graphics or ragdoll death. Police geometry is original procedural uniform/helmet/armor geometry with walking and firing animation, not a licensed realistic police model.
+
+`raid.js` owns deterministic multi-floor pursuit and projectile collision; the game owns rendering, sound, pause behavior and the ending. The raid persists across floor changes and resets on a new run. Older victory-test notes above are historical.
+
+Validation: 21 focused hotel tests; full Node suite 1,178 passed / one skipped; all-floor gameplay browser passed with the penthouse trigger, police gunfire ending, final-score persistence, restart and 4:3 checks. Police/entrance browser confirms all four entry routes, sealed-exit interaction, uniform rendering and the non-graphic ending. Also simulated police following the player back down from floor five to reception.
