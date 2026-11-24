@@ -134,3 +134,8 @@ Added the owner-reference rounded tan lower grip, with three shallow rounded rid
 ### Wind-up correction
 
 Owner clarified that the new lower grip is the wind-up: it moves slightly up and back down for 0.18 seconds before the foam projectile and firing sound occur. Ammo is consumed only at release. Held fire repeats the wind-up, and pause/floor changes cancel a pending shot. This supersedes the immediate-fire interpretation above.
+
+
+## 24 Nov 2026 — wider vertical mouse aim
+
+Vertical mouse aim now reaches 89 degrees above and below horizontal (previously about 72 degrees). Foam follows the full 3D camera direction; the camera view matrix refreshes at shot release so the wind-up uses the current aim. Player movement stays on the floor. Controls now explicitly mention up/down aiming.
