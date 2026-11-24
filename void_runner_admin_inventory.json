@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "72a3ae240504078a",
+  "revision": "e2eebd17081211d2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83057,7 +83057,7 @@
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "d0f272652c33d37c3770bf5d1bc1965db57c8e600269f56afac616dc6814310f",
     "void-runner/mission-givers.js": "c4a245cb379f48617d79db9c689a39186cf697a98b7cba4f3a8f00e235e05de9",
-    "void-runner/mission-guide.js": "2af62790c980f97d364d7600cdcd87f6f5a938140199814d25d639aed3a28c31",
+    "void-runner/mission-guide.js": "e4b4416e8960f8adfa276a4119af89d990203efdef65922873ddf362faaadcd2",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
     "void-runner/mission-mechanics-game.js": "65df4c501381f56b4117abf44f6b4cee07c41e80732113c381c781e9f9714166",
