@@ -1,28 +1,30 @@
-/* Shared 3D city view behind glazed room windows. One render target, no city simulation. */
+/* Shared 3D trees and sky behind glazed room windows. One render target, no exterior simulation. */
 (function(root){
 'use strict';
 const B=root.BABYLON,R=root.HotelRules;
 function build(scene,camera,map){
- const city=new B.Scene(scene.getEngine());city.clearColor=new B.Color4(.035,.055,.09,1);city.fogMode=B.Scene.FOGMODE_EXP2;city.fogDensity=.006;city.fogColor=new B.Color3(.055,.075,.11);
- const eye=new B.FreeCamera('city view camera',new B.Vector3(0,0,-4),city);eye.minZ=.05;eye.maxZ=220;city.activeCamera=eye;
- const light=new B.HemisphericLight('city ambient',new B.Vector3(.3,1,-.3),city);light.intensity=.48;const moon=new B.DirectionalLight('city moonlight',new B.Vector3(-.5,-.8,.6),city);moon.intensity=.65;moon.diffuse=new B.Color3(.55,.68,.85);
+ const outdoors=new B.Scene(scene.getEngine());outdoors.clearColor=new B.Color4(.38,.65,.84,1);outdoors.fogMode=B.Scene.FOGMODE_EXP2;outdoors.fogDensity=.003;outdoors.fogColor=new B.Color3(.62,.77,.85);
+ const eye=new B.FreeCamera('garden view camera',new B.Vector3(0,0,-4),outdoors);eye.minZ=.05;eye.maxZ=220;outdoors.activeCamera=eye;
+ const light=new B.HemisphericLight('outdoor skylight',new B.Vector3(.3,1,-.3),outdoors);light.intensity=.8;light.groundColor=new B.Color3(.22,.29,.19);
+ const sun=new B.DirectionalLight('afternoon sunlight',new B.Vector3(-.5,-.8,.6),outdoors);sun.intensity=.7;sun.diffuse=new B.Color3(1,.94,.8);
  const groups=new Map();
- function material(name,color,emission=0){const m=new B.StandardMaterial(name,city);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=B.Color3.Black();m.emissiveColor=m.diffuseColor.scale(emission);return m;}
- const concrete=material('city concrete','#283747'),steel=material('city steel','#192632'),road=material('wet street','#152331',.15),warm=material('lit apartments','#dfb88a',.8),cyan=material('cyan signs','#449db0',.8),pink=material('magenta signs','#a9517a',.8);
- const wear=new B.DynamicTexture('weathered city panels',128,city,false),ctx=wear.getContext();ctx.fillStyle='#99a2ac';ctx.fillRect(0,0,128,128);for(let i=0;i<1400;i++){ctx.fillStyle=i%2?'#ffffff12':'#00000020';ctx.fillRect(i*47%128,i*73%128,1,i%9+1);}ctx.strokeStyle='#18253366';ctx.strokeRect(1,1,126,126);wear.update();concrete.diffuseTexture=wear;steel.diffuseTexture=wear;
- function box(name,x,y,z,w,h,d,mat){const m=B.MeshBuilder.CreateBox(name,{width:w,height:h,depth:d},city);m.position.set(x,y,z);m.material=mat;m.isPickable=false;const a=groups.get(mat)||[];a.push(m);groups.set(mat,a);return m;}
- const street=-2.4-map.index*4.2;
- box('street',0,street-.2,65,180,.3,160,road);
- for(let i=0;i<21;i++){const row=Math.floor(i/7),x=(i%7-3)*14+(row%2?5:0),z=24+row*34,h=10+(i*17%31),w=8+i%4;
-  box('tower',x,street+h/2,z,w,h,9, i%2?concrete:steel);box('rooftop plant',x+1,street+h+.7,z,2,1.4,2,steel);box('antenna',x-2,street+h+2,z,.12,4,.12,steel);
-  for(let floor=1;floor<h/3;floor++)for(let col=-2;col<=2;col++)if((i+floor*3+col*7)%4!==0)box('apartment light',x+col*1.35,street+floor*3,z-4.53,.65,.95,.04,(i+col)%3?warm:cyan);
-  for(let y=3;y<h;y+=6){box('facade ledge',x,street+y,z-4.65,w+.25,.16,.35,steel);box('air conditioning',x-w*.35,street+y+.5,z-4.8,.8,.6,.6,concrete);}
-  if(i%3===0){box('vertical sign',x+w/2+.3,street+h*.6,z-4.6,.7,4,.12,i%2?cyan:pink);for(let j=0;j<4;j++)box('sign lettering',x+w/2+.3,street+h*.6-1.3+j*.85,z-4.68,.4,.12,.02,warm);}
+ function material(name,color,emission=0){const m=new B.StandardMaterial(name,outdoors);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=B.Color3.Black();m.emissiveColor=m.diffuseColor.scale(emission);return m;}
+ const grass=material('garden meadow','#597747'),bark=material('tree bark','#68523a'),leaves=[material('sunlit foliage','#567b3e'),material('deep green foliage','#355d39'),material('soft green foliage','#749451')],cloud=material('white clouds','#edf3f3',.18);
+ function add(m,mat,x,y,z){m.position.set(x,y,z);m.material=mat;m.isPickable=false;const group=groups.get(mat)||[];group.push(m);groups.set(mat,group);return m;}
+ function canopy(name,x,y,z,w,h,d,mat){return add(B.MeshBuilder.CreateSphere(name,{diameter:1,segments:8},outdoors),mat,x,y,z).scaling.set(w,h,d);}
+ // Ground and tree roots stay at a fixed physical elevation as the hotel rises.
+ const ground=-2.4-map.index*4.2;
+ add(B.MeshBuilder.CreateGround('meadow',{width:210,height:190},outdoors),grass,0,ground,80);
+ for(let i=0;i<32;i++){const row=Math.floor(i/8),x=(i%8-3.5)*12+(row%2?5:0),z=16+row*24+(i*7%9),h=7+i*13%6;
+  add(B.MeshBuilder.CreateCylinder('tree trunk',{height:h*.72,diameterTop:.22,diameterBottom:.65,tessellation:7},outdoors),bark,x,ground+h*.36,z);
+  for(let j=0;j<5;j++){const angle=j*2.4,spread=j?1.7:0;canopy('tree crown',x+Math.cos(angle)*spread,ground+h-1+(j%2)*1.3,z+Math.sin(angle)*spread,4.5+j%2,4.8,4.2,leaves[(i+j)%3]);}
  }
- for(const x of [-10,10]){box('street curb',x,street+.08,26,.25,.18,45,concrete);for(let z=7;z<45;z+=9){box('street lamp',x,street+2,z,.12,4,.12,steel);box('lamp head',x,street+4,z,1.2,.16,.3,warm);}}
- for(let i=0;i<5;i++){const x=-6+i*3,z=12+i*3;box('parked vehicle',x,street+.65,z,1.8,1.1,3.4,steel);box('vehicle windscreen',x,street+1.23,z,1.5,.05,1.2,cyan);}
- for(const [mat,list] of groups){const mesh=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);mesh.name='city '+mat.name;mesh.freezeWorldMatrix();}
- const target=new B.RenderTargetTexture('shared 3D city',512,city,false,true);target.activeCamera=eye;target.renderList=city.meshes.slice();target.clearColor=city.clearColor;target.wrapU=target.wrapV=B.Texture.CLAMP_ADDRESSMODE;
+ // Broad cloud banks remain above the tree canopy; upper floors look out into sky.
+ for(let i=0;i<9;i++){const x=(i%3-1)*37+(i%2)*8,z=65+Math.floor(i/3)*36,y=ground+20+(i%3)*3;
+  for(let j=0;j<5;j++)canopy('cloud bank',x+(j-2)*5,y+(j===2?1.7:0),z+(j%2)*2,13,3.5+(j%3),8,cloud);
+ }
+ for(const [mat,list] of groups){const mesh=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);mesh.name='outdoors '+mat.name;mesh.freezeWorldMatrix();}
+ const target=new B.RenderTargetTexture('shared 3D garden and sky',512,outdoors,false,true);target.activeCamera=eye;target.renderList=outdoors.meshes.slice();target.clearColor=outdoors.clearColor;target.wrapU=target.wrapV=B.Texture.CLAMP_ADDRESSMODE;
  const viewMat=new B.StandardMaterial('window exterior view',scene);viewMat.disableLighting=true;viewMat.emissiveTexture=target;viewMat.diffuseColor=B.Color3.Black();viewMat.specularColor=B.Color3.Black();
  const glass=new B.StandardMaterial('transparent window glass',scene);glass.diffuseColor=new B.Color3(.24,.4,.46);glass.alpha=.075;glass.specularColor=new B.Color3(.3,.4,.5);glass.backFaceCulling=false;
  const frameMat=new B.StandardMaterial('window steel frame',scene);frameMat.diffuseColor=new B.Color3(.12,.16,.19);
@@ -39,10 +41,10 @@ function build(scene,camera,map){
   const ex=-(p.z-a.z),ey=p.y-a.y,n=.05,f=220,l=(-a.width/2-ex)*n/depth,r=(a.width/2-ex)*n/depth,b=(-a.height/2-ey)*n/depth,t=(a.height/2-ey)*n/depth;
   eye.position.set(ex,ey,-depth);eye.setTarget(new B.Vector3(ex,ey,1));
   eye.freezeProjectionMatrix(B.Matrix.FromValues(2*n/(r-l),0,0,0,0,2*n/(t-b),0,0,-(r+l)/(r-l),-(t+b)/(t-b),(f+n)/(f-n),1,0,0,-2*n*f/(f-n),0));
-  city.incrementRenderId();city.resetCachedMaterial();target.render(true);renders++;
+  outdoors.incrementRenderId();outdoors.resetCachedMaterial();target.render(true);renders++;
  }
- scene.onDisposeObservable.add(()=>city.dispose());
- return {panes,city,target,eye,update,get renders(){return renders;},get active(){return active?.room??null;}};
+ scene.onDisposeObservable.add(()=>outdoors.dispose());
+ return {panes,outdoors,target,eye,update,get renders(){return renders;},get active(){return active?.room??null;}};
 }
 root.HotelWindows={build};
 })(globalThis);

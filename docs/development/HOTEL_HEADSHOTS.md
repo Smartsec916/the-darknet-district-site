@@ -99,3 +99,10 @@ Compared the owner's hotel-plan references with the [Gaylord Texan guest-room pl
 These are gameplay plans, not construction drawings: rooms and corridors retain generous arcade clearances; windows continue using the shared 3D city-view optimization; floor changes remain transitions rather than a continuous stacked building. The fridge and breakfast items are scenery, not a food inventory system. Updated floor-plan PNGs are generated from the actual level data.
 
 Validation: 17 focused hotel tests; full Node suite 1,174 passed / 1 skipped; resident browser checks passed (dining, slow/fast waking, bathrooms, pool entry/ladder exits, blocking poses); complete gameplay browser passed all five floors, stair down/up round trip, victory and persistent scores. Breakfast counter preview rendered without browser errors.
+
+
+## 24 Nov 2026 — natural exterior views
+
+Owner correction: remove the cyberpunk city outside. Window views now show a shared 3D meadow and leafy trees under blue sky and white cloud banks. Tree roots stay at a fixed world elevation, so higher floors look over the canopy into more sky and clouds. Removed the separate penthouse skyline meshes as well. Retains clear glazing, perspective parallax, six merged exterior meshes, the 512px shared render target and 20Hz cap. Earlier city-view notes describe the superseded artwork.
+
+Verified floor 1 and floor 5 screenshots, window parallax, clear glazing, six-mesh batching and idle render culling. Node suite: 1,174 passed, one skipped. Exterior foliage/clouds remain procedural and stylized.

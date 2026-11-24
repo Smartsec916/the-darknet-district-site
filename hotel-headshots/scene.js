@@ -126,7 +126,7 @@
   for(const side of [-1,1])cylinder('pool ladder rail',[ex,.2,ez+side*.4],1.5,.065,gold);
   for(let i=0;i<5;i++){const rung=cylinder('pool ladder rung',[ex,-.8+i*.3,ez],.8,.055,gold);rung.rotation.x=Math.PI/2;}
   for(const room of map.rooms){const meshStart=scene.meshes.length,x=R.world(room.bath[0]),z=R.world(room.bath[1]);box('shower tray',[x-.65,.04,z-.5],[.9,.08,1],white);cylinder('shower riser',[x-.9,1.3,z-.8],2.2,.04,gold);sphere('toilet bowl',[x+.55,.36,z-.5],[.5,.55,.75],white);box('toilet cistern',[x+.55,.65,z-.85],[.52,.65,.22],white);if(room.facing<0)for(const mesh of scene.meshes.slice(meshStart))mesh.position.z=2*z-mesh.position.z;}
-  if(map.index===4){for(let i=0;i<24;i++){const x=(i%8)*9-9,z=i<8?65:(i<16?-14:55),h=8+(i*13%19);box('city silhouette',[x,h/2,z],[5,h,5],dark);}sign('E · CHECK OUT',[sx,2.9,sz+.65],3,.55);}
+  if(map.index===4)sign('E · CHECK OUT',[sx,2.9,sz+.65],3,.55);
   // Merge static architecture by material; interactive/hit-tested parts stay separate.
   for(const material of new Set(statics.map(m=>m.material))){const list=statics.filter(m=>m.material===material);if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.name='hotel '+material.name;merged.receiveShadows=true;}}}
   if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,1,-m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}
