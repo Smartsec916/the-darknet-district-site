@@ -14,6 +14,7 @@
  const FACTS={
   admin:{name:'Admin',group:D,say:'Admin',where:'The Darknet District, at the store counter (neochinatown.js: SPEAK WITH ADMIN).',targets:[{action:'admin'}],layout:'admin',enter:AREA.district,players:true,draft:true,
    note:'His prompt is hidden while the story flag adminOccupied is set (Play as Admin uses it).'},
+  dax:{name:'Dax',group:D,say:'dax',where:'The Darknet District, on her current route.',targets:[{action:'district-dax',character:'dax'}],layout:'district-dax',enter:AREA.district,players:true,draft:true},
   iris:{name:'Iris',group:D,say:'Iris',where:'The Darknet District, at the store counter beside Admin (neochinatown.js: SPEAK WITH IRIS).',targets:[{action:'district-iris'}],layout:'district-iris',enter:AREA.district,players:true,draft:true,
    note:'The in-game Iris only; the website chatbot is separate.'},
   bartender:{name:'District bartender',group:D,say:'Bartender',where:'The Darknet District bar and oxygen lounge (neochinatown.js: TALK TO THE BARTENDER). The figure behind the bar is Nyx (district-people.js).',targets:[{action:'district-bar'}],layout:'district-bar',enter:AREA.district,players:true,draft:true},
