@@ -106,3 +106,10 @@ Validation: 17 focused hotel tests; full Node suite 1,174 passed / 1 skipped; re
 Owner correction: remove the cyberpunk city outside. Window views now show a shared 3D meadow and leafy trees under blue sky and white cloud banks. Tree roots stay at a fixed world elevation, so higher floors look over the canopy into more sky and clouds. Removed the separate penthouse skyline meshes as well. Retains clear glazing, perspective parallax, six merged exterior meshes, the 512px shared render target and 20Hz cap. Earlier city-view notes describe the superseded artwork.
 
 Verified floor 1 and floor 5 screenshots, window parallax, clear glazing, six-mesh batching and idle render culling. Node suite: 1,174 passed, one skipped. Exterior foliage/clouds remain procedural and stylized.
+
+
+## 24 Nov 2026 — daytime opening, pool and windows
+
+The opening lobby and pool now use warm daylight with a blue sky and white clouds overhead. Framed transparent skylights replace opaque ceiling sections over the lobby and indoor pool; the penthouse pool remains open to the daytime sky. Ambient illumination and sunlight are brighter, while lobby/pool practical lights use a neutral warm tint. Guest-wing ceilings and neon interior accents remain. Window exteriors retain daytime trees, grass, sky and clouds. The player still starts in the reception lobby.
+
+Validation: daytime lobby/pool/rooftop browser previews passed; cloud geometry excluded from neon bloom and projectile picking. Node suite: 1,174 passed, one skipped.

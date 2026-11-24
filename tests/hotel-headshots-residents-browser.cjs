@@ -3,6 +3,12 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 (async()=>{const out='.test-temp/hotel-headshots',server=spawn(process.execPath,['tests/serve-modern.cjs'],{stdio:'pipe',windowsHide:true});await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);});let browser;
 try{browser=await chromium.launch({channel:'msedge',headless:true,args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});const page=await browser.newPage({viewport:{width:1280,height:960}});page.setDefaultTimeout(120000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5187/hotel-headshots/index.html?test=1');await page.waitForFunction(()=>window.HotelHeadshots?.ready);await page.click('#start');await page.waitForFunction(()=>HotelHeadshots.ready&&HotelHeadshots.test.npcs.every(n=>n.view.loaded));await page.waitForTimeout(200);await page.keyboard.press('Escape');await page.evaluate(()=>document.getElementById('dialog').hidden=true);
 const shot=async(name,x,z,yaw=0,pitch=.12)=>{await page.evaluate(({x,z,yaw,pitch})=>{const t=HotelHeadshots.test;t.teleport(x,z,yaw);t.aim(yaw,pitch);}, {x,z,yaw,pitch});await page.waitForTimeout(120);await page.screenshot({path:out+'/'+name+'.png'});};
+if(process.argv.includes('--daylight')){
+ await shot('daytime-lobby',28.8,6.2,0,-.22);await shot('daytime-pool',36,65,-.9,-.25);
+ assert(await page.evaluate(()=>HotelHeadshots.test.scene.getMaterialByName('daylight skylight glass').alpha<.2));
+ await page.evaluate(()=>HotelHeadshots.test.load(4));await page.waitForFunction(()=>HotelHeadshots.ready&&HotelHeadshots.test.npcs.every(n=>n.view.loaded));await shot('daytime-rooftop',36,65,-.9,-.25);
+ assert.deepEqual(errors,[]);console.log('Daytime lobby, pool and rooftop browser checks passed');return;
+}
 if(process.argv.includes('--breakfast')){await shot('breakfast-counter',65.8,9,Math.PI,.10);assert.deepEqual(errors,[]);console.log('Breakfast counter browser preview passed');return;}
 if(process.argv.includes('--art')){
  await page.waitForFunction(()=>HotelHeadshots.test.art.artworkMeshes.every(m=>m.material.albedoTexture.isReady()));

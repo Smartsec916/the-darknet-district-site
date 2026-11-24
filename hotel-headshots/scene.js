@@ -3,10 +3,10 @@
  'use strict';
  const B=root.BABYLON,R=root.HotelRules,V=(x,y,z)=>new B.Vector3(x,y,z);
  function build(engine,map,settings){
-  const scene=new B.Scene(engine);scene.clearColor=new B.Color4(.025,.035,.055,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.009;scene.fogColor=new B.Color3(.07,.08,.11);
+  const scene=new B.Scene(engine);scene.clearColor=new B.Color4(.38,.65,.84,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.003;scene.fogColor=new B.Color3(.62,.77,.85);
   const camera=new B.UniversalCamera('eyes',V(24,1.68,4.8),scene);camera.minZ=.055;camera.maxZ=100;camera.fov=1.18;camera.inputs.clear();
-  const hemi=new B.HemisphericLight('ambient',V(.1,1,.2),scene);hemi.intensity=.55;hemi.groundColor=B.Color3.FromHexString('#1d2330');
-  const sun=new B.DirectionalLight('window light',V(-.4,-1,.3),scene);sun.position=V(24,12,12);sun.intensity=.65;sun.diffuse=B.Color3.FromHexString('#9baec4');
+  const hemi=new B.HemisphericLight('ambient',V(.1,1,.2),scene);hemi.intensity=.85;hemi.groundColor=B.Color3.FromHexString('#41463d');
+  const sun=new B.DirectionalLight('window light',V(-.4,-1,.3),scene);sun.position=V(24,12,12);sun.intensity=1.15;sun.diffuse=B.Color3.FromHexString('#fff0d1');
   const shadow=settings.shadows?new B.ShadowGenerator(1024,sun):null;if(shadow){shadow.usePercentageCloserFiltering=true;shadow.filteringQuality=B.ShadowGenerator.QUALITY_LOW;shadow.bias=.002;shadow.normalBias=.03;}
   const materials={},statics=[],doors=[],objects=[],curtains=[],refills=[],mirrors=[];
   function mat(name,color,rough=.7,metal=0){if(materials[name])return materials[name];const m=new B.PBRMaterial(name,scene);m.albedoColor=B.Color3.FromHexString(color);m.roughness=rough;m.metallic=metal;m.environmentIntensity=.5;materials[name]=m;return m;}
@@ -26,7 +26,15 @@
   for(let z=0;z<R.SIZE;z++)for(let x=0;x<R.SIZE;x++)if(map.grid[z][x]==='#'){
    const wx=R.world(x),wz=R.world(z);box('wall',[wx,1.9,wz],[2.4,3.8,2.4],wallpaper);box('wainscot',[wx,.58,wz],[2.42,1.16,2.42],wood);box('skirting',[wx,.16,wz],[2.44,.2,2.44],dark);box('chair rail',[wx,1.17,wz],[2.46,.065,2.46],gold);box('crown',[wx,3.45,wz],[2.47,.13,2.47],gold);
   }
-  box('ceiling',[center,3.95,R.world(map.index===4?12:15)],[extent,.15,R.world(map.index===4?25:31)],ceiling);
+  // Daylight reaches the lobby and indoor pool through framed glazed roofs.
+  box('guest wing ceiling',[center,3.95,37.2],[extent,.15,48],ceiling);
+  const roofGlass=new B.StandardMaterial('daylight skylight glass',scene);roofGlass.diffuseColor=new B.Color3(.65,.82,.9);roofGlass.alpha=.12;roofGlass.specularColor=new B.Color3(.8,.85,.9);roofGlass.backFaceCulling=false;
+  box('lobby glazed roof',[center,3.95,6],[extent,.08,14.4],roofGlass,null,true);
+  if(map.index<4)box('pool glazed roof',[center,3.95,67.2],[extent,.08,12],roofGlass,null,true);
+  for(const z of [6,67.2]){if(z>60&&map.index===4)continue;for(let x=0;x<=72;x+=12)box('skylight mullion',[x,3.91,z],[.12,.14,z<10?14.4:12],gold);}
+  const skyCloud=new B.StandardMaterial('daytime clouds',scene);skyCloud.diffuseColor=B.Color3.Black();skyCloud.emissiveColor=new B.Color3(.94,.97,1);skyCloud.disableLighting=true;
+  for(let i=0;i<8;i++){const x=8+(i%4)*18,z=i<4?7:66;for(let j=0;j<3;j++){const cloud=sphere('daytime cloud',[x+(j-1)*3,18+(i%3)*2,z+j*2],[10,2.8+j%2,6],skyCloud);cloud.isPickable=false;}}
+
   for(let z=3;z<30;z+=4)box('service ceiling beam',[center,3.75,R.world(z)],[extent,.18,.16],wood);
   // Wall panels, brass columns, practical lamps and hotel clutter frame the route.
   const lampMat=mat('neon diffuser',map.theme.accent,.5);lampMat.emissiveColor=B.Color3.FromHexString(map.theme.accent).scale(1.6);
@@ -34,7 +42,7 @@
   for(let z=7;z<19;z+=4)for(const x of [1,19]){const wx=R.world(x),wz=R.world(z);box('neon housing',[wx,2.8,wz],[.18,.32,2.1],dark);box('neon strip',[wx+(x===1?.11:-.11),2.8,wz],[.04,.055,1.9],x===1?lampMat:cyan);for(let i=0;i<3;i++)box('exposed conduit',[wx,3.35+i*.12,wz],[.07,.07,9.6],gold);box('junction box',[wx,2.05,wz+1],[.2,.5,.35],dark);}
   for(const z of [5,10,15]){box('ceiling cable tray',[24,3.6,R.world(z)],[38,.12,.28],dark);for(let i=0;i<5;i++)box('tray cable',[24,3.63,R.world(z)-.1+i*.045],[37.8,.035,.025],gold);}
   const lightPoints=[[15,4],[15,10],[15,20],[5,15],[25,15],[18,27]];
-  lightPoints.forEach(([x,z],i)=>{const wx=R.world(x),wz=R.world(z);cylinder('fixture cable',[wx,3.45,wz],.6,.025,dark);box('fluorescent housing',[wx,3.15,wz],[1.5,.12,.32],dark);box('fluorescent tube',[wx,3.07,wz],[1.35,.06,.15],i%2?cyan:lampMat);const l=new B.PointLight('neon practical '+i,V(wx,2.9,wz),scene);l.diffuse=B.Color3.FromHexString(i%2?'#58e2ed':map.theme.accent);l.intensity=2.4;l.range=22;});
+  lightPoints.forEach(([x,z],i)=>{const wx=R.world(x),wz=R.world(z);cylinder('fixture cable',[wx,3.45,wz],.6,.025,dark);box('fluorescent housing',[wx,3.15,wz],[1.5,.12,.32],dark);box('fluorescent tube',[wx,3.07,wz],[1.35,.06,.15],i%2?cyan:lampMat);const l=new B.PointLight('neon practical '+i,V(wx,2.9,wz),scene);l.diffuse=B.Color3.FromHexString(i===0||i===5?'#fff1d6':i%2?'#58e2ed':map.theme.accent);l.intensity=i===0||i===5?1.6:2.4;l.range=22;});
   for(const [x,z] of [[2,2],[18,2],[2,18],[16,18]]){const wx=R.world(x),wz=R.world(z);cylinder('planter',[wx,.3,wz],.6,.65,dark);for(let i=0;i<7;i++){const a=i*2.4,m=sphere('palm',[wx+Math.sin(a)*.3,1.1+i*.08,wz+Math.cos(a)*.3],[.12,1.1,.35],leaf);m.rotation.z=Math.sin(a)*.7;m.rotation.x=Math.cos(a)*.5;}}
   for(const d of map.doors){const x=R.world(d.x),z=R.world(d.z),side=map.grid[d.z-1]?.[d.x]==='#';d.side=side;box('door lintel',[x,3.25,z],side?[.35,.5,2.4]:[2.4,.5,.35],wood);const hinge=new B.TransformNode('door hinge',scene);hinge.position=side?V(x,0,z-1.13):V(x-1.13,0,z);hinge.rotation.y=side?Math.PI/2:0;const mesh=box('door',[1.13,1.5,0],[2.2,3,.12],wood,hinge,true);box('door inlay',[1.13,1.6,-.07],[1.82,2.2,.035],dark,hinge,true);sphere('handle',[1.95,1.2,-.16],[.12,.12,.12],gold,hinge,true);doors.push({data:d,hinge,mesh,angle:0,base:hinge.rotation.y});}
   function couch(x,z){box('sofa base',[x,.35,z],[1.9,.5,1.25],wood);box('sofa seat',[x,.65,z-.15],[1.65,.27,1],cloth);box('sofa back',[x,1.05,z+.47],[1.9,.95,.3],cloth);for(const s of [-1,1])box('sofa arm',[x+s*.91,.8,z],[.22,.65,1.25],cloth);for(const s of [-1,1])box('pillow',[x+s*.42,.92,z+.2],[.55,.4,.24],white);}
@@ -130,7 +138,7 @@
   // Merge static architecture by material; interactive/hit-tested parts stay separate.
   for(const material of new Set(statics.map(m=>m.material))){const list=statics.filter(m=>m.material===material);if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.name='hotel '+material.name;merged.receiveShadows=true;}}}
   if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,1,-m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}
-  const glow=new B.GlowLayer('neon spill',scene,{blurKernelSize:32});glow.intensity=.65;
+  const glow=new B.GlowLayer('neon spill',scene,{blurKernelSize:32});glow.intensity=.65;const clouds=scene.getMeshByName('hotel daytime clouds');if(clouds){glow.addExcludedMesh(clouds);clouds.isPickable=false;}
   scene.imageProcessingConfiguration.contrast=1.12;scene.imageProcessingConfiguration.exposure=1.2;
   const windows=HotelWindows.build(scene,camera,map);
   const characters=HotelCharacters.prepare(scene,shadow);
