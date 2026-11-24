@@ -39,6 +39,13 @@ function makeRigTools(){
       }else if(candidates.length===1)result.mapping[role]=candidates[0];
       else if(candidates.length>1)result.ambiguous[role]=candidates;
     }
+    // Spine numbering is not portable: Mixamo counts upwards, some Meshy rigs backwards.
+    // Resolve only an unbroken ancestor chain with a known hip and both arm anchors.
+    if(!Object.hasOwn(overrides,'Spine')&&!Object.hasOwn(overrides,'Chest')&&result.mapping.Hips!==undefined&&result.mapping.LeftUpperArm!==undefined&&result.mapping.RightUpperArm!==undefined){
+      const torso=result.joints.filter(n=>[...aliases.Spine,...aliases.Chest].includes(norm(n.name))).map(n=>n.index);
+      const ordered=torso.length>=2&&torso.every(a=>isAncestor(result.mapping.Hips,a)&&isAncestor(a,result.mapping.LeftUpperArm)&&isAncestor(a,result.mapping.RightUpperArm)&&torso.every(b=>a===b||isAncestor(a,b)||isAncestor(b,a)));
+      if(ordered){torso.sort((a,b)=>isAncestor(a,b)?-1:1);result.mapping.Spine=torso[0];result.mapping.Chest=torso.at(-1);delete result.ambiguous.Spine;delete result.ambiguous.Chest;}
+    }
     for(const role of Object.keys(overrides))if(!roles.includes(role))issues.push('Unknown role '+role);
     const used=new Set();for(const [role,i] of Object.entries(result.mapping)){if(used.has(i))issues.push('Joint mapped more than once: '+role);used.add(i);}
     for(const chain of chains){const present=chain.filter(role=>Object.prototype.hasOwnProperty.call(result.mapping,role));for(let i=1;i<present.length;i++)if(!isAncestor(result.mapping[present[i-1]],result.mapping[present[i]]))issues.push('Hierarchy mismatch: '+present[i-1]+' → '+present[i]);}
@@ -79,6 +86,78 @@ function makeRigTools(){
     for(const a of plan.aliases){const clip=JSON.parse(JSON.stringify(copy.animations[a.index]));clip.name=a.role;copy.animations.push(clip);}
     return {json:copy,plan};
   }
-  return {roles,inspectRig,inspectClips,planAliases,applyAliases};
+  // Accessors from a normalized, decoded, single-buffer GLB. Unsupported encodings
+  // must be decoded upstream, never treated as an empty or passing stream.
+  function accessor(j,binary,index){
+    const a=j.accessors?.[index],v=j.bufferViews?.[a?.bufferView],width={SCALAR:1,VEC2:2,VEC3:3,VEC4:4,MAT4:16}[a?.type],size={5120:1,5121:1,5122:2,5123:2,5125:4,5126:4}[a?.componentType];
+    if(!(binary instanceof Uint8Array)||!a||!v||!width||!size||a.sparse||v.extensions||v.buffer!==0||!Number.isSafeInteger(a.count)||a.count<1)throw Error('Unsupported accessor '+index);
+    const base=v.byteOffset??0,offset=a.byteOffset??0,stride=v.byteStride??width*size,length=v.byteLength;
+    if(![base,offset,stride,length].every(Number.isSafeInteger)||base<0||offset<0||stride<width*size||stride%size||length<1||base+length>binary.byteLength||offset+(a.count-1)*stride+width*size>length||(base+offset)%size)throw Error('Accessor out of bounds '+index);
+    const dv=new DataView(binary.buffer,binary.byteOffset,binary.byteLength),get={5120:'getInt8',5121:'getUint8',5122:'getInt16',5123:'getUint16',5125:'getUint32',5126:'getFloat32'}[a.componentType];
+    const max={5120:127,5121:255,5122:32767,5123:65535}[a.componentType];
+    if(a.normalized&&!max)throw Error('Invalid normalized accessor '+index);
+    return {count:a.count,width,row(i){if(!Number.isInteger(i)||i<0||i>=a.count)throw Error('Accessor index out of range');return Array.from({length:width},(_,k)=>{const n=dv[get](base+offset+i*stride+k*size,true);if(!Number.isFinite(n))throw Error('Non-finite accessor '+index);return a.normalized?Math.max(-1,n/max):n;});}};
+  }
+  function validateSkin(j,binary,rig=inspectRig(j)){
+    const report={ok:false,vertices:0,issues:[]};
+    if(!rig.ready){report.issues.push('Resolve rig mapping first');return report;}
+    try{
+      const skin=j.skins[rig.skin];
+      if(skin.inverseBindMatrices!=null){
+        const a=j.accessors[skin.inverseBindMatrices],m=accessor(j,binary,skin.inverseBindMatrices);
+        if(a.componentType!==5126||a.type!=='MAT4'||m.count<skin.joints.length)throw Error('Invalid inverse bind matrices');
+        for(let i=0;i<skin.joints.length;i++){
+          const x=m.row(i),d=x[0]*(x[5]*x[10]-x[6]*x[9])-x[4]*(x[1]*x[10]-x[2]*x[9])+x[8]*(x[1]*x[6]-x[2]*x[5]);
+          if(!Number.isFinite(d)||d===0||Math.abs(x[3])+Math.abs(x[7])+Math.abs(x[11])+Math.abs(x[15]-1)>1e-4)throw Error('Singular or non-affine inverse bind matrix '+i);
+        }
+      }
+      const seen=new Set();
+      for(const n of j.nodes||[])if(n.skin===rig.skin&&!seen.has(n.mesh)){
+        seen.add(n.mesh);
+        for(const p of j.meshes[n.mesh].primitives){
+          if(p.extensions)throw Error('Decode compressed mesh first');
+          const a=p.attributes,position=accessor(j,binary,a.POSITION),sets=[];
+          for(const k of Object.keys(a).filter(k=>/^JOINTS_\d+$/.test(k)||/^WEIGHTS_\d+$/.test(k)))if(!sets.includes(k.split('_')[1]))sets.push(k.split('_')[1]);
+          const pairs=sets.map(k=>{const ji=a['JOINTS_'+k],wi=a['WEIGHTS_'+k],ja=j.accessors[ji],wa=j.accessors[wi];if(ja?.type!=='VEC4'||![5121,5123].includes(ja.componentType)||ja.normalized||wa?.type!=='VEC4'||!(wa.componentType===5126&&!wa.normalized||[5121,5123].includes(wa.componentType)&&wa.normalized))throw Error('Invalid joint/weight streams');const joints=accessor(j,binary,ji),weights=accessor(j,binary,wi);if(joints.count!==position.count||weights.count!==position.count)throw Error('Mismatched skin streams');return {joints,weights};});
+          if(!pairs.length||position.width!==3)throw Error('Missing skin streams');
+          for(let i=0;i<position.count;i++){
+            position.row(i);let total=0;
+            for(const {joints,weights} of pairs){const ids=joints.row(i),ws=weights.row(i);for(let k=0;k<4;k++){if(!Number.isInteger(ids[k])||ids[k]<0||ids[k]>=skin.joints.length||ws[k]<0||ws[k]>1.0001)throw Error('Invalid joint index or weight at vertex '+i);total+=ws[k];}}
+            if(Math.abs(total-1)>.025)throw Error('Unnormalized or zero skin weights at vertex '+i);
+            report.vertices++;
+          }
+        }
+      }
+      if(!report.vertices)throw Error('No decoded skinned vertices');
+      report.ok=true;
+    }catch(e){report.issues.push(e.message);}
+    return report;
+  }
+  function validateMotion(j,binary,rig,index,{locomotion=false}={}){
+    const report={ok:false,movingJoints:[],issues:[]};
+    if(!rig.ready||!inspectClips(j,rig)[index]?.structural){report.issues.push('Invalid structural clip or rig');return report;}
+    try{
+      const a=j.animations[index],jointSet=new Set(rig.joints.map(x=>x.index)),moving=new Set();
+      for(const c of a.channels){
+        const node=c.target?.node,path=c.target?.path;
+        if(!jointSet.has(node)||!['rotation','translation','scale'].includes(path))continue;
+        const s=a.samplers[c.sampler],input=accessor(j,binary,s.input),output=accessor(j,binary,s.output),cubic=s.interpolation==='CUBICSPLINE';
+        let previous=-Infinity,first=null;
+        for(let i=0;i<input.count;i++){
+          const t=input.row(i)[0];if(t<0||t<=previous)throw Error('Animation times must increase');previous=t;
+          const value=output.row(cubic?i*3+1:i);
+          if(cubic){output.row(i*3);output.row(i*3+2);}
+          if(path==='rotation'&&Math.abs(Math.hypot(...value)-1)>.01)throw Error('Invalid rotation quaternion');
+          if(first===null)first=value;
+          else {const distance=path==='rotation'?1-Math.abs(first.reduce((sum,x,k)=>sum+x*value[k],0))/(Math.hypot(...first)*Math.hypot(...value)):Math.hypot(...value.map((x,k)=>x-first[k]));if(distance>1e-5)moving.add(node);}
+        }
+      }
+      report.movingJoints=[...moving];
+      if(locomotion&&!['Left','Right'].every(side=>[side+'UpperLeg',side+'LowerLeg',side+'Foot'].some(role=>moving.has(rig.mapping[role]))))throw Error('Locomotion requires actual motion in both legs');
+      report.ok=true;
+    }catch(e){report.issues.push(e.message);}
+    return report;
+  }
+  return {roles,inspectRig,inspectClips,planAliases,applyAliases,accessor,validateSkin,validateMotion};
 }
 if(typeof module==='object'&&module.exports)module.exports=makeRigTools();else globalThis.VoidSharedRig=makeRigTools();
