@@ -55,15 +55,31 @@ def finish_rig(rig):
         delta=current.rotation_difference(direction).to_matrix().to_4x4()
         pb.matrix=rig.matrix_world.inverted()@Matrix.Translation(origin)@delta@Matrix.Translation(-origin)@world
         bpy.context.view_layer.update()
-    for side,sign in [('Left',1),('Right',-1)]:
-        shoulder=rig.matrix_world@rig.pose.bones['mixamorig:'+side+'Arm'].head
-        aim(side+'Arm',Vector((shoulder.x+sign*.015,head.y-.24,head.z-.20)))
-        aim(side+'ForeArm',Vector((head.x+sign*.09,head.y-.24,head.z+.07)))
-    guard=bpy.data.actions.new('guard');rig.animation_data.action=guard
-    for p in rig.pose.bones:
-        p.rotation_mode='QUATERNION';p.keyframe_insert('rotation_quaternion',frame=1);p.keyframe_insert('rotation_quaternion',frame=2)
-    rig.animation_data.action=None
-    track=rig.animation_data.nla_tracks.new();track.name='guard';strip=track.strips.new('guard',1,guard);strip.action_slot=guard.slots[0]
+    for pose_name in ['guard','guard-palms','guard-cross']:
+        rig.animation_data.action=None
+        for pb in rig.pose.bones:pb.matrix_basis=held[pb.name]
+        bpy.context.view_layer.update()
+        for side,sign in [('Left',1),('Right',-1)]:
+            shoulder=rig.matrix_world@rig.pose.bones['mixamorig:'+side+'Arm'].head
+            if pose_name=='guard':
+                elbow=Vector((shoulder.x+sign*.015,head.y-.24,head.z-.20));hand=Vector((head.x+sign*.09,head.y-.24,head.z+.07))
+            elif pose_name=='guard-palms':
+                elbow=Vector((shoulder.x+sign*.11,head.y-.20,head.z-.40));hand=Vector((head.x+sign*.14,head.y-.38,head.z-.02))
+            else:
+                elbow=Vector((shoulder.x+sign*.04,head.y-.20,head.z-.35));hand=Vector((head.x-sign*.12,head.y-.30,head.z-.03+(.07 if sign==1 else 0)))
+            aim(side+'Arm',elbow);aim(side+'ForeArm',hand)
+            if pose_name=='guard-palms':
+                pb=rig.pose.bones['mixamorig:'+side+'Hand'];origin=(rig.matrix_world@pb.matrix).translation
+                # Fingers upright; palms face the incoming player/projectiles.
+                rot=Matrix(((sign,0,0),(0,0,-sign),(0,1,0))).to_4x4();rot.translation=origin
+                pb.matrix=rig.matrix_world.inverted()@rot
+                for finger in rig.pose.bones:
+                    if side+'Hand' in finger.name and finger.name!=pb.name:finger.matrix_basis=Matrix()
+        action=bpy.data.actions.new(pose_name);rig.animation_data.action=action
+        for pb in rig.pose.bones:
+            pb.rotation_mode='QUATERNION';pb.keyframe_insert('rotation_quaternion',frame=1);pb.keyframe_insert('rotation_quaternion',frame=2)
+        rig.animation_data.action=None
+        track=rig.animation_data.nla_tracks.new();track.name=pose_name;strip=track.strips.new(pose_name,1,action);strip.action_slot=action.slots[0];track.mute=True
     for track in rig.animation_data.nla_tracks:track.mute=False
     for p in rig.pose.bones:p.matrix_basis=Matrix()
     # Retain detailed face textures; cap maps for a practical multi-NPC budget.

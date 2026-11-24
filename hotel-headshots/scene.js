@@ -1,11 +1,11 @@
-/* Original procedural hotel art. No licensed or third-party character assets. */
+/* Hotel architecture and original props; public CC0 characters load separately. */
 (function(root){
  'use strict';
  const B=root.BABYLON,R=root.HotelRules,V=(x,y,z)=>new B.Vector3(x,y,z);
  function build(engine,map,settings){
   const scene=new B.Scene(engine);scene.clearColor=new B.Color4(.025,.035,.055,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.009;scene.fogColor=new B.Color3(.07,.08,.11);
   const camera=new B.UniversalCamera('eyes',V(24,1.68,4.8),scene);camera.minZ=.055;camera.maxZ=100;camera.fov=1.18;camera.inputs.clear();
-  const hemi=new B.HemisphericLight('ambient',V(.1,1,.2),scene);hemi.intensity=.4;hemi.groundColor=B.Color3.FromHexString('#1d2330');
+  const hemi=new B.HemisphericLight('ambient',V(.1,1,.2),scene);hemi.intensity=.55;hemi.groundColor=B.Color3.FromHexString('#1d2330');
   const sun=new B.DirectionalLight('window light',V(-.4,-1,.3),scene);sun.position=V(24,12,12);sun.intensity=.65;sun.diffuse=B.Color3.FromHexString('#9baec4');
   const shadow=settings.shadows?new B.ShadowGenerator(1024,sun):null;if(shadow){shadow.usePercentageCloserFiltering=true;shadow.filteringQuality=B.ShadowGenerator.QUALITY_LOW;shadow.bias=.002;shadow.normalBias=.03;}
   const materials={},statics=[],doors=[],objects=[],curtains=[],refills=[],mirrors=[];
@@ -22,19 +22,19 @@
   function sphere(name,pos,size,material,parent=null,dynamic=false){const m=B.MeshBuilder.CreateSphere(name,{diameter:1,segments:12},scene);m.scaling.copyFromFloats(...size);return finish(m,material,pos,parent,dynamic);}
   function cylinder(name,pos,h,d,material,parent=null,dynamic=false){return finish(B.MeshBuilder.CreateCylinder(name,{height:h,diameter:d,tessellation:16},scene),material,pos,parent,dynamic);}
   function sign(text,pos,w=3,h=.65,rot=0,color='#67edee'){const t=new B.DynamicTexture('sign '+text,{width:768,height:192},scene,false),g=t.getContext();g.fillStyle='#09121a';g.fillRect(0,0,768,192);g.strokeStyle=map.theme.accent;g.lineWidth=4;g.strokeRect(9,9,750,174);g.font='bold '+Math.min(65,Math.floor(1150/text.length))+'px monospace';g.textAlign='center';g.textBaseline='middle';g.shadowColor=color;g.shadowBlur=16;g.fillStyle=color;g.fillText(text,384,96);g.shadowBlur=0;for(let y=0;y<192;y+=4){g.fillStyle='#00000025';g.fillRect(0,y,768,1);}t.update();const m=new B.StandardMaterial('lettering',scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.specularColor=B.Color3.Black();const mesh=B.MeshBuilder.CreatePlane('sign',{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene);mesh.material=m;mesh.position.copyFromFloats(...pos);mesh.rotation.y=rot;return mesh;}
-  const ground=box('floor',[24,-.16,24],[50,.3,50],map.index===2?stone:carpet);
+  const center=R.world((R.SIZE-1)/2),extent=R.SIZE*R.TILE;const ground=box('pool foundation',[center,-1.55,center],[extent,.3,extent],stone);for(let z=0;z<R.SIZE;z++){let start=0;for(let x=0;x<=R.SIZE;x++)if(x===R.SIZE||map.grid[z][x]==='W'){if(x>start)box('floor',[R.world((start+x-1)/2),-.16,R.world(z)],[(x-start)*R.TILE,.3,R.TILE],z>=25?stone:carpet);start=x+1;}}
   for(let z=0;z<R.SIZE;z++)for(let x=0;x<R.SIZE;x++)if(map.grid[z][x]==='#'){
    const wx=R.world(x),wz=R.world(z);box('wall',[wx,1.9,wz],[2.4,3.8,2.4],wallpaper);box('wainscot',[wx,.58,wz],[2.42,1.16,2.42],wood);box('skirting',[wx,.16,wz],[2.44,.2,2.44],dark);box('chair rail',[wx,1.17,wz],[2.46,.065,2.46],gold);box('crown',[wx,3.45,wz],[2.47,.13,2.47],gold);
   }
-  if(map.index<4)box('ceiling',[24,3.95,27],[48,.15,42],ceiling);else box('penthouse ceiling',[24,3.95,20],[48,.15,35],ceiling);
-  for(let z=12;z<44;z+=7.2){box('coffer beam',[24,3.75,z],[46,.2,.18],wood);for(let x=7.2;x<44;x+=9.6)box('coffer cross',[x,3.78,z-3.6],[.14,.16,7.2],wood);}
+  box('ceiling',[center,3.95,R.world(map.index===4?12:15)],[extent,.15,R.world(map.index===4?25:31)],ceiling);
+  for(let z=3;z<30;z+=4)box('service ceiling beam',[center,3.75,R.world(z)],[extent,.18,.16],wood);
   // Wall panels, brass columns, practical lamps and hotel clutter frame the route.
   const lampMat=mat('neon diffuser',map.theme.accent,.5);lampMat.emissiveColor=B.Color3.FromHexString(map.theme.accent).scale(1.6);
   const cyan=mat('cyan tubes','#3ca7ad',.4);cyan.emissiveColor=new B.Color3(.15,1.8,2);
   for(let z=7;z<19;z+=4)for(const x of [1,19]){const wx=R.world(x),wz=R.world(z);box('neon housing',[wx,2.8,wz],[.18,.32,2.1],dark);box('neon strip',[wx+(x===1?.11:-.11),2.8,wz],[.04,.055,1.9],x===1?lampMat:cyan);for(let i=0;i<3;i++)box('exposed conduit',[wx,3.35+i*.12,wz],[.07,.07,9.6],gold);box('junction box',[wx,2.05,wz+1],[.2,.5,.35],dark);}
   for(const z of [5,10,15]){box('ceiling cable tray',[24,3.6,R.world(z)],[38,.12,.28],dark);for(let i=0;i<5;i++)box('tray cable',[24,3.63,R.world(z)-.1+i*.045],[37.8,.035,.025],gold);}
-  const lightPoints=[[10,6],[10,12],[10,17],[3,9],[17,9],[17,17]];
-  lightPoints.forEach(([x,z],i)=>{const wx=R.world(x),wz=R.world(z);cylinder('fixture cable',[wx,3.45,wz],.6,.025,dark);box('fluorescent housing',[wx,3.15,wz],[1.5,.12,.32],dark);box('fluorescent tube',[wx,3.07,wz],[1.35,.06,.15],i%2?cyan:lampMat);const l=new B.PointLight('neon practical '+i,V(wx,2.9,wz),scene);l.diffuse=B.Color3.FromHexString(i%2?'#58e2ed':map.theme.accent);l.intensity=2.4;l.range=14;});
+  const lightPoints=[[15,4],[15,10],[15,20],[5,15],[25,15],[18,27]];
+  lightPoints.forEach(([x,z],i)=>{const wx=R.world(x),wz=R.world(z);cylinder('fixture cable',[wx,3.45,wz],.6,.025,dark);box('fluorescent housing',[wx,3.15,wz],[1.5,.12,.32],dark);box('fluorescent tube',[wx,3.07,wz],[1.35,.06,.15],i%2?cyan:lampMat);const l=new B.PointLight('neon practical '+i,V(wx,2.9,wz),scene);l.diffuse=B.Color3.FromHexString(i%2?'#58e2ed':map.theme.accent);l.intensity=2.4;l.range=22;});
   for(const [x,z] of [[2,2],[18,2],[2,18],[16,18]]){const wx=R.world(x),wz=R.world(z);cylinder('planter',[wx,.3,wz],.6,.65,dark);for(let i=0;i<7;i++){const a=i*2.4,m=sphere('palm',[wx+Math.sin(a)*.3,1.1+i*.08,wz+Math.cos(a)*.3],[.12,1.1,.35],leaf);m.rotation.z=Math.sin(a)*.7;m.rotation.x=Math.cos(a)*.5;}}
   for(const d of map.doors){const x=R.world(d.x),z=R.world(d.z),side=map.grid[d.z-1]?.[d.x]==='#';d.side=side;box('door lintel',[x,3.25,z],side?[.35,.5,2.4]:[2.4,.5,.35],wood);const hinge=new B.TransformNode('door hinge',scene);hinge.position=side?V(x,0,z-1.13):V(x-1.13,0,z);hinge.rotation.y=side?Math.PI/2:0;const mesh=box('door',[1.13,1.5,0],[2.2,3,.12],wood,hinge,true);box('door inlay',[1.13,1.6,-.07],[1.82,2.2,.035],dark,hinge,true);sphere('handle',[1.95,1.2,-.16],[.12,.12,.12],gold,hinge,true);doors.push({data:d,hinge,mesh,angle:0,base:hinge.rotation.y});}
   function couch(x,z){box('sofa base',[x,.35,z],[1.9,.5,1.25],wood);box('sofa seat',[x,.65,z-.15],[1.65,.27,1],cloth);box('sofa back',[x,1.05,z+.47],[1.9,.95,.3],cloth);for(const s of [-1,1])box('sofa arm',[x+s*.91,.8,z],[.22,.65,1.25],cloth);for(const s of [-1,1])box('pillow',[x+s*.42,.92,z+.2],[.55,.4,.24],white);}
@@ -42,9 +42,9 @@
   for(const p of map.props){const x=R.world(p.x),z=R.world(p.z);
    if(p.kind==='couch')couch(x,z);
    if(p.kind==='bed'){box('bed frame',[x,.25,z],[1.7,.4,2.15],wood);box('mattress',[x,.57,z],[1.65,.3,2.1],white);box('duvet',[x,.76,z-.25],[1.67,.12,1.5],cloth);box('headboard',[x,1.05,z+1.02],[1.8,1.5,.15],wood);for(const s of [-1,1])sphere('pillow',[x+s*.4,.82,z+.65],[.65,.17,.42],white);}
-   if(p.kind==='desk'||p.kind==='bar'){box('counter',[x,.65,z],[p.kind==='desk'?3.7:2.2,1.3,1.2],wood);box('countertop',[x,1.34,z],[p.kind==='desk'?3.9:2.4,.13,1.3],stone);for(const s of [-1,1])box('counter trim',[x+s*(p.kind==='desk'?1.7:1),.68,z-.61],[.045,1.1,.025],gold);if(p.kind==='bar'){for(let i=0;i<5;i++)bottle(x-.8+i*.38,1.42,z,i);}else{box('guest register',[x-.9,1.44,z],[.7,.06,.45],dark);box('register pages',[x-.9,1.48,z],[.65,.015,.4],white);cylinder('service bell',[x+.95,1.48,z-.1],.12,.2,gold);box('terminal',[x+.1,1.65,z+.1],[.5,.4,.08],dark);box('terminal screen',[x+.1,1.65,z+.05],[.43,.31,.01],glass);}sign(p.kind==='desk'?'CHECK IN · E':'BAR / NO TAB',[x,1.05,z-.62],2,.35);}
+   if(p.kind==='desk'||p.kind==='bar'){box('counter',[x,p.kind==='desk'?.525:.65,z],[p.kind==='desk'?3.7:2.2,p.kind==='desk'?1.05:1.3,1.2],wood);box('countertop',[x,p.kind==='desk'?1.09:1.34,z],[p.kind==='desk'?3.9:2.4,.13,1.3],stone);for(const s of [-1,1])box('counter trim',[x+s*(p.kind==='desk'?1.7:1),p.kind==='desk'?.55:.68,z-.61],[.045,p.kind==='desk'?.85:1.1,.025],gold);if(p.kind==='bar'){for(let i=0;i<5;i++)bottle(x-.8+i*.38,1.42,z,i);}else{box('guest register',[x-.9,1.19,z],[.7,.06,.45],dark);box('register pages',[x-.9,1.23,z],[.65,.015,.4],white);cylinder('service bell',[x+.95,1.23,z-.1],.12,.2,gold);box('terminal',[x+.1,1.40,z+.1],[.5,.4,.08],dark);box('terminal screen',[x+.1,1.40,z+.05],[.43,.31,.01],glass);}sign(p.kind==='desk'?'CHECK IN · E':'BAR / NO TAB',[x,p.kind==='desk'?.77:1.05,z-.62],2,.35);}
    if(p.kind==='bath'){box('bath mat',[x,.012,z],[1.7,.025,2],stone);box('vanity',[x,.55,z+.65],[1.7,1.1,.65],wood);sphere('basin',[x,1.12,z+.65],[.7,.13,.4],white);cylinder('tap',[x,1.25,z+.85],.28,.06,gold);box('mirror frame',[x,1.95,z+1.05],[1.8,1.3,.08],gold);const mirrorMat=mat('mirror','#bcc6c9',.05,1),mirror=box('mirror',[x,1.95,z+1],[1.65,1.15,.015],mirrorMat,null,true);mirrors.push(mirror);}
-   if(p.kind==='pool'||p.kind==='tub'){const pool=p.kind==='pool',w=pool?16.5:2.1,h=pool?14:2.1;box('pool basin',[x,.04,z],[w,.12,h],stone);const waterMat=mat('water','#196b75',.12,.3);waterMat.alpha=.78;waterMat.emissiveColor=new B.Color3(.015,.11,.12);box('water',[x,.13,z],[w-.5,.04,h-.5],waterMat,null,true);for(const s of [-1,1]){box('pool rim',[x+s*w/2,.2,z],[.25,.3,h],white);box('pool rim',[x,.2,z+s*h/2],[w,.3,.25],white);}if(pool){for(let i=0;i<6;i++)box('pool lane',[x-6+i*2.4,.14,z],[.04,.01,h-.5],white);}}
+   if(p.kind==='pool'||p.kind==='tub'){const pool=p.kind==='pool',w=pool?p.width:2.1,h=pool?p.depth:2.1;box('pool basin',[x,pool?-1.3:.04,z],[w,.12,h],stone);const waterMat=mat('water','#196b75',.12,.3);waterMat.alpha=.78;waterMat.emissiveColor=new B.Color3(.015,.11,.12);box('water',[x,.13,z],[w-.5,.04,h-.5],waterMat,null,true);for(const s of [-1,1]){box('pool rim',[x+s*w/2,.2,z],[.25,.3,h],white);box('pool rim',[x,.2,z+s*h/2],[w,.3,.25],white);}if(pool){for(let i=0;i<Math.floor(w/2.4);i++)box('pool lane',[x-w/2+1.2+i*2.4,-1.21,z],[.04,.01,h-.5],white);}}
    if(p.kind==='lounger'){const m=box('lounger',[x,.43,z],[.7,.12,1.7],white);m.rotation.x=-.14;for(const s of [-1,1])box('chair leg',[x+s*.28,.23,z],[.06,.4,1.3],gold);}
   }
   // Pleated curtains sway on contact; small objects can be knocked over.
@@ -55,12 +55,19 @@
   const painting=mat('torn posters','#302a3c',.98);
   for(let z=7;z<18;z+=4)for(const side of [1,19]){const x=R.world(side),wz=R.world(z),dir=side===1?1:-1;box('picture frame',[x-dir*1.05,2.1,wz],[.09,1.05,1.5],gold);box('artwork',[x-dir*.99,2.1,wz],[.02,.92,1.37],painting);for(let j=0;j<5;j++)box('paint stroke',[x-dir*.97,1.8+j*.13,wz+(j%2?-.14:.14)],[.025,.04,.7-j*.08],j%2?stone:wood);}
   for(const [gx,gz] of [[8,5],[12,15],[16,4]])if(!R.blocked(map,gx,gz)){const x=R.world(gx),z=R.world(gz);cylinder('side table stem',[x,.4,z],.8,.09,gold);cylinder('side table',[x,.8,z],.08,.6,wood);cylinder('table lamp base',[x,.9,z],.15,.13,gold);cylinder('table lamp shade',[x,1.2,z],.28,.35,lampMat);for(let j=0;j<3;j++)box('magazine',[x+.12,.87+j*.02,z+.08],[.18,.02,.24],j%2?cloth:white);}
-  sign('STAIRS / '+(map.index===4?'ROOFTOP EXIT':'FLOOR '+(map.index+2)),[R.world(18),3.4,R.world(19)+.8],4,.6);
-  for(let i=0;i<10;i++)box('stair tread',[R.world(18),.08+i*.065,R.world(17)+i*.48],[2.25,.16+i*.13,.48],stone);
-  if(map.index>0){sign('E · STAIRS DOWN / FLOOR '+map.index,[24,2.3,1.6],3.2,.6,Math.PI);for(let i=0;i<5;i++)box('lower stair landing',[24,.02,1.4+i*.18],[2.2,.035,.07],gold);}
-  for(const s of [-1,1]){for(let i=0;i<5;i++)cylinder('banister',[R.world(18)+s*1.05,.65+i*.26,R.world(17)+i*.96],1,.04,gold);const rail=box('handrail',[R.world(18)+s*1.05,1.64,R.world(18)],[.07,.07,5],gold);rail.rotation.x=-.265;}
-  if(map.index===0){sign('HOTEL // LIABILITY',[24,3.5,8.2],7,.75);sign('ENTRANCE · E',[24,2.45,8.2],1.8,.3);sign('VACANCY / NO REFUNDS',[19,2.4,11.7],3,.5,0,'#ff63b5');for(const s of [-1,1]){box('entrance column',[24+s*4,1.8,8],[.4,3.6,.4],dark);box('canopy',[24,3.9,6.9],[10,.3,4],dark);}for(let i=0;i<9;i++)box('street paver',[5+i*5,.01,2.8],[4.9,.02,4.5],stone);}
-  if(map.index===4){for(let i=0;i<24;i++){const x=(i%8)*9-9,z=i<8?65:(i<16?-14:55),h=8+(i*13%19);box('city silhouette',[x,h/2,z],[5,h,5],dark);}sign('E · CHECK OUT',[R.world(18),2.9,R.world(19)+.65],3,.55);}
+  const sx=R.world(map.stairs[0]),sz=R.world(map.stairs[1]);
+  sign('STAIRS / '+(map.index===4?'ROOFTOP EXIT':'FLOOR '+(map.index+2)),[sx,3.3,sz+.8],3,.5);
+  for(let i=0;i<8;i++)box('stair tread',[sx,.07+i*.07,sz-2+i*.3],[2.2,.14+i*.14,.3],stone);
+  for(const side of [-1,1]){for(let i=0;i<4;i++)cylinder('banister',[sx+side*1.03,.7+i*.2,sz-2+i*.6],1,.04,gold);const rail=box('stair handrail',[sx+side*1.03,1.5,sz-1],[.06,.06,2.8],gold);rail.rotation.x=-.35;}
+  if(map.index>0)sign('STAIRS DOWN / FLOOR '+map.index,[R.world(map.down[0]),2.5,R.world(map.down[1])-.9],3,.5,Math.PI);
+  sign('HOTEL // LIABILITY',[center,3.1,.95],6,.6,Math.PI);
+  sign('POOL / SPA',[R.world(15),2.8,R.world(24)-.2],2,.4);
+  // A visible ladder marks the only swimmers' exit; swimmers climb before pursuing.
+  const ex=R.world(map.pool.edge[0])-.95,ez=R.world(map.pool.edge[1]);
+  for(const side of [-1,1])cylinder('pool ladder rail',[ex,.2,ez+side*.4],1.5,.065,gold);
+  for(let i=0;i<5;i++){const rung=cylinder('pool ladder rung',[ex,-.8+i*.3,ez],.8,.055,gold);rung.rotation.x=Math.PI/2;}
+  for(const room of map.rooms){const x=R.world(room.bath[0]),z=R.world(room.bath[1]);box('shower tray',[x-.65,.04,z-.5],[.9,.08,1],white);cylinder('shower riser',[x-.9,1.3,z-.8],2.2,.04,gold);sphere('toilet bowl',[x+.55,.36,z-.5],[.5,.55,.75],white);box('toilet cistern',[x+.55,.65,z-.85],[.52,.65,.22],white);}
+  if(map.index===4){for(let i=0;i<24;i++){const x=(i%8)*9-9,z=i<8?65:(i<16?-14:55),h=8+(i*13%19);box('city silhouette',[x,h/2,z],[5,h,5],dark);}sign('E · CHECK OUT',[sx,2.9,sz+.65],3,.55);}
   // Merge static architecture by material; interactive/hit-tested parts stay separate.
   for(const material of new Set(statics.map(m=>m.material))){const list=statics.filter(m=>m.material===material);if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,true);if(merged){merged.name='hotel '+material.name;merged.receiveShadows=true;}}}
   if(settings.shadows&&mirrors.length){const m=mirrors[0],tex=new B.MirrorTexture('bathroom reflection',256,scene,true);tex.mirrorPlane=new B.Plane(0,0,-1,m.position.z);tex.level=.45;tex.renderList=scene.meshes.filter(x=>!mirrors.includes(x));m.material.reflectionTexture=tex;tex.refreshRate=2;}

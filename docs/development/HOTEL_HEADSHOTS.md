@@ -1,6 +1,6 @@
 # Hotel Headshots
 
-18 November 2026. Branch `codex/hotel-headshots`, based on `origin/main` `ad2ef321`. Playable implementation, **not merged or deployed**.
+Updated 24 November 2026. Branch `codex/hotel-headshots`, based on `origin/main` `ad2ef321`. Playable implementation, **not merged or deployed**.
 
 ## Owner's direction
 
@@ -10,7 +10,7 @@ Five-floor, nonlethal first-person arcade shooter with money theft, evasive play
 
 Run `node tests/serve-modern.cjs`, then open `http://127.0.0.1:5187/hotel-headshots/index.html` on desktop. WASD moves, mouse aims, left click fires (hold for automatic fire), Shift sprints, E interacts, Escape pauses. The canvas renders at 1024 × 768 and the entire game frame, including menus, scales at 4:3. Pointer-lock loss, tab hiding and window blur pause the game.
 
-Enter through the front door and pay the receptionist $250 from the initial $10,250, leaving $10,000. Guests begin pursuing after payment. Free refill tanks replenish the 48-shot reservoir. Climb the east staircase and press E at the landing to load the next floor. Floors 2–5 also offer a return stair interaction. Money, ammo and repelled count carry across floors; revisited floors remember doors and guest resistance/retreat state. The fifth-floor rooftop checkout ends the run. Zero money ends it immediately.
+Begin inside the front lobby facing reception. Pay the receptionist $250 from the initial $10,250, leaving $10,000. Theft and active pursuit require payment; entering a room can wake its sleeper before payment. Free refill tanks replenish the 48-shot reservoir. Pass through the rear pool door, cross the deck to the enclosed east stairwell, climb the stairs and press E at the landing to load the next floor. Floors 2–5 also offer a return stair interaction. Money, ammo and repelled count carry across floors; revisited floors remember doors, guest resistance/retreat, and sleeping/waking/pool-exit activity. The fifth-floor rooftop checkout ends the run. Zero money ends it immediately.
 
 ## Implementation
 
@@ -22,17 +22,25 @@ Enter through the front door and pay the receptionist $250 from the initial $10,
 - Storage is isolated to `hotel-headshots-settings-v1` and `hotel-headshots-scores-v1`. The leaderboard is **local to this browser**, not a global or server-verified score service. Storage failure is handled, and a failed score write is reported on victory.
 - Debug mutation helpers exist only with `?test=1` on `localhost` or `127.0.0.1`; the normal public diagnostic API returns a state snapshot only.
 
+## Reference-plan redesign (24 November 2026)
+
+The owner supplied three hotel-plan references and requested real corridors and individual rooms. All floors now use a 31 × 31 collision grid: front lobby and check-in desk, a central hall with a double-loaded cross corridor, separately enclosed bedrooms and bathrooms with usable doors, a rear pool door and a separate stairwell. Reception and Guest Rooms have eight bedrooms; Pool & Spa and Luxury Suites have six; Penthouse has four larger rooms. Pool size, lounge furniture and room divisions vary by floor. Standard guest counts are 10, 14, 18, 22 and 26.
+
+Residents include a desk receptionist, hallway walkers, awake bedroom guests, bathroom occupants, slow sleepers (2.6 seconds), fast sleepers (0.45 seconds), and two swimmers. Entering the assigned room wakes a sleeper; hits also wake them. Wake-up poses blend upright and move off the bed before pursuit. Swimmers use the recessed water area, respond to pool-deck entry, move to the visible ladder, take turns climbing and then join pursuit. Pool water blocks ordinary walking; swimming/climbing guests cannot steal. Retreating swimmers still leave the pool harmlessly. NPC door navigation continues across rooms and bathrooms.
+
+Defensive poses alternate between forehead cover, palms-out and crossed forearms. All three use bone-following hand/arm proxies and pass actual ray-interception checks. `tests/hotel-headshots-residents-browser.cjs` checks room-entry wake timing, bathroom reaction, both swimmers reaching and climbing the ladder, and screenshots of the new scenes. `tools/assets/hotel/render_layouts.cjs` draws the real layout data into `hotel-headshots/floor-1-plan.png` and `hotel-headshots/revised-level-plans.png` beside this document.
+
 ## District and website integration
 
 The games list has a Hotel Headshots card in root and static copies. Cabinet 1 (`arcade-cab-01`, formerly LASER MOTH) now runs `hotel-headshots/index.html` through the existing isolated arcade iframe. TURBO KELP remains unused. The cabinet has its own title, colors, poster, interaction and four-frame attract image captured from the game's actual opening screen. The existing anti-WarFlying screen is retained in place; only its obsolete `replaces: laser-moth` metadata is removed.
 
-The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-3`.
+The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-4`.
 
 No Sleeping Pod, music-player, account/save implementation, production API, merchandise, entitlement, payment or licensed-model file changed. The District HTML entrypoints remain unchanged and byte-identical.
 
 ## Verification
 
-- Full Node suite (24 Nov): **1,165 passed, 0 failed, 1 skipped** (1,166 total), including embedded model/animation integrity.
+- Full Node suite (24 Nov): **1,166 passed, 0 failed, 1 skipped** (1,167 total), including embedded model/animation integrity.
 - Save compatibility: **19 Python tests passed** (`tests.test_story_save`, `tests.test_progression_save`).
 - Account/API contracts: **35 Python tests passed** (`tests.test_void_runner_api`, `tests.test_identity_api`), using their fake services, not production data.
 - `node tests/hotel-headshots-browser.cjs`: real Edge/WebGL rendering; pointer lock, movement, entrance, payment, pause/resume, actual projectile headshot, arm interception, live theft and harmless retreat, refill, all floor transitions, victory, bankruptcy, persisted leaderboard and 4:3/native resolution. Also regenerates cabinet captures. Screenshots are inspected, not just created.
@@ -41,6 +49,6 @@ No Sleeping Pod, music-player, account/save implementation, production API, merc
 
 ## Visual limits / further polish
 
-The NPC pass (24 November 2026) replaces the primitive figures with three adult MakeHuman/MPFB skinned bodies, textured faces/skin, eyes, hair and original opaque two-piece swimwear. Six clothing palettes and modest build variations are retained. Idle/walk clips are retargeted from the existing public companion; protective arm poses blend over locomotion. Bone-following hit volumes preserve head/body/arm combat. The receptionist uses the existing suited CC0 companion model. `characters.js` loads these assets before simulation starts. Build source: `tools/assets/hotel/build_characters.py`; asset provenance: `hotel-headshots/assets/README.md`. These are more detailed game characters, not photorealistic scans. Furniture and room fittings remain procedural. Running scales the walk cycle; dedicated sprint/retreat mocap is still a possible refinement. The five floors are separate scenes connected through stair interactions, not one continuously loaded tower. Real-GPU performance, headset controls and audio by ear have not been certified. Local software-rendered browser checks prove operation, not a target hardware frame rate. No paid generation, model purchase or licensed asset import was performed.
+The NPC pass (24 November 2026) replaces the primitive figures with three adult MakeHuman/MPFB skinned bodies, textured faces/skin, eyes, hair and original opaque two-piece swimwear. Six clothing palettes and modest build variations are retained. Idle/walk clips are retargeted from the existing public companion; three defensive arm poses (forehead cover, open palms, crossed forearms) blend over locomotion. Bone-following hit volumes preserve head/body/arm combat. The receptionist uses the new detailed guest model, positioned beside the desk terminal. `characters.js` loads these assets before simulation starts. Build source: `tools/assets/hotel/build_characters.py`; asset provenance: `hotel-headshots/assets/README.md`. These are more detailed game characters, not photorealistic scans. Furniture and room fittings remain procedural. Running scales the walk cycle. Sleeping, waking, backstroke and climbing use authored procedural transforms over the skeleton; these are not dedicated motion-captured clips. Fabric boundaries and some furnishings remain simplified. The five floors are separate scenes connected through stair interactions, not one continuously loaded tower. Real-GPU performance, headset controls and audio by ear have not been certified. Local software-rendered browser checks prove operation, not a target hardware frame rate. No paid generation, model purchase or licensed asset import was performed.
 
 See the checked screenshots in `hotel-headshots/` alongside this document. Do not publish without the owner's release instruction.
