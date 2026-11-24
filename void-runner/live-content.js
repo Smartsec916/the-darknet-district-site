@@ -185,7 +185,34 @@
  const BEGIN={admin:'talk-admin','district-iris':'talk-iris','district-bar':'visit-bar','district-shop':'visit-shop',terminal:'use-terminal'};
  function beginnerWants(action){const B=root.VoidBeginner,ev=BEGIN[action];if(!B||!ev||!B.applies(state))return false;const m=B.current(state),rec=m&&state.universe.missions?.[m.id];return !!(m&&m.objectives.some(o=>o.on===ev&&rec?.objectives?.[o.id]!==true));}
  const ordinaryTalkCounts=new Map();
- function ordinaryTalk(npcs){for(const id of npcs){const r=env.interactions?.[id],follow=r?.advanced?.follow;if(!r?.talk&&!follow)continue;if(follow&&missionBusy(id)&&!r.talk)continue;const i=ordinaryTalkCounts.get(id)||0;ordinaryTalkCounts.set(id,i+1);const speaker=env.givers.find(g=>g.id===id)?.say||id,text=r.talk?MC.interactionLine(r.talk,i):MC.interactionLine(follow.invite,0),lines=[{who:speaker,text,ambient:true}],close=()=>{try{resumeWalking();}catch{}};const choices=[];if(r.choice&&r.reply&&r.talk)choices.push({label:r.choice,run:()=>show([{who:speaker,text:MC.interactionLine(r.reply,i),ambient:true}],null)});if(follow&&!missionBusy(id)&&root.VoidNPCPaths?.MOVABLE?.[id]&&typeof root.talkChoice==='function'){const now=Date.now(),active=social.get(id)?.phase==='active';if(!active)social.set(id,root.VoidAdvancedInteractions.followInvite(social.get(id),{now,maxWait:follow.maxWait}));if(active)choices.push({label:'STOP FOLLOWING',run:()=>{endSocial(id,'cancel');close();}});else choices.push({label:follow.accept,run:()=>{beginSocial(id);close();}},{label:follow.decline,run:()=>{social.delete(id);close();}});}if(choices.length&&typeof root.talkChoice==='function'){choices.push({label:'LEAVE',leave:true,run:close});return root.talkChoice(lines,choices,'');}if(r.talk)return show(lines,null);}return false;}
+ function ordinaryTalk(npcs){
+  for(const id of npcs){
+   const r=env.interactions?.[id],follow=r?.advanced?.follow,A=root.VoidAdvancedInteractions;
+   if(!r?.talk&&!follow)continue;
+   if(follow&&missionBusy(id)&&!r.talk)continue;
+   const i=ordinaryTalkCounts.get(id)||0;ordinaryTalkCounts.set(id,i+1);
+   const speaker=env.givers.find(g=>g.id===id)?.say||id,text=r.talk?MC.interactionLine(r.talk,i):MC.interactionLine(follow.invite,0);
+   const lines=[{who:speaker,text,ambient:true}],close=()=>{try{resumeWalking();}catch{}},choices=[];
+   let offer=null;
+   if(r.choice&&r.reply&&r.talk)choices.push({label:r.choice,run:()=>{if(offer&&social.get(id)===offer)social.delete(id);return show([{who:speaker,text:MC.interactionLine(r.reply,i),ambient:true}],null);}});
+   if(follow&&A&&!missionBusy(id)&&root.VoidNPCPaths?.MOVABLE?.[id]&&typeof root.talkChoice==='function'){
+    const now=Date.now(),previous=social.get(id);
+    if(previous?.phase==='active')choices.push({label:'STOP FOLLOWING',run:()=>{if(social.get(id)===previous)endSocial(id,'cancel');close();}});
+    else {
+     offer=A.followInvite({phase:'offer',at:now,generation:previous?.generation||0},{now,maxWait:follow.maxWait});
+     social.set(id,offer);
+     choices.push({label:follow.accept,run:()=>{beginSocial(id,offer,follow);close();}},
+      {label:follow.decline,run:()=>{if(social.get(id)===offer)social.delete(id);close();}});
+    }
+   }
+   if(choices.length&&typeof root.talkChoice==='function'){
+    choices.push({label:'LEAVE',leave:true,run:()=>{if(offer&&social.get(id)===offer)social.delete(id);close();}});
+    return root.talkChoice(lines,choices,'');
+   }
+   if(r.talk)return show(lines,null);
+  }
+  return false;
+ }
  function talkTo(action,arg,handler,self,args){
   const npcs=G?G.whoAt(env.givers,action,arg?.item?.character):[];
   if(!npcs.length||beginnerWants(action))return handler.apply(self,args);
@@ -267,7 +294,15 @@
  function missionBusy(id){try{const g=env.givers.find(x=>x.id===id);if(g&&g.targets.some(t=>beginnerWants(t.action)))return true;if(treesOn()&&(MC.treeWants(state,env,[id])||MC.escortNow(state,env)[id]))return true;}catch{}return false;}
  function saySocial(id,pool){const g=env.givers.find(x=>x.id===id),line=pool?MC.interactionLine(pool,0):'';if(!line)return;try{announce((g?.name||id)+' · '+line);root.VoidAudio?.speak?.(g?.say||id,line,false,false,true);poseUntil(id,'talk');}catch{}}
  function endSocial(id,why){const s=social.get(id),f=env.interactions?.[id]?.advanced?.follow;if(!s)return;social.delete(id);planAt=0;if(why==='cancel'&&s.phase==='active')saySocial(id,f?.cancel);}
- function beginSocial(id){const f=env.interactions?.[id]?.advanced?.follow,A=root.VoidAdvancedInteractions;if(!f||!A||missionBusy(id)||!root.VoidNPCPaths?.MOVABLE?.[id])return false;const now=Date.now(),next=A.followInvite(social.get(id)||{phase:'offer',at:now},{now,accepted:true,maxWait:f.maxWait});if(next.phase!=='active'){social.delete(id);return false;}if(f.role==='lead'&&!socialDestination(id,f)){saySocial(id,f.cancel);return false;}social.set(id,next);planAt=0;return true;}
+ function beginSocial(id,offer,record){
+  const f=env.interactions?.[id]?.advanced?.follow,A=root.VoidAdvancedInteractions;
+  if(!offer||social.get(id)!==offer||offer.phase!=='offer')return false;
+  if(!f||f!==record||!A||missionBusy(id)||!root.VoidNPCPaths?.MOVABLE?.[id]){social.delete(id);return false;}
+  const now=Date.now(),next=A.followInvite(offer,{now,accepted:true,maxWait:f.maxWait});
+  if(next.phase!=='active'){social.delete(id);return false;}
+  if(f.role==='lead'&&!socialDestination(id,f)){social.delete(id);saySocial(id,f.cancel);return false;}
+  social.set(id,next);planAt=0;return true;
+ }
  function socialDestination(id,f){const t=f?.place&&root.VoidPlaces?.target?.(f.place);if(!t)return null;const raw={x:t[0],z:t[2]},A=root.VoidNPCAreas,M=root.VoidNPCPaths?.MOVABLE?.[id];return A?.nearest?.(raw,A.areaOf(raw),8,{adult:!!M?.adult,made:!!M?.made})||null;}
  function socialPlan(id){const s=social.get(id);if(!s||s.phase!=='active')return null;if(missionBusy(id)){endSocial(id,'cancel');return null;}const f=env.interactions?.[id]?.advanced?.follow,X=root.VoidNPCPaths;if(!f||!X?.MOVABLE?.[id]){social.delete(id);return null;}const to=f.place||f.role==='lead'?socialDestination(id,f):null;if(f.role==='lead'&&!to){endSocial(id,'cancel');return null;}const A=root.VoidNPCAreas,here=livePos(id),area=(to&&A?.areaOf(to))||(here&&A?.areaOf(here))||'avenue',key='social:'+id+':'+s.generation,old=planCache[id];if(old&&old.key===key)return old;return {key,area,mode:'escort',why:'social',social:true,kind:f.role==='lead'?'follow-them':'they-follow',npc:id,name:X.MOVABLE[id].name,step:'social:'+id,to:to?{x:to.x,z:to.z}:null,final:to?{x:to.x,z:to.z}:null,set:{wait:8,lost:40,ifLost:'pause'},from:here?{x:here.x,z:here.z}:null};}
  function roomTick(blocked){try{const A=root.VoidAdvancedInteractions,P=root.VoidPlaces,U=root.VoidUnderground,L=typeof walkingLocation==='undefined'?null:walkingLocation,W=where();if(!A||!P||!L||!W||mode!=='walking'){roomVisits.clear();roomScene=null;return false;}

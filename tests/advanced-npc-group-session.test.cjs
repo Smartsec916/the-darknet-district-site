@@ -124,3 +124,42 @@ test('walking group adapter respects mission ownership, mismatched group definit
  h.control.speaking=false;h.control.blocked=true;assert.equal(h.tick(),false);
  h.control.blocked=false;assert.equal(h.tick(),true);assert.deepEqual(h.spoken,[['iris','A1']]);
 });
+
+function runtimeFollowHarness(source=runtimeSource){
+ const talkStart=source.indexOf('function ordinaryTalk(npcs)'),talkEnd=source.indexOf('function talkTo(',talkStart);
+ const beginStart=source.indexOf('function endSocial('),beginEnd=source.indexOf('function socialDestination(',beginStart);
+ assert.ok(talkStart>=0&&talkEnd>talkStart&&beginStart>=0&&beginEnd>beginStart);
+ let time=0,choices=[],busy=false;
+ const follow={role:'follow',invite:'Come along?',accept:'YES',decline:'NO',maxWait:5};
+ const env={interactions:{iris:{advanced:{follow}}},givers:[{id:'iris',say:'iris'}]};
+ const root={VoidAdvancedInteractions:A,VoidNPCPaths:{MOVABLE:{iris:{}}},talkChoice(lines,c){choices=c;return true;}};
+ const control={now:()=>time,busy:()=>busy};
+ const api=new Function('root','env','control',
+  'const Date={now:control.now},MC={interactionLine:s=>s},social=new Map(),ordinaryTalkCounts=new Map();let planAt=1;'+
+  'const missionBusy=()=>control.busy(),resumeWalking=()=>{},saySocial=()=>{},socialDestination=()=>null,show=()=>{};'+
+  source.slice(talkStart,talkEnd)+source.slice(beginStart,beginEnd)+
+  ';return {open:()=>ordinaryTalk(["iris"]),phase:()=>social.get("iris")?.phase};'
+ )(root,env,control);
+ return {...api,advance:t=>{time=t;},choice:label=>choices.find(x=>x.label===label).run,
+  republish(){env.interactions={iris:{advanced:{follow:{...follow}}}};},busy(){busy=true;}};
+}
+test('an expired invitation cannot be accepted, including at the exact deadline',()=>{
+ const h=runtimeFollowHarness();h.open();const accept=h.choice('YES');h.advance(5000);accept();
+ assert.notEqual(h.phase(),'active');
+ h.open();h.choice('YES')();assert.equal(h.phase(),'active');
+});
+test('a superseded or declined invitation cannot start or cancel a newer session',()=>{
+ const h=runtimeFollowHarness();h.open();const oldYes=h.choice('YES'),oldNo=h.choice('NO');
+ h.advance(1000);h.open();const yes=h.choice('YES');oldYes();assert.equal(h.phase(),'offer');oldNo();assert.equal(h.phase(),'offer');
+ yes();assert.equal(h.phase(),'active');oldNo();assert.equal(h.phase(),'active');
+ h.open();const stop=h.choice('STOP FOLLOWING');stop();h.open();h.choice('YES')();stop();assert.equal(h.phase(),'active');
+});
+test('leaving, content replacement and mission priority invalidate the pending invitation',()=>{
+ for(const change of [h=>h.choice('LEAVE')(),h=>h.republish(),h=>h.busy()]){
+  const h=runtimeFollowHarness();h.open();const yes=h.choice('YES');change(h);yes();assert.notEqual(h.phase(),'active');
+ }
+});
+test('two clients have independent invitation deadlines and acceptance',()=>{
+ const a=runtimeFollowHarness(),b=runtimeFollowHarness();a.open();b.open();a.advance(5000);b.advance(4999);
+ a.choice('YES')();b.choice('YES')();assert.notEqual(a.phase(),'active');assert.equal(b.phase(),'active');
+});
