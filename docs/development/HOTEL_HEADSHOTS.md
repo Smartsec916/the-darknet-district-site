@@ -129,3 +129,8 @@ Validation: 21 focused hotel tests; full Node suite 1,178 passed / one skipped; 
 ## 24 Nov 2026 — lower foam-blaster grip
 
 Added the owner-reference rounded tan lower grip, with three shallow rounded ridges and a side bolster. It sits partly behind the HUD and moves vertically by 0.02 local units with recoil before settling. The blaster remains centered and tan-only. Mouse-down now fires immediately, including the click that reacquires mouse capture; held-fire retains the 0.19-second shot interval. This treats the reported firing delay as unwanted lag, not a requested wind-up.
+
+
+### Wind-up correction
+
+Owner clarified that the new lower grip is the wind-up: it moves slightly up and back down for 0.18 seconds before the foam projectile and firing sound occur. Ammo is consumed only at release. Held fire repeats the wind-up, and pause/floor changes cancel a pending shot. This supersedes the immediate-fire interpretation above.
