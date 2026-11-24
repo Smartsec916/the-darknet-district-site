@@ -570,7 +570,7 @@ def forbidden_spot_problems(npcs, trees=None, inv=None, adults=()):
             plan_spots(b)
     adult_spots = []
     for k, p in (npcs or {}).items() if isinstance(npcs, dict) else []:
-        if k in adults:
+        if k in adults or _movable(inv).get(k, {}).get('adult'):
             n0 = len(spots)
             plan_spots(p)
             adult_spots.extend(spots[n0:])
@@ -593,8 +593,10 @@ def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')), made=bool(mv.get('made')))
+    ok, area, _k, why = area_check(p, inv, adult=bool(mv.get('adult')), made=bool(mv.get('made')))
     out = [] if ok else [why]
+    if ok and mv.get('areas') and area not in mv['areas']:
+        out.append('This NPC cannot be placed in that area.')
     if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
     return out
@@ -1592,7 +1594,7 @@ def _ledge_at(mv, p, pose='chair'):
 def wait_at_problems(giver, w, inv):
     if w is None:
         return []
-    if not _movable(inv).get(giver):
+    if not _movable(inv).get(giver) or _movable(inv)[giver].get('placementOnly'):
         return ['"Giver waits at" works only for a giver the editor can move (Reverie or Lace).']
     if not _keys(w, ['x', 'z', 'yaw']):
         return ['"Giver waits at" has unknown fields.']
@@ -1793,7 +1795,9 @@ def schedule_problems(npc, sched, mv, inv, ok, limits=None, tier=1, base=None):
         if b.get('cross') not in (None, True):
             out.append(bw + '“Walk through the gates” is on or left off.')
         if b.get('cross') is True:
-            if not (isinstance(tier, int) and tier >= 2):
+            if mv.get('placementOnly'):
+                out.append(bw + 'Dax stays in the District.')
+            elif not (isinstance(tier, int) and tier >= 2):
                 out.append(bw + 'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.')
             elif b['mode'] == 'original':
                 out.append(bw + 'walking through the gates needs a spot in the area she is going to.')

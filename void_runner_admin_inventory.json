@@ -862,6 +862,17 @@
           "floor-knees"
         ]
       },
+      "dax": {
+        "look": "npc-dax",
+        "clips": [
+          "idle",
+          "talk",
+          "look",
+          "watch",
+          "glance-back",
+          "shrug"
+        ]
+      },
       "bartender": {
         "look": "npc-nyx",
         "clips": [
@@ -2586,6 +2597,447 @@
           "npc-student/interact",
           "npc-student/dance"
         ],
+        "pathOnly": [
+          "walk-on"
+        ]
+      },
+      "dax": {
+        "name": "Dax",
+        "areas": [
+          "district"
+        ],
+        "placementOnly": true,
+        "adult": true,
+        "ledges": [
+          {
+            "x": 90.5,
+            "w": 1.5,
+            "front": -5.685
+          },
+          {
+            "x": 104.4,
+            "w": 1.5,
+            "front": -5.685
+          },
+          {
+            "x": 113.2,
+            "w": 1.5,
+            "front": -5.685
+          }
+        ],
+        "seats": [
+          {
+            "id": "under-alcove-1-seat",
+            "x": -4.88,
+            "z": -8.12,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -4.88,
+              -7.71
+            ]
+          },
+          {
+            "id": "under-alcove-2-seat",
+            "x": -0.28,
+            "z": -38.9,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -0.28,
+              -39.31
+            ]
+          },
+          {
+            "id": "under-alcove-3-seat",
+            "x": -4.88,
+            "z": -88.12,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -4.88,
+              -87.71
+            ]
+          },
+          {
+            "id": "under-alcove-4-seat",
+            "x": -0.28,
+            "z": -122.9,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -0.28,
+              -123.31
+            ]
+          },
+          {
+            "id": "under-alcove-5-seat",
+            "x": -4.88,
+            "z": -160.12,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -4.88,
+              -159.71
+            ]
+          },
+          {
+            "id": "under-alcove-6-seat",
+            "x": -0.58,
+            "z": -172.88,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -0.58,
+              -173.29
+            ]
+          },
+          {
+            "id": "under-alcove-1-bench-up",
+            "x": -4.83,
+            "z": -8.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -7.65
+            ]
+          },
+          {
+            "id": "under-alcove-3-bench-up",
+            "x": -4.83,
+            "z": -88.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -87.65
+            ]
+          },
+          {
+            "id": "under-alcove-5-bench-up",
+            "x": -4.83,
+            "z": -160.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -159.65
+            ]
+          },
+          {
+            "id": "under-alcove-6-bench-up",
+            "x": -0.63,
+            "z": -172.82,
+            "yaw": -1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -1.18,
+              -173.35
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-sw-e",
+            "x": -4.93,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.48,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-s",
+            "x": -7.18,
+            "z": -57.4,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.18,
+              -56.85
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-e",
+            "x": -8.33,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -8.88,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-s",
+            "x": -5.58,
+            "z": -53.7,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.58,
+              -53.15
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-n",
+            "x": -7.88,
+            "z": -53.7,
+            "yaw": 1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.88,
+              -54.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-w",
+            "x": -6.73,
+            "z": -54.85,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -6.18,
+              -54.85
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-s",
+            "x": -4.43,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-e",
+            "x": -5.23,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.23,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-s",
+            "x": -6.23,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.98,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-e",
+            "x": -7.03,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-n",
+            "x": -7.83,
+            "z": -105.5,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -7.83,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-s",
+            "x": -4.18,
+            "z": -101.8,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.18,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-n",
+            "x": -6.08,
+            "z": -101.8,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.08,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-w",
+            "x": -5.13,
+            "z": -102.65,
+            "yaw": 0,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -102.65
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-e",
+            "x": -5.13,
+            "z": -100.95,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -100.95
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-1",
+            "x": -11.25,
+            "z": -105.78,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.25,
+              -104.72
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-2",
+            "x": -14.21,
+            "z": -105.78,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -104.72
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-3",
+            "x": -11.25,
+            "z": -101.22,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.25,
+              -102.28
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-4",
+            "x": -14.21,
+            "z": -101.22,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -102.28
+            ]
+          }
+        ],
+        "actions": [
+          "wait",
+          "idle",
+          "look",
+          "watch",
+          "talk",
+          "shrug",
+          "walk-on",
+          "glance-back",
+          "shadow"
+        ],
+        "anims": [],
         "pathOnly": [
           "walk-on"
         ]
@@ -61488,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "712ccdf91058436c",
+  "revision": "4bf424e2b0a86259",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74417,19 +74869,7 @@
     },
     {
       "source": "void-runner/dax.js",
-      "line": 9,
-      "text": "walks in, she is simply where the clock says she is.",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/dax.js",
-      "line": 11,
-      "text": "repository at publishing time. On a machine without the file she does not appear, and the console says so once; no other figure stands in for her.",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/dax.js",
-      "line": 76,
+      "line": 19,
       "text": "const interior=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior'&&typeof mode!=='undefined'&&['walking','dialogue','mission-log','pod-waking'].includes(mode);}catch{return false;}};",
       "kind": "source-reference"
     },
@@ -79487,211 +79927,211 @@
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 435,
+      "line": 436,
       "text": "const say=el('span','','me-small',{'aria-live':'polite','data-npc-try-say':id});const upd=()=>{const m=+rg.value,k=X().blockAt(sch,m),b=k>=0?sch[k]:null;ui.clock[id]=m;say.textContent='At '+X().hhmm(m)+' '+she+(b?' follows time block '+(k+1)+' ('+b.from+'–'+b.to+(b.name?' “'+b.name+'”':'')+')':' does the all-day plan')+(root.VoidNPCBehaviour?': '+root.VoidNPCBehaviour.describe(id,b||whole):'')+'.';};rg.oninput=upd;upd();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 437,
+      "line": 438,
       "text": "tr.append(el('b','Try a time:'),rg,say,btn('PLAY THIS DRAFT AT THIS TIME',()=>playNpc(e,{minute:+rg.value}),'me-play',{'data-npc-play-at':id,...(probs.length?{disabled:'',title:'Fix the problems first.'}:{})}));box.append(tr,hint(HELP.tryTime));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 442,
+      "line": 443,
       "text": "const st=ui.recipe[id]=ui.recipe[id]||{text:'',res:null,show:'all'},whole=plan(id),anims=whole&&whole.anims||[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 493,
+      "line": 494,
       "text": "area.value=JSON.stringify(current||{about:'',personality:{},dialogue:{}},null,2);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 509,
+      "line": 510,
       "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));const own=S().local().characters?.[e.id],cp=own?.companionProfile;if(own?.relationships?.length){const rel=el('details');rel.append(el('summary','Transferred relationships'));for(const r of own.relationships)rel.append(el('p',r.target+' · '+r.type+' · '+r.activity+' · '+r.distance+' m'),...r.lines.map(t=>el('p',t)));box.append(rel);}if(cp){const profile=el('details');profile.append(el('summary','Transferred companion personality'),el('p',cp.about||'No description'),el('p','Walking speed and conversation initiative apply outside missions. Other traits are available as authoring reference.'));for(const [k,v] of Object.entries(cp.personality))profile.append(el('p',k+': '+v));for(const [k,v] of Object.entries(cp.dialogue)){if(v.length)profile.append(el('h5',k),...v.map(t=>el('p',t)));}box.append(profile);}if(own)box.append(rosterPersonality(e,cp));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 547,
+      "line": 548,
       "text": "personality:inspected.personality,dialogue:inspected.dialogue,worldBehavior:inspected.worldBehavior,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 551,
+      "line": 552,
       "text": "dialogueLineCount:inspected.dialogueLineCount,recordedLineCount:inspected.recordedLineCount,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 579,
+      "line": 580,
       "text": "if(!root.confirm('Replace the personality and dialogue pools for '+characters[id].name+' in your mission draft? Their existing recordings and model will be kept.'))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 585,
+      "line": 586,
       "text": "const V=root.VoidVoiceImports,active=new Set(Object.values(profile.dialogue).flat()),prepared=[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 593,
+      "line": 594,
       "text": "prepared.push(V.record({...clip,who:id,text}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 620,
+      "line": 621,
       "text": "el('p',Object.values(p.dialogue||{}).reduce((n,arr)=>n+arr.length,0)+' dialogue entries · '+(p.recordedLineCount||0)+' recorded lines · '+(p.missingVoiceLines||[]).length+' missing voice lines','me-small'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 640,
+      "line": 641,
       "text": "audio.append(el('summary','Recorded dialogue'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 641,
+      "line": 642,
       "text": "const available=(p.voices||[]).filter(v=>Object.values(p.dialogue||{}).some(lines=>lines.includes(v.record?.text)));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 656,
+      "line": 657,
       "text": "}else audio.append(el('p','No recordings match the current dialogue.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 660,
+      "line": 661,
       "text": "detail.append(el('summary','Edit personality and dialogue JSON (local draft)'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 662,
+      "line": 663,
       "text": "area.value=JSON.stringify({about:p.about||'',personality:p.personality||{},dialogue:p.dialogue||{}},null,2);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 663,
+      "line": 664,
       "text": "detail.append(area,hint('Paste the ChatGPT JSON here, then validate and save. This edits only this private model draft. Existing recordings are kept; changed dialogue lines are marked missing.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 670,
+      "line": 671,
       "text": "const template={about:'600 characters maximum',personality:Object.fromEntries(Object.entries(studio.ranges).map(([k,v])=>[k,v[0]])),dialogue:Object.fromEntries(studio.pools.map(k=>[k,[]]))};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 671,
+      "line": 672,
       "text": "const prompt='Create a personality and dialogue for a Void Runner NPC named '+rec.name+'. Return ONLY a JSON object matching this template. Include 3–5 concise, non-explicit lines in each dialogue pool. Keep the description below 600 characters, all numeric settings within the documented ranges, and respect declined invitations. Adapt the personality to my instructions.\\\\nBehavior ranges: '+JSON.stringify(studio.ranges)+'\\\\nTemplate: '+JSON.stringify(template,null,2);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 680,
+      "line": 681,
       "text": "const all=[...new Set(Object.values(profile.dialogue).flat())];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 682,
+      "line": 683,
       "text": "Object.assign(rec.companion,profile,{dialogueLineCount:all.length,recordedLineCount:recorded.size,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 728,
+      "line": 729,
       "text": "if(!preview.missing){voiceStatus.textContent='Every dialogue line already has a recording.';return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 737,
+      "line": 738,
       "text": "if(!Object.values(rec.companion.dialogue||{}).flat().includes(job.text))throw Error('Dialogue changed; batch stopped.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 738,
+      "line": 739,
       "text": "if(job.speakText.length>700)throw Error('One dialogue line exceeds the 700-character generation limit.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 740,
+      "line": 741,
       "text": "const output=await dev.request('developer/companion-voice',{voiceId:voice.voiceId,text:job.speakText});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 749,
+      "line": 750,
       "text": "record:root.VoidVoiceImports.record({...prepared,who:rec.companion.id,text:job.text}),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 828,
+      "line": 829,
       "text": "companion:rec.companion?{id:rec.companion.id,about:rec.companion.about,personality:rec.companion.personality,dialogue:rec.companion.dialogue,dialogueLineCount:rec.companion.dialogueLineCount,recordedLineCount:rec.companion.recordedLineCount,missingVoiceLines:rec.companion.missingVoiceLines,originalPackage:rec.sourceFileName,voiceAndMotionFiles:'Included only in original .vrcompanion transfer'}:null,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 853,
+      "line": 854,
       "text": "if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time=\"from:'+k+'\"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 854,
+      "line": 855,
       "text": "p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point=\"'+i+'\"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green ground'});});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 855,
+      "line": 856,
       "text": "if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 856,
+      "line": 857,
       "text": "return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play=\"'+CSS.escape(e.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 857,
+      "line": 858,
       "text": "if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 859,
+      "line": 860,
       "text": "if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 860,
+      "line": 861,
       "text": "if(!L.source)needs.push({sel:'[data-npc-lic=\"source\"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic=\"type\"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai=\"true\"]',text:'answer “No AI licence?”'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 861,
+      "line": 862,
       "text": "return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}",
       "kind": "source-reference"
     },
@@ -79871,61 +80311,61 @@
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 76,
+      "line": 78,
       "text": "for(const m of o.markers||[]){const x=px(m.x),y=py(m.z),r=Math.max(7,.32*k);if(x<-30||x>W+30||y<-30||y>H+30)continue;   // in another area (the line at the bottom says so)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 84,
+      "line": 86,
       "text": "const say=t=>{note.textContent=t||'';root.VoidNPCMap.lastNote={text:t||'',at:Date.now(),npc:o.npc||null};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 87,
+      "line": 89,
       "text": "function place(x,z){const P=X();if(!o.npc||!P.pick)return {x,z};const r=P.pick(o.npc,{x,z},data.area);if(!r.spot){say('Not placed: '+r.why);return null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 88,
+      "line": 90,
       "text": "if(o.lock&&AR()&&AR().areaOf(r.spot)!==o.lock){say('Not placed: a route stays in one area, and this one is in '+AR().get(o.lock).name+'. Remove its points first, or give this area its own time block.');return null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 89,
+      "line": 91,
       "text": "say(r.spot.moved?'Moved to the nearest spot she can stand on ('+r.why.replace(/^That is /,'that was ').replace(/:.*$/,'').replace(/\\.$/,'')+').':'');return {x:r.spot.x,z:r.spot.z};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 104,
+      "line": 106,
       "text": "areaSel.onchange=()=>{o.area=areaSel.value;o.center=null;data=X().mapData(o.area,o.npc);if(o.zoom==='pair'&&o.area!=='avenue')o.zoom='all';zooms();say('');draw();o.onArea?.(o.area);};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 110,
+      "line": 112,
       "text": "const api={el:wrap,draw,set(n){o={...o,...n};if(typeof o.center==='number')o.center={x:o.center,z:null};if(n.area&&n.area!==data.area){data=X().mapData(o.area,o.npc);areaSel.value=data.area;zooms();}draw();},get opts(){return o;},get area(){return data.area;},toWorld:(a,b)=>({x:wx(a),z:wz(b)}),toScreen:(x,z)=>({x:px(x),y:py(z)}),canvas:cv,say};cv.npcMap=api;   // tests and the guide reach the map from its canvas",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 133,
+      "line": 135,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 289,
+      "line": 293,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 318,
+      "line": 322,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
       "kind": "source-reference"
     },
@@ -82392,7 +82832,8 @@
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
     "void-runner/cult-room.js": "e4c485f0586d02c2aae26b5bfb4940f4e8abc434726aa42e9044734565431a1c",
-    "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
+    "void-runner/dax-editor-routine.js": "ce31c0bf0e171782e5c1e6cfb3e550f8109899eb347c995222e5666ff2fdf2a7",
+    "void-runner/dax.js": "8972fd9d2e011998402083ae8022c99bc2006d697fc67a8a2552359e29fbc17d",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-studios.js": "a81c044f49dcc5a7dcaf8f5fc511b78145f742de2b9288fc99e823d278b28bfe",
@@ -82476,7 +82917,7 @@
     "void-runner/mission-blocks.js": "061c4b824827d796bb71755b250dcbbf04d875167ab816fb2c4ec34e8353f49e",
     "void-runner/mission-content.js": "cd91bf9e5b617138698799c0087bd2036a44d3ad3a7cfc5f8fb9386efc2aa47c",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "7ea7e0af8b6e030548673f6fda5f40f088ae9aa8540f8f30584b69435cdc7d38",
+    "void-runner/mission-editor.js": "6aca3c3354c8a1acfa67393e4394838096f00cbd476e689a13ae3297052cda54",
     "void-runner/mission-givers.js": "3d7177af06c183cdcbe1bd0e59400461298701aad94511eddd5a56d0073c8b81",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -82524,16 +82965,16 @@
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
     "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "c5e12d6d5e0cda420f3f4f8896f530f380bb19bb0c9f1264908818dc049f9297",
+    "void-runner/npc-editor.js": "11078b52fb0363153ad47ede2737042386912098e8ec73f6f7af5d0348b9a422",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "97b31de243204d78f9804a4a16579d58f0431bd559b41796b01987a27c52d10d",
+    "void-runner/npc-escort.js": "352585429f24da1732b9be5f350324341f552a616e3b761406a2e90e04a65efd",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "175eacca669c17c446391cc77178f44d99f371675536ebc1d432e71213c82883",
-    "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
-    "void-runner/npc-paths.js": "0d01e501b549457049c2386f681b83eb7fdf1bd5d04abce885bfa83326d689a9",
+    "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
+    "void-runner/npc-paths.js": "fe86a49b9e0360bbd5b2ecf862e1db5994305b7d8bc78874721ae83c627af790",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",

@@ -1,40 +1,19 @@
-# Dax's editor-driven routines — Issue #522
+# Dax's editor-driven routines
 
-## Owner's decision
+PR #523 implements the movement scope of issue #522. One licensed Dax actor consumes the validated plan in the District. Without a plan, she stands at her hallway post at world x 125.3, z -96.4. She uses the bundled idle, look, watch, silent talk, glance-back, shrug and walk motions. **Check V3 // Shadow** uses the native look motion and lights her left-eye camera.
 
-Remove Dax's hard-coded wandering, daily itinerary and automatic disappearance from **actual gameplay**. The existing Dax (one licensed character) must be controlled by Developer Tools → NPCs, requiring no mission. If no plan exists she stands still in the District.
+## Reproduce the routine test
 
-## Implemented in draft PR #523 (not merged or live)
+1. Open Developer Tools → NPCs → Dax. Verify the map only offers the District and **Clear placement to hallway default** returns her to the hallway.
+2. Make a route at x 125.3 with z -96.4 and -99.9. Give the first point **Check V3 // Shadow** for 3 seconds and the second **Walk on**. In draft play, observe the eye light, continuous walking, and the return to the first point. The route speed is 1.3 m/s. A stay rotates through its chosen actions every 10 seconds.
+3. Add a time block at 08:00–09:00, select another safe hallway spot and a different action, and select 08:15 in **Play this draft at this time**. Verify that the block wins. Repeat outside its window, then clear the schedule and placement.
+4. Published plans use UTC, including overnight blocks. Two clients with the same published version and current UTC resolve the same position regardless of save clock or when either entered. At block boundaries she walks through a route found against the District's collision geometry. When a connecting walk cannot be built or would overrun a block, she follows the all-day plan.
+5. Local stores and unbundled builds can lack the licensed model. The renderer then omits Dax and logs the missing asset once. The live asset comes from the private licensed-assets repository through the existing Pages build.
 
-- `dax-editor-routine.js` supplies deterministic stationary, stay, and looping waypoint states and accepts **world-map** coordinates from the editor, converting them to Dax's interior plan coordinates with the NeoChinatown door transform.
-- `npc-paths.js` registers the existing `dax` ID as an editor-movable character, using its existing `npc-dax` animation list. Initial editor placements and routes are validated **inside the District only**; unsupported areas return errors rather than showing a ghost actor.
-- `void-runner.html` loads the routine evaluator before `dax.js`.
-- The **in-game Dax actor now reads published or local-test NPC plans** from `VoidLiveContent.current.content.npcs.dax` and resolves the current block with `VoidNPCPaths.planNow()`, then drives its existing licensed 3D actor from the evaluator. The legacy `schedule()` functions remain exported for compatibility tests only; the live frame loop no longer calls them.
-- When no plan is configured she remains in the safe hallway at plan x=1.6,z=54.5. The evaluator never creates a second character.
-- Daily schedule block selection uses **shared UTC time**, rather than each player's personal save clock, so multiplayer clients agree on Dax's position. Verify this design decision against game design expectations before release.
-- Added source-level runtime and pure evaluator tests under `tests/dax-editor-routine.test.cjs`.
+The PR exercises publish, guest retrieval and clear with the local API's fake persistence. It never changes the owner's live Dax configuration.
 
-## Outstanding and blockers
+## Current playtime and advanced behavior
 
-1. Run full GitHub CI, fix failures. Repository's generated `void_runner_admin_inventory.json` will drift when `npc-paths.js` or other source changes; regenerate using `node tools/admin-inventory.cjs` and commit projection before merging.
-2. Add browser runtime checks with the **licensed Dax model** and a missing-asset fallback. Verify floor alignment, smooth route transitions, idle/walk clips, no duplicated Dax, and multiple clients seeing same position.
-3. Verify that Dax's existing NPC Editor entry offers the correct District map and schedule controls. The editor still lists other areas in some global selectors, even though validation restricts Dax to District; filter unsupported choices in UI. Expand to NeoChinatown and other interiors **only** after distinct scene runtime transitions work.
-4. Test publishing a real Dax stay, route, schedule, and clearing/resetting a plan; ensure live content validation allows it without a mission. The previous tests in `tests/dax.test.cjs` still exercise legacy pure itinerary functions; replace them once that code is retired entirely.
-5. Decide whether editor scheduling should use UTC time (shared multiplayer) or a new synchronized game-world clock; do not reuse save-local game time for a shared NPC.
-6. On complete tests, merge through normal rules, deploy, verify the live game; keep PR draft until then.
+Dax's profile and approved voice remain in the roster. Player recognition, trust, recruitment and bounty behavior are design items still open in DAX.md. They have no shipped unlock thresholds. The existing campaign clock is per save: 1 real minute of visible active play adds 12 in-game minutes, with a 5-second cap on each tick gap. It counts walking, flight and road taxi rides, and pauses for menus, loading, conversation and hidden tabs. The saved `story.flags.gameMin` counts whole minutes. Uncommitted fractional progress lasts for the current page. The Dax schedule does not use this clock.
 
-**Separate independent work:** Companion importer #520 / PR #521; Desire #524. This Dax branch does not add any model files or alter missions.
-
-## Subsequent implementation: editor UI and multi-action behavior
-
-- `npc-map.js` now restricts Dax's map-area picker to **District interior** until scene-specific outside routing is available, avoiding misleading location options.
-- `npc-paths.js` allows Dax's legitimate adult-access bar, VR and arcade positions in the District, consistent with her original gameplay visits; street locations remain rejected.
-- The routine engine now cycles through the owner's selected stay actions, instead of playing only the first action forever.
-- Added regression checks for the map picker, interior-only restriction, and stay-action cycling.
-
-### Remaining work only
-- Rebuild `void_runner_admin_inventory.json` from the source with `node tools/admin-inventory.cjs` and commit; verify all CI, including the newest Dax-specific tests. Prior repo tests also showed inventory drift.
-- Perform browser runtime testing with Dax's licensed private model (floor/collision, animations and transitions, multiplayer same-place check, publish/clear schedule/route, no duplicates).
-- New areas outside the District still require dedicated spawn/scene/transition support, not just a dropdown unlock.
-- Decide whether Dax's daily editor schedule should follow the synchronized UTC clock currently implemented or a future shared in-game world clock. Do NOT switch back to per-player save time; that would desync her between players.
-- After acceptance tests, merge PR #523 and deploy. The PR is still draft and no live Dax behavior is changed by these commits.
+To verify the campaign clock, start walking and record the in-game time. Walk for 30 active seconds, take a zone transition, then walk for 20 active seconds. The clock should advance about 6 minutes in the first interval and 4 more in the second, independent of loading time. Save and reload. Check that the saved whole-minute count resumes and that time spent in the menu or with the game closed does not advance it.

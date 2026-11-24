@@ -94,6 +94,23 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual([h['action'] for h in state['history']], ['publish', 'publish', 'rollback', 'rollback'])
         self.assertTrue(all(k.startswith(('vr_live_content_state/', 'vr_live_content_versions/')) for k in self.db.data))
 
+    def test_dax_routine_publish_and_clear_without_a_mission(self):
+        stay = {'mode': 'stay', 'x': 125.3, 'z': -96.4, 'yaw': 0, 'actions': ['shadow']}
+        route = {'mode': 'path', 'points': [
+            {'x': 125.3, 'z': -96.4, 'action': 'shadow', 'seconds': 3},
+            {'x': 125.3, 'z': -99.9, 'action': 'walk-on', 'seconds': 0},
+        ]}
+        schedule = dict(stay, schedule=[dict(route, **{'from': '08:00', 'to': '09:00'})])
+        invalid = [dict(stay, x=100, z=-6.4), dict(stay, anims=['npc-rin/laugh'])]
+        for plan in invalid:
+            refused = self.post('live-content/publish', {'expected': 0, 'content': content(npcs={'dax': plan})})
+            self.assertEqual(refused.status_code, 422, refused.json)
+        for revision, plan in enumerate([stay, route, schedule, None]):
+            npcs = {} if plan is None else {'dax': plan}
+            saved = self.post('live-content/publish', {'expected': revision, 'content': content(npcs=npcs)})
+            self.assertEqual(saved.status_code, 200, saved.json)
+            self.assertEqual(self.get('live-content', token=None).json['content'].get('npcs', {}), npcs)
+
     def test_publish_one_interaction_leaves_existing_missions_and_other_npcs_unchanged(self):
         original = content()
         self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': original}).status_code, 200)

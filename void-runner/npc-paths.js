@@ -33,7 +33,7 @@
  const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'city',quarter:'avenue',device:true,sit:true,youthful:true,combatAnimations:true},
   'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'city',quarter:'avenue',device:true,sit:true,youthful:true,combatAnimations:true},
   // Dax's ONE existing licensed interior actor now follows editor plans; this does not spawn a second model.
-  'dax':{name:'Dax',asset:'npc-dax',area:'city',quarter:'district',device:false,sit:false,youthful:false,adult:true,combatAnimations:false,home:{x:125.3,z:-96.4,yaw:Math.PI/2,actions:['idle']}},
+  'dax':{name:'Dax',asset:'npc-dax',area:'city',quarter:'district',device:false,sit:false,youthful:false,adult:true,combatAnimations:false,placementOnly:true,areas:['district'],home:{x:125.3,z:-96.4,yaw:-Math.PI/2,actions:['idle']}},
   // the street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): moved by its own code in ncz-street-pair.js (no clips: a procedural pose), so its actions are its own (CAT_ACTIONS)
   'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,youthful:false,combatAnimations:false,cat:true,it:true},
   // THE TEA ROOM HOST (the owner, 20 Nov 2026: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): a
@@ -63,7 +63,7 @@
    MOVABLE[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim().slice(0,40):id,asset:c.model,area:'city',quarter:null,device:['v1','v2','v3'].includes(c.device),sit:true,youthful:!adultOk(c),combatAnimations:adultOk(c),adult:adultOk(c),made:true};MADE[id]=c;}
   return before;}
  const madeNow=()=>MADE;
- const ar=M=>M&&M.made?{made:true,adult:!!M.adult}:M?.asset==='npc-dax'?{made:true,adult:true}:{};   // Dax already visits the District's adult-access rooms; this flag is for area validation only, never spawning.   // npc-areas.js check options: an adult made character may use the adult venues
+ const ar=M=>({made:!!M?.made,adult:!!M?.adult});
  /* Every action a stay or a path point may use, in plain words. clip: the clip played (must be in the NPC's own list); device: an npc-device.js pose; sit: the
     ledge's sit-down, sit and stand-up clips (only at a ledge). */
  const ACTIONS=[
@@ -113,7 +113,7 @@
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
  /* Every clip the game has, for NPC id, with whether she can use it: {id, title, source, category, status ('own' | 'shared' | 'library' | 'no'), ok, why}. */
  function libraryOffer(id,idx=INDEX()){if(MOVABLE[id]&&MOVABLE[id].cat)return [];const M=MOVABLE[id],S=SP(),banned=(S&&S.BANNED)||/$^/,L=AL(),young=!!(M&&M.youthful),out=[];
-  const rule=(clipId,title,src)=>!M?'Only for NPCs the editor can move.':!pairGameplay(id,clipId)&&(banned.test(clipId)||banned.test(title||''))?'Not allowed for '+M.name+' (her content rule: casual street clips only).':young&&src&&ADULT.test(src)&&!pairGameplay(id,clipId)?'Not for '+M.name+': it comes from an adult-only model (companions, studios, clubs).':young&&YOUNG_NO.test(clipId)?'Not for '+M.name+' (no smoking, drinking or drunk clips for her).':MOVE_CLIP.test(String(clipId).split('/').pop())?'A walking or sit-down/stand-up clip: the game plays her own for that.':/^sit/.test(String(clipId).split('/').pop())?'A seated clip: she sits only through her own sit-down on a ledge (use “Sit on the ledge”).':/^floor-/.test(String(clipId).split('/').pop())?'A floor pose: use “Sit — pose: …” at a cushion, cot or bench (her own pose, when her file has it).':!combatAllowed(id,clipId,!!src)?'Not for '+M.name+' (combat animations not enabled or verified).':'';
+  const rule=(clipId,title,src)=>!M?'Only for NPCs the editor can move.':M.placementOnly?'Only her bundled motions are verified on this rig.':!pairGameplay(id,clipId)&&(banned.test(clipId)||banned.test(title||''))?'Not allowed for '+M.name+' (her content rule: casual street clips only).':young&&src&&ADULT.test(src)&&!pairGameplay(id,clipId)?'Not for '+M.name+': it comes from an adult-only model (companions, studios, clubs).':young&&YOUNG_NO.test(clipId)?'Not for '+M.name+' (no smoking, drinking or drunk clips for her).':MOVE_CLIP.test(String(clipId).split('/').pop())?'A walking or sit-down/stand-up clip: the game plays her own for that.':/^sit/.test(String(clipId).split('/').pop())?'A seated clip: she sits only through her own sit-down on a ledge (use “Sit on the ledge”).':/^floor-/.test(String(clipId).split('/').pop())?'A floor pose: use “Sit — pose: …” at a cushion, cot or bench (her own pose, when her file has it).':!combatAllowed(id,clipId,!!src)?'Not for '+M.name+' (combat animations not enabled or verified).':'';
   if(L&&L.all)for(const c of L.all()){if(c.library!=='actorcore')continue;let why=rule(c.id,(c.title||'')+' '+(c.category||''),'');if(!why){if(c.needs)why='Needs a '+c.needs+' to play on (not a standing action yet).';else if(c.group||c.partner)why='A clip for two or more people together.';else if(c.root!=='inplace')why='Moves her about the room (not a standing action).';}
    out.push({id:c.id,title:c.title,library:'actorcore',source:'animation library (ActorCore)',category:category(c.category+' '+c.id),status:why?'no':'library',ok:!why,why});}
   const mine=M&&idx&&idx.files[M.asset],limit=(idx&&idx.restLimit)||(L&&L.REST_LIMIT)||25;
@@ -125,7 +125,7 @@
     out.push({id:cid,title:clip+' (from '+asset.replace(/^npc-/,'')+')',library:'crowd:'+asset,source:asset,clip,category:category(clip),status:why?'no':status,ok:!why,why});}}
   return out;}
  /* Is an added clip id allowed without the index (the game's own check)? Its rules only: a library clip offered as above, or '<asset>/<clip>' of a known file and clip. */
- function animAllowed(id,a){if(MOVABLE[id]&&MOVABLE[id].cat)return 'the cat is moved by its own code and plays no animation clips';const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
+ function animAllowed(id,a){if(MOVABLE[id]?.placementOnly)return 'only her bundled motions are verified on this rig';if(MOVABLE[id]&&MOVABLE[id].cat)return 'the cat is moved by its own code and plays no animation clips';const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
   const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a||'');const M=MOVABLE[id],S=SP(),C=node?require('./crowd.js'):root.VoidCrowd;if(!m||!M)return 'unknown animation';
   if(!pairGameplay(id,a)&&(S&&S.BANNED||/$^/).test(a))return 'not allowed for her';if(M.youthful&&((ADULT.test(m[1])&&!pairGameplay(id,a))||YOUNG_NO.test(m[2])))return 'not for her';if(MOVE_CLIP.test(m[2])||/^(sit|floor-)/.test(m[2]))return 'a walking, seated or transition clip';if(!combatAllowed(id,a))return 'combat animation not enabled or verified';if(!(C&&C.clips&&(C.clips[m[1]]||[]).includes(m[2])))return 'unknown animation';return '';}
  /* Put added clips on a figure (the game): library clips, and clips of other public crowd files through the same runtime retarget. */
@@ -141,8 +141,10 @@
  const crowdClips=asset=>{const C=node?require('./crowd.js'):root.VoidCrowd;return (C&&C.clips&&C.clips[asset])||[];};
  /* The actions an NPC may use: only clips its own file has (crowd.js), never a banned one, device poses only for NPCs that carry a V1, sit only with the sit clips. */
  function actionsFor(id,anims){const M=MOVABLE[id];if(!M)return [];if(M.cat)return CAT_ACTIONS.map(a=>ACTION.get(a));const have=new Set(crowdClips(M.asset)),S=SP(),banned=(S&&S.BANNED)||/$^/;
+  const dax=id==='dax'?[{id:'glance-back',name:'Glance back',clip:'glance-back'},
+   {id:'shadow',name:'Check V3 // Shadow',clip:'look',help:'Her left-eye camera lights up while she checks her device.'}].filter(a=>have.has(a.clip)):[];
   const extra=(anims||[]).filter(a=>!animAllowed(id,a)).map(a=>({id:a,name:a.replace(/^.*\//,'')+' (added animation)',clip:a,library:true,help:'An animation you added in Add animation.'}));
-  return [...ACTIONS.filter(a=>(!a.pairOnly||!!PAIR_GAMEPLAY[id])&&!banned.test(a.id)&&!banned.test(a.clip)&&have.has(a.clip)&&(a.needs||[]).every(c=>have.has(c)&&!banned.test(c))&&(!a.device||M.device&&((S&&S.DEVICE)||[]).includes(a.device))&&(!a.sit||M.sit)),...extra];}
+  return [...ACTIONS.filter(a=>(!a.pairOnly||!!PAIR_GAMEPLAY[id])&&!banned.test(a.id)&&!banned.test(a.clip)&&have.has(a.clip)&&(a.needs||[]).every(c=>have.has(c)&&!banned.test(c))&&(!a.device||M.device&&((S&&S.DEVICE)||[]).includes(a.device))&&(!a.sit||M.sit)),...dax,...extra];}
  const num=v=>typeof v==='number'&&Number.isFinite(v);
  const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
  const wrap=a=>{const t=((a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;return r2(t);};
@@ -159,7 +161,7 @@
  const UG=()=>{try{return node?require('./ncz-underground.js'):root.VoidUnderground;}catch{return null;}};
  function homeOf(id){const M=MOVABLE[id],h=M&&M.home;if(!h)return null;if(h.spot){const U=UG(),sp=U&&U.spots?U.spots().find(x=>x.id===h.spot):null;if(!sp)return null;return {x:sp.x,z:sp.z,yaw:sp.yaw,actions:h.actions.slice()};}return num(h.x)&&num(h.z)?{x:h.x,z:h.z,yaw:h.yaw||0,actions:h.actions.slice()}:null;}
  /* Plain-language problems with one spot for NPC id (empty: fine). An imported model (local test only) uses the same pavement: areaProblems. */
- function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];if(id==='dax'&&AR().areaOf(p)!=='district')return ['Dax currently supports placement inside the District only; other areas need scene support.'];if(M.area!=='city')return areaProblems(AREAS[M.area],M.name,p);
+ function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];if(M.areas&&!M.areas.includes(AR().areaOf(p)))return ['Dax currently supports placement inside the District only; other areas need scene support.'];if(M.area!=='city')return areaProblems(AREAS[M.area],M.name,p);
   const c=AR().check(p,null,undefined,ar(M));const out=c.ok?[]:[c.why];if(p&&p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');return out;}
  function areaProblems(A,name,p){
   if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>LIMIT.coord||Math.abs(p.z)>LIMIT.coord)return ['The spot has no position.'];
@@ -175,7 +177,7 @@
   return [];}
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
  /* A mission's "Giver waits at": only Reverie and Lace (the movable givers); a spot on her pavement. Returns problems. */
- function waitAtProblems(giver,w){if(w==null)return [];if(!MOVABLE[giver])return ['“Giver waits at” works only for a giver the editor can move (Reverie or Lace).'];
+ function waitAtProblems(giver,w){if(w==null)return [];if(!MOVABLE[giver]||MOVABLE[giver].placementOnly)return ['“Giver waits at” works only for a giver the editor can move (Reverie or Lace).'];
   if(!keysOk(w,['x','z','yaw']))return ['“Giver waits at” has unknown fields.'];return spotProblems(giver,w);}
  /* A plan (content.npcs[id]). Returns problems (empty: fine). A daily schedule (p.schedule) is checked block by block with the same rules (scheduleProblems). */
  function planProblems(id,p){if(p&&typeof p==='object'&&!Array.isArray(p)&&'schedule' in p){const {schedule,...rest}=p,M=MOVABLE[id];const out=planOnly(id,rest);if(M)out.push(...scheduleProblems(id,schedule,rest.anims,rest.tier,rest));return out;}return planOnly(id,p);}
@@ -248,12 +250,12 @@
     a click in a forbidden place is never moved). pick() -> {spot:{x, z, moved} or null, why}. area: the area shown on the map. */
  function pick(id,p,area){const M=MOVABLE[id];if(!M||!p)return {spot:null,why:'This NPC cannot be moved by the editor yet.'};
   if(M.area!=='city'){const A=AREAS[M.area];return {spot:{x:r1(Math.max(A.x0,Math.min(A.x1,p.x))),z:r1(Math.max(A.z0,Math.min(A.z1,p.z))),moved:true},why:''};}
-  const c=AR().check(p,area,undefined,ar(M));if(c.ok&&(!area||c.area===area))return {spot:{x:r1(p.x),z:r1(p.z),moved:false},why:''};
+  const c=AR().check(p,area,undefined,ar(M));if(M.areas&&!M.areas.includes(area||c.area))return {spot:null,why:'Choose a spot in the District.'};if(c.ok&&(!area||c.area===area))return {spot:{x:r1(p.x),z:r1(p.z),moved:false},why:''};
   const q=c.kind==='rule'?null:AR().nearest(p,area||c.area,undefined,ar(M));if(q)return {spot:q,why:c.why};return {spot:null,why:c.ok?'That is in '+AR().get(c.area).name+', not the area shown: pick it in the area list first.':c.why+(c.kind==='rule'?'':' (nothing she can stand on nearby)')};}
  function snap(id,p,area){if(!p)return p;const r=pick(id,p,area);return r.spot?{...p,x:r.spot.x,z:r.spot.z}:p;}
  /* For the admin inventory (the server's copy of these rules). */
  function crossMap(){const E=ESC(),ids=AR().IDS,out={walker:{},cat:{}};if(!E||!E.reach)return out;for(const [kind,who] of [['walker','grey-reverie'],['cat','street-cat']])for(const a of ids){const reach=[...E.reach(who,a)].filter(x=>x!==a).sort();if(reach.length)out[kind][a]=reach;}return out;}
- function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:id==='dax'?['district']:AR().IDS.slice(),
+ function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:(M.areas||AR().IDS).slice(),...(M.placementOnly?{placementOnly:true,adult:M.adult}:{}),
   ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),seats:seatList(),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,areas:AR().inventory(),limits:LIMIT,cross:crossMap(),import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
  /* IMPORT MODEL (the owner, 18 Nov 2026: "import new models, then place them in" and "just have a cap on poly counts for each import"): the caps, in ONE place (the
     server reads the same numbers from the admin inventory for the "Add to the game" package). Over maxTriangles (whole model, every mesh) or maxBytes: refused.
@@ -315,7 +317,7 @@
     else{let clash=-1;for(let m=f,k=0;k<span(b);k++,m=(m+1)%1440){if(used[m]>=0&&clash<0)clash=used[m];used[m]=i;}if(clash>=0)out.push(bw+'it overlaps time block '+(clash+1)+': change one of their times.');}}
    if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'the name may use letters, numbers and simple punctuation only (40 at most).');
    if(b.cross!=null&&b.cross!==true)out.push(bw+'“Walk through the gates” is on or left off.');
-   if(b.cross===true){if(!(tier>=2))out.push(bw+'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.');
+   if(b.cross===true){if(M.placementOnly)out.push(bw+'Dax stays in the District.');else if(!(tier>=2))out.push(bw+'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.');
     else if(b.mode==='original')out.push(bw+'walking through the gates needs a spot in the area she is going to.');
     else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');
      else if(from!==dest){const why=ESC()&&ESC().reachWhy?ESC().reachWhy(id,from,dest):'there is no way through.';if(why)out.push(bw+why);}}}

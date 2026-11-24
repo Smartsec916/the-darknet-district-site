@@ -60,8 +60,9 @@ test('Dax in-game actor uses the editor plan and loads its engine before the act
  assert.equal(paths.MOVABLE.dax.asset,'npc-dax');
  assert.equal(paths.MOVABLE.dax.quarter,'district');
  assert.match(src,/const N=root\.VoidNeoChinatown,s=editorState\(\)/);
- assert.match(src,/root\.VoidLiveContent\?\.current\?\.content\?\.npcs\?\.dax/);
- assert.match(src,/R\.positionWorld\(plan,now\(\),root\.VoidNeoChinatown\?\.door\)/);
+ assert.match(src,/root\.VoidLiveContent\?\.env\?\.npcPlans\?\.dax/);
+ assert.match(src,/R\.timeline\(raw,X,N\.door,transition\)/);
+ assert.match(src,/return readRoutine\(now\(\)\)/);
  assert.ok(html.indexOf('void-runner/dax-editor-routine.js')<html.indexOf('void-runner/dax.js'));
 });
 
