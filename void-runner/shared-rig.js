@@ -160,4 +160,4 @@ function makeRigTools(){
   }
   return {roles,inspectRig,inspectClips,planAliases,applyAliases,accessor,validateSkin,validateMotion};
 }
-if(typeof module==='object'&&module.exports)module.exports=makeRigTools();else globalThis.VoidSharedRig=makeRigTools();
+if(typeof module==='object'&&module.exports)module.exports=makeRigTools();else globalThis.VoidHumanoidRig=makeRigTools();

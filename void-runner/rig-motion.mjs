@@ -2,7 +2,7 @@
    Only mapped rotations and hip displacement are written to the imported rig. */
 import * as rigModule from './shared-rig.js';
 import * as glbModule from './glb-downsizer.js';
-const Rig=globalThis.VoidSharedRig||rigModule.default,GLB=globalThis.VoidGLBDownsizer||glbModule.default;
+const Rig=globalThis.VoidHumanoidRig||rigModule.default,GLB=globalThis.VoidGLBDownsizer||glbModule.default;
 const identity=[0,0,0,1],origin=[0,0,0];
 const add=(a,b)=>a.map((x,i)=>x+b[i]),sub=(a,b)=>a.map((x,i)=>x-b[i]),scale=(a,s)=>a.map(x=>x*s);
 const dot=(a,b)=>a.reduce((t,x,i)=>t+x*b[i],0);
