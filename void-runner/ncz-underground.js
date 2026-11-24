@@ -156,12 +156,14 @@
  // the network's ground for "which part am I in" (the arrow, the quarter): each module's footprint, the checkpoints 0.3 m short of their outer (east) wall, which stands
  // where the stairwell's end wall does, at the edge of the yard above
  const ground=m=>{const r=footprint(m);return m.type==='gang-vestibule'?[r[0],r[1]-.3,r[2],r[3]]:r;};
- function regions(){return MODS.map(m=>({id:'ug:'+m.id,rects:[ground(m)],quarter:ID}));}
+ function regions(){return [...BAL().UNDERGROUND_ENTRANCES.map(u=>({id:'flight:'+u.id,rects:[u.inner],quarter:u.quarter})),
+  ...MODS.map(m=>({id:'ug:'+m.id,rects:[ground(m)],quarter:ID}))];}
  function portals(){const w=walking();if(!w)return [];const M=MOD(),out=[];
   for(const d of w.cluster.doors){const a=M.parseRef(d.a).mod;if(d.leads){const e=ENTRANCES.find(x=>x.vest===a),u=BAL()&&BAL().UNDERGROUND_ENTRANCES.find(x=>x.id===e.id);if(!u)continue;
-    out.push({id:'stairs:'+e.id,a:'q:'+e.quarter,b:'ug:'+a,x:u.bottom[0],z:u.bottom[2],nx:-u.facing[0],nz:-u.facing[1],half:1.1,stairs:e.id});continue;}
+    out.push({id:'stair-top:'+e.id,a:'q:'+e.quarter,b:'flight:'+e.id,x:u.top[0],z:u.top[2],nx:u.down[0],nz:u.down[1],half:.75,r:.38});
+    out.push({id:'stairs:'+e.id,a:'flight:'+e.id,b:'ug:'+a,inside:{x:d.x,z:d.z},transition:true,x:u.bottom[0],z:u.bottom[2],nx:-u.facing[0],nz:-u.facing[1],half:1.1,stairs:e.id});continue;}
    const b=M.parseRef(d.b).mod,n=d.n;// d.n points out of d.side's module
-   const from=M.parseRef(d.side).mod,to=from===a?b:a;out.push({id:'ug-door:'+d.id,a:'ug:'+from,b:'ug:'+to,x:d.x,z:d.z,nx:n[0],nz:n[1],half:d.seam?.9:.52});}
+   const from=M.parseRef(d.side).mod,to=from===a?b:a;out.push({id:'ug-door:'+d.id,a:'ug:'+from,b:'ug:'+to,x:d.x,z:d.z,nx:n[0],nz:n[1],half:d.seam?.9:.52,r:d.seam?.8:.35});}
   return out;}
  /* ---- the 3D (browser): the modules (module-build.js, as one network) and the alcoves' dressing ---- */
  function build({scene,parent,quality}){const B=root.BABYLON,M=MOD(),w=walking();if(!B||!M||!M.build||!w)return null;const low=quality==='low';
