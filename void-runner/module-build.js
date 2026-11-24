@@ -660,7 +660,8 @@
    'gang-vestibule'(mod,t){const lamp=lampOf(mod.id),mesh=meshMat(),Ch=t.ceil;
     // the fence down the middle (scaffold posts, chain-link), the pass-through over the table, a steel plate under it, the gate leaf swung open at the north end
     for(const z of [-1.6,-.6,.6,1.6])cyl(S.steel,.05,2.2,[0,1.1,z],8);box2(S.steel,-.03,.03,2.17,2.2,-1.6,1.6);box2(mesh,-.005,.005,0,2.17,-1.6,-.6);box2(mesh,-.005,.005,0,2.17,.6,1.6);box2(mesh,-.005,.005,1.25,2.17,-.6,.6);box2(S.rust,-.04,.04,0,.75,-.6,.6);box2(S.steel,-.14,.14,.75,.78,-.6,.6);
-    box2(mesh,.025,.035,.05,2,1.65,2.5);box2(S.steel,.02,.04,.05,2,2.48,2.52);box2(S.steel,.02,.04,1.98,2.02,1.65,2.52);
+    // Only the public tunnel checkpoints need this opening clear. The fixed fence ends at z=1.6.
+    if(!NET){box2(mesh,.025,.035,.05,2,1.65,2.5);box2(S.steel,.02,.04,.05,2,2.48,2.52);box2(S.steel,.02,.04,1.98,2.02,1.65,2.52);}
     // the battered table: a cash box with a padlock, the scanner wand, a list; stools behind it
     box2(P('table-worn',{c:'#5a4a3a',dyn:TX.planks('#4a3a2a','#1a120a'),tile:1,rough:.8}),.25,1.25,.72,.75,-.6,.6);for(const x of [.3,1.2])for(const z of [-.55,.55])box2(S.dark,x-.025,x+.025,0,.72,z-.025,z+.025);
     box2(P('cashbox',{c:'#3a4a3a',rough:.45,metal:.6}),.6,.9,.75,.85,-.5,-.25);box2(P('padlock',{c:'#8a7a3a',rough:.35,metal:.85}),.58,.6,.77,.82,-.4,-.35);cyl(S.black,.04,.35,[.7,.775,.35],8,HALF);cyl(S.dark,.08,.04,[.7,.775,.55],10,HALF);box2(S.paper,.35,.55,.75,.752,0,.25);

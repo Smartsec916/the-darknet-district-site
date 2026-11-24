@@ -64,7 +64,7 @@
    if(!isGoal&&!isGuide&&d>(person?32:14))continue;
    const sp=project(p,person?2.35:2.15);if(!sp)continue;const r=Math.max(7,Math.min(13,180/Math.max(d,1)));
    if(isGuide){const pulse=.5+.5*Math.sin(t*5);ctx.save();ctx.strokeStyle='rgba(127,240,255,'+(.55+.4*pulse)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sp.x,sp.y,r+8+pulse*4,0,Math.PI*2);ctx.stroke();ctx.restore();label(sp.x,sp.y-r-14,'GUIDE · '+VoidUnits.fmtDist(d),'#7ff0ff');}
-   if(isGoal){diamond(sp.x,sp.y,r+2,Y.hex,'');label(sp.x,sp.y+r+16,VoidUnits.fmtDist(d),Y.hex);}
+   if(isGoal){const route=globalThis.VoidGuideRoute?.live;if(route?.final){diamond(sp.x,sp.y,r+2,Y.hex,'');label(sp.x,sp.y+r+16,VoidUnits.fmtDist(route.length),Y.hex);}}
    else if(person&&hasWork(item))diamond(sp.x,sp.y,r,Y.hex,'!');
    // The quiet name tags that used to float over shops, pods and terminals (PODS, SHOP, VENDING...) are gone (the owner, Nov 2026: floating text near objects read as asset tags). The interaction prompt still names a thing when you are close enough to use it.
   }

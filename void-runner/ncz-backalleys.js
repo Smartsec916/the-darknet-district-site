@@ -228,6 +228,11 @@
   const black=pbr('black','#0b0c0e',{rough:.5,metal:.3}),bagM=pbr('bag','#0c0d10',{rough:.28,metal:.05}),concrete=pbr('dock','#77736c',{rough:.85,metal:0,alb:tex('concrete-mold-color'),nrm:tex('concrete-mold-normal')});
   const wood=pbr('wood','#ffffff',{rough:.9,metal:0,alb:canvas('wood',256,256,(g,w,h)=>{g.fillStyle='#6a5236';g.fillRect(0,0,w,h);for(let i=0;i<6;i++){const y=i*h/6;g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,y,w,3);for(let k=0;k<40;k++){g.fillStyle='rgba('+(R()<.5?'20,12,4,':'200,170,120,')+(.05+R()*.1)+')';g.fillRect(R()*w,y+R()*h/6,20+R()*80,1+R()*2);}}g.fillStyle='rgba(0,0,0,.4)';g.fillRect(0,0,10,h);g.fillRect(w-10,0,10,h);})});
   const shutters=['corrugated-rust','corrugated-green','corrugated-blue'].map(n=>haze(pbr('shutter-'+n,'#8a8a8a',{rough:.6,metal:.6,alb:tex(n+'-color',1,1),nrm:tex(n+'-normal')}),.14));haze(concrete,.14);haze(wood,.1);
+  // Baked fill on the stair concrete and its worn edges survives the low preset and night lighting.
+  const stairConcrete=concrete.clone('back-stair-concrete');own.push(stairConcrete);
+  stairConcrete.emissiveColor=new B.Color3(.42,.34,.26);
+  const stairEdge=pbr('stair-edge','#aa9981',{rough:.88,metal:.08});
+  stairEdge.emissiveColor=new B.Color3(.35,.29,.21);
   const hazard=pbr('hazard','#ffffff',{rough:.7,metal:.1,alb:canvas('hazard',256,32,(g,w,h)=>{g.fillStyle='#14120c';g.fillRect(0,0,w,h);g.fillStyle='#b8901c';for(let x=-h;x<w;x+=36){g.beginPath();g.moveTo(x,h);g.lineTo(x+18,h);g.lineTo(x+18+h,0);g.lineTo(x+h,0);g.fill();}for(let k=0;k<300;k++){g.fillStyle='rgba(0,0,0,'+R()*.6+')';g.fillRect(R()*w,R()*h,2+R()*6,1+R()*3);}})});
   const lens={sodium:glow('sodium','#ffab55',1.05),teal:glow('teal','#3fc8c0',.75),magenta:glow('magenta','#c8458f',.7),red:glow('red','#ff3030',1)};
   // the window into the hallway: a dim lit corridor seen through grimy glass and half-open blinds (emissive texture only: no emissiveColor on top, it would wash out)
@@ -247,7 +252,7 @@
   const tint=(mesh,c,k)=>{const col=COL[c],n=mesh.getTotalVertices(),a=new Float32Array(n*4);for(let i=0;i<n;i++){a[i*4]=col[0]*k;a[i*4+1]=col[1]*k;a[i*4+2]=col[2]*k;a[i*4+3]=1;}mesh.setVerticesData(B.VertexBuffer.ColorKind,a,false,4);return mesh;};
   // ---- geometry: every part is merged with the others of its material at the end ----
   const put=(mesh,mat)=>{mesh.material=mat;mesh.isPickable=false;mesh.receiveShadows=false;if(!groups.has(mat))groups.set(mat,[]);groups.get(mat).push(mesh);return mesh;};
-  const box=(w,h,d,x,y,z,mat,ry=0,rx=0,rz=0)=>{const t=(mat===steel||mat===rust||mat===concrete||mat===wood||shutters.includes(mat))?1.2:0;const m=t?B.MeshBuilder.CreateBox('back-part',{width:w,height:h,depth:d,faceUV:[[w,h],[w,h],[d,h],[d,h],[w,d],[w,d]].map(([a,b])=>new B.Vector4(0,0,Math.max(.1,a/t),Math.max(.1,b/t))),wrap:true},scene):B.MeshBuilder.CreateBox('back-part',{width:w,height:h,depth:d},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);return put(m,mat);};
+  const box=(w,h,d,x,y,z,mat,ry=0,rx=0,rz=0)=>{const t=(mat===steel||mat===rust||mat===concrete||mat===stairConcrete||mat===wood||shutters.includes(mat))?1.2:0;const m=t?B.MeshBuilder.CreateBox('back-part',{width:w,height:h,depth:d,faceUV:[[w,h],[w,h],[d,h],[d,h],[w,d],[w,d]].map(([a,b])=>new B.Vector4(0,0,Math.max(.1,a/t),Math.max(.1,b/t))),wrap:true},scene):B.MeshBuilder.CreateBox('back-part',{width:w,height:h,depth:d},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);return put(m,mat);};
   const cyl=(r,h,x,y,z,mat,rx=0,rz=0,t=8,ry=0)=>{const m=B.MeshBuilder.CreateCylinder('back-cyl',{diameter:r*2,height:h,tessellation:t},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);return put(m,mat);};
   const plane=(w,h,x,y,z,n,mat)=>{const m=B.MeshBuilder.CreatePlane('back-plane',{width:w,height:h},scene);m.position.set(x,y,z);m.rotation.y=Math.atan2(-n[0],-n[1]);return put(m,mat);};
   // (a light pool lies on the ground at 3 cm: none over a stairwell's open hole, where it would glow in mid-air; `deep` pools are the stairwells' own, on their landings)
@@ -315,8 +320,15 @@
   // ---- the underground entrances: an open concrete stairwell going down, railings round it, the closed steel door at the bottom, a caged lamp over the door ----
   for(const u of UNDERGROUND_ENTRANCES.filter(u=>qs.includes(u.quarter))){const U=UNDER,d=u.down,t=u.across,L=U.STAIR+U.LAND,P=(a,o)=>[u.top[0]+d[0]*a+t[0]*o,u.top[2]+d[1]*a+t[1]*o],ry=d[0]!==0?Math.PI/2:0;
    const piece=(a0,a1,o0,o1,y0,y1,mat)=>{const [x,z]=P((a0+a1)/2,(o0+o1)/2),la=a1-a0,lo=o1-o0;return d[0]!==0?box(la,y1-y0,lo,x,(y0+y1)/2,z,mat):box(lo,y1-y0,la,x,(y0+y1)/2,z,mat);};
-   const n=Math.round(U.DEPTH/.18),run=U.STAIR/n,B0=-U.DEPTH-.35;for(let i=0;i<n;i++){const top=-U.DEPTH*(i+1)/n;piece(i*run,(i+1)*run,-U.W/2,U.W/2,B0,top,concrete);piece(i*run,i*run+.04,-U.W/2,U.W/2,top-.02,top+.005,hazard);}   // steps, a worn nosing on each
-   piece(U.STAIR,L,-U.W/2,U.W/2,B0,-U.DEPTH,concrete);   // the landing
+   const n=Math.round(U.DEPTH/.18),run=U.STAIR/n,B0=-U.DEPTH-.35;for(let i=0;i<n;i++){const top=-U.DEPTH*(i+1)/n;piece(i*run,(i+1)*run,-U.W/2,U.W/2,B0,top,stairConcrete);piece((i+1)*run-.045,(i+1)*run+.006,-U.W/2+.04,U.W/2-.04,top-.045,top+.008,stairEdge);}   // steps, a worn nosing on each
+   piece(U.STAIR,L,-U.W/2,U.W/2,B0,-U.DEPTH,stairConcrete);   // the landing
+   // Shielded wall fittings illuminate the full flight. The warm fill on the treads needs no dynamic lights.
+   for(const a of [U.STAIR*.2,U.STAIR*.7]){
+    const floor=-U.DEPTH*a/U.STAIR;
+    piece(a-.23,a+.23,-U.W/2,-U.W/2+.07,floor+.60,floor+.74,black);
+    piece(a-.19,a+.19,-U.W/2+.07,-U.W/2+.08,floor+.61,floor+.66,lens.sodium);
+    const [wx,wz]=P(a,-U.W/2+.01);wash('sodium',wx,floor+.72,wz,t,1.5,1.2,.25);
+   }
    for(const s of [-1,1])piece(0,L+U.WALL,s<0?-U.W/2-U.WALL:U.W/2,s<0?-U.W/2:U.W/2+U.WALL,B0,.15,concrete);piece(L,L+U.WALL,-U.W/2,U.W/2,B0,.15,concrete);   // the walls, a kerb at street level
    // railings at street level: posts and two rails down both sides and across the far end
    for(const s of [-1,1]){const o=s*(U.W/2+U.WALL/2);for(let a=.1;a<=L+.2;a+=1.2)piece(a-.025,a+.025,o-.025,o+.025,.15,U.RAIL,steel);piece(0,L+U.WALL,o-.025,o+.025,U.RAIL-.05,U.RAIL,steel);piece(0,L+U.WALL,o-.02,o+.02,.6,.64,steel);}
