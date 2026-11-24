@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "ef0ba4ece741c8d5",
+  "revision": "71a3a92a41709821",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74629,7 +74629,7 @@
     },
     {
       "source": "void-runner/cinematic-editor.js",
-      "line": 61,
+      "line": 83,
       "text": "const labels={start:'Start time',duration:'Duration',mode:'Camera mode',x:'Start X',y:'Start Y',z:'Start Z',toX:'End X',toY:'End Y',toZ:'End Z',targetX:'Look at X',targetY:'Look at Y',targetZ:'Look at Z',yaw:'Yaw (degrees)',pitch:'Tilt (degrees)',fov:'Field of view (degrees)',zoom:'Zoom',shake:'Camera shake',easing:'Movement easing',focus:'Focus distance (0 disables depth of field)',brightness:'Light intensity',fog:'Fog density',color:'Color',clip:'Animation clip',src:'Recording',text:'Overlay text',volume:'Volume',offset:'Recording trim start',kind:'Transition'};",
       "kind": "source-reference"
     },
@@ -82935,8 +82935,9 @@
     "void-runner/character-creator.js": "cfd0082b0171c612f0881f485a9879e677a1af7e5d84d66d5a14d39c97c39d86",
     "void-runner/character-finish.js": "4fc7c0c8dd611061b6664284fe9dbee2708169cf01147e4db9afc0cb6a40908d",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
-    "void-runner/cinematic-editor.js": "20fb3023f6951bca08ee1888b354db6e934a7658ffb4e85e639563a3bfe4933a",
+    "void-runner/cinematic-editor.js": "5fdcf40104ceff8a06a53449d8c3b563076ab25f70c21084b5e731e28d88a316",
     "void-runner/cinematic-locations.js": "c6ddd2b2b9f3f68cba4ad3c9a1552090c2c247a83394dab9645302ef46896a47",
+    "void-runner/cinematic-presentation.js": "2dbeba72a9edb91ec379f3e4d5dd8fba8d7cf0170e939d35345cfbed55a7a76d",
     "void-runner/cinematic-project.js": "37f3e0b256ada78fba8f83427d65e2efc616e574b6629649405d203b5d6f5bce",
     "void-runner/cinematic-renderer.js": "ff6dc39e63eec6d2c459928a5ced3965bb2dd3cdf7b460dd22fc314235cf7940",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
