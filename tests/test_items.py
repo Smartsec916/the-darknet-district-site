@@ -292,6 +292,16 @@ class ItemTests(unittest.TestCase):
                     self.assertGreater(view['modifiers']['healthRecovery'],0)
                     self.assertEqual(items.player_state(self.db,'owner',now=1300)['active'],[])
 
+    def test_kiosk_placements_validate_even_if_other_slots_use_the_fallback(self):
+        cat=copy.deepcopy(items.SEED)
+        kiosk=next(v for v in cat['vendors'] if v['entity']=='kiosk-entrance')
+        kiosk['rules']={'slot':'shop-center','model':'assets/models/district-interior/district_arcade_change_1m.glb','screen':'#bad123'}
+        self.assertEqual(items.problems(cat),[])
+        kiosk['rules']['slot']='kiosk-far-1'
+        self.assertIn('Two kiosks occupy the same bay',items.problems(cat))
+        kiosk['rules'].update(slot='shop-left',screen='invalid')
+        self.assertIn('Choose a valid kiosk screen color',items.problems(cat))
+
     def test_modifiers_follow_delays_and_expire(self):
         a = [{'item': 'x', 'startedAt': 1000, 'definition': catalog()['items'][-1]['consumable'] and {'modifiers': catalog()['items'][-1]['consumable']['modifiers'], 'effects': []}}]
         self.assertEqual(items.modifiers_now(a, 1010), {'walkSpeed': .2})

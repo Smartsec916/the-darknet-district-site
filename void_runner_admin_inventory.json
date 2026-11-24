@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "186e6934fb41eecd",
+  "revision": "5c8c63b7bec45f05",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74491,13 +74491,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 252,
+      "line": 253,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 295,
+      "line": 296,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -75721,7 +75721,7 @@
     },
     {
       "source": "void-runner/item-catalog-editor.js",
-      "line": 56,
+      "line": 57,
       "text": "field('line','Dialogue',step.line||'')+'<button data-drop-step=\"'+i+'\">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';",
       "kind": "source-reference"
     },
@@ -79705,19 +79705,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 988,
+      "line": 1007,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1156,
+      "line": 1176,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1277,
+      "line": 1297,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -80437,7 +80437,7 @@
     },
     {
       "source": "void-runner/npc-services.js",
-      "line": 23,
+      "line": 27,
       "text": "return !!root.talkChoice([{who:v.name,text:v.rules?.message||'What can I help you with?',ambient:true,silent:true}],[",
       "kind": "source-reference"
     },
@@ -82918,8 +82918,8 @@
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "6d86cb9e2de2f43b2e1b8ca92ded2a8c93458997bb87a6a533a79b46789282bc",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "01376f363d13b961b915828265aba53eedadd20bbd420ec4c7d7e92a5c4b61a3",
-    "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
+    "void-runner/babylon-integration.js": "55012a61372b0fa09255f974494c1e69a343ea5bf7f2ebce5cd1c2eabd14116b",
+    "void-runner/babylon-renderer.js": "6f806aecd39faf5670f2d752829daf4476c60fb1a64aceaf64ca270ae0a53d89",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -82950,9 +82950,9 @@
     "void-runner/consumable-audio.js": "455264d71994edf623ea49940524c66f804b397d1dcf74be4031dd37c718e81e",
     "void-runner/consumable-gameplay.js": "7853c92fd3df71825b284a1faec8f61b09ec542ee67818556e2a9f7d065bd949",
     "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
-    "void-runner/consumable-spec.js": "9028cbb9d7fb7ae8e4aa9e495d4b22352222e8d66a1409237a1a526ceaf479cb",
+    "void-runner/consumable-spec.js": "b56b96f11301a84c9b5c4a4ac727e1e9e3665c9c05eb4ded464ff3af43559392",
     "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
-    "void-runner/consumables.js": "103888b1de5f3590d912ced3e5d7d59152f046a824e38f2717b39f1753c029e1",
+    "void-runner/consumables.js": "eb55038948395091d3637849062f1d3d98ad6354042ac63f6b237f54be34083c",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -83029,7 +83029,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "6946d71404de2f49c4be8a67f378bb2c9cfde30070c50f318d27cfbc8b803a30",
+    "void-runner/item-catalog-editor.js": "3080629bfbce16879ef7be6332a47488a72a78f002761edaf197298be5f85ccb",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "e50ab198206c06a8c013c86b47886df5101052e812a53884fa10b7b705ff376f",
@@ -83092,7 +83092,7 @@
     "void-runner/ncz-street-pair.js": "cb53bba3b41cb93cfedac2262d1b860f2db2c836b9786fd192a0cf3f9efc9179",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
-    "void-runner/neochinatown.js": "d385ee980e58cd50a3acb7f436f76129c4782260a594d7f09f5f0ed220f3d132",
+    "void-runner/neochinatown.js": "15150fc3e8dc990c27c804332364bc10458c1bd6363c4bd8f19f8d7c855abdf8",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "710466e49762a766b72fc5c5dcfba6e0f9f1b08828ece07c43d83f8574ac2188",
@@ -83112,7 +83112,7 @@
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "fe86a49b9e0360bbd5b2ecf862e1db5994305b7d8bc78874721ae83c627af790",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
-    "void-runner/npc-services.js": "3b3e750975360dd92a94203604a821da9d68760db6d359aef406d72d00627be2",
+    "void-runner/npc-services.js": "72aa9d104d395c57e85eaa2668a089daf81fcade5f12f254ea37c13bfebd0912",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",

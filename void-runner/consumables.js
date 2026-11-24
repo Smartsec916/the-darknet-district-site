@@ -60,8 +60,10 @@
  const ENTRY_KEYS=['item','price','stock','maxStock','restock','available','rules'];
  function sellerRules(r){
   if(r==null)return [];
-  if(!hasOnly(r,['opens','closes','minRep','mission','color','message','sound','model']))return ['Unknown vendor setting'];
-  const bad=[];for(const key of ['opens','closes'])if(key in r&&!int(r[key],0,23))bad.push('Hours must be 0–23');
+  if(!hasOnly(r,['opens','closes','minRep','mission','color','message','sound','model','slot','screen']))return ['Unknown vendor setting'];
+  const bad=[];if(r.slot&&!Object.hasOwn(S.kioskSlots,r.slot))bad.push('Choose a District kiosk bay');
+  if(r.screen&&!/^#[a-f0-9]{6}$/i.test(r.screen))bad.push('Choose a valid kiosk screen color');
+  for(const key of ['opens','closes'])if(key in r&&!int(r[key],0,23))bad.push('Hours must be 0–23');
   if('minRep' in r&&!int(r.minRep,-100,100))bad.push('Reputation must be -100 to 100');
   if(r.mission&&!ID.test(r.mission))bad.push('Choose a valid mission ID');
   if('message' in r&&!plain(r.message,160))bad.push('Promotional message is too long');
@@ -94,6 +96,10 @@
    if(!plain(v.name,L.name)||!v.name)out.push(n+'name is required');if(!plain(v.location,60))out.push(n+'location is too long');
    if(!Array.isArray(v.entries)||v.entries.length>L.entries)out.push(n+'at most '+L.entries+' entries');
    else{const seen=new Set();v.entries.forEach((en,i)=>{out.push(...entryProblems(en,n+'entry '+(i+1),ids));if(v.kind!=='npc'&&c.items.some(it=>it?.id===en?.item&&it.kind==='service'))out.push(n+'services require an NPC vendor');if(en&&seen.has(en.item))out.push(n+'sells "'+en.item+'" twice');seen.add(en&&en.item);});}}
+  const occupied=new Set();for(const reg of S.vendorRegistry.filter(r=>r.kind==='kiosk')){
+   const v=c.vendors.find(x=>x?.entity===reg.entity),slot=v?.rules?.slot||reg.entity;
+   if(occupied.has(slot))out.push('Two kiosks occupy the same bay');occupied.add(slot);
+  }
   const ents=c.vendors.map(v=>v&&v.entity);if(new Set(ents).size!==ents.length)out.push('Two vendors use the same seller.');
   if(!Array.isArray(c.presets)||c.presets.length>L.presets)return out.concat(['At most '+L.presets+' presets.']);
   const pids=new Set();for(const p of c.presets){if(!hasOnly(p,['id','name','effects'])||typeof p.id!=='string'||!ID.test(p.id)||!plain(p.name,L.name)||!Array.isArray(p.effects)||p.effects.length>L.effects){out.push('A preset needs an id, a name and up to '+L.effects+' effects.');continue;}
