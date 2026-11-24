@@ -273,6 +273,7 @@ newJourney = function() {
 };
 
 function interactWalking() {
+  if (globalThis.VoidTeaDuo?.standPlayer?.()) return;
   if (mode !== 'walking' || !walkTarget) return;
   const item = walkTarget;
   walkingKeys.clear();
@@ -419,13 +420,14 @@ update = function(dt) {
       crouch: walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft')||walkingKeys.has('ControlRight')||VoidInput.virtual.has('crouch'),
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
-    VoidExplorer.step(walker, moving, dt, walkingLocation);
-    if (!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
-    walkTarget = VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
+    const seated=globalThis.VoidTeaDuo?.playerStep?.(walker,moving,dt);
+    if(!seated)VoidExplorer.step(walker, moving, dt, walkingLocation);
+    if (!seated&&!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
+    walkTarget = seated?null:VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
     $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
-    $('walking-interact').textContent = walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
-    $('walking-interact').disabled = !walkTarget;
+    $('walking-interact').textContent = seated?'['+(globalThis.VoidControls?.label('interact')||'E')+'] STAND UP':walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
+    $('walking-interact').disabled = !seated&&!walkTarget;
     lastStepSound -= dt;
     if ((moving.x || moving.z) && lastStepSound <= 0) {
       if (!globalThis.VoidAmbience?.ownStep?.(moving.run)) VoidAudio.tone(moving.run ? 88 : 95, .06, 'triangle', moving.run ? .017 : .009);   // your own steps are louder when you run

@@ -177,10 +177,44 @@ test('the whole set of 250 comes round before any line repeats; every pool and b
    assert.ok(!set.has(l.id)||set.size===5,'a line repeated before the others of its pool were heard: '+l.id+' '+[...set]);if(set.size===5){set.clear();cycles++;}set.add(l.id);counts[l.id]=(counts[l.id]||0)+1;}}
  const all=T.MEMBERS.flatMap(id=>T.allLines(id).map(l=>l.id));assert.deepEqual(all.filter(id=>!counts[id]),[],'all 250 heard');assert.ok(n>1500);
 });
-test('one sequence per game: a second player arriving restarts nothing in the first player\'s',()=>{
- const a=stay(1).state;assert.ok(a.queue.length>0||a.rounds>=1);const b=A.roomDuoStep(null,input({now:5000,script:()=>mkScript().steps,resolve:()=>null}));
- assert.ok(!('shared' in a),'no shared state; each game has its own');assert.ok(read('void-runner/tea-duo.js').includes('duo=r.state'));assert.ok(!/remote|VoidPlayers|presence/i.test(read('void-runner/tea-duo.js').replace(/\/\*[\s\S]*?\*\//g,'')),'the room does not look at other players: nothing of theirs can restart it');
- assert.ok(b.state.queue.length===0||b.state.started);
+test('the bedroom keeps its current guest until that player leaves and elects deterministically without an incumbent',()=>{
+ const first={id:'bbbb'},later={id:'aaaa'};
+ assert.equal(T.chooseGuest([first,later],'bbbb'),first);
+ assert.equal(T.chooseGuest([later],first.id),later);
+ assert.equal(T.chooseGuest([first,later],null),later);
+ assert.equal(T.chooseGuest([later,first],null),later);
+ assert.equal(T.chooseGuest([],first.id),null);
+});
+test('the three seats fit on one existing cot and its long edge stays accessible',()=>{
+ const seats=T.groupSeats(),M=require('../void-runner/modules.js'),U=require('../void-runner/ncz-underground.js');
+ const cot=M.COT_LAYOUT.find(c=>seats.player.seat.endsWith(c.id));
+ assert.equal(M.COT_LAYOUT.length,4);
+ assert.equal(cot.depth,2.16);
+ assert.equal(cot.width,1.08);
+ const solids=U.walking().solids;
+ for(const seat of Object.values(seats)){
+  assert.equal(U.placeAt(seat.x,seat.z),T.ROOM);
+  assert.equal(U.placeAt(seat.stand.x,seat.stand.z),T.ROOM);
+  assert.ok(!solids.some(b=>b.position[1]+b.size[1]/2>U.Y+.2&&b.position[1]-b.size[1]/2<U.Y+1.55&&
+   Math.abs(seat.stand.x-b.position[0])<b.size[0]/2+.19&&Math.abs(seat.stand.z-b.position[2])<b.size[2]/2+.19));
+ }
+ assert.ok(Math.abs(seats.nomi.x-seats.player.x)>.65&&Math.abs(seats.se7en.x-seats.player.x)>.65);
+ assert.ok(seats.nomi.x<seats.player.x&&seats.player.x<seats.se7en.x);
+ for(const id of T.MEMBERS){
+  const [x,z]=T.door(),g={x:x-.25,z};
+  const point=T.greetingPoint(id,g,()=>false,null);
+  assert.ok(point.x<x-1);
+  assert.ok(Math.hypot(point.x-g.x,point.z-g.z)>1);
+ }
+});
+test('an invitation only accepts an explicit guest decision when the caller supplies choices',()=>{
+ for(const accepted of [true,false]){
+  const v=T.visit(T.mulberry32(55),null,{near:()=>true,accepted:()=>accepted});
+  const lines=v.steps.map(v.resolve).filter(Boolean),reply=lines.find(x=>x.step==='reply');
+  assert.ok(lines.some(x=>x.step==='invite'&&x.activity));
+  assert.equal(reply.pool==='accepted',accepted);
+  if(!accepted)assert.ok(!lines.some(x=>x.step==='show'));
+ }
 });
 test('they are never still: quiet movements, real clips, episodes of getting up (and walking to their spot), all in range',()=>{
  const C=require('../void-runner/crowd.js');for(const m of ['npc-nomi','npc-se7en'])for(const c of T.CLIPS_ALL)assert.ok(C.clips[m].includes(c),m+' has '+c);

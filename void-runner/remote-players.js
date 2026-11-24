@@ -238,7 +238,7 @@
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
   nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed()||p.elsewhere)continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
-  get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,dev:p.dev||null,devPose:p.devPose||null,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
+  get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,under:p.under,yaw:p.yaw,clip:p.clip,dev:p.dev||null,devPose:p.devPose||null,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
   // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
   async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},
   ...(isLocalPage?{_message:onMessage}:{}),
