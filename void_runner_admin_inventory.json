@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "338fb5971dd13638",
+  "revision": "0848bf9c20d77435",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82871,7 +82871,7 @@
     "void-runner/consumable-renderer.js": "06edd54b8d3a1a4b2a20c54674e4b0d18aa95952d607386faeba0799bc282117",
     "void-runner/consumable-spec.js": "b983d3a3c1c3fadbadc66118b0dcd3f94d658168e2f1558f1e5e8320fe1c93a3",
     "void-runner/consumable-studio.js": "4706ac8580ef4c9b9763394b83903f4a0351b37e66d31727834d47c1758ff110",
-    "void-runner/consumables.js": "e365fcaf707d64d7d2ff437015a375573ce6f96b99929be84836cffe2aaf7f4e",
+    "void-runner/consumables.js": "5555c8c91a2bec25258f141ae402c3970deddf5b7845a740b091ea26cfe45982",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",

@@ -24,7 +24,7 @@
   if(!d)return [n+'unknown gameplay modifier "'+m.stat+'"'];if(!d.supported)return [n+d.label+' is not available: '+d.help];
   const out=[];if(!num(m.amount,d.min,d.max))out.push(n+d.label+' is from '+d.min+' to '+d.max);
   if(!num(m.delay,0,L.delay))out.push(n+'delay is 0 to '+L.delay);if(!num(m.duration,1,L.duration))out.push(n+'duration is 1 to '+L.duration);return out;}
- const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable'];
+ const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound'];
  function itemProblems(it,cats){const out=[],n=(it&&it.id||'item')+': ';
   if(!hasOnly(it,ITEM_KEYS))return [n+'unknown fields'];
   if(it.image&&!/^assets\/[a-z0-9_/-]+\.(png|jpe?g|webp)$/i.test(it.image))out.push(n+'choose a game image');

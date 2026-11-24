@@ -19,3 +19,8 @@ test('restocking adds the amount per interval, never above max',()=>{const en={.
  assert.equal(C.restocked(en,{remaining:1,at:0,base:1},130).remaining,4);assert.equal(C.restocked(en,{remaining:1,at:0,base:1},59).remaining,1);assert.equal(C.restocked(en,{remaining:0,at:0,base:9},5).remaining,1);});
 test('use returns published definitions only',()=>{const c=C.seed();assert.equal(C.use(c,'sprint-tonic').modifiers.length,2);assert.equal(C.use(c,'nothing'),null);c.items[0].status='draft';assert.equal(C.use(c,'sprint-tonic'),null);});
 test('the vendor registry names real game sellers, and kiosks are the three planned',()=>{assert.equal(S.vendorRegistry.filter(v=>v.kind==='kiosk').length,3);assert.equal(S.vendorRegistry.filter(v=>v.kind==='vending').length,3);});
+
+test('published items can reference packaged artwork and sounds',()=>{
+ const c=C.seed();Object.assign(c.items[0],{image:'assets/textures/store/shelf.png',purchaseSound:'assets/audio/shop/paid.ogg',useSound:'assets/audio/shop/open.mp3'});
+ assert.deepEqual(C.problems(c),[]);c.items[0].image='outside.png';assert.ok(C.problems(c).length);
+});
