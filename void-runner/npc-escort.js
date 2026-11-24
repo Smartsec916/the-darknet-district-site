@@ -153,11 +153,14 @@
  function follow(st,inp){const me=inp.me,tr=inp.trail,dt=inp.dt||0,cat=!!inp.cat,gap=cat?LIMIT.catGap:LIMIT.gap,S=settings(inp.set);let ev=null;const go=p=>{if(st.phase!==p){st.phase=p;ev=p;}};
   if(!st.phase)st.phase='ready';st.speed=0;st.clip='idle';if(st.phase==='done'||!me)return null;
   const d=dist(me,st);
+  // Ordinary social followers wait when separated; never use the mission's off-screen catch-up teleport.
+  if(inp.social&&d>S.lost){go('paused');face(st,me,dt);return ev;}
+  if(inp.social&&st.phase==='paused'){if(d>S.wait){face(st,me,dt);return null;}st.phase='ready';st.lastMe=null;st.meV=0;}
   if(st.phase==='ready'){if(d<=S.wait){go('follow');tr.pts.length=0;tr.shifted=0;st.ti=0;st.tShift=0;trailPush(tr,st);trailPush(tr,me);}else{face(st,me,dt);return ev;}}
   // the player's pace (smoothed), from how far they moved since the last step
   if(st.lastMe&&dt>0){const v=Math.min(10,dist(me,st.lastMe)/dt);st.meV=(st.meV||0)+(v-(st.meV||0))*Math.min(1,dt*4);}st.lastMe={x:me.x,z:me.z};
   if(st.tShift!==(tr.shifted||0)){st.ti=Math.max(0,(st.ti||0)-((tr.shifted||0)-(st.tShift||0)));st.tShift=tr.shifted||0;}
-  if(d>LIMIT.catchUp&&inp.seen===false){const b=behind(tr,LIMIT.behind);if(b){st.x=b.x;st.z=b.z;st.ti=b.i+1;st.yaw=Math.atan2(me.x-b.x,me.z-b.z);ev='caught-up';}}
+  if(!inp.social&&d>LIMIT.catchUp&&inp.seen===false){const b=behind(tr,LIMIT.behind);if(b){st.x=b.x;st.z=b.z;st.ti=b.i+1;st.yaw=Math.atan2(me.x-b.x,me.z-b.z);ev='caught-up';}}
   else if(d>gap){const p=tr.pts;let i=Math.min(st.ti||0,p.length-1);while(i<p.length-1&&dist(p[i],st)<.35)i++;st.ti=i;
    // straight to the player when the trail's next crumb is further than the player (a trail that loops back)
    const t=p[i]&&dist(p[i],me)<d?p[i]:me,want=(st.meV||0)+(d-gap)*SPEED.gain,cap=cat?(d>SPEED.catDashOver?SPEED.catDash:SPEED.catTrot):SPEED.max;

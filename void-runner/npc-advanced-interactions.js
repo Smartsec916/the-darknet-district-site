@@ -103,9 +103,9 @@ function followInvite(previous,{now,accepted=false,declined=false,maxWait=30}={}
  const p=previous&&previous.phase?previous:{phase:'offer',at:now};
  if(p.phase==='active'||p.phase==='done')return p;
  if(declined)return {phase:'return',at:now,generation:p.generation||0};
- if(accepted)return {phase:'active',at:now,generation:(p.generation||0)+1};
- if(p.phase==='return')return {phase:'offer',at:now,generation:p.generation||0};
+ if(p.phase==='return')return accepted?p:{phase:'offer',at:now,generation:p.generation||0};
  if(now-(p.at??now)>=Math.max(0,maxWait)*1000)return {phase:'return',at:now,generation:p.generation||0};
+ if(accepted)return {phase:'active',at:now,generation:(p.generation||0)+1};
  return p;
 }
 // One speaker, then the listeners. Authored and alternate both take turns in member order; a free order lets the first present member speak.
@@ -119,9 +119,10 @@ function groupStep(coordinator,spec){
  if(!token)return {line:null,poses:{}};
  const index=spec.index?.[speaker]||0,line=lines[index%lines.length];
  if(spec.index)spec.index[speaker]=index+1;
- coordinator.release(token,present);
+ const finish=()=>coordinator.release(token,present);
+ if(!spec.hold)finish();
  const poses={};for(const id of members)if(near.has(id))poses[id]=id===speaker&&line?'talk':'idle';
- return {speaker,line,poses};
+ return {speaker,line,poses,...(spec.hold?{finish}:{})};
 }
 function followStep({phase='invite',waited=0}={},input){
  const {dt=0,accepted=false,declined=false,near=false,atDestination=false,playerArrived=false,maxWait=30}=input;
