@@ -282,3 +282,7 @@ muffled 124 BPM thump), nothing recorded or licensed.
 Placement rule: only the sleeping room (`under-sleeping-room`) behind the underground tea room. Both are adult characters.
 
 **Clips (23 Nov 2026).** Their packages carry seven clips, and the idle, talk and sit clips are held poses (nothing moves). Because the owner made both on Meshy, the game's own clips were copied onto them as for Luna: `tools/animation-pipeline/prepare_nomi_se7en.py` retargets the clips of `vr-companion-f.glb` by world rotation (`retarget_world.py`, numpy only, nothing uploaded) and adds 19 clips: idle-f, talk-f (the donor's living idle and talk), sit-talk, sit-relax, sit-wave, coy, head-tilt, laugh, blow-kiss, glance-back, recline, shrug, interact, idle-f2, wave, hips, dance, slow-dance, dance-belly. Their own seven are kept. The sealed `.vrpak` files in the private repository were replaced by the versions with these clips (commit 3022995). The game uses sit and sit-talk seated (sit-relax, sit-wave and recline sit at other heights or lie down and are not used on a bed) and the rest standing.
+
+## Hotel Headshots NPC pass (24 November 2026)
+
+`hotel-headshots/assets/guest-{a,b,c}.glb`: adult MakeHuman/MPFB CC0 system bodies, skin, eyes and hair, with original fitted swimwear and guard poses. Idle/walk retarget the existing public CC0 companion described above; no private licensed asset imported. Full build/provenance record: `hotel-headshots/assets/README.md`.
