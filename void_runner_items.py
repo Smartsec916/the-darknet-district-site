@@ -92,12 +92,31 @@ def modifier_problems(m, at):
     return out
 
 
+def service_problems(service):
+    if not _only(service, ['steps', 'participation', 'completion']) or service.get('participation') not in ('watch', 'follow') or service.get('completion') not in ('timer', 'confirm'):
+        return ['Choose service participation and completion rules']
+    steps = service.get('steps')
+    if not isinstance(steps, list) or not 1 <= len(steps) <= 12:
+        return ['A service needs one to twelve steps']
+    total = 0
+    for step in steps:
+        if not _only(step, ['seconds', 'line', 'clip', 'point']) or not _int(step.get('seconds'), 1, 180) or not _int(step.get('point', 0), 0, 32) or not _plain(step.get('line', ''), 300) or not re.fullmatch(r'[a-zA-Z0-9 _-]{0,60}', str(step.get('clip', ''))):
+            return ['Invalid service step, waypoint, line, animation or duration']
+        total += step['seconds']
+    return [] if total <= 600 else ['Services can run for up to ten minutes']
+
+
 def item_problems(it, cats):
     n = (it.get('id') if isinstance(it, dict) else 'item') + ': '
-    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound']
+    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound', 'service']
     if not _only(it, keys):
         return [n + 'unknown fields']
     out = []
+    if it.get('kind') == 'service':
+        out.extend(service_problems(it.get('service')))
+    elif it.get('service') is not None:
+        out.append(n + 'only a service item can run a routine')
+
     for key, pattern in [('image', r'assets/[a-zA-Z0-9_/-]+\.(png|jpg|jpeg|webp)'), ('purchaseSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('useSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)')]:
         if it.get(key) and (not isinstance(it[key], str) or not re.fullmatch(pattern, it[key])):
             out.append(n + 'choose a game asset for ' + key)
@@ -248,15 +267,19 @@ def problems(c):
     known = {v['entity']: v for v in SPEC['vendorRegistry']}
     vids, ents = set(), []
     for v in c['vendors']:
-        if not _only(v, ['id', 'name', 'kind', 'location', 'entity', 'entries', 'rules']):
+        if not _only(v, ['id', 'name', 'kind', 'location', 'entity', 'entries', 'rules', 'enabled']):
             out.append('A vendor has unknown fields.')
             continue
         n = str(v.get('id')) + ': '
         if not isinstance(v.get('id'), str) or not ID.match(v['id']) or v['id'] in vids:
             out.append(n + 'bad or repeated vendor id')
+        if 'enabled' in v and type(v['enabled']) is not bool:
+            out.append(n + 'enabled must be true or false')
         out.extend(seller_rules(v.get('rules')))
         vids.add(v.get('id'))
         reg = known.get(v.get('entity'))
+        if not reg and v.get('kind') == 'npc' and isinstance(v.get('entity'), str) and re.fullmatch(r'npc-[a-z][a-z0-9-]{0,35}', v['entity']):
+            reg = {'kind': 'npc'}
         if not reg:
             out.append(n + 'not a seller the game has')
         elif reg['kind'] != v.get('kind'):
@@ -270,6 +293,8 @@ def problems(c):
             seen = set()
             for i, en in enumerate(v['entries']):
                 out += entry_problems(en, n + 'entry %d' % (i + 1), ids)
+                if isinstance(en, dict) and v.get('kind') != 'npc' and any(it.get('id') == en.get('item') and it.get('kind') == 'service' for it in c['items'] if isinstance(it, dict)):
+                    out.append(n + 'services require an NPC vendor')
                 if isinstance(en, dict):
                     if en.get('item') in seen:
                         out.append(n + 'sells an item twice')
@@ -469,7 +494,7 @@ def vendor_listing(db, key, now=None, uid=None):
     now = now or time.time()
     cat = live(db)['content']
     v = find_vendor(cat, key)
-    if not v:
+    if not v or not v.get('enabled', True):
         raise DraftError('There is no such seller.', 404)
     save = ((db.collection('vr_players').document(_tag(uid)).get().to_dict() or {}).get('save') or {}) if uid else {}
     items = {i['id']: i for i in cat['items']}
@@ -480,7 +505,7 @@ def vendor_listing(db, key, now=None, uid=None):
             continue
         r = restocked(e, _stock_ref(db, v['id'], e['item']).get().to_dict(), now)
         out.append({'item': it['id'], 'name': it['name'], 'description': it['description'], 'icon': it.get('icon'), 'image': it.get('image'), 'purchaseSound': it.get('purchaseSound'), 'category': it['category'], 'rarity': it['rarity'],
-                    'price': e['price'], 'stock': r['remaining'], 'maxStock': e['maxStock'], 'stack': it['stack'], 'definition': use_definition(cat, it['id']), 'condition': sale_condition(v.get('rules'), save) or sale_condition(e.get('rules'), save)})
+                    'price': e['price'], 'stock': r['remaining'], 'maxStock': e['maxStock'], 'stack': it['stack'], 'definition': use_definition(cat, it['id']), 'service': it.get('service'), 'condition': sale_condition(v.get('rules'), save) or sale_condition(e.get('rules'), save)})
     return {'vendor': {**{k: v[k] for k in ['id', 'name', 'kind', 'location', 'entity']}, 'rules': v.get('rules', {})}, 'entries': out, 'version': live(db)['version']}
 
 
@@ -491,7 +516,7 @@ def _player_ref(db, uid):
 def _clean_player(rec):
     rec = rec or {}
     owned = {k: v for k, v in (rec.get('owned') or {}).items() if isinstance(k, str) and type(v) is int and v > 0}
-    return {'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {})}
+    return {'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
 
 
 def _span(defn):
@@ -533,7 +558,7 @@ def player_state(db, uid, now=None):
     p = _clean_player(_player_ref(db, uid).get().to_dict())
     active = _active_view(p, content, now)
     items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
-    return {'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
+    return {'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
 
 
 def _nonce(payload):
@@ -557,7 +582,7 @@ def purchase(db, uid, payload, now=None):
     v = find_vendor(cat, payload.get('vendor')) if isinstance(payload.get('vendor'), str) else None
     entry = next((e for e in (v or {}).get('entries', []) if e['item'] == payload.get('item')), None)
     item = next((i for i in cat['items'] if i['id'] == payload.get('item')), None)
-    if not v or not entry or not item or not entry['available'] or item['status'] != 'published':
+    if not v or not v.get('enabled', True) or not entry or not item or not entry['available'] or item['status'] != 'published':
         raise DraftError('That is not for sale here.', 404)
     cost = entry['price'] * qty
     if credits < cost:
@@ -579,7 +604,7 @@ def purchase(db, uid, payload, now=None):
             if receipt and (receipt.get('vendor'), receipt.get('item'), receipt.get('qty')) != (v['id'], item['id'], qty):
                 raise DraftError('That purchase reference belongs to a different order.', 409)
             return {'duplicate': True, 'cost': 0, 'owned': p['owned'].get(item['id'], 0), 'stock': None,
-                    'credits': balance, 'revision': campaign.get('revision', 0)}
+                    'credits': balance, 'revision': campaign.get('revision', 0), 'service': (receipt or {}).get('service')}
         if ((_state_ref(db).get(transaction=tx).to_dict() or {}).get('live', 0)) != published['version']:
             raise DraftError('The catalog changed. Refresh before buying.', 409)
         condition = sale_condition(v.get('rules'), save) or sale_condition(entry.get('rules'), save)
@@ -595,21 +620,61 @@ def purchase(db, uid, payload, now=None):
             raise DraftError('Not enough saved credits.', 402, {'code': 'credits', 'cost': cost})
         if credits != balance or ('revision' in payload and payload['revision'] != campaign.get('revision', 0)):
             raise DraftError('Your saved balance changed. Refresh the shop before buying.', 409, {'code': 'save-conflict'})
+        service = None
+        if item['kind'] == 'service':
+            if v['kind'] != 'npc' or qty != 1:
+                raise DraftError('Choose one service from the NPC providing it.', 409)
+            lease_ref = db.collection('vr_items_service_leases').document(_tag(v['entity']))
+            lease = lease_ref.get(transaction=tx).to_dict() or {}
+            if lease.get('expires', 0) > now or (p.get('service') or {}).get('expires', 0) > now:
+                raise DraftError('A service is already in progress.', 409)
+            definition = item['service']
+            end = now + sum(s['seconds'] for s in definition['steps'])
+            service = {'id': nonce, 'npc': v['entity'].removeprefix('npc-'), 'entity': v['entity'], 'name': item['name'], 'started': now,
+                       'end': end, 'expires': end + (90 if definition['completion'] == 'confirm' else 0), 'definition': definition}
+            p['service'] = service
+            tx.set(lease_ref, {'expires': service['expires'], 'id': nonce, 'owner': _tag(uid)})
         balance -= cost
         campaign['save'] = dict(save, credits=balance)
         campaign['revision'] = campaign.get('revision', 0) + 1
         campaign['savedAt'] = int(now)
         tx.set(campaign_ref, campaign)
-        tx.create(receipt_ref, {'vendor': v['id'], 'item': item['id'], 'qty': qty, 'cost': cost, 'at': int(now)})
+        tx.create(receipt_ref, {'vendor': v['id'], 'item': item['id'], 'qty': qty, 'cost': cost, 'at': int(now), 'service': service})
         r['remaining'] -= qty
-        p['owned'][item['id']] = have + qty
+        if not service:
+            p['owned'][item['id']] = have + qty
         p['nonces'] = (p['nonces'] + [nonce])[-30:]
         tx.set(sref, r)
         tx.set(pref, p)
-        return {'duplicate': False, 'cost': cost, 'owned': have + qty, 'stock': r['remaining'], 'credits': balance, 'revision': campaign['revision']}
+        return {'duplicate': False, 'cost': cost, 'owned': 0 if service else have + qty, 'service': service, 'stock': r['remaining'], 'credits': balance, 'revision': campaign['revision']}
     result = commit(db.transaction())
     result.update(item=item['id'], name=item['name'], registryId=item.get('registryId'))
     return result
+
+
+def finish_service(db, uid, payload, now=None):
+    from firebase_admin import firestore
+    now = now or time.time()
+    if not _only(payload, ['nonce']):
+        raise DraftError('A service receipt is required.')
+    nonce = _nonce(payload)
+    pref = _player_ref(db, uid)
+    @firestore.transactional
+    def commit(tx):
+        player = _clean_player(pref.get(transaction=tx).to_dict())
+        service = player.get('service')
+        if not service or service['id'] != nonce:
+            return {'finished': True}
+        if now < service['end']:
+            raise DraftError('The service is still in progress.', 409)
+        lease_ref = db.collection('vr_items_service_leases').document(_tag(service['entity']))
+        lease = lease_ref.get(transaction=tx).to_dict() or {}
+        if lease.get('id') == nonce and lease.get('owner') == _tag(uid):
+            tx.set(lease_ref, {'expires': now})
+        player['service'] = None
+        tx.set(pref, player)
+        return {'finished': True}
+    return commit(db.transaction())
 
 
 def use_item(db, uid, payload, now=None):
