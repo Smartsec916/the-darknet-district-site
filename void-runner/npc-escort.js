@@ -352,11 +352,11 @@
  const usable=(l,id)=>Object.entries(l.ends).every(([a,e])=>mayEnter(id,a,e.wait).ok&&mayEnter(id,a,e.ahead).ok);
  /* The cheapest chain of links from `from` ({area, x, z}) to `to` ({area, x, z}) for this person: [{link, a (area she leaves), b (area she enters)}], [] when already
     there, null when there is no way. Cost: metres walked (straight) plus a few per crossing. */
- function areaRoute(id,from,to){if(!from||!to||!from.area||!to.area)return null;if(from.area===to.area)return [];const L=links().filter(l=>usable(l,id));
+ function areaRoute(id,from,to,allowLink=null){if(!from||!to||!from.area||!to.area)return null;if(from.area===to.area)return [];const L=links().filter(l=>usable(l,id));
   const best=new Map(),q=[{cost:0,area:from.area,at:{x:num(from.x)?from.x:0,z:num(from.z)?from.z:0},path:[]}];let win=null;
   while(q.length){q.sort((u,v)=>u.cost-v.cost);const s=q.shift();if(s.area===to.area){const c=s.cost+(num(to.x)&&num(to.z)?dist(s.at,to):0);if(!win||c<win.cost)win={cost:c,path:s.path};continue;}
    if(win&&s.cost>=win.cost)continue;
-   for(const l of L){const e=l.ends[s.area];if(!e)continue;for(const [b,f] of Object.entries(l.ends)){if(b===s.area||s.path.some(p=>p.a===b))continue;const cost=s.cost+dist(s.at,e.wait)+ACROSS.cross,k=l.id+'>'+b;if(best.has(k)&&best.get(k)<=cost)continue;best.set(k,cost);q.push({cost,area:b,at:{x:f.ahead.x,z:f.ahead.z},path:[...s.path,{link:l,a:s.area,b}]});}}}
+   for(const l of L){const e=l.ends[s.area];if(!e)continue;for(const [b,f] of Object.entries(l.ends)){if(b===s.area||s.path.some(p=>p.a===b)||(allowLink&&!allowLink(l,s.area,b)))continue;const cost=s.cost+dist(s.at,e.wait)+ACROSS.cross,k=l.id+'>'+b;if(best.has(k)&&best.get(k)<=cost)continue;best.set(k,cost);q.push({cost,area:b,at:{x:f.ahead.x,z:f.ahead.z},path:[...s.path,{link:l,a:s.area,b}]});}}}
   return win?win.path:null;}
  /* The areas this person can walk to from `area` (through the links she may use), `area` included. */
  function reach(id,area){const out=new Set([area]),L=links().filter(l=>usable(l,id)),q=[area];while(q.length){const a=q.shift();for(const l of L){if(!l.ends[a])continue;for(const b of Object.keys(l.ends))if(!out.has(b)){out.add(b);q.push(b);}}}return out;}
@@ -399,6 +399,40 @@
   if(job.phase==='waiting'&&me&&job.cab&&dist(me,job.cab)<=ACROSS.rideNear&&d<=Math.max(S.lost,LIMIT.cabNear)){const doors=job.doors||[],door=doors.slice(0,2).sort((a,b)=>dist(a,st)-dist(b,st))[0];if(!door)return {busy:false,ev};
    if(st.ride!=='to-cab'){st.ride='to-cab';ev='to-cab';}st.clip='walk';st.speed=SPEED.walk*1.5;if(stepTo(st,door,SPEED.walk*1.5,dt)){st.ride='in-cab';st.rideArrived=false;st.clip='sit';ev='in-cab';}return {busy:true,ev};}
   if(st.ride==='to-cab')st.ride=null;return {busy:false,ev};}
- const api={ACROSS,links,linkById,mayEnter,areaRoute,reach,reachWhy,legOf,linkBetween,across,arrival,rideAlong,areaOfQuarter,ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
+ 
+ /* Checked social gate planning (foundation only). Do not enable an escort from this helper alone.
+    An adapter must supply the published opt-in, actual actor/scene state, and current gate authorization.
+    Only registered foot gates are supported; stairs, doors, taxis and guessed arrival points are not. */
+ const socialPoint=(p,a)=>!!(p&&num(p.x)&&num(p.z)&&AR()?.areaOf(p,a)===a);
+ function socialEligible(id,policy){const M=movable(id);return !!(M&&!M.cat&&policy?.enabled===true&&(policy.tier===2||policy.tier===3)&&typeof policy.allowGate==='function');}
+ function socialGateAllowed(id,l,a,b,policy){try{
+  const A=AR(),u=l?.ends?.[a],v=l?.ends?.[b];
+  return !!(l?.kind==='gate'&&a!==b&&A?.get(a)?.scene==='street'&&A?.get(b)?.scene==='street'&&
+   socialPoint(u?.wait,a)&&socialPoint(v?.ahead,b)&&mayEnter(id,a,u.wait).ok&&mayEnter(id,b,v.ahead).ok&&
+   policy.allowGate(id,l.id,a,b)===true);
+ }catch{return false;}}
+ function socialGateLeg(id,from,dest,policy){
+  if(!socialEligible(id,policy)||!from?.area||!dest?.area||from.area===dest.area||
+   !socialPoint(from,from.area)||!socialPoint(dest,dest.area)||!mayEnter(id,from.area,from).ok||!mayEnter(id,dest.area,dest).ok||
+   typeof policy.session!=='string'||!policy.session.startsWith('social:'+id+':')||policy.session.length<('social:'+id+':').length+1)return null;
+  const r=areaRoute(id,from,dest,(l,a,b)=>socialGateAllowed(id,l,a,b,policy));
+  if(!r?.length)return null;const {link,a,b}=r[0],w=link.ends[a].wait;
+  return {npc:id,session:policy.session,key:policy.session+':'+a+':'+link.id,area:a,next:b,via:link.id,to:{x:w.x,z:w.z},final:false};
+ }
+ /* The next leg can be committed only for this live generation and actual walking transition.
+    The canonical arrival is checked again, never reconstructed from the player's spawn. */
+ function socialGateCross(plan,actor,transition,policy){
+  const id=plan?.npc;
+  if(!socialEligible(id,policy)||!plan||!actor||!transition||plan.session!==policy.session||
+   plan.key!==plan.session+':'+plan.area+':'+plan.via||actor.key!==plan.key||actor.area!==plan.area||
+   transition.from!==plan.area||transition.to!==plan.next||transition.via!==plan.via||transition.onFoot!==true||transition.riding!==false||
+   !socialPoint(actor,plan.area)||!socialPoint(transition.player,plan.area))return null;
+  const l=linkById(plan.via);
+  if(!socialGateAllowed(id,l,plan.area,plan.next,policy))return null;
+  const w=l.ends[plan.area].wait,at=l.ends[plan.next].ahead;
+  if(!socialPoint(plan.to,plan.area)||dist(plan.to,w)>.01||dist(actor,w)>2.5||dist(transition.player,w)>6)return null;
+  return {key:plan.key,session:plan.session,area:plan.next,x:at.x,z:at.z,yaw:num(at.yaw)?at.yaw:0,via:l.id,ride:null};
+ }
+ const api={socialGateLeg,socialGateCross,ACROSS,links,linkById,mayEnter,areaRoute,reach,reachWhy,legOf,linkBetween,across,arrival,rideAlong,areaOfQuarter,ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
  if(node)module.exports=api;else root.VoidNPCEscort=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
