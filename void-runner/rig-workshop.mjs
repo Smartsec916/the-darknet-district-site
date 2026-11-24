@@ -73,7 +73,7 @@ export function panel(host,{get,set,preview}){
  let backup=null,overrides={},selected=null,last=null,busy=false;
  function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=async()=>{if(busy)return;busy=true;try{await fn();}catch(e){status.textContent=e.message;}finally{busy=false;}};box.append(b);}
  async function display(){
-  const file=get();if(!file){status.textContent='Choose a character model.';return;}if(last!==file){overrides={};last=file;}
+  const file=get();if(!file){status.textContent='Choose a character model.';return;}if(last!==file){overrides={};backup=null;last=file;}
   const r=await check(file,overrides);if(get()!==file)return;
   controls.replaceChildren();status.textContent=[r.rig.state+' · '+r.rig.joints.length+' joints · '+(file.size/1048576).toFixed(2)+' MiB',...r.rig.issues].join(' · ');
   for(const role of required()){const line=document.createElement('p'),ok=r.clips.includes(role);line.textContent=(ok?'Passed':r.rig.ready?'Repairable':'Requires bone mapping')+' · '+role;line.style.color=ok?'#81d49e':r.rig.ready?'#eac36f':'#ff9292';if(!ok&&r.rig.ready){const fix=document.createElement('button');fix.type='button';fix.textContent='Repair '+role;fix.onclick=async()=>{if(busy)return;busy=true;try{await apply(false,[role]);}catch(e){status.textContent=e.message;}finally{busy=false;}};line.append(fix);}controls.append(line);}

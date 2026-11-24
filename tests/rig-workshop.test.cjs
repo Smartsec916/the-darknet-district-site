@@ -16,6 +16,12 @@ test('retarget missing mandatory tracks and preserve bound geometry across real 
   assert.deepEqual(again.doc.json.skins,doc.json.skins);assert.deepEqual(again.doc.json.meshes,doc.json.meshes);
   assert.deepEqual(again.doc.binary.subarray(0,doc.binary.length),doc.binary);
   assert.equal(original,JSON.stringify(again.doc.json.animations.slice(0,doc.json.animations.length)));
+  const studio=require('../void-runner/vr-companion-studio.js');
+  const meta={name:'Test',personality:{initiative:.4},dialogue:{greet:['Hello']}},
+   voice=new Blob(['sample recording bytes']),pack=studio.packTransfer(meta,[{meta:{kind:'model'},blob:fixed.blob},{meta:{kind:'voice'},blob:voice}]),
+   unpacked=await studio.unpackTransfer(pack);
+  assert.deepEqual(unpacked.meta,meta);assert.deepEqual(new Uint8Array(await unpacked.parts[1].blob.arrayBuffer()),new Uint8Array(await voice.arrayBuffer()));
+  assert.deepEqual((await w.check(unpacked.parts[0].blob)).missing,[]);
   assert.equal((await w.repair(fixed.blob)).blob,fixed.blob,'idempotent');
   const staticDoc=structuredClone(doc.json);delete staticDoc.skins;for(const n of staticDoc.nodes)delete n.skin;
   assert.equal(m.inspect({json:staticDoc,binary:doc.binary}).state,'unrigged');

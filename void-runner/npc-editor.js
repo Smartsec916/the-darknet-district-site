@@ -825,7 +825,7 @@
     let companionExport=null;
     if(rec.transferBlob){
      const importer=await ensureCompanionImporter();
-     companionExport=await importer.repack(rec.transferBlob,{...rec.companion,name:rec.name});
+     companionExport=await importer.repack(rec.transferBlob,{...rec.companion,name:rec.name},rec.blob);
     }
     download(rec.fileName,rec.blob);
     if(companionExport)download(rec.sourceFileName,companionExport);

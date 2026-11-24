@@ -11,13 +11,7 @@ const inv=([x,y,z,w])=>[-x,-y,-z,w];
 function mul([x,y,z,w],[a,b,c,d]){return [w*a+x*d+y*c-z*b,w*b-x*c+y*d+z*a,w*c+x*b-y*a+z*d,w*d-x*a-y*b-z*c];}
 const rotate=(q,v)=>mul(mul(q,[...v,0]),inv(q)).slice(0,3);
 function reader(doc,index){
- const {json:j,binary}=doc,a=j.accessors[index],v=j.bufferViews[a?.bufferView];
- const dims={SCALAR:1,VEC3:3,VEC4:4,MAT4:16}[a?.type],spec={5121:[1,'getUint8',255],5123:[2,'getUint16',65535],5126:[4,'getFloat32',1]}[a?.componentType];
- if(!v||!dims||!spec||a.sparse||v.extensions?.EXT_meshopt_compression)throw Error('Unsupported compressed or sparse rig accessor');
- const stride=v.byteStride||dims*spec[0],offset=a.byteOffset||0;
- if(a.count<1||offset+(a.count-1)*stride+dims*spec[0]>v.byteLength)throw Error('Truncated rig accessor');
- const data=new DataView(binary.buffer,binary.byteOffset+(v.byteOffset||0),v.byteLength);
- return {count:a.count,get:i=>Array.from({length:dims},(_,k)=>data[spec[1]](offset+i*stride+k*spec[0],true)/(a.normalized?spec[2]:1))};
+ const stream=Rig.accessor(doc.json,doc.binary,index);return {count:stream.count,get:stream.row};
 }
 function hierarchy(j){
  const parent=[];for(const [i,n] of j.nodes.entries())for(const child of n.children||[])parent[child]=i;
@@ -69,11 +63,7 @@ export function inspect(doc,overrides={}){
  try{
   const skin=j.skins[rig.skin],rest=hierarchy(j).world();
   for(const i of skin.joints)rest(i);
-  if(skin.inverseBindMatrices!=null){const a=reader(doc,skin.inverseBindMatrices);if(a.count!==skin.joints.length)throw Error('Inverse bind matrix count differs from joint count');for(let i=0;i<a.count;i++){const m=a.get(i);if(m.length!==16||!m.every(Number.isFinite)||Math.abs(m[15]-1)>.001||Math.abs(m[0]*(m[5]*m[10]-m[6]*m[9])-m[4]*(m[1]*m[10]-m[2]*m[9])+m[8]*(m[1]*m[6]-m[2]*m[5]))<1e-12)throw Error('Invalid inverse bind for joint '+i);}}
-  for(const n of j.nodes.filter(n=>n.skin===rig.skin))for(const p of j.meshes[n.mesh].primitives){
-   const sets=Object.keys(p.attributes).filter(k=>/^WEIGHTS_\d+$/.test(k)).map(k=>[reader(doc,p.attributes[k]),reader(doc,p.attributes[k.replace('WEIGHTS','JOINTS')])]);
-   for(let i=0;i<sets[0][0].count;i++){let sum=0;for(const [weights,joints] of sets){const w=weights.get(i),b=joints.get(i);for(let k=0;k<w.length;k++){if(!Number.isFinite(w[k])||w[k]<0||b[k]>=skin.joints.length)throw Error('Invalid skin influence at vertex '+i);sum+=w[k];}}if(Math.abs(sum-1)>.025)throw Error('Weights do not sum to one at vertex '+i);}
-  }
+  if(rig.ready){const skinCheck=Rig.validateSkin(j,doc.binary,rig);if(!skinCheck.ok)throw Error(skinCheck.issues.join(' · '));}
  }catch(e){rig.issues.push(e.message);rig.ready=false;}
  return rig;
 }
