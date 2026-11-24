@@ -1,6 +1,6 @@
 /* Consumables Studio: the one schema the browser and the server (void_runner_items.py parses this file) both read. Edit numbers HERE and nowhere else.
    Item definitions, effect definitions, gameplay modifiers and vendor entries are validated against it. `supported:false` modifiers are listed so the editor can say why
-   they are off: the game has no such mechanic yet (no stamina, melee or night-vision system), and this feature does not invent one. */
+   they are off: the game has no such mechanic yet (for example melee and night vision), and this feature does not invent one. */
 globalThis.VoidConsumableSpec = {
  "format": "vr-items",
  "version": 1,
@@ -115,14 +115,17 @@ globalThis.VoidConsumableSpec = {
    "style": {"label": "Style", "min": 0, "max": 2, "def": 0, "step": 1, "help": "0 rain, 1 wind, 2 night insects."},
    "level": {"label": "Level", "min": 0, "max": 1, "def": 0.3, "step": 0.01, "help": "How loud."}}}
  },
+ "repeatPolicies": ["none","refresh","extend","intensify","independent","replace"],
  "modifiers": {
+  "healthRecovery": {"label":"Health recovery per second","min":0,"max":0.1,"supported":true,"help":"Restore this fraction of maximum on-foot health each second."},
+  "perception": {"label":"Interaction awareness","min":-0.4,"max":0.5,"supported":true,"help":"Adjusts the distance at which visible interaction prompts appear."},
   "walkSpeed": {"label": "Walking speed", "min": -0.5, "max": 0.5, "supported": true, "help": "Changes walking speed. 0.2 is 20 percent faster."},
   "runSpeed": {"label": "Running speed", "min": -0.5, "max": 0.5, "supported": true, "help": "Changes sprinting speed."},
   "movementControl": {"label": "Movement control", "min": -0.6, "max": 0.4, "supported": true, "help": "How quickly you start and stop. Negative feels slippery."},
-  "staminaRegen": {"label": "Stamina regeneration", "min": -0.5, "max": 0.5, "supported": false, "help": "The game has no stamina yet."},
-  "staminaDrain": {"label": "Stamina drain", "min": -0.5, "max": 0.5, "supported": false, "help": "The game has no stamina yet."},
+  "staminaRegen": {"label": "Stamina regeneration", "min": -0.5, "max": 0.5, "supported": true, "help": "Temporary sprint reserve recovery; positive values restore reserve faster while walking."},
+  "staminaDrain": {"label": "Stamina drain", "min": -0.5, "max": 0.5, "supported": true, "help": "Temporary sprint reserve drain; positive values drain the reserve faster."},
   "damageDealt": {"label": "Damage dealt", "min": -0.5, "max": 0.5, "supported": false, "help": "Not available on foot yet."},
-  "damageResist": {"label": "Damage resistance", "min": -0.5, "max": 0.5, "supported": false, "help": "Not available on foot yet."},
+  "damageResist": {"label": "Damage resistance", "min": -0.5, "max": 0.5, "supported": true, "help": "Reduces or increases incoming on-foot damage."},
   "meleeEffectiveness": {"label": "Melee effectiveness", "min": -0.5, "max": 0.5, "supported": false, "help": "The game has no melee yet."},
   "accuracy": {"label": "Accuracy", "min": -0.5, "max": 0.5, "supported": false, "help": "Not available on foot yet."},
   "interactionSpeed": {"label": "Interaction speed", "min": -0.5, "max": 0.5, "supported": false, "help": "Interactions are instant today."}

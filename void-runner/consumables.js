@@ -8,7 +8,7 @@
  const L=S.limits,ID=/^[a-z][a-z0-9-]{0,39}$/,num=(v,lo,hi)=>typeof v==='number'&&Number.isFinite(v)&&v>=lo&&v<=hi,int=(v,lo,hi)=>Number.isInteger(v)&&v>=lo&&v<=hi;
  const plain=(v,n)=>typeof v==='string'&&v.length<=n&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v);
  const hasOnly=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
- const EFFECT_KEYS=['id','type','intensity','delay','duration','fadeIn','fadeOut','speed','stacking','params'],MOD_KEYS=['stat','amount','delay','duration'];
+ const EFFECT_KEYS=['id','type','intensity','delay','duration','fadeIn','fadeOut','speed','stacking','params'],MOD_KEYS=['stat','amount','delay','duration','fadeIn','fadeOut'];
  function effectProblems(e,at){const out=[],n=at+': ';
   if(!hasOnly(e,EFFECT_KEYS))return [n+'an effect has unknown fields'];
   const def=S.effects[e.type];if(!def)return [n+'unknown effect "'+e.type+'"'];
@@ -23,6 +23,7 @@
  function modifierProblems(m,at){const n=at+': ';if(!hasOnly(m,MOD_KEYS))return [n+'a modifier has unknown fields'];const d=S.modifiers[m.stat];
   if(!d)return [n+'unknown gameplay modifier "'+m.stat+'"'];if(!d.supported)return [n+d.label+' is not available: '+d.help];
   const out=[];if(!num(m.amount,d.min,d.max))out.push(n+d.label+' is from '+d.min+' to '+d.max);
+  if(!num(m.fadeIn??0,0,60)||!num(m.fadeOut??0,0,120)||(m.fadeIn||0)+(m.fadeOut||0)>m.duration)out.push(n+'modifier fades must fit within the duration');
   if(!num(m.delay,0,L.delay))out.push(n+'delay is 0 to '+L.delay);if(!num(m.duration,1,L.duration))out.push(n+'duration is 1 to '+L.duration);return out;}
  const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound','service'];
  function itemProblems(it,cats){const out=[],n=(it&&it.id||'item')+': ';
@@ -50,8 +51,9 @@
   if(!S.statuses.includes(it.status))out.push(n+'status is '+S.statuses.join(', '));
   if(!int(it.cooldown||0,0,L.cooldown))out.push(n+'cooldown is 0 to '+L.cooldown+' seconds');
   if(it.registryId!=null&&!S.registryItems[it.registryId])out.push(n+'registryId is not an item the game already has');
-  if(it.consumable!=null){const c=it.consumable;if(!hasOnly(c,['effects','modifiers']))out.push(n+'consumable has unknown fields');
-   else{const ef=c.effects||[],mo=c.modifiers||[];if(!Array.isArray(ef)||ef.length>L.effects)out.push(n+'at most '+L.effects+' effects');
+  if(it.consumable!=null){const c=it.consumable;if(!hasOnly(c,['effects','modifiers','repeat','group','maxStacks','maxSeconds']))out.push(n+'consumable has unknown fields');
+   else{if(!S.repeatPolicies.includes(c.repeat??'refresh')||c.group&&!ID.test(c.group)||!int(c.maxStacks??3,1,8)||!int(c.maxSeconds??1800,1,3600))out.push(n+'invalid repeat-use settings');
+    const ef=c.effects||[],mo=c.modifiers||[];if(!Array.isArray(ef)||ef.length>L.effects)out.push(n+'at most '+L.effects+' effects');
     else{const ids=new Set();ef.forEach((e,i)=>{out.push(...effectProblems(e,n+'effect '+(i+1)));if(e&&ids.has(e.id))out.push(n+'two effects share the id "'+e.id+'"');ids.add(e&&e.id);});}
     if(!Array.isArray(mo)||mo.length>L.modifiers)out.push(n+'at most '+L.modifiers+' gameplay modifiers');else mo.forEach((m,i)=>out.push(...modifierProblems(m,n+'modifier '+(i+1))));}}
   return out;}

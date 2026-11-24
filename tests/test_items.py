@@ -98,7 +98,7 @@ class ItemTests(unittest.TestCase):
         r = self.publish(bad)
         self.assertEqual(r.status_code, 422)
         self.assertEqual(self.client.get(U + 'items/catalog').json['version'], 0)
-        for mutate in [lambda c: c['items'][-1]['consumable']['modifiers'].append({'stat': 'staminaRegen', 'amount': .1, 'delay': 0, 'duration': 5}),
+        for mutate in [lambda c: c['items'][-1]['consumable']['modifiers'].append({'stat': 'meleeEffectiveness', 'amount': .1, 'delay': 0, 'duration': 5}),
                        lambda c: c['items'][-1].update(name='<script>'), lambda c: c['vendors'][-1].update(entity='nowhere'),
                        lambda c: c['vendors'][-1]['entries'][0].update(stock=99), lambda c: c['items'][-1]['consumable']['effects'][0].update(fadeIn=40, fadeOut=40)]:
             c = catalog(); mutate(c)
@@ -255,6 +255,42 @@ class ItemTests(unittest.TestCase):
         self.assertEqual(st['modifiers'], {'walkSpeed': .2})
         self.assertEqual(self.post('shop/use', {'item': 'sprint-tonic', 'nonce': self.nonce()}).status_code, 409, 'none owned')
         self.assertEqual(self.post('shop/use', {'item': 'nothing', 'nonce': self.nonce()}).status_code, 404)
+
+    def test_repeat_policies_caps_idempotency_and_old_active_data(self):
+        for mode in ['none','refresh','extend','intensify','independent','replace']:
+            with self.subTest(mode=mode):
+                cat=catalog()
+                item=cat['items'][-1]
+                item['cooldown']=0
+                spec=item['consumable']
+                spec.update(repeat=mode,maxStacks=2,maxSeconds=140,group='tonic')
+                spec['modifiers']=[dict(stat='healthRecovery',amount=.05,delay=0,duration=60,fadeIn=10,fadeOut=5)]
+                spec['effects']=[]
+                ref=items._player_ref(self.db, 'owner')
+                self.db.data[ref.key]={'owned':{item['id']:5}, 'active':[]}
+                if mode=='replace':
+                    self.db.data[ref.key]['active']=[{'item':'sprint-tonic','group':'tonic','at':999}]
+                def use(n,t):
+                    return items.use_item(self.db,'owner',{'item':item['id'],'nonce':mode+'-ticket-'+str(n)},now=t)
+                with patch.object(items,'live',return_value={'version':1,'content':cat}):
+                    use(1,1000)
+                    if mode=='none':
+                        with self.assertRaises(items.DraftError):use(2,1010)
+                        self.assertEqual(self.db.data[ref.key]['owned'][item['id']],4)
+                        continue
+                    use(2,1010)
+                    self.assertTrue(use(2,1012)['duplicate'])
+                    view=items.player_state(self.db,'owner',now=1015)
+                    self.assertEqual(view['owned'][item['id']],3)
+                    self.assertEqual(len(view['active']),2 if mode=='independent' else 1)
+                    if mode=='extend':self.assertEqual(view['active'][0]['until'],1120)
+                    if mode=='intensify':
+                        self.assertEqual(view['active'][0]['gain'],2)
+                        with self.assertRaises(items.DraftError):use(3,1016)
+                    if mode=='independent':
+                        with self.assertRaises(items.DraftError):use(3,1016)
+                    self.assertGreater(view['modifiers']['healthRecovery'],0)
+                    self.assertEqual(items.player_state(self.db,'owner',now=1300)['active'],[])
 
     def test_modifiers_follow_delays_and_expire(self):
         a = [{'item': 'x', 'startedAt': 1000, 'definition': catalog()['items'][-1]['consumable'] and {'modifiers': catalog()['items'][-1]['consumable']['modifiers'], 'effects': []}}]

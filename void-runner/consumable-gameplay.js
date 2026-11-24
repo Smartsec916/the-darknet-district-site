@@ -22,7 +22,12 @@
   const work=request('shop/state').then(d=>{if(who===root.VoidAccount?.user?.uid&&v===revision){uid=who;active=d.active||[];data=d;offset=d.now-Date.now()/1000;lastPoll=Date.now();}return d;}).finally(()=>{if(pending?.work===work)pending=null;});
   pending={work,uid:who};return work;
  }
- function currentFrame(){return root.VoidConsumableRenderer.sample(active,now());}
+ let sampledRows,sampledTick,sampledFrame;
+ function currentFrame(){
+  const t=now(),tick=Math.floor(t*60);
+  if(sampledRows!==active||sampledTick!==tick){sampledRows=active;sampledTick=tick;sampledFrame=root.VoidConsumableRenderer.sample(active,t);}
+  return sampledFrame;
+ }
  function loop(){
   const who=root.VoidAccount?.user?.uid;
   if(who!==uid){uid=who;active=[];data=null;lastPoll=0;retryAt=0;revision++;pending=null;}
@@ -40,7 +45,7 @@
   }else if(audio){audio.dispose();audio=null;}
  }
  const api={request,refresh,now,get data(){return uid===root.VoidAccount?.user?.uid?data:null;},get preferences(){return {...prefs};},setPreference,
-  modifier(stat){if(!active.length||uid!==root.VoidAccount?.user?.uid)return 0;return Math.max(-.6,Math.min(.5,currentFrame().modifiers[stat]||0));}};
+  modifier(stat){if(!active.length||uid!==root.VoidAccount?.user?.uid)return 0;const rule=root.VoidConsumableSpec.modifiers[stat];return rule?Math.max(rule.min,Math.min(rule.max,currentFrame().modifiers[stat]||0)):0;}};
  root.VoidConsumableGame=api;
  if(root.document){setInterval(loop,350);root.addEventListener('focus',()=>{lastPoll=0;});}
 })(globalThis);
