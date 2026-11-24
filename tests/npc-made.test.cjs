@@ -60,7 +60,7 @@ test('adult (18+): only then the adult venues; never on Reverie’s or Lace’s 
  for(const n of ['the bar','the VR play area','the arcade room']){const w=A.get('district').walk.find(v=>v.adult&&v.name===n);const p={x:(w.x0+w.x1)/2,z:(w.z0+w.z1)/2};assert.equal(A.check(p,null,undefined,ad).ok,true,n);assert.equal(A.check(p).ok,false,n);}
  assert.equal(A.check({x:81.75,z:-173}).ok,false);assert.equal(A.check({x:81.75,z:-173},null,undefined,ad).ok,true,'Milked’s front doorway');
  const X=x.X;X.setMade({rev:{name:'R',model:'npc-ethereal-lace',adult:true}});assert.equal(X.MOVABLE.rev.adult,false);assert.equal(X.planProblems('rev',NULLFLOOR).length>0,true);X.setMade({});
- assert.equal(A.here('milked').join(),'milked');assert.deepEqual(A.enter('milked'),{walk:'sacramento',quarter:'far-south'});});
+ assert.equal(A.here('milked').join(),'milked');assert.deepEqual(A.enter('milked'),{walk:'milked'});});
 
 test('drafts: only finished characters are sent (with their placement); an unfinished one is said in plain words; the id comes from the name',()=>{
  const x=env(),local={trees:tree('kara-voss'),characters:{'kara-voss':KARA,'half-done':{name:'Half',model:'npc-courier'}},npcs:{'kara-voss':OLDTOWN}};x.X.setMade(local.characters);

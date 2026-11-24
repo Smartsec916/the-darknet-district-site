@@ -996,10 +996,22 @@
     // the area of the spot (npc-areas.js): a street quarter or the District interior; the player stands a few steps away on ground they can walk, facing it
     const AR=root.VoidNPCAreas,a=AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
     if(w.walk==='darknet-district'){state.story.flags.area='district';state.story.flags.districtBadge=true;await enterWalking(VoidDistrictArea.KEY.interior,{silent:true});}
-    else if(w.walk==='corporate'||w.walk==='temple'){delete state.story.flags.area;const s=AR?.SCENE_SHIFT?.[a]||{x:0,z:0};await enterWalking(w.walk,{silent:true,spawn:[x-s.x,1.7,z-s.z-2.4]});}
-    else{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
-    let at=a==='avenue'?{x,z:Math.max(-16,z-3.4)}:null;if(!at&&AR){for(const r of [3.4,2.4,4.4])for(let k=0;k<12&&!at;k++){const t=k/12*Math.PI*2,q={x:x+Math.sin(t+Math.PI)*r,z:z+Math.cos(t+Math.PI)*r},c=AR.check(q,a);if(c.ok&&c.area===a)at=q;}}
-    try{if(at){walker.x=at.x;walker.z=at.z;walker.yaw=Math.atan2(x-at.x,z-at.z);}}catch{}},
+    else{delete state.story.flags.area;await enterWalking(w.walk,{silent:true,quarter:w.quarter});}
+    if(!AR)return;
+    const target=AR.toLocal(a,{x,z});
+    const actor=root.VoidNPCPaths?.MOVABLE?.[npc];
+    const permissions={adult:!!actor?.adult,made:!!actor?.made};
+    for(const radius of [3.4,2.4,1.6,4.4]){
+     for(let k=0;k<12;k++){
+      const angle=Math.PI+k*Math.PI/6;
+      const q={x:x+Math.sin(angle)*radius,z:z+Math.cos(angle)*radius};
+      const ground=AR.check(q,a,undefined,permissions),point=AR.toLocal(a,q);
+      if(!ground.ok||ground.area!==a||root.VoidExplorer.blocked(point.x,point.z,walkingLocation))continue;
+      walker.x=point.x;walker.z=point.z;walker.yaw=Math.atan2(target.x-point.x,target.z-point.z);
+      return;
+     }
+    }
+   },
    message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+VoidUnits.text(c.errors.slice(0,2).join(' · ')))+' · nothing is saved'+((jumpTo.notes||[]).length?' · '+jumpTo.notes.join(' '):'')});
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
@@ -1085,7 +1097,7 @@
   try{if(GC&&state)t+=(t?' · ':'')+'In-game '+GC.now(state).label;}catch{}return t;}
  async function enterTree(w){
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
-  else if(w.walk==='corporate'||w.walk==='temple'){state.location='earth';delete state.story.flags.area;await enterWalking(w.walk,{silent:true});}
+  else if(['milked','corporate','temple'].includes(w.walk)){state.location='earth';delete state.story.flags.area;await enterWalking(w.walk,{silent:true});}
   else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
   else if(w.location==='vesper')await worldEnterWalking('vesper');else{state.location=w.location;await dock();}}
  function beginnerState(mid,stepId){
