@@ -5,8 +5,7 @@ and PUBLISHED as an immutable version (create-only; a pointer moves in the same 
 (the two SHOP HERE tonics) while nothing is published. The schema is void-runner/consumable-spec.js, parsed here, so the browser and the server share every limit.
 
 Authority: price, stock, carrying limits, cooldowns and every gameplay amount come from the published catalog on the server. The browser sends only ids, a quantity,
-a nonce, and the credit balance it holds (the game's credits live in the player's save; this service has no wallet). A published item id is never removed or re-typed.
-Player holdings live in their own collection (vr_shop_players), never in the campaign save, so old saves and inventories are untouched.
+a nonce and the expected campaign balance. The saved campaign balance, player holdings, stock and durable receipt change in one Firestore transaction. The campaign revision prevents a stale save from undoing a purchase.
 """
 import hashlib
 import json
@@ -93,12 +92,35 @@ def modifier_problems(m, at):
     return out
 
 
+def service_problems(service):
+    if not _only(service, ['steps', 'participation', 'completion']) or service.get('participation') not in ('watch', 'follow') or service.get('completion') not in ('timer', 'confirm'):
+        return ['Choose service participation and completion rules']
+    steps = service.get('steps')
+    if not isinstance(steps, list) or not 1 <= len(steps) <= 12:
+        return ['A service needs one to twelve steps']
+    total = 0
+    for step in steps:
+        if not _only(step, ['seconds', 'line', 'clip', 'point']) or not _int(step.get('seconds'), 1, 180) or not _int(step.get('point', 0), 0, 32) or not _plain(step.get('line', ''), 300) or not re.fullmatch(r'[a-zA-Z0-9 _-]{0,60}', str(step.get('clip', ''))):
+            return ['Invalid service step, waypoint, line, animation or duration']
+        total += step['seconds']
+    return [] if total <= 600 else ['Services can run for up to ten minutes']
+
+
 def item_problems(it, cats):
     n = (it.get('id') if isinstance(it, dict) else 'item') + ': '
-    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable']
+    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound', 'service']
     if not _only(it, keys):
         return [n + 'unknown fields']
     out = []
+    if it.get('kind') == 'service':
+        out.extend(service_problems(it.get('service')))
+    elif it.get('service') is not None:
+        out.append(n + 'only a service item can run a routine')
+
+    for key, pattern in [('image', r'assets/[a-zA-Z0-9_/-]+\.(png|jpg|jpeg|webp)'), ('purchaseSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('useSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)')]:
+        if it.get(key) and (not isinstance(it[key], str) or not re.fullmatch(pattern, it[key])):
+            out.append(n + 'choose a game asset for ' + key)
+
     if not isinstance(it.get('id'), str) or not ID.match(it['id']):
         out.append(n + 'bad item id')
     if not _plain(it.get('name'), LIM['name']) or not it.get('name'):
@@ -152,11 +174,51 @@ def item_problems(it, cats):
     return out
 
 
+def seller_rules(value):
+    if value is None:
+        return []
+    if not _only(value, ['opens', 'closes', 'minRep', 'mission', 'color', 'message', 'sound', 'model']):
+        return ['Unknown vendor setting']
+    errors = []
+    for key in ('opens', 'closes'):
+        if key in value and not _int(value[key], 0, 23):
+            errors.append('Hours are whole numbers from 0 to 23')
+    if 'minRep' in value and not _int(value['minRep'], -100, 100):
+        errors.append('Reputation must be between -100 and 100')
+    if value.get('mission') and (not isinstance(value['mission'], str) or not ID.fullmatch(value['mission'])):
+        errors.append('Choose a valid mission ID')
+    if 'message' in value and not _plain(value['message'], 160):
+        errors.append('Promotional message is too long')
+    if value.get('color') and not re.fullmatch(r'#[a-fA-F0-9]{6}', str(value['color'])):
+        errors.append('Choose a six-digit color')
+    for key, pattern in [('sound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('model', r'assets/models/[a-zA-Z0-9_/-]+\.glb')]:
+        if value.get(key) and not re.fullmatch(pattern, str(value[key])):
+            errors.append('Choose a game asset for ' + key)
+    return errors
+
+
+def sale_condition(rules, save):
+    if not rules:
+        return ''
+    start, end = rules.get('opens', 0), rules.get('closes', 0)
+    hour = (21 + (save.get('story', {}).get('flags', {}).get('gameMin', 0) // 60)) % 24
+    if start != end and not (start <= hour < end if start < end else hour >= start or hour < end):
+        return 'Closed during this District hour.'
+    if save.get('progression', {}).get('reputation', {}).get('civilian', 0) < rules.get('minRep', -100):
+        return 'More civilian reputation is required.'
+    mission = rules.get('mission')
+    record = save.get('universe', {}).get('missions', {}).get(mission) or {}
+    if mission and not (isinstance(record, dict) and (record.get('completed') or record.get('status') in ('complete', 'completed'))):
+        return 'Complete the required mission first.'
+    return ''
+
+
 def entry_problems(en, at, items):
     n = at + ': '
-    if not _only(en, ['item', 'price', 'stock', 'maxStock', 'restock', 'available']):
+    if not _only(en, ['item', 'price', 'stock', 'maxStock', 'restock', 'available', 'rules']):
         return [n + 'unknown fields']
     out = []
+    out.extend(seller_rules(en.get('rules')))
     if en.get('item') not in items:
         out.append(n + 'item is not in the catalog')
     if not _int(en.get('price'), 0, LIM['price']):
@@ -205,14 +267,19 @@ def problems(c):
     known = {v['entity']: v for v in SPEC['vendorRegistry']}
     vids, ents = set(), []
     for v in c['vendors']:
-        if not _only(v, ['id', 'name', 'kind', 'location', 'entity', 'entries']):
+        if not _only(v, ['id', 'name', 'kind', 'location', 'entity', 'entries', 'rules', 'enabled']):
             out.append('A vendor has unknown fields.')
             continue
         n = str(v.get('id')) + ': '
         if not isinstance(v.get('id'), str) or not ID.match(v['id']) or v['id'] in vids:
             out.append(n + 'bad or repeated vendor id')
+        if 'enabled' in v and type(v['enabled']) is not bool:
+            out.append(n + 'enabled must be true or false')
+        out.extend(seller_rules(v.get('rules')))
         vids.add(v.get('id'))
         reg = known.get(v.get('entity'))
+        if not reg and v.get('kind') == 'npc' and isinstance(v.get('entity'), str) and re.fullmatch(r'npc-[a-z][a-z0-9-]{0,35}', v['entity']):
+            reg = {'kind': 'npc'}
         if not reg:
             out.append(n + 'not a seller the game has')
         elif reg['kind'] != v.get('kind'):
@@ -226,6 +293,8 @@ def problems(c):
             seen = set()
             for i, en in enumerate(v['entries']):
                 out += entry_problems(en, n + 'entry %d' % (i + 1), ids)
+                if isinstance(en, dict) and v.get('kind') != 'npc' and any(it.get('id') == en.get('item') and it.get('kind') == 'service' for it in c['items'] if isinstance(it, dict)):
+                    out.append(n + 'services require an NPC vendor')
                 if isinstance(en, dict):
                     if en.get('item') in seen:
                         out.append(n + 'sells an item twice')
@@ -421,12 +490,13 @@ def restocked(entry, rec, now):
     return r
 
 
-def vendor_listing(db, key, now=None):
+def vendor_listing(db, key, now=None, uid=None):
     now = now or time.time()
     cat = live(db)['content']
     v = find_vendor(cat, key)
-    if not v:
+    if not v or not v.get('enabled', True):
         raise DraftError('There is no such seller.', 404)
+    save = ((db.collection('vr_players').document(_tag(uid)).get().to_dict() or {}).get('save') or {}) if uid else {}
     items = {i['id']: i for i in cat['items']}
     out = []
     for e in v['entries']:
@@ -434,9 +504,9 @@ def vendor_listing(db, key, now=None):
         if not e['available'] or not it or it['status'] != 'published':
             continue
         r = restocked(e, _stock_ref(db, v['id'], e['item']).get().to_dict(), now)
-        out.append({'item': it['id'], 'name': it['name'], 'description': it['description'], 'icon': it.get('icon'), 'category': it['category'], 'rarity': it['rarity'],
-                    'price': e['price'], 'stock': r['remaining'], 'maxStock': e['maxStock'], 'stack': it['stack']})
-    return {'vendor': {k: v[k] for k in ['id', 'name', 'kind', 'location', 'entity']}, 'entries': out, 'version': live(db)['version']}
+        out.append({'item': it['id'], 'name': it['name'], 'description': it['description'], 'icon': it.get('icon'), 'image': it.get('image'), 'purchaseSound': it.get('purchaseSound'), 'category': it['category'], 'rarity': it['rarity'],
+                    'price': e['price'], 'stock': r['remaining'], 'maxStock': e['maxStock'], 'stack': it['stack'], 'definition': use_definition(cat, it['id']), 'service': it.get('service'), 'condition': sale_condition(v.get('rules'), save) or sale_condition(e.get('rules'), save)})
+    return {'vendor': {**{k: v[k] for k in ['id', 'name', 'kind', 'location', 'entity']}, 'rules': v.get('rules', {})}, 'entries': out, 'version': live(db)['version']}
 
 
 def _player_ref(db, uid):
@@ -446,7 +516,7 @@ def _player_ref(db, uid):
 def _clean_player(rec):
     rec = rec or {}
     owned = {k: v for k, v in (rec.get('owned') or {}).items() if isinstance(k, str) and type(v) is int and v > 0}
-    return {'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {})}
+    return {'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
 
 
 def _span(defn):
@@ -487,8 +557,8 @@ def player_state(db, uid, now=None):
     content = live(db)['content']
     p = _clean_player(_player_ref(db, uid).get().to_dict())
     active = _active_view(p, content, now)
-    items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId']} for i in content['items']}
-    return {'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
+    items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
+    return {'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
 
 
 def _nonce(payload):
@@ -501,17 +571,18 @@ def _nonce(payload):
 def purchase(db, uid, payload, now=None):
     from firebase_admin import firestore
     now = now or time.time()
-    if not _only(payload, ['vendor', 'item', 'qty', 'credits', 'nonce']):
+    if not _only(payload, ['vendor', 'item', 'qty', 'credits', 'nonce', 'revision']):
         raise DraftError('Unknown fields.')
     nonce = _nonce(payload)
     qty, credits = payload.get('qty'), payload.get('credits')
-    if not _int(qty, 1, LIM['stack']) or not _int(credits, 0, 100_000_000):
+    if not _int(qty, 1, LIM['stack']) or not _int(credits, 0, 100_000_000) or ('revision' in payload and not _int(payload['revision'], 0, 100_000_000)):
         raise DraftError('Bad quantity or credits.')
-    cat = live(db)['content']
+    published = live(db)
+    cat = published['content']
     v = find_vendor(cat, payload.get('vendor')) if isinstance(payload.get('vendor'), str) else None
     entry = next((e for e in (v or {}).get('entries', []) if e['item'] == payload.get('item')), None)
     item = next((i for i in cat['items'] if i['id'] == payload.get('item')), None)
-    if not v or not entry or not item or not entry['available'] or item['status'] != 'published':
+    if not v or not v.get('enabled', True) or not entry or not item or not entry['available'] or item['status'] != 'published':
         raise DraftError('That is not for sale here.', 404)
     cost = entry['price'] * qty
     if credits < cost:
@@ -521,23 +592,89 @@ def purchase(db, uid, payload, now=None):
     @firestore.transactional
     def commit(tx):
         p = _clean_player(pref.get(transaction=tx).to_dict())
-        if nonce in p['nonces']:
-            return {'duplicate': True, 'cost': 0, 'owned': p['owned'].get(item['id'], 0), 'stock': None}
+        campaign_ref = db.collection('vr_players').document(_tag(uid))
+        campaign = campaign_ref.get(transaction=tx).to_dict() or {}
+        save = campaign.get('save') or {}
+        balance = save.get('credits')
+        if not _int(balance, 0, 100_000_000):
+            raise DraftError('Save your campaign to your account before shopping.', 409, {'code': 'save-required'})
+        receipt_ref = db.collection('vr_items_receipts').document(_tag(uid + '/' + nonce))
+        receipt = receipt_ref.get(transaction=tx).to_dict()
+        if receipt or nonce in p['nonces']:
+            if receipt and (receipt.get('vendor'), receipt.get('item'), receipt.get('qty')) != (v['id'], item['id'], qty):
+                raise DraftError('That purchase reference belongs to a different order.', 409)
+            return {'duplicate': True, 'cost': 0, 'owned': p['owned'].get(item['id'], 0), 'stock': None,
+                    'credits': balance, 'revision': campaign.get('revision', 0), 'service': (receipt or {}).get('service')}
+        if ((_state_ref(db).get(transaction=tx).to_dict() or {}).get('live', 0)) != published['version']:
+            raise DraftError('The catalog changed. Refresh before buying.', 409)
+        condition = sale_condition(v.get('rules'), save) or sale_condition(entry.get('rules'), save)
+        if condition:
+            raise DraftError(condition, 409)
         r = restocked(entry, sref.get(transaction=tx).to_dict(), now)
         if r['remaining'] < qty:
             raise DraftError('Sold out.' if r['remaining'] <= 0 else 'Only %d left.' % r['remaining'], 409, {'code': 'stock', 'stock': r['remaining']})
         have = p['owned'].get(item['id'], 0)
         if have + qty > item['stack']:
             raise DraftError('You cannot carry more than %d of these.' % item['stack'], 409, {'code': 'carry', 'owned': have})
+        if balance < cost:
+            raise DraftError('Not enough saved credits.', 402, {'code': 'credits', 'cost': cost})
+        if credits != balance or ('revision' in payload and payload['revision'] != campaign.get('revision', 0)):
+            raise DraftError('Your saved balance changed. Refresh the shop before buying.', 409, {'code': 'save-conflict'})
+        service = None
+        if item['kind'] == 'service':
+            if v['kind'] != 'npc' or qty != 1:
+                raise DraftError('Choose one service from the NPC providing it.', 409)
+            lease_ref = db.collection('vr_items_service_leases').document(_tag(v['entity']))
+            lease = lease_ref.get(transaction=tx).to_dict() or {}
+            if lease.get('expires', 0) > now or (p.get('service') or {}).get('expires', 0) > now:
+                raise DraftError('A service is already in progress.', 409)
+            definition = item['service']
+            end = now + sum(s['seconds'] for s in definition['steps'])
+            service = {'id': nonce, 'npc': v['entity'].removeprefix('npc-'), 'entity': v['entity'], 'name': item['name'], 'started': now,
+                       'end': end, 'expires': end + (90 if definition['completion'] == 'confirm' else 0), 'definition': definition}
+            p['service'] = service
+            tx.set(lease_ref, {'expires': service['expires'], 'id': nonce, 'owner': _tag(uid)})
+        balance -= cost
+        campaign['save'] = dict(save, credits=balance)
+        campaign['revision'] = campaign.get('revision', 0) + 1
+        campaign['savedAt'] = int(now)
+        tx.set(campaign_ref, campaign)
+        tx.create(receipt_ref, {'vendor': v['id'], 'item': item['id'], 'qty': qty, 'cost': cost, 'at': int(now), 'service': service})
         r['remaining'] -= qty
-        p['owned'][item['id']] = have + qty
+        if not service:
+            p['owned'][item['id']] = have + qty
         p['nonces'] = (p['nonces'] + [nonce])[-30:]
         tx.set(sref, r)
         tx.set(pref, p)
-        return {'duplicate': False, 'cost': cost, 'owned': have + qty, 'stock': r['remaining']}
+        return {'duplicate': False, 'cost': cost, 'owned': 0 if service else have + qty, 'service': service, 'stock': r['remaining'], 'credits': balance, 'revision': campaign['revision']}
     result = commit(db.transaction())
-    result.update(credits=credits - result['cost'], item=item['id'], name=item['name'], registryId=item.get('registryId'))
+    result.update(item=item['id'], name=item['name'], registryId=item.get('registryId'))
     return result
+
+
+def finish_service(db, uid, payload, now=None):
+    from firebase_admin import firestore
+    now = now or time.time()
+    if not _only(payload, ['nonce']):
+        raise DraftError('A service receipt is required.')
+    nonce = _nonce(payload)
+    pref = _player_ref(db, uid)
+    @firestore.transactional
+    def commit(tx):
+        player = _clean_player(pref.get(transaction=tx).to_dict())
+        service = player.get('service')
+        if not service or service['id'] != nonce:
+            return {'finished': True}
+        if now < service['end']:
+            raise DraftError('The service is still in progress.', 409)
+        lease_ref = db.collection('vr_items_service_leases').document(_tag(service['entity']))
+        lease = lease_ref.get(transaction=tx).to_dict() or {}
+        if lease.get('id') == nonce and lease.get('owner') == _tag(uid):
+            tx.set(lease_ref, {'expires': now})
+        player['service'] = None
+        tx.set(pref, player)
+        return {'finished': True}
+    return commit(db.transaction())
 
 
 def use_item(db, uid, payload, now=None):

@@ -216,7 +216,11 @@
  function talkTo(action,arg,handler,self,args){
   const npcs=G?G.whoAt(env.givers,action,arg?.item?.character):[];
   if(!npcs.length||beginnerWants(action))return handler.apply(self,args);
-  if(!treesOn()||!MC.treeWants(state,env,npcs)){if(ordinaryTalk(npcs))return;return handler.apply(self,args);}
+  if(!treesOn()||!MC.treeWants(state,env,npcs)){
+   const normal=()=>{if(ordinaryTalk(npcs))return;return handler.apply(self,args);};
+   if(root.VoidNPCServices?.has(npcs)&&!npcs.some(missionBusy)&&root.VoidNPCServices.offer(npcs,normal))return;
+   return normal();
+  }
   const r=MC.treeEvent(state,env,{type:'talk',npcs},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);
   if(r.ask&&ask(r))return;if(r.need&&r.mission){try{resumeWalking();}catch{}return;}   // a step that costs: "YOU NEED N CR" (report) and nothing else happens
   const lines=r.lines.length?r.lines:(r.early||[]);if(lines.length&&show(lines,r))return;
@@ -289,7 +293,7 @@
   for(const id of MC.denyRearm(state,env,nearD))delete promptAt[id];   // a denied walked-near offer whose wait is over comes back once the player has been out of its distance
   if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)offerPrompt(r.prompt);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);if(r.lines&&r.lines.length)show(r.lines,r);else{const a=inlineAsk(r);if(a)openAsk(a);}return r;}catch{return null;}}   // walked near: the giver says her offer lines (and a choice in them shows its buttons)
  const ordinaryNear=new Map(),roomVisits=new Map(),social=new Map(),socialPoses=new Map(),groupIndex={};let ordinaryFor=null,roomFor=null,roomScene=null,groupCoordinator=null,groupPlayback=null;let socialSerial=0;
- function socialPose(id){const p=socialPoses.get(id);return p&&p.until>Date.now()?p.clip:null;}
+ function socialPose(id){const service=root.VoidNPCServices?.pose(id);if(service&&!missionBusy(id))return service;const p=socialPoses.get(id);return p&&p.until>Date.now()?p.clip:null;}
  function poseUntil(id,clip,ms=2800){if(id)socialPoses.set(id,{clip,until:Date.now()+ms});}
  function missionBusy(id){try{const g=env.givers.find(x=>x.id===id);if(g&&g.targets.some(t=>beginnerWants(t.action)))return true;if(treesOn()&&(MC.treeWants(state,env,[id])||MC.escortNow(state,env)[id]))return true;}catch{}return false;}
  function saySocial(id,pool){const g=env.givers.find(x=>x.id===id),line=pool?MC.interactionLine(pool,0):'';if(!line)return;try{announce((g?.name||id)+' · '+line);root.VoidAudio?.speak?.(g?.say||id,line,false,false,true);poseUntil(id,'talk');}catch{}}
@@ -487,7 +491,7 @@
    let w=wait[id]||null;if(w&&w.inside)w=null;   // inside a place: above (insideNow)
    // her mission is running and she has no spot for it (no "Giver waits at"): she stays where she stood when it started (mission-content.js holdOf; remembered per mission)
    if(w&&w.here){const h=holdAt[id];if(h&&h.mission===w.mission)w={x:h.x,z:h.z,yaw:h.yaw,mission:w.mission,during:true};else{const q=livePos(id);if(q){holdAt[id]={mission:w.mission,x:+q.x.toFixed(2),z:+q.z.toFixed(2),yaw:Number.isFinite(q.yaw)?+q.yaw.toFixed(2):undefined};w={...holdAt[id],during:true};}else w=null;}}
-   if(!w){const socialNow=socialPlan(id);if(socialNow){out[id]=socialNow;continue;}}   // ordinary follow/lead yields to a mission escort or a giver waiting for an offer
+   if(!w){const service=root.VoidNPCServices?.plan(id,env.npcPlans?.[id]);if(service){out[id]=service;continue;}const socialNow=socialPlan(id);if(socialNow){out[id]=socialNow;continue;}}   // ordinary follow/lead yields to a mission escort or a giver waiting for an offer
    const p=X.planNow(id,{waiting:w,plan:(env.npcPlans||{})[id]||null,minute});if(p){if(w&&w.during)p.why='mission';const old=planCache[id];if(old&&old.key===p.key)old.why=p.why;out[id]=old&&old.key===p.key?old:p;}}/* the same spot before and after the mission starts: the same plan, now why:'mission' */planCache=out;return out;}
  const holdAt={};   // id -> {mission, x, z, yaw}: where she stood when her mission started (above); after a step that ends where she stands (a cab ride), there
  /* CARRIED THROUGH A LINK (20 Nov 2026, npc-escort-across.js): id -> {key (the step), area, x, z, yaw, phase, ride}: where she is now after coming through a gate, the stairs

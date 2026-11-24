@@ -88,7 +88,7 @@
   const b=bus();if(!b)return;listener(b.context);
   const peers=new Map((r.peers||[]).map(p=>[p.id,p])),ign=new Map((r.ignored||[]).map(([id,m])=>[id,m])),solids=typeof walkingLocation!=='undefined'&&walkingLocation?walkingLocation.solids:null,me=typeof walker!=='undefined'?walker:null,t=b.context.currentTime;
   for(const [id,v] of voices){const p=peers.get(id),own=settings.players[id]||{};let m={gain:0,hz:config.openHz};
-   if(p&&me&&Number.isFinite(p.x)){const d=Math.hypot(p.x-me.x,p.z-me.z),blocked=!!root.VoidDeviceCamera?.sightBlocked?.(me.x,me.z,p.x,p.z,solids);m=mix({dist:d,vol:own.vol??1,muted:own.muted===true||ign.has(id),blocked,master:settings.volume});
+   if(p&&me&&Number.isFinite(p.x)){const d=Math.hypot(p.x-me.x,p.z-me.z),blocked=!!root.VoidDeviceCamera?.sightBlocked?.(me.x,me.z,p.x,p.z,solids);m=mix({dist:d,vol:own.vol??1,muted:own.muted===true||ign.has(id),blocked,master:settings.volume*(root.VoidSoundStudio?.project?.mix?.voice??1)});
     if(v.panner.positionX){v.panner.positionX.setTargetAtTime(p.x,t,.05);v.panner.positionY.setTargetAtTime(1.6,t,.05);v.panner.positionZ.setTargetAtTime(-p.z,t,.05);}else v.panner.setPosition?.(p.x,1.6,-p.z);}
    v.gain.gain.setTargetAtTime(m.gain,t,.08);v.filter.frequency.setTargetAtTime(m.hz,t,.1);}
  }

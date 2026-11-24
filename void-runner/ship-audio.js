@@ -122,13 +122,14 @@
 
   // Places with a sound of their own (the nightclub) turn the street's ambience down without touching the player's setting.
   const trims = {ambient: 1};
+  let studioMix = {master:1,music:1,effects:1,dialogue:1,ambient:1,cinematic:1,duck:.4};
   function mix() {
     if (!context) return;
-    target(buses.master.gain, settings.enabled ? settings.master : 0, .05);
-    target(buses.music.gain, settings.music * (speaking ? .4 : 1));
-    target(buses.effects.gain, settings.effects);
-    target(buses.voice.gain, settings.voice);
-    target(buses.ambient.gain, settings.ambient * trims.ambient);
+    target(buses.master.gain, settings.enabled ? settings.master * studioMix.master : 0, .05);
+    target(buses.music.gain, settings.music * studioMix.music * (speaking ? studioMix.duck : 1));
+    target(buses.effects.gain, settings.effects * studioMix.effects);
+    target(buses.voice.gain, settings.voice * studioMix.dialogue);
+    target(buses.ambient.gain, settings.ambient * trims.ambient * studioMix.ambient * (speaking ? studioMix.duck : 1));
   }
 
   function cancel() {
@@ -280,6 +281,7 @@
   }
 
   function event(name, ship, position, basis) {
+    if (root.VoidSoundStudio?.event(name)) return;
     if (effects[name]) tone(...effects[name], position, basis);
     if (['explosion', 'missile', 'hull', 'dock', 'boost', 'door'].includes(name)) noise(name ===
       'explosion' ? 1 : .35, name === 'explosion' ? .22 : .06, position, basis);
@@ -455,7 +457,7 @@
       u.lang = u.voice?.lang || 'en-US';
       u.pitch = p.pitch;
       u.rate = p.rate;
-      u.volume = settings.master * settings.voice * p.volume;
+      u.volume = settings.master * studioMix.master * settings.voice * studioMix.dialogue * p.volume;
       speaking = true;
       mix();
       const current = token;
@@ -484,6 +486,7 @@
     } catch {}
   }
   const api = {
+    setStudioMix(values){studioMix={...studioMix,...values};mix();},
     selectVoice, chooseVoice,
     voiceChoice: id => voiceChoices[id] || '',
     availableVoices() { refreshVoices(); return voices; },

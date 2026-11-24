@@ -42,10 +42,11 @@
   function step(player,input,dt,location){
     dt=Math.max(0,Math.min(.1,dt));const length=Math.max(1,Math.hypot(input.x,input.z));let speed=input.crouch?config.crouch:input.run?config.sprint:config.walk;
     try{const m=root.VoidDevStudios?.moveMul?.(typeof state!=='undefined'?state?.story?.flags?.shopEffect:null,Date.now()/1000);if(m>1)speed*=m;}catch{}
+    speed*=1+(root.VoidConsumableGame?.modifier(input.run?'runSpeed':'walkSpeed')||0);
     const tx=(Math.cos(player.yaw)*input.x+Math.sin(player.yaw)*input.z)/length*speed,tz=(-Math.sin(player.yaw)*input.x+Math.cos(player.yaw)*input.z)/length*speed;
     const approach=(a,b,d)=>a+Math.sign(b-a)*Math.min(Math.abs(b-a),d),steps=Math.max(1,Math.ceil(dt/.008));
     if(player.jumpRequested){if(!(player.height>0)){player.vy=config.jump;player.height=.001;}player.jumpRequested=false;}
-    for(let i=0;i<steps;i++){const t=dt/steps,acc=(length>1||input.x||input.z?config.acceleration:config.braking)*t;
+    for(let i=0;i<steps;i++){const t=dt/steps,acc=(length>1||input.x||input.z?config.acceleration:config.braking)*(1+(root.VoidConsumableGame?.modifier('movementControl')||0))*t;
       const ax=tx-(player.vx||0),az=tz-(player.vz||0),delta=Math.hypot(ax,az),gain=delta?Math.min(1,acc/delta):0;
       player.vx=(player.vx||0)+ax*gain;player.vz=(player.vz||0)+az*gain;
       // a blocked move is still taken when it leads out of a solid the player already overlaps (depth(): never further in)

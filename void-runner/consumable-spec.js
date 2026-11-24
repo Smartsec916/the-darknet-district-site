@@ -8,7 +8,7 @@ globalThis.VoidConsumableSpec = {
  "categories": [
   {"id": "food", "name": "Food"}, {"id": "beverages", "name": "Beverages"}, {"id": "medical", "name": "Medical supplies"}, {"id": "stimulants", "name": "Stimulants"},
   {"id": "substances", "name": "Fictional cyberpunk substances"}, {"id": "other", "name": "Other"}],
- "kinds": ["consumable", "food", "beverage", "weapon", "ammunition", "missile", "equipment", "medical", "misc"],
+ "kinds": ["consumable", "food", "beverage", "weapon", "ammunition", "missile", "equipment", "medical", "misc", "service"],
  "rarities": ["common", "uncommon", "rare", "epic", "legendary"],
  "stacking": ["max", "additive", "replace", "independent"],
  "animations": ["none", "drink", "eat", "inject", "inhale", "swallow", "apply"],
@@ -17,6 +17,11 @@ globalThis.VoidConsumableSpec = {
  "statuses": ["draft", "published", "retired"],
  "registryItems": {"ward-kit": "Ward kit"},
  "effects": {
+  "lensGrade": {"group":"visual","label":"Lens and lighting","help":"Soften focus and adjust bloom, exposure and grain.","params":{
+   "blur":{"label":"Lens blur","min":0,"max":1,"def":0,"step":0.01},
+   "glow":{"label":"Highlight glow","min":0,"max":1,"def":0.3,"step":0.01},
+   "grain":{"label":"Film grain","min":0,"max":1,"def":0,"step":0.01},
+   "brightness":{"label":"Exposure","min":-1,"max":1,"def":0.1,"step":0.01}}},
   "chromaticAberration": {"group": "visual", "label": "Chromatic aberration", "help": "Splits the red, green and blue of the picture apart, strongest at the edges.", "params": {
    "separation": {"label": "RGB separation", "min": 0, "max": 0.03, "def": 0.008, "step": 0.0005, "help": "How far the colour channels slide apart (a fraction of the screen width)."},
    "radial": {"label": "Radial strength", "min": 0, "max": 1, "def": 0.6, "step": 0.01, "help": "0 shifts the whole picture the same way. 1 shifts it more towards the edges."},
