@@ -139,3 +139,11 @@ Owner clarified that the new lower grip is the wind-up: it moves slightly up and
 ## 24 Nov 2026 — wider vertical mouse aim
 
 Vertical mouse aim now reaches 89 degrees above and below horizontal (previously about 72 degrees). Foam follows the full 3D camera direction; the camera view matrix refreshes at shot release so the wind-up uses the current aim. Player movement stays on the floor. Controls now explicitly mention up/down aiming.
+
+
+## 24 Nov 2026 — falling foam projectiles
+
+Foam now follows a gravity-driven 3D arc instead of a straight ray. Launch speed varies by ±8% around 34 world units/second to make some shots fall short sooner; gravity is 9.8 units/second squared. Aim higher to compensate at distance. Each trajectory is swept against scene geometry in steps no larger than 1/60 second, retaining location-based NPC hits, arm interception and surface splatter. Upward shots have enough lifetime to fall back down; police rounds are unchanged.
+
+Validation: 1,179 Node tests passed (one skipped). The live ballistics check confirmed visible downward travel and a floor splatter before the distant corridor wall; ammo consumption and projectile cleanup passed.
+The full browser regression also passed: live projectile headshot, three shield poses, theft/refill, all five floors, police ending, restart, persistent scores and 4:3 rendering. The firing check now waits for actual shot release and impact rather than a fixed wall-clock delay.
