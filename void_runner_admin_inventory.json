@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "9a4d6950578e1144",
+  "revision": "ab508a65287abed3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75024,42 +75024,60 @@
     {
       "source": "void-runner/input-state.js",
       "line": 12,
+      "text": "floating:policy('conversation',false,false,true,true,'interface'),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/input-state.js",
+      "line": 13,
       "text": "conversation:policy('conversation',false,false,false,true,'interface'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 31,
+      "line": 25,
+      "text": "if(surface==='floating')return mode==='walking'&&!seated?states.floating:states.conversation;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/input-state.js",
+      "line": 33,
       "text": "if(mode==='dialogue')return states.conversation;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 47,
-      "text": "['conversation','#screen.conversation-live,#screen:has(.dialogue-window)'],",
+      "line": 49,
+      "text": "['floating','#screen.conversation-live,.vr-companion-menu'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 83,
-      "text": "if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation'].includes(surface)){",
+      "line": 50,
+      "text": "['conversation','#screen:has(.dialogue-window)'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 112,
+      "line": 86,
+      "text": "if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation','floating'].includes(surface)){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/input-state.js",
+      "line": 115,
       "text": "const dismiss=panel.querySelector('[data-input-dismiss],.conversation-minimize');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 118,
+      "line": 121,
       "text": "if(!['conversation','activity'].includes(current().name))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 119,
+      "line": 122,
       "text": "const choices=[...panel.querySelectorAll('.speech-controls #speech-next,.speech-controls [data-talk-choice],.tea-duo-choices button,.choice-menu button[data-action]')].filter(visible);",
       "kind": "source-reference"
     },
@@ -82376,7 +82394,7 @@
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "6d86cb9e2de2f43b2e1b8ca92ded2a8c93458997bb87a6a533a79b46789282bc",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "365db57c084888b42e1d07049a71a300fb2a8351889f804b34153cd9f6aef667",
+    "void-runner/babylon-integration.js": "01376f363d13b961b915828265aba53eedadd20bbd420ec4c7d7e92a5c4b61a3",
     "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
     "void-runner/balance-data.js": "c87cf00495440bdfc9e79f10b9298e86e14be93cb9cf4ff43177c33112cd3edf",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -82474,7 +82492,7 @@
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "1e536c92ebd0f2210ce43edd0f9ef16fe699441804edfded69892ebb2516e8c8",
+    "void-runner/input-state.js": "af87801f5e7fc0a86a0e6333443107aedccd432278f0aa163828e6c646e5fe0c",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
@@ -82514,7 +82532,7 @@
     "void-runner/module-editor.js": "67cdac049bb19024d04685cfbccfb94c5f31be8ef9c9fd4f5d280a63a2567cfc",
     "void-runner/module-integration.js": "d10abadfdfb95e82521ea8ebe2888b989a79a6ec43a3fce53862d3408fb283e4",
     "void-runner/modules.js": "baac3cc82c2f01a78418e588c7ec1210a99d392cc759c4bc710b6af49e240c3f",
-    "void-runner/mouse-control.js": "2a364651381cb8d8b4d627a41c2850cb3e75459342c4aae9043cb7908ad81a69",
+    "void-runner/mouse-control.js": "33d7d3da26d2dde7a1f1c0cd88b05e15b6263ac8214f4fa8719e9d751fa3865b",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
     "void-runner/music-engine.js": "9a4ee46218d4b7be56ded9763e3ad56c42bfa2eeaa6c59d207b6757ff7d0b8c2",
@@ -82580,7 +82598,7 @@
     "void-runner/police-patrols.js": "46cc6fb8c4726e80b117f11d4c197778a0c1523a361c2aa34524f8601252f603",
     "void-runner/preparation.js": "488475633495762419719b2875b689feb9d29cf9db45239de74b34d04787c407",
     "void-runner/progression.js": "d2817df43e4d94d5e369cd5736e6f385a898a3597d6176dd63e3fbdd9a9341a3",
-    "void-runner/prologue-integration.js": "436ea24328f617430372a4ab568db41ebf853dbe96bd0e4e184d1131e026a9d7",
+    "void-runner/prologue-integration.js": "f62e9da5581e829849614572afbc907c5e58357a53532056b532b06ec79a2006",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
@@ -82619,7 +82637,7 @@
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
-    "void-runner/unified-controls.js": "056417c328dd4720153df691ca2f3adc58855fe8fbd952c04ce9c0e0d845f958",
+    "void-runner/unified-controls.js": "6a529693c61d3b164f6617d9e700b5b28ac1bd9343bb989486f8086d31116bfa",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",

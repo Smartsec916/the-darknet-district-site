@@ -120,7 +120,7 @@ function pistolHandlingAction(action,personal=state.progression.personal,consequ
  if(action==='draw'&&personal.weapon){groundState.drawn=!groundState.drawn;consequences?.drawChanged?.(groundState.drawn);}
  if(action==='aim'){groundState.aim=!groundState.aim;if(groundState.drawn&&groundState.aim)consequences?.aimed?.();}
 }
-function groundAction(action){if(mode!=='walking'||globalThis.VoidInputState?.current.movement===false)return;
+function groundAction(action){if(mode!=='walking'||globalThis.VoidInputState?.current.ui||globalThis.VoidInputState?.current.movement===false)return;
  if(action==='crouch'){if(walkingKeys.has('KeyC'))walkingKeys.delete('KeyC');else walkingKeys.add('KeyC');}
  if(action==='sprint'){if(walkingKeys.has('ShiftLeft'))walkingKeys.delete('ShiftLeft');else walkingKeys.add('ShiftLeft');}
  if(action==='inventory')return personalInventory();
@@ -130,7 +130,7 @@ function groundAction(action){if(mode!=='walking'||globalThis.VoidInputState?.cu
  if(action==='fire')pistolAction(action);
 }
 groundControls.addEventListener('click',e=>groundAction(e.target.dataset.ground));
-addEventListener('keydown',e=>{if(mode!=='walking'||!VoidInputState.current.movement||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const a={KeyI:'inventory',Digit1:'draw',KeyH:'draw',KeyR:'reload',Space:'jump'}[e.code];if(a){e.preventDefault();groundAction(a);}});
+addEventListener('keydown',e=>{if(mode!=='walking'||VoidInputState.current.shortcuts!=='game'||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const a={KeyI:'inventory',Digit1:'draw',KeyH:'draw',KeyR:'reload',Space:'jump'}[e.code];if(a){e.preventDefault();groundAction(a);}});
 function groundPointerButton(e){if(mode!=='walking')return;if(e.button===2){groundState.aim=false;groundAction('aim');}else if(e.button===0&&groundState.drawn)groundAction('fire');}
 // Mouse pointerdown only fires for the first pressed button; mousedown also fires while right-click aim is held.
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')groundPointerButton(e);});

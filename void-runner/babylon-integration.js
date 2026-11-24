@@ -341,7 +341,10 @@ walkingUI.addEventListener('pointerdown', e => {
 });
 for (const event of ['pointerup', 'pointercancel']) walkingUI.addEventListener(event, e => walkingKeys.delete(e.target.dataset.walk));
 addEventListener('keydown', e => {
-  if (VoidInputState.current.shortcuts==='interface'||VoidInputState.current.shortcuts==='none'||!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  const policy=VoidInputState.current;
+  if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return;
+  if (policy.shortcuts==='none'||(policy.shortcuts==='interface'&&!(policy.movement&&['KeyW','KeyA','KeyS','KeyD'].includes(e.code)))) return;
+  if (e.repeat&&!walkingKeys.has(e.code)) return;
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyC', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
     e.preventDefault();
     walkingKeys.add(e.code);

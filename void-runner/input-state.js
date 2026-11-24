@@ -9,6 +9,7 @@
     flight:policy('flight',false,true,true,false,'game'),
     feed:policy('feed',true,true,false,false,'activity'),
     seated:policy('seated',true,true,false,false,'seat'),
+    floating:policy('conversation',false,false,true,true,'interface'),
     conversation:policy('conversation',false,false,false,true,'interface'),
     activity:policy('activity',false,false,false,true,'interface'),
     store:policy('store',false,false,false,true,'interface'),
@@ -21,6 +22,7 @@
   };
   function resolve(mode,surface,away,manual,seated){
     if(away)return states.background;
+    if(surface==='floating')return mode==='walking'&&!seated?states.floating:states.conversation;
     if(surface&&surface!=='feed')return states[surface];
     if(surface==='feed')return manual?states.cursor:states.feed;
     if(/prepar|loading|transition/.test(mode))return states.loading;
@@ -40,11 +42,12 @@
     ['loading','#district-transition,#milked-transition,#vr-transition,#gate-transit,#landing-seq'],
     ['menu','dialog[open],#dev-balance,#keymap,#personal-hud,#mission-log,#character-creator'],
     ['device','#personal-device.open,#pd-callpill,#pod-music-input'],
-    ['vr','#vr-menu,.vr-companion-menu'],
+    ['vr','#vr-menu'],
     ['store','#trade-window,#trade-toast:has(button),.pod-vend,#shop-here:has(button)'],
     ['activity','.tea-duo-choices,#milked-studio-request-panel,#arcade-play'],
     ['feed','#cam-feed'],
-    ['conversation','#screen.conversation-live,#screen:has(.dialogue-window)'],
+    ['floating','#screen.conversation-live,.vr-companion-menu'],
+    ['conversation','#screen:has(.dialogue-window)'],
     ['menu','#screen:has(button),[role="dialog"]:not(#personal-device)']
   ];
   const watched='#screen,#personal-device,.pod-vend,.vr-companion-menu,'+
@@ -62,7 +65,7 @@
   }
   function refresh(){
     const state=current(),lock=document.pointerLockElement;
-    if(previous!==state){if(!state.movement)clear();previous=state;}
+    if(previous!==state){if(!state.movement||state.ui)clear();previous=state;}
     // A pending pod request can resolve after the exit to walking. Only the current view may keep capture.
     if(lock&&(!state.pointerLock||(lock.id==='pod-wake'&&gameMode()!=='pod-waking')))document.exitPointerLock?.();
     const game=['walking','skirmish-fps','food-seated','vr-seated'].includes(gameMode());
@@ -80,7 +83,7 @@
       panel=Array.from(document.querySelectorAll(selector)).find(visible);
       if(panel){surface=panel.id==='screen'&&name==='menu'&&gameMode()==='equipment'?'store':name;break;}
     }
-    if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation'].includes(surface)){
+    if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation','floating'].includes(surface)){
       const first=[...panel.querySelectorAll('button:not([disabled]),[role="button"]')].find(visible);
       first?.focus({preventScroll:true});
     }

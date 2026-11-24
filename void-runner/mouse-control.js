@@ -34,12 +34,12 @@
  function cycle(step){const c=context();if(!c)return;const list=available(c);if(list.length<2)return;const i=Math.max(0,list.findIndex(w=>w.id===c.current()));select(list[(i+step+list.length)%list.length].id);}
  let wheel=0,lastStep=0;
  addEventListener('wheel',e=>{
-  if(!fps()||!VoidInputState.current.movement||e.target.closest?.('#screen:not(.hidden),#mission-log,.settings-panel,#dev-balance,#personal-device'))return;
+  if(!fps()||VoidInputState.current.shortcuts!=='game'||e.target.closest?.('#screen:not(.hidden),#mission-log,.settings-panel,#dev-balance,#personal-device'))return;
   e.preventDefault();wheel+=e.deltaY;const now=performance.now();
   if(Math.abs(wheel)>=40&&now-lastStep>140){cycle(wheel>0?1:-1);wheel=0;lastStep=now;}
  },{passive:false});
  // 2 picks the rifle when there is one. 1 and H keep their existing draw / holster toggle.
- addEventListener('keydown',e=>{if(!fps()||!VoidInputState.current.movement||e.repeat||e.code!=='Digit2'||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(select('rifle'))e.preventDefault();});
+ addEventListener('keydown',e=>{if(!fps()||VoidInputState.current.shortcuts!=='game'||e.repeat||e.code!=='Digit2'||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(select('rifle'))e.preventDefault();});
 
  const chip=document.createElement('div');chip.id='weapon-select-hud';chip.hidden=true;document.body.append(chip);
  let flashUntil=0;function flash(){flashUntil=performance.now()+1200;}

@@ -23,3 +23,11 @@ test('seated look, transitions, VR menus and flight have distinct policies',()=>
     assert.equal(resolve(mode,null,false,false,false).name,name);
   }
 });
+
+test('floating dialogue preserves deliberate walking and reserves the mouse for choices',()=>{
+  const floating=resolve('walking','floating',false,false,false);
+  assert.ok(floating.movement&&floating.ui);
+  assert.ok(!floating.pointerLock&&!floating.camera);
+  assert.equal(resolve('vr-seated','floating',false,false,true).movement,false);
+  assert.equal(resolve('walking','store',false,false,false).movement,false);
+});
