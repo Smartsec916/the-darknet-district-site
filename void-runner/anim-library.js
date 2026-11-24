@@ -43,32 +43,49 @@
  const groups=()=>[...new Set(all().map(c=>c.group).filter(Boolean))].map(group);
  /* Which clips a figure can take: its bones must include the ones the clip moves. bones: the figure's bare bone names. */
  const CORE=['Hips','Spine','Spine1','Spine2','Neck','Head','LeftArm','LeftForeArm','LeftHand','RightArm','RightForeArm','RightHand','LeftUpLeg','LeftLeg','LeftFoot','RightUpLeg','RightLeg','RightFoot'];
+ const STUDIO=['Hips','Spine','Chest','Neck','Head',...['Left','Right'].flatMap(side=>['UpperArm','ForeArm','Hand','UpperLeg','LowerLeg','Foot','Toes'].map(j=>side+j))];
+ const studioRig=names=>STUDIO.every(k=>names.has(k));
  const compatible=bones=>{const have=new Set(bones||[]);return CORE.every(b=>have.has(b));};
  /* Rotations are copied as they are, so a figure's bones must also REST the way the library's do (the same local axes). Same names are not enough: Dex and Yuki
     (the licensed Male Female Base Rig) name their bones mixamorig:* but every limb bone points along different local axes, and the copied clips twisted them
     into knots (the owner, 18 Nov 2026: "the new male model in Studio 3 is looking weird"). restOffset(lib, fig): the largest difference, in degrees, between the
     two rest rotations of any core bone (lib / fig: bare bone name -> [x,y,z,w]); restMatches: within REST_LIMIT. A figure that does not match keeps its own clips. */
  const REST_LIMIT=25;
- function restOffset(lib,fig){let worst=0;for(const b of CORE){const p=lib?.[b],q=fig?.[b];if(!p||!q)continue;const d=Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3])/((Math.hypot(...p)*Math.hypot(...q))||1));worst=Math.max(worst,2*Math.acos(d)*180/Math.PI);}return worst;}
+ function restOffset(lib,fig,required=CORE){let worst=0;for(const b of required){const p=lib?.[b],q=fig?.[b];if(!p||!q)continue;const d=Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3])/((Math.hypot(...p)*Math.hypot(...q))||1));worst=Math.max(worst,2*Math.acos(d)*180/Math.PI);}return worst;}
  const restMatches=(lib,fig,limit=REST_LIMIT)=>restOffset(lib,fig)<=limit;
  const pure={CLIPS,FILES,SOURCES,CORE,bare,all,clip,byCategory,group,groups,compatible,REST_LIMIT,restOffset,restMatches};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
  // ---- browser ----
- const loaded=new Map();   // library -> Promise<{container, hipY, groups: Map(clip id -> AnimationGroup)}> or null when the file is not there
+ const loaded=new Map(); // scene -> library promises; a preview scene owns its GPU resources
  const localFiles=new Map();
+ function releaseEntry(entry){
+  if(!entry)return;
+  entry.cancelled=true;
+  entry.promise?.then(result=>result?.container?.dispose());
+ }
+ function invalidate(lib){
+  for(const entries of loaded.values()){releaseEntry(entries.get(lib));entries.delete(lib);}
+ }
  function load(lib,scene){
-  const key=lib,have=loaded.get(key);if(have&&have.scene===scene)return have.promise;
+  let entries=loaded.get(scene);
+  if(!entries){
+   entries=new Map();loaded.set(scene,entries);
+   scene.onDisposeObservable.addOnce(()=>{loaded.delete(scene);for(const entry of entries.values())releaseEntry(entry);entries.clear();});
+  }
+  const have=entries.get(lib);if(have)return have.promise;
+  const entry={cancelled:false,promise:null};
   const promise=(async()=>{try{
     const local=localFiles.get(lib);if(local&&!root.VoidVRCompanionStudio?.authorized())return null;
     const container=await root.VoidAssets.loadContainer({src:FILES[lib],localBuffer:local?await local.arrayBuffer():null},scene,null,'anim:'+lib);
+    if(entry.cancelled||scene.isDisposed){container.dispose();return null;}
     const groups=new Map();for(const g of container.animationGroups||[]){g.stop();groups.set(g.name,g);}
     const hips=(container.transformNodes||[]).find(t=>bare(t.name)==='Hips');
     const rest={};for(const t of container.transformNodes||[]){const b=bare(t.name);if(!rest[b]&&t.rotationQuaternion)rest[b]=t.rotationQuaternion.asArray();}
     return {container,groups,rest,hipY:hips?Math.abs(hips.position.y)||1:1,hipsRest:hips?hips.position.clone():null};
    }catch(e){console.info('[VOID//RUNNER] animation library "'+lib+'" is not on this machine (licensed motion capture is published with the live site only). Characters keep their own clips.');return null;}})();
-  loaded.set(key,{scene,promise});return promise;}
+  entry.promise=promise;entries.set(lib,entry);return promise;}
  /* Give a figure the library's clips. node: the figure's root (its bones are transform nodes under it); look: its look id (for VoidCrowd.clips);
     only: clip ids wanted (default: all). Returns the ids added. Safe to call twice. */
  async function apply(node,look,{library=null,only=null,scene=null,catalog=true}={}){
@@ -81,11 +98,13 @@
   library=library||'actorcore';
   const sc=scene||node.getScene(),B=root.BABYLON,L=await load(library,sc);if(!L||node.isDisposed())return [];
   const bones=new Map();for(const t of node.getDescendants(false))if(t.rotationQuaternion!==undefined&&t.getClassName?.()==='TransformNode'){const b=bare(t.name);if(!bones.has(b))bones.set(b,t);}
-  if(!compatible([...bones.keys()]))return [];
+  const studio=studioRig(bones)&&studioRig(new Set(Object.keys(L.rest)));
+  if(!studio&&!compatible([...bones.keys()]))return [];
+  const required=studio?STUDIO:CORE;
   // the figure's own rest pose (its skeleton's bind-time local rotations; the bones themselves are already posed by a clip)
   const rest={};for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const b of sk.bones){const k=bare(b.name);if(rest[k])continue;const q=new B.Quaternion();b.getRestMatrix().decompose(undefined,q);rest[k]=q.asArray();}}
-  if(localFiles.has(library)&&!CORE.every(k=>Array.isArray(L.rest[k])&&Array.isArray(rest[k])))return [];
-  if(Object.keys(rest).length&&!restMatches(L.rest,rest)){node.metadata=node.metadata||{};node.metadata.animLibraryRefused=Math.round(restOffset(L.rest,rest));return [];}   // degrees off, for the browser test
+  if(localFiles.has(library)&&!required.every(k=>Array.isArray(L.rest[k])&&Array.isArray(rest[k])))return [];
+  if(Object.keys(rest).length&&restOffset(L.rest,rest,required)>REST_LIMIT){node.metadata=node.metadata||{};node.metadata.animLibraryRefused=Math.round(restOffset(L.rest,rest,required));return [];}   // degrees off, for the browser test
   const hips=bones.get('Hips'),scale=hips&&L.hipsRest?(hips.position.length()||1)/(L.hipsRest.length()||1):1,meta=node.metadata=node.metadata||{},list=meta.animationGroups=meta.animationGroups||[],added=[];
   for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.group||c.id)||(c.clip?L.groups.get(c.clip)||[...L.groups.values()].find(g=>g.name.replace(/\.\d{3}$/,'')===c.clip):null);if(!src)continue;if(localFiles.has(library)&&src.targetedAnimations.some(ta=>!bones.has(bare(ta.target.name))))continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
    const g=new B.AnimationGroup(name,sc);
@@ -103,7 +122,7 @@
  /* Another model file as a source of clips (Developer Tools > NPCs > Add animation, 18 Nov 2026): a public crowd file on a compatible rig. lib 'crowd:<asset>'; clips
     [{id:'<asset>/<clip>', clip:'<clip>'}]. The same rules apply: matching bone names and the rest pose within REST_LIMIT, or nothing is added. */
  function register(lib,file,clips){FILES[lib]=file;const have=CLIPS[lib]||(CLIPS[lib]=[]);for(const c of clips||[])if(!have.some(x=>x.id===c.id))have.push({loop:true,root:'inplace',category:'shared',title:c.id,...c});return CLIPS[lib];}
- function registerLocal(lib,blob,clips){if(!root.VoidVRCompanionStudio?.authorized())throw Error('Developer sign-in required.');localFiles.set(lib,blob);return register(lib,'assets/models/anim/'+lib+'.glb',clips);}
- function clearLocal(){for(const lib of localFiles.keys()){delete FILES[lib];delete CLIPS[lib];loaded.delete(lib);}localFiles.clear();}
+ function registerLocal(lib,blob,clips){if(!root.VoidVRCompanionStudio?.authorized())throw Error('Developer sign-in required.');if(localFiles.has(lib)&&localFiles.get(lib)!==blob)invalidate(lib);localFiles.set(lib,blob);return register(lib,'assets/models/anim/'+lib+'.glb',clips);}
+ function clearLocal(){for(const lib of localFiles.keys()){delete FILES[lib];delete CLIPS[lib];invalidate(lib);}localFiles.clear();}
  root.VoidAnimLibrary={...pure,register,registerLocal,clearLocal,load,apply,has:(node,id)=>!!node?.metadata?.animLibrary?.includes(id)};
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -4,6 +4,8 @@
 (function(root){
  const base='assets/models/crowd/';
  // Clips each look carries (must match its character spec).
+ // Prepared private assets are available for explicit assignment in the editor.
+ const prepared=[{"id":"imp-0f8c22aa-e590-5808-86f7-031a4b084bb9","asset":"npc-lib-0f8c22aa","name":"Pinky","source":"Meshy Blonde Character Ring (owner-confirmed source)","bytes":4323276,"sha256":"b1986be3b83d2889a1ef90df685e2bea34244e617d6875be53991ecce6cae42a","triangles":37500,"materials":1,"textures":4,"bones":["Hips","LeftUpperLeg","LeftLowerLeg","LeftFoot","LeftToes","RightUpperLeg","RightLowerLeg","RightFoot","RightToes","Spine","Chest","LeftUpperArm","LeftForeArm","LeftHand","Neck","Head","RightUpperArm","RightForeArm","RightHand"],"clips":["dance-belly","slow-dance","dance","hips","wave","idle-f2","interact","shrug","recline","glance-back","blow-kiss","laugh","head-tilt","coy","sit-wave","sit-relax","sit-talk","talk-f","idle-f","run","sit-exit","sit-enter","sit","walk","talk","idle"]}];
  const clips={
   'vesper-mechanic':['idle','talk','work','watch','walk'],'vesper-pilot':['idle','talk','work','watch','sit','walk'],'vesper-trader':['idle','talk','work','watch','sit','walk','sit-enter','sit-exit','sit-talk','interact','look'],
   'order-farmhand':['idle','talk','work','watch','walk'],'order-grower':['idle','talk','work','watch','walk'],'order-militia':['idle','talk','work','watch','walk'],
@@ -79,6 +81,7 @@
     played by the seat runtime (ncz-street-pair.js FLOOR_MOVE), never offered as a choice in the editors (npc-gestures.js NO). */
  const FLOOR_MOVES=['kneel','cross','knees'].flatMap(p=>['floor-'+p+'-down','floor-'+p+'-up']).concat(['cross','knees'].flatMap(p=>['floor-'+p+'-down-hi','floor-'+p+'-up-hi']));
  for(const k of Object.keys(clips))if(!NO_FLOOR.test(k))clips[k]=[...clips[k],...FLOOR,...FLOOR_MOVES];
+ for(const entry of prepared)clips[entry.asset]=entry.clips.slice();
  const pool=role=>Object.keys(street).filter(id=>street[id].roles.includes(role));
  const pools={mixed:pool('mixed'),corporate:pool('corporate'),club:pool('club'),cook:pool('cook'),outskirts:pool('outskirts'),drunk:pool('drunk'),district:pool('district'),vendor:pool('vendor'),busker:pool('busker')};
  // The old anonymous looks and who now stands in their place (code that still names an old look, a crowd member of an old build, a saved id: swap(look)).
@@ -227,6 +230,6 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
+ const api={casts,staff,clips,prepared,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

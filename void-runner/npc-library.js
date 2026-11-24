@@ -17,6 +17,10 @@
  }
  async function inspect(buffer,doc){
   const skins=doc.skins||[],primitives=doc.meshes.flatMap(m=>m.primitives);
+  const triangles=primitives.reduce((sum,p)=>{
+   const count=doc.accessors[p.indices??p.attributes.POSITION].count,mode=p.mode??4;
+   return sum+(mode===4?Math.floor(count/3):mode===5||mode===6?Math.max(0,count-2):0);
+  },0);
   const attributes=primitives.map(p=>Object.keys(p.attributes).sort().map(k=>[k,doc.accessors[p.attributes[k]].count]));
   const bones=skins.map(s=>s.joints.map(i=>doc.nodes[i].name||''));
   const bytes=new Uint8Array(buffer),view=new DataView(buffer);
@@ -32,7 +36,7 @@
   }
   const positions=await Promise.all(primitives.map(p=>viewHash(doc.accessors[p.attributes.POSITION]?.bufferView)));
   const images=await Promise.all((doc.images||[]).map(i=>viewHash(i.bufferView)));
-  return {sha256:await digest(buffer),shape:JSON.stringify([attributes,bones]),positions:positions.every(Boolean)?positions.join():null,images:images.length&&images.every(Boolean)?images.join():null,materials:(doc.materials||[]).length,
+  return {sha256:await digest(buffer),triangles,bones:[...new Set(bones.flat())],shape:JSON.stringify([attributes,bones]),positions:positions.every(Boolean)?positions.join():null,images:images.length&&images.every(Boolean)?images.join():null,materials:(doc.materials||[]).length,
    textures:(doc.textures||[]).length,rigged:skins.length>0&&primitives.some(p=>p.attributes.WEIGHTS_0!=null),
    clips:(doc.animations||[]).map(a=>a.name||'(unnamed)')};
  }
@@ -41,7 +45,7 @@
   if(a.sha256===b.sha256)return 'Identical model bytes';
   if(a.positions&&a.positions===b.positions&&a.images&&a.images===b.images)return 'Matching position buffers and textures';
   if(a.images&&a.images===b.images)return 'Matching texture files';
-  if(a.shape===b.shape)return 'Similar geometry counts and skeleton';
+  if(a.shape&&a.shape===b.shape)return 'Similar geometry counts and skeleton';
   return '';
  }
  const api={fold,availableName,referenced,inspect,match};

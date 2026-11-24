@@ -37,7 +37,7 @@ def glb_from(source):
         return z.read(member)
 
 
-def prepare(path, donor, out):
+def prepare(path, donor, out, height=None):
     target = R.GLB(path)
     if len(target.j.get('skins', [])) != 1 or any('matrix' in n for n in target.j['nodes']):
         raise ValueError('Requires individual skeleton review')
@@ -65,6 +65,22 @@ def prepare(path, donor, out):
         R.add_clip(target, name, times, tracks)
     for i, n in original.items():
         target.j['nodes'][i]['name'] = n
+    if height:
+        if not .5 <= height <= 2.5:
+            raise ValueError('Expected a character height in metres')
+        # This adapter accepts the archive's single skinned T-pose mesh. Bounds
+        # here are glTF Y-up mesh coordinates; reject transformed mesh instances.
+        meshes = [n for n in target.j['nodes'] if 'mesh' in n]
+        if len(meshes)!=1 or any(k in meshes[0] for k in ('matrix','translation','rotation','scale')):
+            raise ValueError('Normalize this transformed instance in Blender')
+        prims = target.j['meshes'][meshes[0]['mesh']]['primitives']
+        bounds = [target.acc(p['attributes']['POSITION'])[:,1] for p in prims]
+        extent = max(x.max() for x in bounds)-min(x.min() for x in bounds)
+        scale = float(height / extent)
+        for scene in target.j['scenes']:
+            index = len(target.j['nodes'])
+            target.j['nodes'].append({'name':'Metric character root','scale':[scale]*3,'children':scene['nodes']})
+            scene['nodes'] = [index]
     R.save(target, out)
 
 
@@ -90,6 +106,7 @@ def main():
     parser.add_argument('donor', type=Path, help='Recovered Nomi GLB with the shipped 26 clips')
     parser.add_argument('output', type=Path)
     parser.add_argument('--source-contains', required=True)
+    parser.add_argument('--height', type=float, help='Explicit metric height override for a reviewed source')
     args = parser.parse_args()
     donor = R.GLB(args.donor)
     R.CHILD = {**R.CHILD, 'Spine': 'Spine2'}  # Studio donor has one chest joint above the spine.
@@ -114,7 +131,7 @@ def main():
                 asset_id = 'imp-' + str(uuid.uuid5(uuid.NAMESPACE_URL, source + '#' + entry['sha256']))
                 previous = prior.get(asset_id, {})
                 previous_file = args.output / previous.get('file', '')
-                if (previous.get('donorHash') == donor_hash and previous.get('profileVersion') == PROFILE_VERSION
+                if (previous.get('donorHash') == donor_hash and previous.get('profileVersion') == PROFILE_VERSION and previous.get('heightOverride') == args.height
                         and previous_file.parent == args.output and previous_file.is_file()
                         and hashlib.sha256(previous_file.read_bytes()).hexdigest() == previous.get('sha256')):
                     record.update(previous)
@@ -122,10 +139,10 @@ def main():
                 stem = Path(source).stem
                 name = DISPLAY_NAMES.get(stem, stem.replace('_', ' ').title())
                 filename = name + '.glb'
-                record.update(id=asset_id, name=name, file=filename, donorHash=donor_hash, profileVersion=PROFILE_VERSION)
+                record.update(id=asset_id, name=name, file=filename, donorHash=donor_hash, profileVersion=PROFILE_VERSION,heightOverride=args.height)
                 src.write_bytes(data)
                 prepared = Path(temp) / 'result.glb'
-                prepare(src, donor, prepared)
+                prepare(src, donor, prepared,args.height)
                 output = args.output / filename
                 if output.exists() and output.read_bytes() != prepared.read_bytes():
                     raise ValueError('Output name already in use. Select a new output directory.')

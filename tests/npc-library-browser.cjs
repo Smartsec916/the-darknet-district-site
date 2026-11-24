@@ -25,11 +25,12 @@ const root=path.resolve(__dirname,'..');
   await page.goto('http://127.0.0.1:'+server.address().port+'/void-runner.html');
   await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:180000});
   await page.evaluate(async()=>{
-   await VoidDevTools.identity(async p=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1,preset:'NORMAL'};throw Object.assign(Error('Offline'),{status:404});});
+   await VoidDevTools.identity(async p=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1,preset:'NORMAL'};throw Object.assign(Error('Offline'),{status:404});},{uid:'npc-library-test'});
    VoidDevTools.open('npcs');
   });
   const library=page.getByRole('button',{name:'NPC Library',exact:true});
   await library.click();
+  const before=await page.evaluate(()=>VoidNPCEditor.imports.length);
   const draft=await page.evaluate(()=>JSON.stringify(VoidMissionEditor.shared.local()));
   const picked=page.waitForEvent('filechooser');
   await page.getByRole('button',{name:'Import model or companion package'}).click();
@@ -54,7 +55,46 @@ const root=path.resolve(__dirname,'..');
   await page.evaluate(id=>{const d=VoidMissionEditor.shared.local();d.npcs={...d.npcs,[id]:{mode:'original'}};VoidMissionEditor.shared.saveLocal(d);},id);
   await page.locator('[data-npc-import-delete]').click();
   await page.getByText(/A world or draft reference uses this asset/).waitFor();
-  assert.equal(await page.evaluate(()=>VoidNPCEditor.imports.length),2);
-  console.log('PASS: import, stable rename, duplicate evidence, archive/restore, unchanged world draft, referenced delete refused');
+  assert.equal(await page.evaluate(()=>VoidNPCEditor.imports.length),before+2);
+  await library.click();
+  const pinky=page.locator('article').filter({has:page.getByRole('heading',{name:'Pinky',exact:true})});
+  await pinky.getByRole('button',{name:'Assign to world draft'}).click();
+  await page.locator('[data-npc-make-name]').waitFor();
+  assert.equal(await page.locator('[data-npc-make-name]').inputValue(),'Pinky');
+  await page.locator('[data-npc-make-next]').click();
+  await page.waitForFunction(()=>Object.values(VoidMissionEditor.shared.local().characters||{}).some(c=>c.name==='Pinky'&&c.model==='npc-lib-0f8c22aa'));
+  await library.click();await pinky.getByRole('button',{name:'Edit / preview'}).click();
+  await page.locator('[data-npc-import-delete]').click();await page.getByText(/A world or draft reference uses this asset/).waitFor();
+  if(process.env.NPC_LIBRARY_FOLDER){
+   await page.locator('[data-npc-preview-go]').click();
+   await page.waitForFunction(()=>VoidNPCEditor.ui.preview?.clips?.length===26);
+   await library.click();
+   const folder=page.getByLabel('Prepared library folder'),panel=page.locator('details').filter({has:folder});
+   await panel.locator('summary').click();
+   await folder.setInputFiles(path.resolve(process.env.NPC_LIBRARY_FOLDER));
+   await page.getByRole('button',{name:'Import prepared folder'}).click();
+   await page.waitForFunction(()=>VoidNPCEditor.imports.length>=25);
+   await page.getByRole('button',{name:'Compare in 3D'}).waitFor();
+   if(process.env.NPC_MOTION_FOLDER){
+    if(!await panel.evaluate(p=>p.open))await panel.locator('summary').click();
+    await folder.setInputFiles(path.resolve(process.env.NPC_MOTION_FOLDER));
+    await page.getByRole('button',{name:'Import prepared folder'}).click();
+    await page.getByText(/^[1-9]\d* motions imported/).waitFor();
+   }
+   const choices=page.getByLabel('Comparison model 1');
+   await choices.selectOption({label:'Pinky'});await page.getByLabel('Comparison model 2').selectOption({label:'Orin Static'});
+   await page.getByRole('button',{name:'Compare in 3D'}).click();
+   await page.getByLabel('Animation for Pinky').selectOption({label:'walk'});
+   await page.getByLabel('Animation for Orin Static').selectOption({label:'sit'});
+   if(process.env.NPC_MOTION_FOLDER){
+    const pane=page.getByLabel('Shared motion for Pinky').locator('..');
+    await pane.getByRole('button',{name:'Test shared motion'}).click();
+    const note=pane.getByRole('status');
+    await page.waitForFunction(el=>el.textContent.length>0,await note.elementHandle());
+    assert.match(await note.innerText(),/^Playing /);
+   }
+   console.log('PASS: prepared folder import and simultaneous Babylon animation previews');
+  }
+  console.log('PASS: import, stable rename, duplicate evidence, archive/restore, unchanged world draft, referenced delete refused, registered model assigned to world draft');
  }finally{await browser?.close();server.closeAllConnections();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -24,3 +24,15 @@ test('the licensed files are not in the public repository; the code and the page
  const h=fs.readFileSync('void-runner.html','utf8');assert.ok(h.includes('void-runner/anim-library.js'));assert.equal(fs.readFileSync('static/void-runner.html','utf8'),h);
  assert.ok(fs.readFileSync('void-runner/vr-suite.js','utf8').includes('VoidAnimLibrary?.apply'));
 });
+test('shared motion containers are reused per scene and released with that scene',async()=>{
+ const vm=require('node:vm'),events=[],loads=[];
+ const fake={document:{},console,VoidAssets:{loadContainer:async(def,scene)=>{
+  loads.push(scene);return {animationGroups:[],transformNodes:[],dispose(){events.push(scene);}};
+ }}};
+ vm.runInNewContext(require('node:fs').readFileSync(require.resolve('../void-runner/anim-library.js'),'utf8'),fake);
+ const scene=()=>({onDisposeObservable:{addOnce(fn){this.close=fn;}}});
+ const a=scene(),b=scene(),lib=fake.VoidAnimLibrary;
+ await lib.load('actorcore',a);await lib.load('actorcore',b);await lib.load('actorcore',a);
+ assert.deepEqual(loads,[a,b]);a.onDisposeObservable.close();await Promise.resolve();
+ assert.deepEqual(events,[a]);await lib.load('actorcore',b);assert.equal(loads.length,2);
+});
