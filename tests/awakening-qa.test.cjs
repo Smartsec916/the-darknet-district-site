@@ -21,7 +21,7 @@ test('a report made from the V1 has no arrow to the person; a leave step leads o
  const ev=e=>x.MC.treeEvent(s,x.e,e,x.M,x.C);ev({type:'pod-exit',at:1});ev({type:'talk',npcs:['admin']});ev({type:'talk',npcs:['admin']});ev({type:'accept',mission:'m002-eyes-on-the-street'});ev({type:'place',places:['null']});
  ev({type:'photo',subjects:['juno-vex','halden-reyes']});ev({type:'send-photo',to:'admin',photo:{subjects:[{id:'juno-vex',valid:true},{id:'halden-reyes',valid:true}],during:['m002-eyes-on-the-street/photograph'],place:'null',at:1}});
  ev({type:'talk',npcs:['admin']});ev({type:'accept',mission:'m003-corporate-connections'});ev({type:'place',places:['milked']});ev({type:'talk',npcs:['milked-eva']});ev({type:'talk',npcs:['milked-fish']});
- s.story.flags.gameMin=(Number(s.story.flags.gameMin)||0)+361;ev({type:'place',places:['far-south']});ev({type:'place',places:['underground','under-tea-room']});
+ s.story.flags.gameMin=(Number(s.story.flags.gameMin)||0)+10;ev({type:'place',places:['far-south']});ev({type:'place',places:['underground','under-tea-room']});
  for(const k of ['locate','blend-in'])ev({type:'observe',step:'m004-a-promising-investment/'+k});ev({type:'overhear',step:'m004-a-promising-investment/overhear'});
  const g=()=>{const m=x.M.tracked(s,x.C);return x.M.guidance(s,m,true);};
  assert.deepEqual(g(),{kind:'instruction',label:'Report the information to Fish (V1 Mission Log: REPORT TO FISH).'},'no arrow to Fish at Milked');
