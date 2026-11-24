@@ -414,24 +414,25 @@
  function socialGateLeg(id,from,dest,policy){
   if(!socialEligible(id,policy)||!from?.area||!dest?.area||from.area===dest.area||
    !socialPoint(from,from.area)||!socialPoint(dest,dest.area)||!mayEnter(id,from.area,from).ok||!mayEnter(id,dest.area,dest).ok||
-   typeof policy.session!=='string'||!policy.session.startsWith('social:'+id+':')||policy.session.length<('social:'+id+':').length+1)return null;
+   !Number.isSafeInteger(policy.leg)||policy.leg<0||typeof policy.session!=='string'||!policy.session.startsWith('social:'+id+':')||policy.session.length<('social:'+id+':').length+1)return null;
   const r=areaRoute(id,from,dest,(l,a,b)=>socialGateAllowed(id,l,a,b,policy));
   if(!r?.length)return null;const {link,a,b}=r[0],w=link.ends[a].wait;
-  return {npc:id,session:policy.session,key:policy.session+':'+a+':'+link.id,area:a,next:b,via:link.id,to:{x:w.x,z:w.z},final:false};
+  return {npc:id,session:policy.session,leg:policy.leg,key:policy.session+':'+policy.leg+':'+a+':'+link.id,area:a,next:b,via:link.id,to:{x:w.x,z:w.z},final:false};
  }
  /* The next leg can be committed only for this live generation and actual walking transition.
     The canonical arrival is checked again, never reconstructed from the player's spawn. */
  function socialGateCross(plan,actor,transition,policy){
   const id=plan?.npc;
   if(!socialEligible(id,policy)||!plan||!actor||!transition||plan.session!==policy.session||
-   plan.key!==plan.session+':'+plan.area+':'+plan.via||actor.key!==plan.key||actor.area!==plan.area||
+   !Number.isSafeInteger(policy.leg)||policy.leg<0||plan.leg!==policy.leg||
+   plan.key!==plan.session+':'+plan.leg+':'+plan.area+':'+plan.via||actor.key!==plan.key||transition.key!==plan.key||actor.area!==plan.area||
    transition.from!==plan.area||transition.to!==plan.next||transition.via!==plan.via||transition.onFoot!==true||transition.riding!==false||
    !socialPoint(actor,plan.area)||!socialPoint(transition.player,plan.area))return null;
   const l=linkById(plan.via);
   if(!socialGateAllowed(id,l,plan.area,plan.next,policy))return null;
   const w=l.ends[plan.area].wait,at=l.ends[plan.next].ahead;
   if(!socialPoint(plan.to,plan.area)||dist(plan.to,w)>.01||dist(actor,w)>2.5||dist(transition.player,w)>6)return null;
-  return {key:plan.key,session:plan.session,area:plan.next,x:at.x,z:at.z,yaw:num(at.yaw)?at.yaw:0,via:l.id,ride:null};
+  return {key:plan.key,session:plan.session,leg:plan.leg,area:plan.next,x:at.x,z:at.z,yaw:num(at.yaw)?at.yaw:0,via:l.id,ride:null};
  }
  const api={socialGateLeg,socialGateCross,ACROSS,links,linkById,mayEnter,areaRoute,reach,reachWhy,legOf,linkBetween,across,arrival,rideAlong,areaOfQuarter,ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
  if(node)module.exports=api;else root.VoidNPCEscort=api;
