@@ -8,7 +8,7 @@ test('NPC importer offers .vrcompanion while retaining GLB and glTF',()=>{
 });
 test('companion import stores the original transfer privately and exports a repacked updated transfer',()=>{
  assert.match(source,/blob:model,transferBlob:original,companion/);
- assert.match(source,/companionExport=await importer\.repack\(rec\.transferBlob,\{\.\.\.rec\.companion,name:rec\.name\}\)/);
+ assert.match(source,/companionExport=await importer\.repack\(rec\.transferBlob,\{\.\.\.rec\.companion,name:rec\.name\},rec\.blob\)/);
  assert.match(source,/if\(companionExport\)download\(rec\.sourceFileName,companionExport\)/);
  assert.match(source,/data-npc-companion-profile/);
  assert.match(source,/missingVoiceLines/);
