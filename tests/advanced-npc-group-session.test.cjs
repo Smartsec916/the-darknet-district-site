@@ -135,7 +135,7 @@ function runtimeFollowHarness(source=runtimeSource){
  const root={VoidAdvancedInteractions:A,VoidNPCPaths:{MOVABLE:{iris:{}}},talkChoice(lines,c){choices=c;return true;}};
  const control={now:()=>time,busy:()=>busy};
  const api=new Function('root','env','control',
-  'const Date={now:control.now},MC={interactionLine:s=>s},social=new Map(),ordinaryTalkCounts=new Map();let planAt=1;'+
+  'const Date={now:control.now},MC={interactionLine:s=>s},social=new Map(),ordinaryTalkCounts=new Map(),carry={};let planAt=1,socialSerial=0;'+
   'const missionBusy=()=>control.busy(),resumeWalking=()=>{},saySocial=()=>{},socialDestination=()=>null,show=()=>{};'+
   source.slice(talkStart,talkEnd)+source.slice(beginStart,beginEnd)+
   ';return {open:()=>ordinaryTalk(["iris"]),phase:()=>social.get("iris")?.phase};'
@@ -162,4 +162,36 @@ test('leaving, content replacement and mission priority invalidate the pending i
 test('two clients have independent invitation deadlines and acceptance',()=>{
  const a=runtimeFollowHarness(),b=runtimeFollowHarness();a.open();b.open();a.advance(5000);b.advance(4999);
  a.choice('YES')();b.choice('YES')();assert.notEqual(a.phase(),'active');assert.equal(b.phase(),'active');
+});
+
+function runtimeSocialLifecycleHarness(source=runtimeSource){
+ const start=source.indexOf('function endSocial('),end=source.indexOf('function roomTick(',start);
+ const carryStart=source.indexOf('function setCarry('),carryEnd=source.indexOf('/* Where the person',carryStart);
+ const eventStart=source.indexOf('function onEscort('),eventEnd=source.indexOf('if(root.VoidStreetPair){root.VoidStreetPair.onEscort',eventStart);
+ let time=0,busy=false;const said=[],follow={role:'lead',place:'store',maxWait:5,arrive:'HERE',cancel:'BYE'};
+ const env={interactions:{iris:{advanced:{follow}}}};
+ const root={VoidAdvancedInteractions:A,VoidNPCPaths:{MOVABLE:{iris:{name:'Iris'}}},VoidPlaces:{target:()=>[2,0,2]},VoidNPCAreas:{areaOf:()=> 'avenue',nearest:p=>p},VoidNPCEscort:{FLAG:'npcEsc',encode:c=>c.key}};
+ const control={now:()=>time,busy:()=>busy};
+ const api=new Function('root','env','control','said',
+  'const Date={now:control.now},social=new Map(),carry={},state={story:{flags:{npcEsc:"mission/original"}}};let socialSerial=0,planAt=1,planCache={};'+
+  'const missionBusy=()=>control.busy(),saySocial=(id,line)=>said.push(line),livePos=()=>({x:0,z:0}),treesOn=()=>false;'+
+  source.slice(start,end)+source.slice(carryStart,carryEnd)+source.slice(eventStart,eventEnd)+
+  ';return {start:()=>{const f=env.interactions.iris.advanced.follow,offer={phase:"offer",at:Date.now(),generation:0};social.set("iris",offer);return beginSocial("iris",offer,f);},plan:()=>socialPlan("iris"),end:()=>endSocial("iris","cancel"),event:(p,event,extra={})=>onEscort({npc:"iris",key:p.key,step:p.step,event,...extra}),carry:c=>setCarry("iris",c),flag:()=>state.story.flags.npcEsc};'
+ )(root,env,control,said);
+ return {...api,said,advance:t=>{time=t;},busy(){busy=true;},republish(){env.interactions={iris:{advanced:{follow:{...follow}}}};}};
+}
+test('an active lead expires after waiting, not while moving, and resets the wait on catch-up',()=>{
+ const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.advance(4999);assert.ok(h.plan());h.advance(5000);assert.equal(h.plan(),null);
+ h.start();const q=h.plan();h.event(q,'walk');h.advance(20000);assert.ok(h.plan());h.event(q,'wait');h.advance(24999);assert.ok(h.plan());
+ h.event(q,'walk');h.advance(30000);h.event(q,'paused');h.advance(34999);assert.ok(h.plan());h.advance(35000);assert.equal(h.plan(),null);
+});
+test('an ended escort cannot complete or fail a newer escort for the same NPC',()=>{
+ const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.end();h.start();const q=h.plan();assert.notEqual(p.key,q.key);
+ h.event(p,'done');h.event(p,'failed');assert.ok(h.plan());h.event(q,'done');h.event(q,'done');assert.equal(h.plan(),null);assert.deepEqual(h.said,['BYE','HERE']);
+});
+test('active escort yields silently to mission priority or changed published content',()=>{
+ for(const change of [h=>h.busy(),h=>h.republish()]){const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();change(h);assert.equal(h.plan(),null);h.event(p,'done');assert.deepEqual(h.said,[]);}
+});
+test('social escort carry never overwrites a saved mission escort',()=>{
+ const h=runtimeSocialLifecycleHarness();h.start();const p=h.plan();h.carry({key:p.step,x:3,z:4});assert.equal(h.flag(),'mission/original');h.end();h.carry({key:p.step,x:4,z:5});assert.equal(h.flag(),'mission/original');h.carry({key:'mission/new',x:5,z:6});assert.equal(h.flag(),'mission/new');
 });
