@@ -1833,6 +1833,7 @@
           "walk-on"
         ],
         "anims": [
+          "meshy-run",
           "npc-busker/idle",
           "npc-busker/talk",
           "npc-busker/look",
@@ -2507,6 +2508,7 @@
           "walk-on"
         ],
         "anims": [
+          "meshy-run",
           "npc-busker/idle",
           "npc-busker/talk",
           "npc-busker/look",
@@ -3929,6 +3931,7 @@
           "walk-on"
         ],
         "anims": [
+          "meshy-run",
           "npc-admin/idle",
           "npc-admin/talk",
           "npc-admin/look",
@@ -17330,6 +17333,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -17652,6 +17656,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -18089,6 +18094,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -18415,6 +18421,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -18858,6 +18865,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -19099,6 +19107,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -19409,6 +19418,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-hacker/idle",
             "npc-hacker/talk",
             "npc-hacker/look",
@@ -19561,6 +19571,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-hacker/idle",
               "npc-hacker/talk",
               "npc-hacker/look",
@@ -19724,6 +19735,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -20062,6 +20074,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -20523,6 +20536,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -20857,6 +20871,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -21316,6 +21331,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -21455,6 +21471,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -21599,6 +21616,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -21811,6 +21829,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -22082,6 +22101,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -22219,6 +22239,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -22363,6 +22384,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -22653,6 +22675,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -23048,6 +23071,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -23310,6 +23334,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -23650,6 +23675,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -23954,6 +23980,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -24369,6 +24396,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -24661,6 +24689,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -25054,6 +25083,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -25332,6 +25362,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -25688,7 +25719,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -25818,7 +25851,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -25954,6 +25989,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -26268,6 +26304,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -26701,6 +26738,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-kei/idle",
             "npc-kei/talk",
             "npc-kei/look",
@@ -26846,6 +26884,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-kei/idle",
               "npc-kei/talk",
               "npc-kei/look",
@@ -27008,6 +27047,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -27260,6 +27300,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -27591,6 +27632,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -27778,6 +27820,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -28007,6 +28050,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -28307,6 +28351,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -28708,6 +28753,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -29024,6 +29070,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -29449,6 +29496,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -29749,6 +29797,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -30156,6 +30205,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -30482,6 +30532,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -30914,6 +30965,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -31212,6 +31264,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -31619,6 +31672,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -31787,6 +31841,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -31983,6 +32038,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -32200,6 +32256,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -32463,6 +32520,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -32809,6 +32867,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -33266,6 +33325,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -33594,6 +33654,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -34039,6 +34100,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -34194,6 +34256,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -34366,6 +34429,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-m/idle",
             "npc-casual-m/talk",
             "npc-casual-m/look",
@@ -34547,6 +34611,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-m/idle",
               "npc-casual-m/talk",
               "npc-casual-m/look",
@@ -34768,6 +34833,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -35084,6 +35150,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -35502,6 +35569,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -35688,6 +35756,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -35919,6 +35988,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -36209,6 +36279,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -36604,6 +36675,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -36815,7 +36887,9 @@
             "sit-knees",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -36939,7 +37013,9 @@
               "sit-knees",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -37075,6 +37151,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -37392,6 +37469,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -37721,6 +37799,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -38178,6 +38257,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -38394,6 +38474,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -38666,6 +38747,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -39003,6 +39085,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -39455,6 +39538,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-casual-f/idle",
             "npc-casual-f/talk",
             "npc-casual-f/look",
@@ -39632,6 +39716,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-casual-f/idle",
               "npc-casual-f/talk",
               "npc-casual-f/look",
@@ -39834,6 +39919,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-busker/idle",
             "npc-busker/talk",
             "npc-busker/look",
@@ -40126,6 +40212,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-busker/idle",
               "npc-busker/talk",
               "npc-busker/look",
@@ -40503,6 +40590,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -40827,6 +40915,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -41265,6 +41354,7 @@
             "sit-knees"
           ],
           "anims": [
+            "meshy-run",
             "npc-cyber-exec/idle",
             "npc-cyber-exec/talk",
             "npc-cyber-exec/look",
@@ -41416,6 +41506,7 @@
               "sit-knees"
             ],
             "anims": [
+              "meshy-run",
               "npc-cyber-exec/idle",
               "npc-cyber-exec/talk",
               "npc-cyber-exec/look",
@@ -41586,6 +41677,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -41776,6 +41868,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -41997,6 +42090,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -42159,6 +42253,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -42340,6 +42435,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -42579,6 +42675,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -42883,7 +42980,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -43005,7 +43104,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -43136,6 +43237,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -43472,6 +43574,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -43935,6 +44038,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-bishop/idle",
             "npc-bishop/talk",
             "npc-bishop/look",
@@ -44247,6 +44351,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-bishop/idle",
               "npc-bishop/talk",
               "npc-bishop/look",
@@ -44674,6 +44779,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -44925,6 +45031,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -45238,7 +45345,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -45360,7 +45469,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -45491,6 +45602,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-kei/idle",
             "npc-kei/talk",
             "npc-kei/look",
@@ -45630,6 +45742,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-kei/idle",
               "npc-kei/talk",
               "npc-kei/look",
@@ -45773,6 +45886,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "npc-admin/idle",
             "npc-admin/talk",
             "npc-admin/look",
@@ -46106,6 +46220,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "npc-admin/idle",
               "npc-admin/talk",
               "npc-admin/look",
@@ -46558,6 +46673,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-worker/idle",
             "communion-worker/talk",
             "communion-worker/work",
@@ -46754,6 +46870,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-worker/idle",
               "communion-worker/talk",
               "communion-worker/work",
@@ -47000,6 +47117,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -47196,6 +47314,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -47445,6 +47564,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -47644,6 +47764,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -47889,6 +48010,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -48086,6 +48208,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -48331,6 +48454,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -48527,6 +48651,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -48776,6 +48901,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -48975,6 +49101,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -49224,6 +49351,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -49424,6 +49552,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -49670,6 +49799,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -49866,6 +49996,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -50112,6 +50243,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -50311,6 +50443,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -50557,6 +50690,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -50753,6 +50887,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -50999,6 +51134,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -51195,6 +51331,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -51441,6 +51578,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -51637,6 +51775,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -51886,6 +52025,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -52087,6 +52227,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -52336,6 +52477,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -52536,6 +52678,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -52782,6 +52925,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -52980,6 +53124,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -53226,6 +53371,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -53422,6 +53568,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -53668,6 +53815,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -53864,6 +54012,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -54113,6 +54262,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -54312,6 +54462,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -54556,6 +54707,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -54757,6 +54909,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -55003,6 +55156,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -55206,6 +55360,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -55450,7 +55605,9 @@
             "shrug",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -55566,7 +55723,9 @@
               "shrug",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -55682,7 +55841,9 @@
             "wait",
             "idle"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -55789,7 +55950,9 @@
               "wait",
               "idle"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -55906,7 +56069,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -56026,7 +56191,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -56151,7 +56318,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -56271,7 +56440,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -56397,7 +56568,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -56520,7 +56693,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -56648,6 +56823,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -56850,6 +57026,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -57091,7 +57268,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -57211,7 +57390,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -57337,6 +57518,7 @@
             "walk-on"
           ],
           "anims": [
+            "meshy-run",
             "communion-tech/idle",
             "communion-tech/talk",
             "communion-tech/work",
@@ -57538,6 +57720,7 @@
               "walk-on"
             ],
             "anims": [
+              "meshy-run",
               "communion-tech/idle",
               "communion-tech/talk",
               "communion-tech/work",
@@ -57779,7 +57962,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -57899,7 +58084,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -58024,7 +58211,9 @@
             "work",
             "walk-on"
           ],
-          "anims": [],
+          "anims": [
+            "meshy-run"
+          ],
           "pathOnly": [
             "walk-on"
           ]
@@ -58144,7 +58333,9 @@
               "work",
               "walk-on"
             ],
-            "anims": [],
+            "anims": [
+              "meshy-run"
+            ],
             "pathOnly": [
               "walk-on"
             ]
@@ -61940,7 +62131,7 @@
       "spawn"
     ]
   },
-  "revision": "7e4f45a67ae064e8",
+  "revision": "43d83adeb808aacc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -78211,313 +78402,313 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 367,
+      "line": 406,
       "text": "/* ANIMATIONS (npc-gestures.js): the clips a character can really play, as a dropdown. who: the speaker (an NPC id); value: the clip chosen (or none). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 375,
+      "line": 414,
       "text": "const WAIT_STEP_HELP='A pause in the mission: it goes on to the next step after that many seconds (1 to 600). With a distance and a person, the time counts only while the player stays that close to them (for example “stay with Iris for 30 seconds”). The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 376,
+      "line": 415,
       "text": "const DELAY_HELP='Optional: how long after the step before is done this step begins (0 to 600 seconds; 0 = at once). Until then this step’s person does not react and its lines are not said. The clock stops in the pause menu, conversations and the KeyMap.';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 378,
+      "line": 417,
       "text": "const ANIM_STEP_HELP='An animation between steps: as soon as the step before is done (and the conversation is closed), this person does the animation where they stand, and the mission waits the seconds you set before the next step starts (0: it goes straight on). Use it for a pause in the story, for example Iris shrugs and then sends the player off.';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 380,
+      "line": 419,
       "text": "const TIME_HELP='Timing (optional): “wait before” pauses the conversation (it shows “…”) before this line appears; “show for” makes the conversation go on by itself after that many seconds instead of waiting for the player to press CONTINUE (never past ACCEPT / DENY).';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 385,
+      "line": 424,
       "text": "const LINES_HELP='Write the conversation in order: + ADD A LINE FOR … adds what the character says, + ADD A PLAYER LINE adds the player’s reply (shown as “You” in the conversation window; the player has no voice, so it is text only). “Who says it” changes the speaker of any line.';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 390,
+      "line": 429,
       "text": "const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(!L||!L[k])return;L[k].who=v;if(v!=='You')delete L[k].choice;const sp=v||defWho;if(L[k].anim&&(v==='You'||(NGS()&&NGS().problem(sp,L[k].anim,{plan:((local().npcs)||{})[sp]||null}))))delete L[k].anim;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+defName:'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 393,
+      "line": 432,
       "text": "const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':ch?'The player’s reply when they press '+(ch.yes||'ACCEPT'):you?'The player’s line':'Line',rows:'2',placeholder:ch?'(optional: what the player says when they press '+(ch.yes||'ACCEPT')+')':you?'(what the player says back)':'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';const tn=tagNoteEl(l.text,g&&g.id||(you?'You':''),g&&g.name);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 398,
+      "line": 437,
       "text": "if(g&&(g.voice||vn.kind==='elevenlabs')&&(l.text||'').trim()&&!you)tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 402,
+      "line": 441,
       "text": "if(!you&&g&&!opt.noAnim){const ar=el('div','','me-row me-line-anim',{'data-me-line-anim':keyBase+'/'+k}),{sel,r}=animPick(g.id,l.anim,v=>editTree(t.id,x=>{const L=pick(x);if(!L||!L[k])return;if(v)L[k].anim=v;else delete L[k].anim;status=v?'While saying this line, '+g.name+' does: '+NGS().nameOf(v)+'. PLAY THIS DRAFT shows it.':'No animation on this line.';},true),{'data-me-line-anim-pick':keyBase+'/'+k});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 403,
+      "line": 442,
       "text": "ar.append(el('span','While saying this, '+g.name+' does:','me-small'),sel);if(!r.ok)ar.append(el('span',r.why,'me-small me-muted'));else if(lines.findIndex(x=>x&&x.who!=='You')===k)ar.append(hint(ANIM_HELP,{'data-me-anim-help':'1'}));body.append(ar);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 417,
+      "line": 456,
       "text": "else if(p[0]==='ending'){L=(mm.ending.say=mm.ending.say||[]);p.splice(0,1);}else{const oo=mm.objectives.find(o=>o.id===p[0]);if(!oo)return undefined;if(!Array.isArray(oo[p[1]]))oo[p[1]]=[];L=oo[p[1]];p.splice(0,2);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 419,
+      "line": 458,
       "text": "const full=lines.length>=12,add=(w,what)=>editTree(t.id,x=>{const L=pick(x);if(L&&L.length<12)L.push({who:w,text:''});status=what;},true);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 421,
+      "line": 460,
       "text": "btn('+ ADD A PLAYER LINE',()=>add('You','New player line: type what the player says back.'),'',{'data-me-add-player-line':keyBase,...(full||opt.noPlayer?{disabled:'',title:opt.noPlayer||'12 lines at most here.'}:{})}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 449,
+      "line": 488,
       "text": "{const nr=root.VoidMissionBlocks.startMode(m);if(!(m.start&&m.start.how==='notification')||nr==='near'||nr==='near-accept'){card.append(linesEditor(t,m,m.offer,'offer',m.giver,nr==='near'||nr==='near-accept'?'What '+(gv?gv.name:'the giver')+' says when the player walks near':'What '+(gv?gv.name:'the giver')+' says when offering it',{choice:MC().choiceOk(m,null)}));card.append(hint(HELP.offer));}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 458,
+      "line": 497,
       "text": "if(m.ending.npc){end.append(field('Hand-in step in the Mission Log',m.ending.label,v=>ed(x=>{x.ending.label=v.slice(0,200);}),false,{placeholder:'(empty: “Hand in to '+((giver(m.ending.npc)||{}).name||'')+'”)'}));end.append(linesEditor(t,m,m.ending.say||[],'ending',m.ending.npc,'What is said at the hand-in'));}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 487,
+      "line": 526,
       "text": "if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'),...onlyHere(m,ed));return box;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 493,
+      "line": 532,
       "text": "const tl=el('label','','me-field');tl.append(el('span','Body'+(near?' (optional for walk near: the giver speaks in person)':'')));const ta=el('textarea','','',{'aria-label':'Body',rows:'3',maxlength:'500','data-me-start-text':m.id,placeholder:'(your words)'});ta.value=st.text||'';ta.oninput=()=>{set(x=>{x.text=ta.value.slice(0,500);});guideSoon();};tl.append(ta,hint(near?'Leave it empty and no text is sent: the mission starts with a short NEW MISSION line and goes into the Mission Log; '+(gv0?gv0.name:'the giver')+' says the offer lines in person.':HELP.body));wbox.append(hl,tl);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 557,
+      "line": 596,
       "text": "deny:{again:'Today’s behaviour: an offer in person comes again the next time the player talks to them; a message, call, banner or walk-near comes again after the next Sleeping Pod exit.',pod:'It comes again after the player next leaves their Sleeping Pod. Meanwhile a giver who waits at a spot for it goes about her own routine.',after:'It comes again after that many minutes of play (1 to 120; only while the player is in the world, not in menus or conversations; a reload keeps the count). A walk-near offer also needs the player to walk out of its distance and come back. Meanwhile a giver who waits at a spot for it goes about her own routine, then walks back to it (never popping in or out in front of the player). In PLAY THIS DRAFT, SKIP THE WAIT in the banner ends the wait at once.',never:'It is never offered again (removed). Missions after it in this tree will not come either. A giver who waited at a spot for it goes back to her own routine, out of the player’s sight.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 628,
+      "line": 667,
       "text": "missing (an old cached page, a failed load) the panel still shows, says \"Loading the street doors…\", loads what is missing and redraws (the owner, 19 Nov 2026: \"i also",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 657,
+      "line": 696,
       "text": "if(root.VoidNPCMap){const markers=X.doors().filter(dd=>(dd.family==='container')===!!X.isContainer(a.style||'normal')).map(dd=>({id:dd.id,x:dd.x,z:dd.z,color:dd.id===a.door?'#ffb347':'#7fd4ff',label:dd.id===a.door?dd.name:'',ghost:dd.id!==a.door}));const say=el('span',a.door?'Chosen: '+((X.door(a.door)||{}).name):'Click a door (the blue marks) to choose it.','me-small',{'data-me-apt-map-note':a.id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 658,
+      "line": 697,
       "text": "try{const map=root.VoidNPCMap.create({markers,area:d?{avenue:'avenue',oldtown:'oldtown','far-south':'far-south',port:'port',outskirts:'outskirts'}[d.quarter]:X.isContainer(a.style||'normal')?'outskirts':'oldtown',onPick:(x,z)=>{const n=X.nearestDoor(x,z,10,X.isContainer(a.style||'normal')?'container':'city');if(!n){say.textContent='No apartment door within 33 ft of that spot. Click nearer a blue mark.';return;}ea(a.id,y=>{y.door=n.id;},true);}});map.el.dataset.meAptMap=a.id;sec.append(map.el,say);}catch(e){sec.append(el('p','The map could not be drawn here; choose the door from the list.','me-small me-warn'));}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 706,
+      "line": 745,
       "text": "else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 720,
+      "line": 759,
       "text": "if(!['message','pod-exit','hear','send-photo','await-call','anim','wait','ask',...((root.VoidMechanicsEditor&&root.VoidMechanicsEditor.NO_VIA)||[])].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 722,
+      "line": 761,
       "text": "const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 724,
+      "line": 763,
       "text": "if(o.kind==='ask')sb.append(linesEditor(t,m,o.denySay||[],o.id+'/denySay',sayWho,'What is said after DENY (optional)'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 725,
+      "line": 764,
       "text": "if(o.kind!=='message'&&o.kind!=='pod-exit'&&o.kind!=='anim'&&o.kind!=='wait'&&!((root.VoidMechanicsEditor&&root.VoidMechanicsEditor.NO_LINES)||[]).includes(o.kind))sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='ask'?'What is said after ACCEPT (optional)':o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done',dev?{noPlayer:o.kind==='send-photo'?'A reply in Messages comes from one character: no player lines or animations here.':'A Comms call or a message comes from one character: no player lines here (choose “In person” for a back-and-forth).',noAnim:true}:{choice:MC().choiceOk(m,o)}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 805,
+      "line": 844,
       "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 806,
+      "line": 845,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 837,
+      "line": 876,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 845,
+      "line": 884,
       "text": "\"Lines & voice\"). Every line the NPC says in a mission (grouped by tree and mission, with a button to open that mission) and outside missions; the registered voice",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 847,
+      "line": 886,
       "text": "function linesFor(id){if(!built)return null;const g=giver(id),ids=[id,g&&g.say].filter(Boolean);return (built.npcs||[]).find(x=>ids.includes(x.id))||null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 851,
+      "line": 890,
       "text": "const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 869,
+      "line": 908,
       "text": "const gr=root.VoidStreetPair?.GREETING?.[id];if(gr&&gr.length){const d=el('div','','me-scene',{'data-npc-greeting':id});d.append(el('h5','When there is no mission for the player (placeholder in the game’s code)'));for(const t of gr)d.append(el('p','“'+t+'” · text only, no voice · needs a code change to edit','me-small'));root_.append(d);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 879,
+      "line": 918,
       "text": "const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 886,
+      "line": 925,
       "text": "input.onchange=async()=>{const f=input.files&&input.files[0];input.value='';if(!f)return;const words=String(textNow()||'').trim();if(!words){msg.className='me-small me-bad';msg.textContent='Write what they say first, then import the voice file for those words.';return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 888,
+      "line": 927,
       "text": "const kept=await I.store(r.hash,r.type,r.data,r.duration);setClip(key,I.record({who,text:words,hash:r.hash,type:r.type,duration:r.duration,bytes:r.bytes,name:r.name,reencoded:r.reencoded}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 908,
+      "line": 947,
       "text": "function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 921,
+      "line": 960,
       "text": "const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 931,
+      "line": 970,
       "text": "const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 935,
+      "line": 974,
       "text": "if(cur.kind==='elevenlabs'&&cur.from==='editor')r.append(btn('REMOVE MY CHOICE',()=>{setVoice(id,null);say('Removed your voice choice for '+name+' (UNDO puts it back).');redraw();},'me-x',{'data-voice-remove':id,title:'Back to '+(voiceNow(id).kind==='none'?'no voice':'the voice they had before')+'.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 962,
+      "line": 1001,
       "text": "/* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 970,
+      "line": 1009,
       "text": "const area=escArea(m,o.npc),AN=(root.VoidNPCAreas?.get(area)||{name:'The Avenue'}).name;box.append(el('p',who.name+' starts in '+AN+' for this mission (where she waits for it, else her placement in Developer Tools > NPCs). The step may go on into other areas: '+who.name+' comes through the city gates, the stairs to and from the tunnels and the District’s door with the player, walking or in a taxi (never where they may not go: a problem below says so).','me-small',{'data-me-esc-area':o.id}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1045,
+      "line": 1084,
       "text": "'step-subject':(m,o)=>'[data-me-step-subject=\"'+CSS.escape(o)+'\"]',label:(m,o)=>'[data-me-label=\"'+CSS.escape(o)+'\"]',say:(m,o)=>'[data-me-tstep=\"'+CSS.escape(o)+'\"] textarea',ending:m=>'[data-me-ending=\"'+CSS.escape(m.id)+'\"]','wait-at':m=>'[data-me-wait-at=\"'+CSS.escape(m.id)+'\"] canvas','step-spot':(m,o)=>'[data-me-esc-map=\"'+CSS.escape(o)+'\"] canvas','step-stop':(m,o)=>'[data-me-esc-stop=\"'+CSS.escape(o)+'\"]','step-into':(m,o)=>'[data-me-esc-into=\"'+CSS.escape(o)+'\"]',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1056,
+      "line": 1095,
       "text": "if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1058,
+      "line": 1097,
       "text": "const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename=\"'+CSS.escape(raw.id)+'\"]',text:'the tree’s name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1059,
+      "line": 1098,
       "text": "if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1061,
+      "line": 1100,
       "text": "for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission=\"'+CSS.escape(m.id)+'\"] '+f(m,n.step),text:n.text});}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1062,
+      "line": 1101,
       "text": "return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play=\"tree:'+CSS.escape(doneM.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1065,
+      "line": 1104,
       "text": "const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1153,
+      "line": 1192,
       "text": "used to vanish as an unhandled promise rejection; now the editor says what stopped it, in the status line, and the browser console keeps the details. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1224,
+      "line": 1263,
       "text": "addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;",
       "kind": "source-reference"
     },
@@ -79723,19 +79914,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1007,
+      "line": 1008,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1176,
+      "line": 1177,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1297,
+      "line": 1298,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -80695,19 +80886,19 @@
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 26,
+      "line": 27,
       "text": "const profile=p=>'<article class=\"hud-card social-profile\" data-profile=\"'+esc(p.key)+'\"><div class=\"social-avatar\" aria-hidden=\"true\">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type=\"button\" data-hud-character=\"'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'\">CONVERSATIONS</button></div></article>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 31,
+      "line": 32,
       "text": "'<h2>YOUR PROFILE</h2>'+profile(me)+'<h2>CONVERSATIONS</h2><div class=\"social-filters\">'+filterButtons+(socialCharacter?'<button type=\"button\" data-hud-character=\"\">CLEAR CHARACTER</button>':'')+'</div><div class=\"social-thread\" aria-label=\"Conversation history\">'+(thread||'<p>No conversations in this view.</p>')+'</div>'+",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-hud.js",
-      "line": 32,
+      "line": 33,
       "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
       "kind": "source-reference"
     },
@@ -82953,7 +83144,7 @@
   "warnings": [],
   "sources": {
     "void-runner/account.js": "3d25e4ace5843cbd501bf7525f8f8ae3d0e45dc29de6701194012ae844cb0cac",
-    "void-runner/achievements.js": "c9fcfe10ff0b63159be95d0b2e139ac3dcc3848080d80f40f50589148fddf200",
+    "void-runner/achievements.js": "3a44ec55663a40473f107997c8ec67fe3b001cfc6e4ca40d5a983526a96fe88b",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
     "void-runner/ad-screens.js": "5792c93ef49ad52000b82b2a8e73e216d1d1430e1e111f1db295b83d8f5ab944",
@@ -83025,16 +83216,16 @@
     "void-runner/dev-tools.js": "d512402f4233210283b64ca7ec4d8d3dc70aebae6daa772451697e13f93b5e31",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
-    "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
+    "void-runner/device-gate.js": "69755eb313451dfdc5b9079e21610d4d6283c3142336aa345edd2733e8f07598",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
     "void-runner/device-v1.js": "4fb198cb4b873819aa7b1224780b4bb23c11431983c59b44cd5504d5c08375d5",
-    "void-runner/district-arcade.js": "c3af70e2fb4cf3ca567309ed745a0862bb455f01397fa075805e5dc6b1a0476c",
+    "void-runner/district-arcade.js": "454e312bdeb4c7393d0e61b66ffd501b32a496a013e60308d6b27a4fe32e9726",
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
     "void-runner/district-map.js": "42a44b7beafd5e3db9ce96f7cd4b0b68beff60590eea58feb006b36bd34cfd7f",
-    "void-runner/district-people.js": "073b8cc90db96c392deb1606a03a75ad97ce273a57bda8c7ecee0132e8a2d008",
-    "void-runner/district-rooms.js": "240bd61023dd1410f46b61b1f26ba8fa2a35fce3db27555960e2fff82cdc13ab",
+    "void-runner/district-people.js": "8bbb7424c4ef8a1b8118875cb895a910b4d78c437f1bd69ffbcb2010a8ef40da",
+    "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "bcee4f8653c2baa33a52e08db57485e618c3ba8e6fb2616f78efbe78dd5d04be",
     "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
@@ -83073,6 +83264,7 @@
     "void-runner/guide-route.js": "644184de23777f5addd84e92d4848206807f285ae7a7592cd694fe49377a17f1",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
+    "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input-state.js": "ff140346e56ce4d0d43aa0baf45551daf7e49204ffdd58aea907b0bfa5fe241a",
@@ -83088,7 +83280,7 @@
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
     "void-runner/main-story.js": "8cee869bbad79c79e26b9c7dde1e96050616c73ffd4a8342e9b240bc61ec6ec1",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
-    "void-runner/menu.js": "c25efe78f21fca7046cb6183263e2709bbaa4258e9d8c7aa9dce247ebd4b16bb",
+    "void-runner/menu.js": "9e3496b07d3bde85163afadf0cf6bdcf8b753a27c348223460af8aae45e169e0",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
     "void-runner/meridian-interior-kit.js": "8ba96cf08df03ca3ae29397f5f71cbb20f4402195c6686ff120320ec81d1f846",
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",
@@ -83103,7 +83295,7 @@
     "void-runner/mission-blocks.js": "061c4b824827d796bb71755b250dcbbf04d875167ab816fb2c4ec34e8353f49e",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "2de90150d45cc33edd140c92d96ba80aa6bb5cd9214c21a83cfc5706b32de044",
+    "void-runner/mission-editor.js": "58cbe38fe0c5f3e345db7287e7582694eb95891b1f1e353547d965574cb71ed3",
     "void-runner/mission-givers.js": "c4a245cb379f48617d79db9c689a39186cf697a98b7cba4f3a8f00e235e05de9",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -83142,7 +83334,7 @@
     "void-runner/ncz-street-pair.js": "cb53bba3b41cb93cfedac2262d1b860f2db2c836b9786fd192a0cf3f9efc9179",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
-    "void-runner/neochinatown.js": "15150fc3e8dc990c27c804332364bc10458c1bd6363c4bd8f19f8d7c855abdf8",
+    "void-runner/neochinatown.js": "5a9f04601c4430c7de97afd52dff17541123a79d1fcbf738c604620473234bdf",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "710466e49762a766b72fc5c5dcfba6e0f9f1b08828ece07c43d83f8574ac2188",
@@ -83161,7 +83353,7 @@
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "90066ea7331e46c6aa8181aa1cfda52da3741163e73c65adf1dc03d2208d33b8",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
-    "void-runner/npc-paths.js": "fe86a49b9e0360bbd5b2ecf862e1db5994305b7d8bc78874721ae83c627af790",
+    "void-runner/npc-paths.js": "1c267ca13475514ec8bfc552f502f003be6c189da5199b46122bd09231cc56de",
     "void-runner/npc-preview.js": "17d6ef0ef7133f2540888558be89b034aeb11384d894d54ac8a8d64ec838724d",
     "void-runner/npc-services.js": "72aa9d104d395c57e85eaa2668a089daf81fcade5f12f254ea37c13bfebd0912",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
@@ -83171,8 +83363,8 @@
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/ordnance.js": "a3e43868918ec882965f16c95cd859475b3e634f5d75e691e606f8aefaa383c8",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
-    "void-runner/personal-device.js": "219ef954069d719d2533776325dd6aff4dbbbec5c3d44d1d537607899747eab4",
-    "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
+    "void-runner/personal-device.js": "c8f0574cf46a07cab0de40b566c0cc4566ba4f8c9afb3a88647c0818f7262d1f",
+    "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",

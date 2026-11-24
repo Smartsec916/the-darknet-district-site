@@ -38,7 +38,7 @@
  function recommendQuality(){return null;}
 
  const COPY={
-  phone:{title:'The Darknet District is a desktop experience',lines:['The 3D game is built for desktop computers, with a keyboard and mouse or a gamepad. It does not run on phones.','Open this page on a computer to walk into the District. Your phone keeps the full website.']},
+  phone:{title:'Void Runner is a desktop experience',lines:['The 3D game is built for desktop computers, with a keyboard and mouse or a gamepad. It does not run on phones.','Open this page on a computer to walk into the District. Your phone keeps the full website.']},
   tablet:{title:'This tablet is not set up for the 3D game',lines:['The 3D game needs a computer-class device: a mouse or trackpad, enough memory and a recent browser.','Open this page on a desktop or laptop computer to enter the District.']},
   'no-webgl':{title:'This browser cannot draw the 3D world',lines:['The game needs WebGL, and it is switched off or unavailable here.','Try a current version of Edge, Chrome or Firefox on a desktop computer, with hardware acceleration turned on.']}
  };
@@ -77,7 +77,7 @@
   box.querySelector('.note').textContent=SOCIAL;
   if(decided.overridable){const b=d.createElement('button');b.type='button';b.textContent='Try the 3D game on this device anyway';
    b.addEventListener('click',()=>{try{root.sessionStorage.setItem('tdd-force-3d','1');}catch(e){/* storage blocked */}root.location.reload();});box.querySelector('.row').appendChild(b);}
-  d.body.appendChild(box);d.title='The Darknet District';
+  d.body.appendChild(box);d.title='Void Runner';
  }
 
  /* Called by the page at the start of the body: the game's stylesheets (marked rel="tdd-stylesheet", so the browser does not fetch them) are written back as real ones, before anything is drawn. */

@@ -5,8 +5,8 @@ is for that source only. Each target vertex samples barycentric skin weights fro
 the closest donor triangle, with opposite-side leg influences excluded below the hip.
 """
 import bpy
+import bmesh
 import json
-import math
 from pathlib import Path
 import sys
 from mathutils import Vector, Matrix, geometry
@@ -30,6 +30,16 @@ mesh.parent = None
 mesh.matrix_world = Matrix.Identity(4)
 if len(mesh.data.polygons) != 257544 or mesh.vertex_groups:
     raise ValueError('Unexpected source topology or existing rig')
+# Weld coincident positions before reduction. The downloaded mesh carries UV
+# and normal splits; reducing disconnected islands can erase entire limbs.
+bm = bmesh.new()
+bm.from_mesh(mesh.data)
+bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=1e-5)
+bm.to_mesh(mesh.data)
+bm.free()
+mesh.data.update()
+source_area = sum(poly.area for poly in mesh.data.polygons)
+source_bounds = [max(v.co[i] for v in mesh.data.vertices)-min(v.co[i] for v in mesh.data.vertices) for i in range(3)]
 mesh.name = 'Blonde ring character'
 points = [donor.matrix_world @ v.co for v in donor.data.vertices]
 donor.data.calc_loop_triangles()
@@ -38,6 +48,14 @@ tree = BVHTree.FromPolygons(points, triangles, all_triangles=True)
 source_names = {g.index: g.name for g in donor.vertex_groups}
 groups = {n: mesh.vertex_groups.new(name=n) for n in source_names.values()}
 width_scale = max(abs(v.x) for v in points) / max(abs(v.co.x) for v in mesh.data.vertices)
+def smoothstep(lo, hi, value):
+    t = min(1, max(0, (value-lo)/(hi-lo)))
+    return t*t*(3-2*t)
+
+leg_landmarks = {}
+for side in ('Left','Right'):
+    leg_landmarks[side] = {part:(rig.matrix_world @ rig.data.bones[side+part].head_local)
+                           for part in ('LowerLeg','Foot','Toes')}
 opposite_removed = 0
 for v in mesh.data.vertices:
     x, y, z = v.co
@@ -54,26 +72,37 @@ for v in mesh.data.vertices:
                 opposite_removed += 1
                 continue
             weights[name] = weights.get(name,0) + max(0,factor)*entry.weight
+    # Studio weights sampled across the space between the two legs can vary
+    # sharply over adjacent fishnet vertices. Blend onto the actual knee hinge
+    # and ankle, keeping the thigh and calf rigid away from either joint.
+    strength = 1-smoothstep(-.20,-.065,z)
+    if strength > 0:
+        side = 'Left' if x >= 0 else 'Right'
+        knee, ankle, toes = (leg_landmarks[side][p] for p in ('LowerLeg','Foot','Toes'))
+        thigh = smoothstep(knee.z-.11,knee.z+.11,z)
+        calf = smoothstep(ankle.z-.065,ankle.z+.065,z)*(1-thigh)
+        foot = max(0,1-thigh-calf)
+        toe = smoothstep(.66,1.09,(y-ankle.y)/(toes.y-ankle.y))
+        analytic = {'UpperLeg':thigh,'LowerLeg':calf,'Foot':foot*(1-toe),'Toes':foot*toe}
+        weights = {name:w*(1-strength) for name,w in weights.items()}
+        for part,w in analytic.items():
+            key = side+part
+            weights[key] = weights.get(key,0)+strength*w
     top = sorted(weights.items(),key=lambda pair: -pair[1])[:4]
     total = sum(w for _,w in top)
     if not total:
         raise ValueError(f'No compatible weights on vertex {v.index}')
     for name, weight in top:
         if weight > 0: groups[name].add([v.index],weight/total,'REPLACE')
-# Protect the facial silhouette during reduction, after weights have been transferred.
-mask = mesh.vertex_groups.new(name='Detail priority')
-for v in mesh.data.vertices:
-    if v.co.z < .69 or abs(v.co.x) > .10:
-        mask.add([v.index],1,'REPLACE')
 mod = mesh.modifiers.new('Real-time triangle budget','DECIMATE')
 mod.ratio = 37500 / len(mesh.data.polygons)
-mod.vertex_group = mask.name
-mod.vertex_group_factor = .5
 bpy.context.view_layer.objects.active=mesh
 bpy.ops.object.modifier_apply(modifier=mod.name)
-detail = mesh.vertex_groups.get('Detail priority')
-if detail:
-    mesh.vertex_groups.remove(detail)
+area = sum(poly.area for poly in mesh.data.polygons)
+print('Reduction quality',source_area,area,source_bounds, flush=True)
+bounds = [max(v.co[i] for v in mesh.data.vertices)-min(v.co[i] for v in mesh.data.vertices) for i in range(3)]
+if not .90 < area / source_area < 1.05 or any(abs(new/old-1) > .03 for new,old in zip(bounds,source_bounds)):
+    raise ValueError(f'Reduction lost silhouette or surface: area {area/source_area:.3f}, bounds {bounds}')
 mesh.parent=rig
 mesh.matrix_parent_inverse=rig.matrix_world.inverted()
 mod=mesh.modifiers.new('Skin','ARMATURE')

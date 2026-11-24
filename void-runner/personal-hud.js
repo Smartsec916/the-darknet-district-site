@@ -7,6 +7,7 @@
    move and choose. Controller: View/Back opens and closes, D-pad moves, A chooses, B closes. */
 (function(){
  const H=VoidHudData,Profiles=VoidSocialProfiles,Achievements=VoidAchievements,tabs=[['missions','MISSION LOG'],['comms','SOCIAL'],['inventory','INVENTORY'],['taxi','TAXI / TRANSPORT']];
+ window.addEventListener('hotel-account-change',()=>{if(panel&&tab==='comms')render();});
  let panel=null,returnMode=null,tab='missions',socialFilter='all',socialCharacter='',achievementFilter='all';
  const openModes=['walking','play','dock'];
  const esc=s=>escapeText(String(s??''));
@@ -22,9 +23,9 @@
  function commsHtml(){
   const l=H.link(state,{onFoot:onFoot(),route:returnMode==='play'?flight.route:null}),people=H.contacts(state),uid=window.VoidAccount?.user?.uid||'guest';
   const rows=VoidConversationHistory.read(localStorage,uid),visible=VoidConversationHistory.filter(rows,socialFilter,socialCharacter);
-  const badges=p=>'<div class="social-achievements" aria-label="Achievements">'+(Achievements.publicDisplay(Achievements.definitions,p.achievements,achievementFilter).length?Achievements.publicDisplay(Achievements.definitions,p.achievements,achievementFilter).map(a=>'<span class="social-badge">'+esc(a.icon)+' '+esc(a.name)+'</span>').join(''):'<span class="hud-note">No verified achievements yet.</span>')+'</div>';
+  const badges=p=>'<div class="social-achievements" aria-label="Achievements">'+(Achievements.publicDisplay(Achievements.definitions,p.achievements,achievementFilter).length?Achievements.publicDisplay(Achievements.definitions,p.achievements,achievementFilter).map(a=>'<span class="social-badge">'+esc(a.icon)+' '+esc(a.name)+(a.score!==null?' · $'+a.score.toLocaleString():'')+'</span>').join(''):'<span class="hud-note">No verified achievements yet.</span>')+'</div>';
   const profile=p=>'<article class="hud-card social-profile" data-profile="'+esc(p.key)+'"><div class="social-avatar" aria-hidden="true">'+esc(p.name.slice(0,1).toUpperCase())+'</div><div><h3>'+esc(p.name)+'</h3><p>'+esc(p.bio)+'</p>'+badges(p)+'<button type="button" data-hud-character="'+esc(p.key.startsWith('npc:')?p.key.slice(4):'')+'">CONVERSATIONS</button></div></article>';
-  const me=Profiles.player(uid,window.VoidAccount?.handle||'Local Pilot');
+  const me=Profiles.player(uid,window.VoidAccount?.handle||'Local Pilot',{achievements:window.HotelAccount?.profile(window.VoidAccount?.handle)?.achievements||[]});
   const filters=['all','recent','unread'],filterButtons=filters.map(f=>'<button type="button" data-hud-filter="'+f+'" aria-pressed="'+(socialFilter===f)+'">'+f.toUpperCase()+'</button>').join('');
   const thread=visible.map(m=>'<article class="social-message"><b>'+esc(m.name)+'</b><time datetime="'+esc(new Date(m.at).toISOString())+'"> · '+esc(new Date(m.at).toLocaleString())+'</time><p>'+esc(m.text)+'</p></article>').join('');
   return '<section class="hud-link hud-link-'+esc(l.state)+'"><b>RELAY LINK · '+esc(l.label)+'</b><span>'+esc(l.note)+'</span></section>'+
