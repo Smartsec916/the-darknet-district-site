@@ -4,13 +4,9 @@
    Their models are the owner's own Meshy generations (the Companion Studio packages local-mwspnx2p and local-mwsqafm4), kept out of this repository, published only from the
    private asset repository as `npc-nomi.vrpak` and `npc-se7en.vrpak` (docs/VOID_RUNNER_ASSET_LICENSES.md). On a machine without the files nobody stands in for them (the console
    says so once). Their words and voices are only the owner's recorded lines from those packages (all 25 pools of each, 250 recordings, extra/tea-duo.json): nothing is written here.
-   WHEN A PLAYER WALKS IN (visit() below): an arrival pair (greet / approach / welcomeBack), then beats, then a bye; 9 to 12 lines, Nomi first, alternating. The beats give every
-   pool its place: chat beats (chat, compliment, flirt, relax, window, aside); an INVITATION (inviteSit, joinSofa, comeHere, inviteDance, inviteRecline) answered by the OTHER
-   hostess (accepted when the guest has come close to the one who asked, else declined or notNow), and if accepted the one who asked shows what she asked for (the sit, dance,
-   recline or hands pool); an AFFECTION beat (kiss, answered by kissAfter when the guest is close, else notYet); a hands beat. A reply never plays without its invitation. No line
-   twice in a visit; lines not heard lately come first (a small memory per page session). One voice at a time, each after the last recording ended, a short pause between;
-   walking out stops it and sits them down; walking back within 90 s starts nothing; another conversation or a mission line holds it. Each player's game runs its own copy
-   (one state per player, npc-advanced-interactions.js roomDuoStep): two players in the room never restart each other's. No new multiplayer system.
+   The guest is greeted by Nomi and then Se7en, using their own walk and sit-to-stand clips. The same alternating voice queue drives the conversation and invitations.
+   The guest can accept or decline a paired activity. Seating uses the open cot near the door, with free-standing access to all three anchors. Leaving releases the seat,
+   stops their recordings and returns the hostesses to their original cots. Other online players in the room can watch the elected guest’s approach.
    ACTIONS: most lines carry one (and a long line two): wave, head-tilt, glance, nod, lean-in, lean-back, laugh, blow-kiss, reach-hand, hands-out, settle, recline and dance. The
    packages carry only seven clips (idle, talk, walk, sit, sit-enter, sit-exit, run), so the gestures are made on their 19 bones by code (poses below, applied after the clip each
    frame, about the figure's own axes); standing up and sitting down are the packages' own sit-exit and sit-enter clips with the body moved so the feet never slide (FOOT: the
@@ -50,6 +46,35 @@
  function placement(id,seated=true){const U=UG(),s=seating();if(!U)return null;
   if(seated&&s&&s[id]){const c=s[id];return {id,pose:'sit',seat:c.id,x:+(c.x+Math.sin(c.yaw)*SIT_FORWARD).toFixed(3),z:+(c.z+Math.cos(c.yaw)*SIT_FORWARD).toFixed(3),y:U.Y,yaw:c.yaw,seatH:c.h};}
   const sp=U.spots().find(p=>p.id===ROOM+'/'+id);return sp?{id,pose:'stand',x:sp.x,z:sp.z,y:U.Y,yaw:sp.yaw}:null;}
+ // Three places along the long edge of the open cot nearer the door. Reserve
+ // 0.68 m between bodies and 0.40 m at either end of its existing 2.16 m length.
+ const GROUP_SPACING=.68;
+ function groupSeats(){
+  const cot=seating()?.nomi,layout=cot&&MD()?.COT_LAYOUT.find(c=>cot.id.endsWith('-'+c.id));
+  if(!layout||layout.depth<2*GROUP_SPACING+.7)return null;
+  const center=placement('nomi'),dx=Math.cos(center.yaw),dz=-Math.sin(center.yaw);
+  return Object.fromEntries(['nomi','player','se7en'].map((id,index)=>{
+   const along=(1-index)*GROUP_SPACING,x=center.x+dx*along,z=center.z+dz*along;
+   return [id,{...center,id,x,z,stand:{x:x+Math.sin(center.yaw)*.46,z:z+Math.cos(center.yaw)*.46}}];
+  }));
+ }
+ // Keep the entrance clear even when the guest is standing in the doorway.
+ function greetingPoint(id,guest,blocked,other){
+  const entry=door(),room=UG()?.placeById(ROOM)?.rects[0];
+  if(!entry||!room)return null;
+  const side=id==='nomi'?1:-1,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const x=clamp(guest.x-1.18,room[0]+.48,entry[0]-1.25);
+  for(const lateral of [side*.74,side*1.1,-side*.85]){
+   const z=clamp(guest.z+lateral,room[2]+.62,room[3]-.62);
+   if(Math.hypot(x-guest.x,z-guest.z)<1.02||other&&Math.hypot(x-other.x,z-other.z)<.92||blocked(x,z))continue;
+   return {x,z};
+  }
+  return null;
+ }
+ function chooseGuest(people,incumbent){
+  return people.find(p=>p.id===incumbent)||people.slice().sort((a,b)=>a.id.localeCompare(b.id))[0]||null;
+ }
+ const invitedActivity={inviteSit:'sit',joinSofa:'sit',comeHere:'hands',inviteDance:'dance',inviteRecline:'relax'};
  const allLines=id=>Object.values(LINES[id]||{}).flat();
  const lineInfo=(id,text)=>allLines(id).find(l=>l.text===text)||null;
  const POOLS=Object.keys(LINES.nomi);
@@ -106,11 +131,11 @@
     case 'arrive':pool=step.pool;break;
     case 'chat':pool=chatPool(speaker);recent.push(pool);if(recent.length>2)recent.shift();break;
     case 'invite':pool=step.type;ask={type:step.type,by:speaker,yes:false};if(STANDS.includes(step.type))stand[speaker]=true;break;
-    case 'reply':{const yes=!!ctx.near(ask.by);ask.yes=yes;pool=yes?REPLY_YES:pickWeighted(REPLY_NO,p=>1+poolAge(p),rng);break;}
+    case 'reply':{const yes=typeof ctx.accepted==='function'?ctx.accepted(ask.type):!!ctx.near(ask.by);ask.yes=yes;pool=yes?REPLY_YES:pickWeighted(REPLY_NO,p=>1+poolAge(p),rng);break;}
     case 'show':if(!ask||!ask.yes){ask=null;return null;}pool=ACT_OF[ask.type];break;
     case 'kiss':pool=TOUCH;touch={by:speaker};break;
-    case 'after':pool=ctx.near(touch.by)?AFTER_YES:AFTER_NO;break;
-    case 'hands':pool=HANDS;break;
+    case 'after':pool=!ctx.accepted&&ctx.near(touch.by)?AFTER_YES:AFTER_NO;break;
+    case 'hands':pool=ctx.accepted?'chat':HANDS;break;
     case 'bye':pool=CLOSE;stand.nomi=stand.se7en=false;break;
    }
    let l=line(speaker,pool);if(!l)l=line(speaker,chatPool(speaker));if(!l)return null;
@@ -119,7 +144,7 @@
    const info=lineInfo(speaker,l.text);if(choices.length&&info&&info.duration>4&&rng()<.7){const more=choices.filter(a=>!actions.includes(a));if(more.length)actions.push(more[Math.floor(rng()*more.length)]);}
    if(step.k==='show'&&ask)ask=null;
    last=speaker;
-   return {...l,step:step.k,actions,posture:{nomi:stand.nomi?'stand':'sit',se7en:stand.se7en?'stand':'sit'}};}
+   return {...l,step:step.k,activity:step.k==='invite'&&invitedActivity[step.type]||null,actions,posture:{nomi:stand.nomi?'stand':'sit',se7en:stand.se7en?'stand':'sit'}};}
   return {steps,resolve,memory:mem,mem};}
  /* A guest who stays: more rounds, each 4 to 8 lines (no arrival, no goodbye until the last), a quiet gap of GAP ms between them; ROUNDS rounds in all, the last ends on a goodbye,
     then they only live on quietly until the guest leaves. */
@@ -170,7 +195,7 @@
  /* the clips the figures rely on, on both rigs (crowd.js) */
  const CLIPS_NEEDED=['idle','talk','sit','sit-enter','sit-exit'];
  const CLIPS_ALL=[...new Set([...CLIPS_NEEDED,...STAND_CLIPS,...SEAT_CLIPS,'walk'])];
- const pure={GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,allLines,lineInfo,visit,mulberry32,
+ const pure={GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,groupSeats,greetingPoint,chooseGuest,allLines,lineInfo,visit,mulberry32,
   OPEN,BACK,CLOSE,MIDDLE,INVITES,ACT_OF,STANDS,ROLE,ACTS,POSES,ACTIONS,BONES,ease,CLIPS_NEEDED,CLIPS_ALL,CLIP_OF,STAND_CLIPS,SEAT_CLIPS,LONG_QUIET,EPISODES,episode,quietIn,QUIET,REPLY_YES,REPLY_NO,AFTER_YES,AFTER_NO,TOUCH,HANDS};
  if(node){module.exports=pure;return;}
  if(typeof document==='undefined')return;
@@ -179,6 +204,8 @@
  // ---------------- the browser part ----------------
  const figs=new Map();let loading=null,missing=false,told=false,sceneRef=null,duo=null,rec=null,memory=null,current=null,obs=null,visiting=false,lastSpeaker=null,lastT=0;
  const NEAR=[ROOM,TEA];
+ let arrival=null,invitation=null,activity=null,playerSeat=null,panel=null,owner=null,ownerReady=0;
+
  const where=()=>{try{if(typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.area!=='street'||walkingLocation.quarter!=='underground')return null;if(typeof mode==='undefined'||!['walking','dialogue','mission-log'].includes(mode))return null;const w=typeof walker!=='undefined'?walker:null;return w&&Number.isFinite(w.x+w.z)?w:null;}catch{return null;}};
  const placeOf=w=>{try{return UG().placeAt(w.x,w.z);}catch{return null;}};
  const clock=()=>performance.now()/1000,D2R=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a),clampAbs=(x,m)=>Math.max(-m,Math.min(m,x));
@@ -207,7 +234,7 @@
     const fx=Math.sin(pl.yaw),fz=Math.cos(pl.yaw),t=clock();
     figs.set(id,{id,node:nd,asset,made,ctrl,pl,has,clip:pl.pose==='sit'?'sit':'idle-f',order:bonesOf(made),lock:null,tail:0,post:pl.pose==='sit'?'sit':'stand',want:pl.pose==='sit'?'sit':'stand',tr:null,acts:[],lookY:0,
      ph:Math.random()*6.3,idleAt:t+rnd(2,5),epAt:t+quietIn(Math.random),ep:null,walk:null,accent:null,doClip:null,
-     homeStand:{x:pl.x+fx*standOffset(id),z:pl.z+fz*standOffset(id)},spot:spot?{x:spot.x,z:spot.z}:null});
+     home:pl,homeStand:{x:pl.x+fx*standOffset(id),z:pl.z+fz*standOffset(id)},spot:spot?{x:spot.x,z:spot.z}:null});
    }
    sceneRef=scene;obs=scene.onAfterAnimationsObservable.add(frame);
   })().finally(()=>{loading=null;});}
@@ -217,12 +244,53 @@
  function transition(f,toStand,t){f.post=toStand?'rising':'sitting';f.walk=null;f.accent=null;let len=0;try{len=f.ctrl.playOnce(toStand?'sit-exit':'sit-enter',toStand?(f.has('idle-f')?'idle-f':'idle'):'sit')||0;}catch{}f.tr={t0:t,len:len||2.8};f.clip=null;f.lock=feetMid(f);}
  function holdFeet(f){if(!f.lock)return;const m=feetMid(f);if(!m)return;f.node.position.x+=f.lock[0]-m[0];f.node.position.z+=f.lock[1]-m[1];f.node.computeWorldMatrix(true);}
  const turnTo=(f,want,rate,dt)=>{let d=want-f.node.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));f.node.rotation.y+=d*Math.min(1,rate*dt);return Math.abs(d);};
+ function blockedAt(x,z,f,guest){
+  const room=UG()?.placeById(ROOM)?.rects[0],y=UG()?.Y;
+  if(!room||x<room[0]+.24||x>room[1]-.24||z<room[2]+.24||z>room[3]-.24)return true;
+  if(guest&&Math.hypot(x-guest.x,z-guest.z)<.57)return true;
+  for(const g of figs.values())if(g!==f&&Math.hypot(x-g.node.position.x,z-g.node.position.z)<.55)return true;
+  return (walkingLocation.solids||[]).some(o=>!o.open&&o.position&&o.size&&o.position[1]+o.size[1]/2>y+.18&&o.position[1]-o.size[1]/2<y+1.55
+   &&Math.abs(x-o.position[0])<o.size[0]/2+.19&&Math.abs(z-o.position[2])<o.size[2]/2+.19);
+ }
+ function walkTo(f,target,guest){
+  if(!target)return false;
+  const C=root.VoidVRCompanions;
+  const steps=C?.path([f.node.position.x,f.node.position.z],[target.x,target.z],(x,z)=>blockedAt(x,z,f,guest),{step:.14});
+  if(!steps?.length)return false;
+  f.route=steps.map(([x,z])=>({x,z}));f.walk=f.route.shift();
+  return true;
+ }
+ function assignSeat(f,seat){
+  f.pl=seat;
+  f.homeStand=seat.stand||{x:seat.x+Math.sin(seat.yaw)*standOffset(f.id),z:seat.z+Math.cos(seat.yaw)*standOffset(f.id)};
+ }
+ const standing=f=>f.post==='stand'&&!f.tail;
+ function seekGuest(f,w){
+  if(!standing(f)||f.walk)return false;
+  const other=figs.get(MEMBERS.find(id=>id!==f.id))?.node.position;
+  const spot=greetingPoint(f.id,w,(x,z)=>blockedAt(x,z,f,w),other);
+  if(!spot||Math.hypot(f.node.position.x-spot.x,f.node.position.z)<.22)return true;
+  if(f.greetMoved)return true;
+  f.greetMoved=walkTo(f,spot,w);
+  return false;
+ }
+ function driveArrival(w){
+  if(!arrival||arrival.index>=MEMBERS.length)return true;
+  if(arrival.sounded){
+   if(playing(Date.now()))return false;
+   arrival.index++;arrival.sounded=false;
+   if(arrival.index>=MEMBERS.length)return true;
+  }
+  const f=figs.get(MEMBERS[arrival.index]);if(!f)return false;
+  f.returnHome=false;f.want='stand';
+  return seekGuest(f,w);
+ }
  // one step of an episode (a long quiet: she gets up, does something, perhaps crosses to her spot and back, sits again)
  function episodeStep(f,t){
   const e=f.ep;if(!e)return;
   if(e.i<0||e.done(t)){e.i++;const st=e.steps[e.i];if(!st){f.ep=null;f.doClip=null;f.epAt=t+quietIn(Math.random);return;}
    if(st.k==='stand'){f.want='stand';e.done=()=>f.post==='stand'&&!f.tail;}
-   else if(st.k==='walk'){const to=st.to==='spot'?f.spot:f.homeStand;if(!to){e.done=()=>true;return;}f.walk={x:to.x,z:to.z};f.doClip=null;e.done=()=>!f.walk;}
+   else if(st.k==='walk'){const to=st.to==='spot'?f.spot:f.homeStand;if(!to){e.done=()=>true;return;}walkTo(f,to,where());f.doClip=null;e.done=()=>!f.walk;}
    else if(st.k==='do'){f.doClip=f.has(st.clip)?st.clip:null;const end=t+st.dur;e.done=tt=>tt>=end;}
    else{f.want='sit';f.doClip=null;e.done=()=>f.post==='sit'&&!f.tail;}
   }
@@ -230,18 +298,21 @@
  function posture(f,t,dt,speaking,g){
   const can=f.pl.pose==='sit';if(!can){play(f,speaking?'talk':'idle');return;}
   const home=f.homeStand;
-  if(f.post==='stand'&&f.walk){   // walking: the walk clip, the body carried at the stride's own speed
+  if(standing(f)&&f.walk){   // walking: the walk clip, the body carried at the stride's own speed
    const dx=f.walk.x-f.node.position.x,dz=f.walk.z-f.node.position.z,d=Math.hypot(dx,dz),step=WALK_SPEED*dt;
-   if(d<=step+.02){f.node.position.x=f.walk.x;f.node.position.z=f.walk.z;f.walk=null;}
+   if(d<=step+.02){f.node.position.x=f.walk.x;f.node.position.z=f.walk.z;f.walk=f.route?.shift()||null;}
    else{f.node.position.x+=dx/d*step;f.node.position.z+=dz/d*step;turnTo(f,Math.atan2(dx,dz),7,dt);play(f,'walk');}
   }
   if((f.post==='sit'||f.post==='stand')&&f.want!==f.post&&!f.tail&&!f.walk){
    if(f.want==='stand')transition(f,true,t);
    else{const d=Math.hypot(f.node.position.x-home.x,f.node.position.z-home.z);   // back to the bed first (the spot beside it), facing it, then sit
-    if(d>.12)f.walk={x:home.x,z:home.z};else if(turnTo(f,f.pl.yaw,8,dt)<.25)transition(f,false,t);}
+    if(d>.12)walkTo(f,home,g);else if(turnTo(f,f.pl.yaw,8,dt)<.25)transition(f,false,t);}
   }
   if(f.post==='rising'||f.post==='sitting'){if(t-f.tr.t0>=f.tr.len){f.post=f.post==='rising'?'stand':'sit';f.tr=null;f.tail=t+1.3;f.clip=f.post==='stand'?(f.has('idle-f')?'idle-f':'idle'):'sit';}}
-  if(f.lock){holdFeet(f);if(f.tail&&t>=f.tail){f.lock=null;f.tail=0;if(f.post==='sit'){f.node.position.x=f.pl.x;f.node.position.z=f.pl.z;}}}   // the feet were held through the last of the blend; seated, she is then exactly on her seat
+  if(f.lock)holdFeet(f);if(f.tail&&t>=f.tail){f.lock=null;f.tail=0;if(f.post==='stand'&&blockedAt(f.node.position.x,f.node.position.z,f,g)){
+   // Finish the rising step on the aisle side of the mattress before asking the navigator for a route.
+   for(const offset of [.48,.55,.65]){const x=f.pl.x+Math.sin(f.pl.yaw)*offset,z=f.pl.z+Math.cos(f.pl.yaw)*offset;if(!blockedAt(x,z,f,g)){f.node.position.x=x;f.node.position.z=z;break;}}
+  }if(f.post==='sit'){f.node.position.x=f.pl.x;f.node.position.z=f.pl.z;}}   // the feet were held through the last of the blend; seated, she is then exactly on her seat
   if(f.tail)return;
   if(f.post==='sit')play(f,speaking&&f.has('sit-talk')?'sit-talk':'sit');
   else if(f.post==='stand'&&!f.walk){
@@ -258,18 +329,44 @@
    const Wp=W.multiply(B.Matrix.Translation(-p.x,-p.y,-p.z)).multiply(R).multiply(B.Matrix.Translation(p.x,p.y,p.z)),L=Wp.multiply(bone.parent.getWorldMatrix().clone().invert()),q=new B.Quaternion();
    L.decompose(new B.Vector3(),q,new B.Vector3());bone.rotationQuaternion=q;bone.computeWorldMatrix(true);}
  }
+ let observedLine=null,observedOwner=null;
+ function spectator(w){
+  const mp=root.VoidRemotePlayers;
+  return mp?.connected&&mp.features?.teaRoom&&placeOf(w)===ROOM&&mp.teaState?.owner!==mp.me;
+ }
+ function mirror(w,dt){
+  const mp=root.VoidRemotePlayers,shared=mp.teaState;
+  if(shared?.owner!==observedOwner){stopSpeech();observedLine=null;observedOwner=shared?.owner;}
+  const s=shared?.state;if(!s)return;
+  MEMBERS.forEach((id,i)=>{const f=figs.get(id),at=s.actors[i];if(!f||!at)return;
+   const factor=Math.min(1,dt*10);f.node.position.x+=(at[0]-f.node.position.x)*factor;f.node.position.z+=(at[1]-f.node.position.z)*factor;
+   turnTo(f,at[2],10,dt);play(f,at[3]);
+   f.post=at[3]==='sit'||at[3]==='sit-talk'?'sit':'stand';f.want=f.post;
+   const gesture=at[4],pose=gesture&&Object.hasOwn(POSES,gesture[0])&&POSES[gesture[0]];
+   if(pose){const u=gesture[1];applyPose(f,pose.at(u,u*pose.dur,gesture[2],ease(u),{}));}
+  });
+  if(s.line!==observedLine){if(observedLine)stopSpeech();observedLine=s.line;
+   if(s.line&&!isBlocked()){const who=s.line.split('-')[0],entry=allLines(who).find(l=>l.id===s.line);
+    if(entry){announce(PEOPLE[who].name+' · '+strip(entry.text));root.VoidAudio?.speak?.(who,entry.text,false,false,true);}
+   }
+  }
+ }
  function frame(){
   try{const t=clock(),dt=Math.min(.25,Math.max(0,t-lastT||.016));lastT=t;const g=where(),now=Date.now();if(!g)return;
+   if(spectator(g)){mirror(g,dt);return;}
+   const focus=guestOf(g);if(activity)driveActivity(g);
    const talking=!!rec&&playing(now),quiet=!visiting&&!talking||visiting&&!talking&&duo&&!duo.queue.length&&!duo.waiting;
    for(const f of figs.values()){if(!f.node.isEnabled())continue;
     const speaking=talking&&rec.id===f.id,other=figs.get(MEMBERS[1-MEMBERS.indexOf(f.id)]);
     // a long quiet: she may get up for a while (never both at once)
-    if(!f.ep&&quiet&&f.post==='sit'&&f.want==='sit'&&t>=f.epAt&&!(other&&(other.ep||other.post!=='sit'))&&placeOf(g)===ROOM){f.ep={...episode(Math.random),i:-1,done:()=>true};}
+    if(!activity&&!arrival&&!f.ep&&quiet&&f.post==='sit'&&f.want==='sit'&&t>=f.epAt&&!(other&&(other.ep||other.post!=='sit'))&&placeOf(g)===ROOM){f.ep={...episode(Math.random),i:-1,done:()=>true};}
     if(f.ep)episodeStep(f,t);
+    if(f.returnHome&&standing(f)){f.returnHome=false;f.want='sit';}
     posture(f,t,dt,speaking,g);
-    const gl=localOf(f,g.x,g.y,g.z),bearing=Math.atan2(gl.x,gl.z)/D2R,dist=Math.hypot(gl.x,gl.z);
+    const target=talking&&!speaking&&other?other.node.position:focus;
+    const gl=localOf(f,target.x,speaking||!talking?target.y:target.y+1.48,target.z),bearing=Math.atan2(gl.x,gl.z)/D2R,dist=Math.hypot(gl.x,gl.z);
     // standing, she turns toward the guest (within 70 degrees of where she faced, all round at her spot); seated she looks round with her head only
-    if(f.post==='stand'&&!f.walk&&f.want==='stand'){const at=f.spot&&Math.hypot(f.node.position.x-f.spot.x,f.node.position.z-f.spot.z)<.4;turnTo(f,f.pl.yaw+(at?bearing*D2R:clampAbs(bearing,70)*D2R)*(dist<6?1:0),3,dt);}
+    if(f.post==='stand'&&!f.walk&&f.want==='stand'){const at=f.spot&&Math.hypot(f.node.position.x-f.spot.x,f.node.position.z-f.spot.z)<.4;turnTo(f,f.node.rotation.y+clampAbs(bearing,at?180:70)*D2R*(dist<6?1:0),3,dt);}
     else if(f.post==='sit')turnTo(f,f.pl.yaw,6,dt);
     if(f.post==='rising'||f.post==='sitting'||f.tail)continue;
     // base: breathing and the head following the guest
@@ -289,7 +386,7 @@
  // a line is starting: who stands or sits, and what each does while it is said
  function perform(line,info){
   const t=clock(),side=()=>Math.random()<.5?-1:1;
-  for(const id of MEMBERS){const f=figs.get(id);if(f&&line.posture){f.want=line.posture[id]==='stand'?'stand':'sit';if(f.ep){f.ep=null;f.doClip=null;}}}
+  for(const id of MEMBERS){const f=figs.get(id);if(f&&line.posture&&!activity&&arrival?.index>=MEMBERS.length){f.want=line.pool==='bye'?'sit':'stand';if(f.ep){f.ep=null;f.doClip=null;}}}
   const f=figs.get(line.speaker),o=figs.get(MEMBERS[1-MEMBERS.indexOf(line.speaker)]);if(!f)return;
   const settled=f.post===f.want||f.pl.pose!=='sit',busyUntil=f.tr?f.tr.t0+f.tr.len:t,ready=settled?t+.3:Math.max(busyUntil,t)+(f.post==='sit'||f.post==='stand'?3.1:.4);
   let at=ready;
@@ -300,36 +397,182 @@
   if(o&&o.pl.pose==='sit'&&Math.random()<.6){const pick=['head-tilt','nod','laugh','glance','look','lean-in'][Math.floor(Math.random()*6)];if(!(pick==='laugh'&&line.pool==='bye'))o.acts.push({id:pick,t0:t+.8+Math.random()*(Math.max(1,(info?.duration||3)-1.5)),dur:POSES[pick].dur,s:side(),a:{yaw:rnd(-40,40)}});}
  }
  const isBlocked=()=>{try{return !!((typeof speech!=='undefined'&&speech)||root.VoidLiveContent?.nearBlocked?.()||(typeof document!=='undefined'&&document.hidden));}catch{return true;}};
- function audible(w){const f=figs.get('nomi')||figs.get('se7en');if(!f)return false;const A=ADV();const to=[f.pl.x,UG().Y+1.2,f.pl.z],d=Math.hypot(w.x-f.pl.x,w.z-f.pl.z);
+ function audible(w){const f=figs.get(MEMBERS[arrival?.index]||lastSpeaker)||figs.get('nomi');if(!f)return false;const A=ADV();const p=f.node.position,to=[p.x,UG().Y+1.2,p.z],d=Math.hypot(w.x-p.x,w.z-p.z);
   return d<=HEAR&&A.clearRoomLine([w.x,Number.isFinite(w.y)?w.y:UG().Y+1.7,w.z],to,walkingLocation.solids);}
  // is the recording of the line just started still sounding? (the voice player's own record of the line; a line that has none is held for its recorded length, or its text's)
- function playing(now){if(!rec)return false;const v=root.VoidVoiceClips?.now;if(v&&v.who===rec.id&&v.text===rec.text&&v.ended&&v.endedAt>=rec.perf-50)return false;return now<rec.until;}
+ function playing(now){if(!rec)return false;const v=root.VoidVoiceClips?.now;if(v&&v.who===rec.id&&v.text===rec.text){
+  if(v.ended&&v.endedAt>=rec.perf-50)return false;
+  if(!v.ended&&now<rec.hardEnd)return true;
+  if(!v.ended)stopSpeech();
+ }return now<rec.until;}
  const guestNear=id=>{const w=where(),f=figs.get(id);return !!(w&&f&&Math.hypot(w.x-f.node.position.x,w.z-f.node.position.z)<=NEAR_GUEST);};
- function sitAll(){for(const f of figs.values()){f.want='sit';f.acts=[];f.ep=null;f.doClip=null;f.accent=null;}}
- const round=k=>{current=visit(Math.random,memory,{near:guestNear},k===0?{bye:false}:{arrive:false,bye:k>=ROUNDS-1,steps:ROUND_STEPS,after:lastSpeaker});memory=current.memory;return current.steps;};
+ // Local play uses the player as the guest. Online, the same ordered set of
+ // occupants elects one guest. Observers follow that guest's approach anchors.
+ function guestOf(w){
+  const mp=root.VoidRemotePlayers;
+  const others=mp?.connected?(mp.peers||[]).filter(p=>p.under&&placeOf(p)===ROOM):[];
+  const self=mp?.me||'';if(mp?.connected&&mp.features?.teaRoom&&mp.teaState?.owner===self)return {...w,id:self,local:true};
+  const people=[...others,...(placeOf(w)===ROOM?[{id:self,x:w.x,y:w.y,z:w.z,local:true}]:[])];
+  return chooseGuest(people,owner)||w;
+ }
+ function panelFor(title,choices){
+  panel?.remove();panel=document.createElement('aside');panel.className='tea-duo-choices';panel.setAttribute('aria-label',title);
+  const label=document.createElement('p');label.textContent=title;panel.append(label);
+  for(const [text,run] of choices){const button=document.createElement('button');button.type='button';button.textContent=text;button.onclick=run;panel.append(button);}
+  document.body.append(panel);
+ }
+ function answer(yes){
+  if(!invitation||invitation.answer!=null)return;
+  invitation.answer=yes;
+  panel?.remove();panel=null;
+  if(yes)activity={kind:invitation.kind,speaker:invitation.speaker,started:clock()};
+ }
+ function standPlayer(){
+  if(!playerSeat)return false;
+  const {walker:w,from}=playerSeat;
+  playerSeat=null;panel?.remove();panel=null;
+  if(w===where())Object.assign(w,from);
+  if(activity?.kind==='sit')endActivity();
+  return true;
+ }
+ function leaveSeat(){
+  if(standPlayer())return true;
+  if(activity?.kind!=='sit')return false;
+  endActivity();return true;
+ }
+ function playerStep(w,moving,dt){
+  if(!playerSeat||playerSeat.walker!==w)return false;
+  if(moving.x||moving.z){standPlayer();return false;}
+  const move=(a,b)=>a+(b-a)*Math.min(1,dt*8),s=playerSeat.target;
+  w.x=move(w.x,s.x);w.z=move(w.z,s.z);w.y=move(w.y,s.y);
+  return true;
+ }
+ function endActivity(){
+  if(activity?.kind==='sit'){panel?.remove();panel=null;}
+  activity=null;
+  for(const f of figs.values()){f.acts=f.acts.filter(a=>a.id!=='reach-hand'&&a.id!=='dance');f.walk=null;f.route=[];f.doClip=null;f.accent=null;f.want='stand';}
+ }
+ function beginSeat(w,g){
+  const src={x:w.x,y:w.y,z:w.z},target={x:g.x,y:g.y+g.seatH+.45*(w.eye||1.68),z:g.z};
+  playerSeat={walker:w,from:src,target};
+  try{walkingKeys?.clear();}catch{}
+  panelFor('Seated with Nomi and Se7en',[['Stand up',standPlayer]]);
+ }
+ function driveActivity(w){
+  const a=activity;
+  if(!a)return;
+  if(a.kind==='sit'){
+   const seats=groupSeats();if(!seats){endActivity();return;}
+   if(a.seated)return;
+   if(!a.moving){
+    a.moving=true;
+    for(const f of figs.values()){f.want='stand';f.walk=null;f.ep=null;}
+   }
+   if(!a.assigned){
+    if(!Array.from(figs.values()).every(standing))return;
+    a.assigned=true;
+    for(const f of figs.values()){assignSeat(f,seats[f.id]);f.want='sit';}
+   }
+   if(!playerSeat&&Math.hypot(w.x-seats.player.stand.x,w.z-seats.player.stand.z)<.76)beginSeat(w,seats.player);
+   else if(!playerSeat&&!a.hint){a.hint=true;panelFor('Walk to the middle of the open cot to sit between Nomi and Se7en.',[['Cancel',endActivity]]);}
+   a.seated=!!playerSeat&&Array.from(figs.values()).every(f=>f.post==='sit'&&!f.tail);
+   return;
+  }
+  if(clock()-a.started>16){endActivity();return;}
+  for(const f of figs.values()){
+   f.want='stand';
+   if(a.kind==='dance'){
+    f.doClip=f.has('slow-dance')?'slow-dance':f.has('dance-belly')?'dance-belly':null;
+    if(!f.doClip&&standing(f)&&!f.acts.some(g=>g.id==='dance'))f.acts.unshift({id:'dance',t0:clock(),dur:POSES.dance.dur,s:f.id==='nomi'?1:-1});
+   }else if(a.kind==='hands'&&f.id===a.speaker&&standing(f)){
+    const p=f.node.position,dx=p.x-w.x,dz=p.z-w.z,d=Math.hypot(dx,dz);
+    if(d>1.1&&a.reached){endActivity();return;}
+    if(d>.85&&!f.walk&&!a.reached&&clock()>=(a.nextStep||0)){
+     a.nextStep=clock()+1;
+     walkTo(f,{x:w.x+.75*dx/d,z:w.z+.75*dz/d},w);
+    }else if(d<=.85&&!a.reached){
+     f.walk=null;f.route=[];a.reached=true;
+     f.acts.unshift({id:'reach-hand',t0:clock(),dur:Math.max(1,16-(clock()-a.started)),s:1});
+    }
+   }else if(a.kind==='relax')f.doClip=f.has('idle-f2')?'idle-f2':null;
+  }
+ }
+ function sitAll(){
+  standPlayer();panel?.remove();panel=null;arrival=null;invitation=null;activity=null;
+  for(const f of figs.values()){const change=f.pl!==f.home;assignSeat(f,f.home);f.greetMoved=false;f.returnHome=change&&f.post!=='stand';f.want=f.returnHome?'stand':'sit';f.walk=null;f.route=[];f.acts=[];f.ep=null;f.doClip=null;f.accent=null;}
+ }
+ const round=k=>{
+  current=visit(Math.random,memory,{near:guestNear,accepted:()=>invitation?.answer===true},
+    k===0?{bye:false}:{arrive:false,bye:k>=ROUNDS-1,steps:ROUND_STEPS,after:lastSpeaker});
+  memory=current.memory;return current.steps;
+ };
  function tick(){
   try{
    const w=where(),scene=root.VoidBabylon?.scene;
-   if(!w){if(duo?.inside||rec){stopSpeech();}if(duo?.inside)sitAll();duo=null;rec=null;visiting=false;if(figs.size&&(!scene||scene!==sceneRef||typeof mode!=='undefined'&&mode==='menu'))drop();return;}
-   if(sceneRef&&scene!==sceneRef)drop();
+   if(!w){if(duo?.inside||rec)stopSpeech();if(duo?.inside||arrival||playerSeat)sitAll();duo=null;rec=null;visiting=false;owner=null;
+    if(figs.size&&(!scene||scene!==sceneRef||typeof mode!=='undefined'&&mode==='menu'))drop();return;}
+   if(sceneRef&&scene!==sceneRef){stopSpeech();sitAll();drop();}
    const place_=placeOf(w),near=NEAR.includes(place_);
    if(near&&scene&&!figs.size)ensure(scene);
    for(const f of figs.values())f.node.setEnabled(near||f.post!=='sit');
    const A=ADV(),inside=place_===ROOM,now=Date.now();if(!A)return;
-   const present=figs.size===MEMBERS.length;
-   const r=A.roomDuoStep(duo,{inside,present,blocked:isBlocked()||(inside&&!audible(w))||[...figs.values()].some(f=>f.ep),playing:playing(now),now,script:()=>round(0),resolve:s=>current?current.resolve(s):null,refill:{gap:()=>gapAfter(Math.random),script:k=>round(k),max:ROUNDS},members:MEMBERS,pauseMs:PAUSE,noticeMs:NOTICE,cooldownMs:COOLDOWN,maxTurns:14,maxLineMs:MAX_LINE});
-   duo=r.state;if(r.cancel){stopSpeech();rec=null;sitAll();visiting=false;lastSpeaker=null;}
+   if(spectator(w)){if(arrival||playerSeat||activity){sitAll();duo=null;rec=null;visiting=false;}return;}
+   if(observedOwner){stopSpeech();observedOwner=null;observedLine=null;sitAll();duo=null;owner=null;}
+   const present=figs.size===MEMBERS.length,guest=guestOf(w),ours=inside&&!(guest.id&&!guest.local);
+   const guestKey=guest.id??'solo';
+   if(!inside||owner!==null&&owner!==guestKey){if(arrival||rec||activity){stopSpeech();rec=null;sitAll();visiting=false;lastSpeaker=null;}}
+   if(owner!==guestKey)ownerReady=now+1000;
+   owner=inside?guestKey:null;
+   if(inside&&present&&!arrival&&now>=ownerReady&&now-(duo?.last??-Infinity)>=COOLDOWN)arrival={index:0,sounded:false};
+   let ready=!!arrival&&driveArrival(guest);
+   if(!ours&&ready&&arrival?.index<MEMBERS.length){arrival.sounded=true;ready=false;}
+   if(invitation&&invitation.answer===null&&!playing(now)){
+    if(panel&&now>=invitation.expires)answer(false);
+    else if(!panel){
+     invitation.expires=now+30000;
+     const label={sit:'Sit together',dance:'Dance together',hands:'Hold hands',relax:'Relax together'}[invitation.kind];
+     panelFor(label,[['1 · '+label,()=>answer(true)],['2 · Maybe later',()=>answer(false)]]);
+    }
+   }
+   const r=A.roomDuoStep(duo,{inside:ours,present:present&&!!arrival,blocked:!ready||isBlocked()||!audible(w)||invitation?.answer===null||(activity?.kind==='sit'&&!activity.seated&&!!playerSeat),
+    playing:playing(now),now,script:()=>round(0),resolve:s=>current?current.resolve(s):null,
+    refill:{gap:()=>gapAfter(Math.random),script:k=>round(k),max:ROUNDS},members:MEMBERS,pauseMs:PAUSE,noticeMs:NOTICE,cooldownMs:COOLDOWN,maxTurns:14,maxLineMs:MAX_LINE});
+   duo=r.state;
+   if(r.cancel){stopSpeech();rec=null;lastSpeaker=null;}
    if(r.line){
     const id=r.line.speaker,info=lineInfo(id,r.line.text),P=PEOPLE[id];lastSpeaker=id;
     try{if(typeof announce==='function')announce(P.name+' · '+strip(r.line.text));}catch{}
     let spoke=false;try{spoke=!!root.VoidAudio?.speak?.(id,r.line.text,false,false,true);}catch{}
     const ms=spoke&&info?info.duration*1000+2500:Math.min(MAX_LINE,2200+strip(r.line.text).length*65);
-    rec={id,text:r.line.text,perf:performance.now(),until:now+ms};perform(r.line,info);visiting=true;
+    rec={id,text:r.line.text,perf:performance.now(),until:now+ms,hardEnd:now+MAX_LINE-250};
+    if(r.line.step==='arrive')arrival.sounded=true;
+    if(r.line.activity&&activity)invitation={kind:r.line.activity,speaker:id,answer:false,expires:now};
+    else if(r.line.activity)invitation={kind:r.line.activity,speaker:id,answer:null,expires:now+ms+18000};
+    if(r.line.step==='reply')invitation=null;
+    perform(r.line,info);visiting=true;
    }
-   if(duo&&!duo.queue.length&&!duo.waiting&&!playing(now)&&visiting&&duo.rounds>=ROUNDS){visiting=false;for(const f of figs.values())f.want='sit';}   // the last round is over: whoever stands sits back down (they live on quietly until the guest goes)
+   if(present&&inside&&root.VoidRemotePlayers?.teaState?.owner===root.VoidRemotePlayers?.me){
+    const t=clock(),actors=MEMBERS.map(id=>{
+     const f=figs.get(id),p=f.node.position,yaw=f.node.rotation.y;
+     const at=[+p.x.toFixed(3),+p.z.toFixed(3),+Math.atan2(Math.sin(yaw),Math.cos(yaw)).toFixed(3),f.clip||(f.post==='rising'?'sit-exit':'sit-enter')];
+     const gesture=f.acts.find(a=>a.t0<=t&&t<a.t0+a.dur);
+     if(gesture)at.push([gesture.id,+((t-gesture.t0)/gesture.dur).toFixed(3),gesture.s]);
+     return at;
+    });
+    root.VoidRemotePlayers?.teaPose?.({actors,activity:activity?.kind||null,seated:!!playerSeat,line:rec&&playing(now)?lineInfo(rec.id,rec.text)?.id||null:null});
+   }
+   if(duo&&!duo.queue.length&&!duo.waiting&&!playing(now)&&visiting&&duo.rounds>=ROUNDS){visiting=false;if(!activity)for(const f of figs.values())f.want='sit';}
   }catch(e){if(!tick.warned){tick.warned=true;console.warn('[VOID//RUNNER] Nomi and Se7en',e);}}
  }
  function stopSpeech(){try{const v=root.VoidVoiceClips?.now;if(v&&MEMBERS.includes(v.who)&&!v.ended)root.VoidAudio?.cancel?.();}catch{}}
+ root.addEventListener('keydown',e=>{
+  if(e.repeat||placeOf(where()||{})!==ROOM)return;
+  if(playerSeat&&e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();standPlayer();}
+  else if(activity?.kind==='sit'&&e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();endActivity();}
+  else if(invitation?.answer===null&&panel&&['Digit1','Digit2'].includes(e.code)){
+   e.preventDefault();e.stopImmediatePropagation();answer(e.code==='Digit1');
+  }
+ },true);
  setInterval(tick,250);
- root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,get rounds(){return duo?duo.rounds:0;}};
+ root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};
 })(typeof globalThis!=='undefined'?globalThis:this);

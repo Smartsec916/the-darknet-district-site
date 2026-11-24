@@ -240,6 +240,7 @@ addEventListener('keydown', e => {
   if (!action) return;
   if (action === 'pause' && !e.repeat) {
     e.preventDefault();
+    if(mode==='walking'&&globalThis.VoidTeaDuo?.leaveSeat?.()){e.stopImmediatePropagation();return;}
     if (mode === 'menu') resumeMenu();
     else openGameMenu();
     return;

@@ -10,3 +10,7 @@
 .upgrade-tier button { width: 100%; }
 /* Dialogue choice menus (faction deliveries): one column of options, kept on screen. */
 .dialogue-window.choice-menu{position:fixed;left:4vw;right:4vw;top:auto;bottom:64px;margin-top:0;max-height:calc(100vh - 150px);overflow:auto;z-index:5}.cinematic-space:has(.choice-menu) .scene-heading{visibility:hidden}.choice-menu .speech-controls{flex-direction:column;align-items:stretch;gap:6px}.choice-menu .speech-controls button{text-align:left;margin:0;padding:9px 14px}.choice-menu #speech-status{display:none}
+
+.tea-duo-choices{position:fixed;right:clamp(16px,4vw,56px);bottom:clamp(120px,20vh,190px);z-index:35;display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:rgba(11,15,18,.95);border:1px solid #627b77;color:#e5eee9;max-width:calc(100vw - 32px)}
+.tea-duo-choices p{flex-basis:100%;margin:0 0 4px}
+.tea-duo-choices button:focus-visible{outline:2px solid #f1bd85;outline-offset:2px}

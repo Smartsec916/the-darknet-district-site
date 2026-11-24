@@ -37,7 +37,8 @@
   if(!fps()||conversationOpen())return;
   walkingKeys?.clear?.();
   // Clicking out of the browser (another window or app) also releases the mouse. That is not Esc: stay in the game, nothing opens, and a click on the game takes the mouse back (the owner, 17 Nov 2026). Focus is checked a moment later because the browser reports the release and the lost focus in either order.
-  const t0=performance.now();setTimeout(()=>{if(locked()||!fps())return;const now=performance.now();if(away||document.hidden||!document.hasFocus()||now-t0>600||now-lastAway<1500){hint(true);return;}if(typeof openGameMenu==='function')openGameMenu();},120);
+  const leavingCot=!!globalThis.VoidTeaDuo?.seated||globalThis.VoidTeaDuo?.activity==='sit';
+  const t0=performance.now();setTimeout(()=>{if(locked()||!fps())return;const now=performance.now();if(away||document.hidden||!document.hasFocus()||now-t0>600||now-lastAway<1500){hint(true);return;}if(leavingCot){globalThis.VoidTeaDuo?.leaveSeat();return;}if(typeof openGameMenu==='function')openGameMenu();},120);
  });
  let away=false,lastAway=-1e9;
  addEventListener('blur',()=>{away=true;lastAway=performance.now();});addEventListener('focus',()=>{away=false;lastAway=performance.now();});
