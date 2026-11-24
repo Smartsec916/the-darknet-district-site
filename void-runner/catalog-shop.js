@@ -37,6 +37,7 @@
   }
   function buy(entry,qty){
    const current=campaign(),credits=current?.credits,revision=account.revision;
+   if(entry.service&&qty!==1){note.textContent='Choose one service at a time.';return;}
    if(!Number.isInteger(qty)||qty<1||qty>entry.stock||qty>entry.stack){note.textContent='Choose a quantity within the stock and carry limits.';return;}
    const cost=qty*entry.price;
    if(!confirm('Buy '+qty+' × '+entry.name+' for '+fmt(cost)+' credits?'))return;
@@ -50,7 +51,7 @@
      current.credits=Math.max(0,current.credits+result.credits-credits);if(typeof save==='function')save();
     }
     account.cloud={...account.cloud,credits:result.credits};account.revision=result.revision;r.clear();
-    const sound=entry.purchaseSound||listing?.vendor.rules?.sound;if(sound&&/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(sound)){const a=new Audio('void-runner/'+sound);a.volume=.45;a.play().catch(()=>{});}note.textContent=entry.name+' added to inventory.';await refresh();
+    const sound=entry.purchaseSound||listing?.vendor.rules?.sound;if(sound&&/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(sound)){const a=new Audio('void-runner/'+sound);a.volume=.45;a.play().catch(()=>{});}note.textContent=result.service?entry.name+' started.':entry.name+' added to inventory.';await refresh();if(result.service&&same())close();
    });
   }
   function use(id){operation(async()=>{const r=receipt('use/'+id+'/'+bag.owned[id]);let data;
@@ -63,7 +64,10 @@
    if(!same())return;
    if(vendor)action(footer,tab==='shop'?'Inventory':'Shop',()=>{tab=tab==='shop'?'bag':'shop';draw();});
    action(footer,'Refresh',()=>operation(refresh));
-   if(tab==='bag'){for(const [id,n] of Object.entries(bag?.owned||{})){const it=bag.items[id],row=document.createElement('p');row.append((it?.icon||'')+' '+(it?.name||id)+' × '+n+' ');action(row,'Use',()=>use(id));content.append(row);}
+   if(tab==='bag'){
+    if(bag?.service){const service=bag.service,p=document.createElement('p');p.textContent=service.name+' · '+service.definition.participation+' · '+Math.max(0,Math.ceil(service.end-game.now()))+' seconds remaining.';content.append(p);
+     if(game.now()>=service.end)action(content,'Complete service',()=>operation(async()=>{await game.request('shop/service/finish',{nonce:service.id});await refresh();}));}
+    for(const [id,n] of Object.entries(bag?.owned||{})){const it=bag.items[id],row=document.createElement('p');row.append((it?.icon||'')+' '+(it?.name||id)+' × '+n+' ');action(row,'Use',()=>use(id));content.append(row);}
     if(!content.childNodes.length)content.textContent='Inventory is empty.';return;}
    if(!listing)return;
    const options=listing.vendor.rules||{};if(options.color)dialog.style.borderColor=options.color;
@@ -75,6 +79,7 @@
     const row=document.createElement('fieldset'),name=document.createElement('legend'),desc=document.createElement('p'),fx=document.createElement('small'),qty=document.createElement('input');
     name.textContent=(entry.icon||'')+' '+entry.name+' · '+fmt(entry.price)+' CR';desc.textContent=entry.description+' · '+entry.stock+' in stock';
     const def=entry.definition;fx.textContent=[...(def?.effects||[]).map(e=>e.type+' · '+e.duration+' s'),...(def?.modifiers||[]).map(m=>m.stat+' '+(m.amount>0?'+':'')+Math.round(m.amount*100)+'% · '+m.duration+' s')].join(' / ');
+    if(entry.service)desc.append(' · '+entry.service.participation+' · '+entry.service.steps.reduce((n,s)=>n+s.seconds,0)+' seconds');
     if(entry.condition)desc.append(' · '+entry.condition);
     if(entry.image&&/^assets\/[a-z0-9_/-]+\.(png|jpe?g|webp)$/i.test(entry.image)){const img=document.createElement('img');img.src='void-runner/'+entry.image;img.alt=entry.name;img.width=72;img.loading='lazy';row.append(img);}
     qty.type='number';qty.min='1';qty.max=String(Math.min(entry.stock,entry.stack));qty.value='1';qty.setAttribute('aria-label',entry.name+' quantity');row.append(name,desc,fx,document.createElement('br'),qty);

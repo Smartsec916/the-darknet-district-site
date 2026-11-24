@@ -1154,6 +1154,12 @@ def shop_purchase(db, uid):
     return jsonify(items_service.purchase(db, uid, body))
 
 
+@api.post('/shop/service/finish')
+@signed_in
+def shop_service_finish(db, uid):
+    return jsonify(items_service.finish_service(db, uid, request.get_json(silent=True)))
+
+
 @api.post('/shop/use')
 @signed_in
 def shop_use(db, uid):

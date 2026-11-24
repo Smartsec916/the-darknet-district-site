@@ -8,7 +8,7 @@ globalThis.VoidConsumableSpec = {
  "categories": [
   {"id": "food", "name": "Food"}, {"id": "beverages", "name": "Beverages"}, {"id": "medical", "name": "Medical supplies"}, {"id": "stimulants", "name": "Stimulants"},
   {"id": "substances", "name": "Fictional cyberpunk substances"}, {"id": "other", "name": "Other"}],
- "kinds": ["consumable", "food", "beverage", "weapon", "ammunition", "missile", "equipment", "medical", "misc"],
+ "kinds": ["consumable", "food", "beverage", "weapon", "ammunition", "missile", "equipment", "medical", "misc", "service"],
  "rarities": ["common", "uncommon", "rare", "epic", "legendary"],
  "stacking": ["max", "additive", "replace", "independent"],
  "animations": ["none", "drink", "eat", "inject", "inhale", "swallow", "apply"],

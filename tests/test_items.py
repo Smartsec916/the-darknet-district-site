@@ -183,6 +183,25 @@ class ItemTests(unittest.TestCase):
         campaign['progression'] = {'reputation': {'civilian': 3}}
         self.assertEqual(self.buy().status_code, 200)
 
+    def test_exclusive_service_and_resume(self):
+        c = catalog()
+        tour = copy.deepcopy(c['items'][0])
+        tour.update(id='tour', name='District tour', kind='service', consumable=None, service={'participation': 'follow', 'completion': 'confirm', 'steps': [{'seconds': 3, 'point': 1, 'clip': 'idle', 'line': 'This way.'}]})
+        c['items'].append(tour)
+        c['vendors'].append({'id': 'npc-guide', 'entity': 'npc-guide', 'name': 'Guide', 'kind': 'npc', 'location': 'District', 'entries': [{'item':'tour','price':20,'stock':10,'maxStock':10,'available':True,'restock':{'mode':'none','every':0,'amount':0}}]})
+        self.assertEqual(self.publish(c).status_code, 200)
+        self.fund('a', 100); self.fund('b', 100)
+        body = {'vendor':'npc-guide','item':'tour','qty':1,'credits':100,'nonce':'service-order-1'}
+        with patch('firebase_admin.firestore.transactional', fixtures.transactional):
+            a = items.purchase(self.db, 'a', body, now=1000)
+            self.assertEqual(a['service']['npc'], 'guide')
+            self.assertEqual(items.purchase(self.db, 'a', body, now=1001)['cost'], 0)
+            with self.assertRaises(items.DraftError): items.purchase(self.db, 'b', {**body,'nonce':'service-order-2'}, now=1001)
+            with self.assertRaises(items.DraftError): items.finish_service(self.db, 'a', {'nonce':body['nonce']}, now=1002)
+            self.assertEqual(items.player_state(self.db,'a',now=1004)['owned'], {})
+            self.assertTrue(items.finish_service(self.db, 'a', {'nonce':body['nonce']}, now=1005)['finished'])
+            self.assertEqual(items.purchase(self.db, 'b', {**body,'nonce':'service-order-2'}, now=1006)['cost'], 20)
+
     def test_forged_prices_and_extra_fields_are_refused(self):
         self.publish()
         r = self.post('shop/purchase', {'vendor': 'kiosk-a', 'item': 'ghost-circuit', 'qty': 1, 'credits': 1000, 'price': 1, 'nonce': self.nonce()})

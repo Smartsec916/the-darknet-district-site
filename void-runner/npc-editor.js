@@ -141,7 +141,9 @@
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
   if(e.made){madeBox(main,e);charLookBox(main,e,asset);}else if(e.kind!=='import')appearanceBox(main,e,asset);
-  if(e.kind==='roster'){if(g?.canTalk)interactionBox(main,e);giverBox(main,e);placeBox(main,e,clips);if(X().MOVABLE[e.id]){scheduleBox(main,e);behaviourBox(main,e);}if(!(X().MOVABLE[e.id]||{}).cat)animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
+  if(e.kind==='roster'){if(g?.canTalk){interactionBox(main,e);
+   main.append(btn('Vendor settings',()=>{const tools=DTX();tools.catalogNpc={id:e.id,name:g.say||e.name||e.id};tools.open('items');}));
+  }giverBox(main,e);placeBox(main,e,clips);if(X().MOVABLE[e.id]){scheduleBox(main,e);behaviourBox(main,e);}if(!(X().MOVABLE[e.id]||{}).cat)animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
   else if(e.kind==='crowd')animBox(main,e,asset);
   else requestBox(main,e,asset);}
  function interactionBox(main,e){const box=el('section','','me-check',{'data-npc-interactions':e.id}),r=S().local().interactions?.[e.id]||{};box.append(el('h4','Conversations & Interactions'),hint('Ordinary dialogue, not a mission. Up to 100 alternatives per dialogue box, 500 characters per line. Mission dialogue takes priority. Save to your draft and use PLAY THIS DRAFT to test.'));

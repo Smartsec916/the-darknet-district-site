@@ -46,8 +46,17 @@
     (scope==='vendor'?'<label>Interface color <input type="color" data-field="color" value="'+esc(r.color||'#548c98')+'"></label>'+
     wrap('message','Promotional message',r.message||'')+wrap('sound','Purchase sound (game asset path)',r.sound||''):'')+'</fieldset>';
   }
+  function serviceFields(it){
+   const svc=it.service,steps=svc?.steps||[],id=tools.catalogNpc?.id||sellers(s.data,it.id).find(v=>v.kind==='npc')?.entity.replace(/^npc-/,'');
+   const choices=id&&root.VoidNPCPaths?.actionsFor(id),clips=(choices||[]).map(v=>[v.id||v.clip,v.label||v.name||v.id||v.clip]).filter(v=>v[0]);
+   const points=root.VoidLiveContent?.env?.npcPlans?.[id]?.points||[];
+   return '<fieldset data-service><legend>Service routine</legend>'+field('participation','Player participation',svc?.participation||'watch',['watch','follow'])+
+    field('completion','Completion',svc?.completion||'timer',['timer','confirm'])+steps.map((step,i)=>'<fieldset data-step="'+i+'"><legend>Step '+(i+1)+'</legend>'+
+    field('seconds','Duration (seconds)',step.seconds)+field('point','Authored waypoint',step.point||0,points.length?[[0,'Stay here'],...points.map((p,j)=>[j+1,(j+1)+' · '+(p.action||'waypoint')])]:undefined)+field('clip','Animation clip',step.clip||'',clips.length?[['','Normal animation'],...clips]:undefined)+
+    field('line','Dialogue',step.line||'')+'<button data-drop-step="'+i+'">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';
+  }
   function assignments(it){
-   return spec.vendorRegistry.map(reg=>{
+   return [...spec.vendorRegistry,...s.data.vendors.filter(v=>v.kind==='npc'&&!spec.vendorRegistry.some(r=>r.entity===v.entity))].map(reg=>{
     const vendor=s.data.vendors.find(v=>v.entity===reg.entity),e=vendor?.entries.find(x=>x.item===it.id);
     return '<fieldset data-seller="'+esc(reg.entity)+'"><legend><label><input type="checkbox" data-assigned '+(e?'checked':'')+'> '+esc(vendor?.name||reg.name)+'</label></legend><small>'+esc(reg.location)+' · '+esc(reg.kind)+'</small>'+
      (e?'<label>Vendor name <input data-vendor-name value="'+esc(vendor.name)+'"></label><label>Location label <input data-vendor-location value="'+esc(vendor.location)+'"></label>'+availabilityFields('vendor',vendor.rules)+availabilityFields('entry',e.rules)+field('price','Vendor price',e.price)+field('stock','Initial stock',e.stock)+field('maxStock','Maximum stock',e.maxStock)+
@@ -57,17 +66,18 @@
   }
   function draw(){
    if(!host.isConnected||!current())return;
-   const c=s.data,it=item();
+   const c=s.data,it=item(),npc=tools.catalogNpc;
    if(!c){host.innerHTML='<h3>Items &amp; Vendors</h3><p role="status">'+esc(s.message||'Loading catalog…')+'</p>'+(!s.busy?button('reload','Reload catalog'):'');return;}
    const cats=c.categories.map(x=>[x.id,x.name]),list=filtered(c,s.filter),where=it?sellers(c,it.id):[];
    host.innerHTML='<h3>Items &amp; Vendors</h3><p role="status">'+esc(s.message||'Ready')+' · Live version '+s.version+' · Draft '+s.revision+'</p><fieldset '+(s.busy?'disabled':'')+'>'+
+    (npc?'<p>'+esc(npc.name)+' '+button('enable-npc',s.data.vendors.some(v=>v.entity==='npc-'+npc.id&&v.enabled!==false)?'Disable vendor':'Enable as vendor')+'</p>':'')+
     '<label>Search <input type="search" data-search value="'+esc(s.filter.search)+'"></label>'+filter('category','Category',cats)+
     filter('vendor','Vendor',c.vendors.map(v=>[v.id,v.name]))+filter('vendorType','Vendor type',spec.vendorKinds)+filter('location','Location',[...new Set(c.vendors.map(v=>v.location))])+
     filter('status','Availability',spec.statuses)+filter('effect','Effect',Object.entries(spec.effects).map(([k,v])=>[k,v.label]))+
     '<label><input type="checkbox" data-instock '+(s.filter.stock?'checked':'')+'> In stock</label><p><label>Items <select data-picker>'+options([['','Choose an item'],...list.map(v=>[v.id,v.name])],s.id)+'</select></label> '+list.length+' items</p>'+
     field('newId','New item ID','')+'<label>Template <select data-example>'+options([['','Blank item'],...Object.entries(root.VoidConsumableStudio?.examples||{}).map(([id,v])=>[id,v[0]])],'')+'</select></label>'+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
     (it?'<fieldset><legend>'+esc(it.name)+' · '+esc(it.id)+'</legend>'+field('name','Name',it.name)+field('description','Description',it.description)+field('category','Category',it.category,cats)+
-     field('kind','Item type',it.kind,spec.kinds)+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
+     field('kind','Item type',it.kind,spec.kinds)+(it.kind==='service'?serviceFields(it):'')+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
      field('image','Product image path',it.image||'')+field('purchaseSound','Purchase sound',it.purchaseSound||'')+field('useSound','Use sound',it.useSound||'')+field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+
      ('<button data-effects type="button">Open Consumables Studio</button>')+field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset>'+
      '<h4>Sold at</h4><p>'+esc(where.map(v=>v.name+' · '+v.location).join(', ')||'No vendors assigned')+'</p>'+assignments(it):'')+
@@ -101,6 +111,14 @@
    if(el.matches('[data-picker]')){s.id=el.value;draw();return;}
    if(el.dataset.filter||el.matches('[data-instock]')){s.filter[el.dataset.filter||'stock']=el.type==='checkbox'?el.checked:el.value;draw();return;}
    if(!it||k==='newId'||el.matches('[data-search]'))return;
+   if(el.closest('[data-service]')&&k){
+    const line=el.closest('[data-step]');const obj=line?it.service.steps[Number(line.dataset.step)]:it.service;
+    obj[k]=k==='point'?Number(el.value):el.type==='number'?el.valueAsNumber:el.value;mark();return;
+   }
+   if(k==='kind'&&!reg){
+    it.kind=el.value;if(it.kind==='service'){it.service||={participation:'watch',completion:'timer',steps:[{seconds:15,point:0,clip:'',line:''}]};it.consumable=null;}
+    else{delete it.service;if(!it.consumable&&it.kind==='consumable')it.consumable={effects:[],modifiers:[]};}mark();draw();return;
+   }
    if(reg){
     const def=spec.vendorRegistry.find(v=>v.entity===reg);let vendor=s.data.vendors.find(v=>v.entity===reg);
     if(!def)return;
@@ -125,6 +143,7 @@
    if(el.matches('[data-assigned]')||k==='mode')draw();else host.querySelector('[role=status]').textContent=s.message;
   };
   host.onclick=e=>{
+   const remove=e.target.closest('[data-drop-step]');if(remove&&item()?.service&&current()&&!s.busy){item().service.steps.splice(Number(remove.dataset.dropStep),1);mark();draw();return;}
    if(e.target.closest('[data-effects]')&&item()&&!s.busy&&current()){
     root.VoidConsumableStudio.open(item(),s.data.presets,(effects,presets)=>{item().consumable=effects;s.data.presets=presets;mark();draw();},()=>host.isConnected&&!host.closest('[hidden]')&&current());return;
    }
@@ -133,6 +152,12 @@
    const idText=host.querySelector('[data-field=newId]')?.value.trim(),target=Number(host.querySelector('[data-version]')?.value);
    work(async()=>{
     if(act==='reload'){if(!s.dirty||confirm('Discard unsaved edits and reload?'))await reload();return;}
+    if(act==='step'){if(item().service.steps.length>=12)throw Error('The service has twelve steps.');item().service.steps.push({seconds:10,point:0,clip:'',line:''});mark();return;}
+    if(act==='enable-npc'){
+     const npc=tools.catalogNpc;if(!npc)return;const entity='npc-'+npc.id;let v=s.data.vendors.find(x=>x.entity===entity);
+     if(v)v.enabled=v.enabled===false;else{s.data.vendors.push({id:entity,name:npc.name,entity,kind:'npc',location:'With '+npc.name,entries:[],enabled:true});}
+     mark();return;
+    }
     if(act==='new'||act==='duplicate'){
      const id=idText||uniqueId(s.data.items,act==='new'?(template||'new-item'):item().id+'-copy');
      if(!rules.ID.test(id)||s.data.items.some(i=>i.id===id))throw Error('Choose a unique ID starting with a letter, using lowercase letters, digits and hyphens.');
