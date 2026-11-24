@@ -29,6 +29,42 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  const recovered=await page.evaluate(()=>({metrics:VoidFrameMetrics.stats,crowd:VoidBabylon.district.nightlife.stats()}));result.timing.push({recovered});
  if(recovered.metrics.fps>56)assert(recovered.crowd.budget>slow.crowd.budget,'density recovers gradually');
  await page.evaluate(()=>Object.assign(walker,{x:61,z:-65,yaw:0,pitch:0}));await page.waitForTimeout(1000);await page.screenshot({path:path.join(out,'neochinatown.png')});
+ // Exercise the real rendered street checkpoint, with a synthetic deferred social-arrival
+ // callback (the actor and its policy are covered separately by the adapter/geometry tests).
+ // Deliberately fail after the destination scene has loaded to verify rollback and retry.
+ async function scanSocialTransaction(fail){
+  return page.evaluate(async fail=>{
+   const ctl=VoidGateTransit,lane=VoidQuarters.lane('north:foot-w'),from=walkingLocation.quarter;
+   const gate=VoidQuarters.gate(lane.gate),to=gate.ends[VoidQuarters.other(VoidQuarters.endOf(gate,from))].quarter;
+   const original=enterWalking,commits=[],queued=[];
+   enterWalking=async function(id,opts){
+    const loaded=await original.apply(this,arguments);
+    if(opts?.gateLane===lane.key){
+     queued.push(ctl.deferExchange(lane.key,()=>commits.push({phase:ctl.state,quarter:walkingLocation.quarter,overlayHidden:document.getElementById('gate-transit').hidden})));
+     if(fail)throw Error('intentional test failure after destination scene load');
+    }
+    return loaded;
+   };
+   try{
+    Object.assign(walker,{x:lane.mid[0],z:lane.mid[1],yaw:0,pitch:0});
+    const ok=await ctl.go();
+    return {ok,from,to,quarter:walkingLocation.quarter,phase:ctl.state,queued,commits,history:ctl.history};
+   }finally{enterWalking=original;}
+  },fail);
+ }
+ result.socialGate=[];
+ for(const fail of [false,true,false]){
+  if(result.socialGate.length)await page.waitForTimeout(1700);
+  const scan=await scanSocialTransaction(fail);
+  result.socialGate.push(scan);console.log('SOCIAL GATE TRANSACTION',JSON.stringify(scan));
+  assert.deepEqual(scan.queued,[true],'the real EXCHANGE accepted exactly one deferred callback');
+  assert.equal(scan.ok,!fail);
+  assert.equal(scan.quarter,fail?scan.from:scan.to);
+  assert.equal(scan.phase,fail?'RECOVERY':'COMPLETE');
+  assert.deepEqual(scan.commits,fail?[]:[{phase:'COMPLETE',quarter:scan.to,overlayHidden:true}],'no premature or stale callback');
+  await settled();
+ }
+ assert.equal(await page.evaluate(()=>walkingLocation.quarter),'oldtown','checkpoint retry returned to the original test district');
  // Full campaign data lives in the original object; VR gets only a detached simulation state.
  const options=smoke?[['forest',{}]]:[['forest',{}],['tropical',{}],['suite',{companion:'seren'}],['suite',{companion:'kai'}],['suite',{companion:'nadia'}]];
  for(const [id,opts]of options){
