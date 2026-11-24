@@ -60,7 +60,7 @@
  }
  // Rebuild an export package from the current local NPC draft, including newly
  // generated voice blobs. Purely local: does not upload, charge or publish.
- async function repack(original,draft){
+ async function repack(original,draft,repairedModel=null){
   if(!studio?.unpackTransfer||!studio?.packTransfer||!draft||!Array.isArray(draft.voices))
    throw Error('Companion export tools or draft voice data are unavailable.');
   const originalParts=await studio.unpackTransfer(original);
@@ -76,6 +76,8 @@
   }
   const parts=originalParts.parts.filter(p=>p.meta.kind==='model'||p.meta.kind==='motion');
   if(parts.filter(p=>p.meta.kind==='model').length!==1)throw Error('The original transfer needs exactly one model.');
+  if(repairedModel){if(repairedModel.size>15*1024*1024)throw Error('The repaired model exceeds 15 MB.');
+   npc.importDocument(await repairedModel.arrayBuffer(),'.glb');parts.find(p=>p.meta.kind==='model').blob=repairedModel;}
   const meta={...originalParts.meta,name,about:profile.about,personality:profile.personality,dialogue:profile.dialogue,
    ...(draft.voiceSelection?{voiceSelection:draft.voiceSelection}:{})};
   return studio.packTransfer(meta,[...parts,...byText.values()]);
