@@ -444,7 +444,7 @@
  }
  function endActivity(){
   activity=null;
-  for(const f of figs.values()){f.doClip=null;f.accent=null;f.want='stand';}
+  for(const f of figs.values()){f.acts=f.acts.filter(a=>a.id!=='reach-hand'&&a.id!=='dance');f.walk=null;f.route=[];f.doClip=null;f.accent=null;f.want='stand';}
  }
  function beginSeat(w,g){
   const src={x:w.x,y:w.y,z:w.z},target={x:g.x,y:g.y+g.seatH+.45*(w.eye||1.68),z:g.z};
@@ -476,9 +476,19 @@
   if(clock()-a.started>16){endActivity();return;}
   for(const f of figs.values()){
    f.want='stand';
-   if(a.kind==='dance')f.doClip=f.has('slow-dance')?'slow-dance':f.has('dance-belly')?'dance-belly':null;
-   else if(a.kind==='hands'&&f.id===a.speaker&&standing(f)&&!a.reached){
-    f.acts.push({id:'reach-hand',t0:clock(),dur:Math.max(1,16-(clock()-a.started)),s:1});a.reached=true;
+   if(a.kind==='dance'){
+    f.doClip=f.has('slow-dance')?'slow-dance':f.has('dance-belly')?'dance-belly':null;
+    if(!f.doClip&&standing(f)&&!f.acts.some(g=>g.id==='dance'))f.acts.unshift({id:'dance',t0:clock(),dur:POSES.dance.dur,s:f.id==='nomi'?1:-1});
+   }else if(a.kind==='hands'&&f.id===a.speaker&&standing(f)){
+    const p=f.node.position,dx=p.x-w.x,dz=p.z-w.z,d=Math.hypot(dx,dz);
+    if(d>1.1&&a.reached){endActivity();return;}
+    if(d>.85&&!f.walk&&!a.reached&&clock()>=(a.nextStep||0)){
+     a.nextStep=clock()+1;
+     walkTo(f,{x:w.x+.75*dx/d,z:w.z+.75*dz/d},w);
+    }else if(d<=.85&&!a.reached){
+     f.walk=null;f.route=[];a.reached=true;
+     f.acts.unshift({id:'reach-hand',t0:clock(),dur:Math.max(1,16-(clock()-a.started)),s:1});
+    }
    }else if(a.kind==='relax')f.doClip=f.has('idle-f2')?'idle-f2':null;
   }
  }
