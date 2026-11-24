@@ -70,6 +70,8 @@ from blackout_api import api as blackout_api
 app.register_blueprint(blackout_api)
 from identity_api import api as identity_api
 app.register_blueprint(identity_api)
+from hotel_headshots_api import api as hotel_headshots_api
+app.register_blueprint(hotel_headshots_api)
 from frequencies_api import api as frequencies_api
 app.register_blueprint(frequencies_api)
 
