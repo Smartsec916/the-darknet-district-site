@@ -15,11 +15,11 @@
  update=function(dt){if(mode!=='food-seated')return previousUpdate(dt);time+=dt;VoidAudio.tick(dt);$('walking-caption').textContent=F.STANDS[seated.quarter].name.toUpperCase();$('walking-interact').textContent='[E] STAND UP';$('walking-interact').disabled=false;};
  const previousDraw=draw;
  draw=function(){if(mode!=='food-seated')return previousDraw();mode='walking';try{previousDraw();}finally{mode='food-seated';}};
- addEventListener('keydown',e=>{if(mode!=='food-seated'||!['KeyE','Space','Escape'].includes(e.code))return;e.preventDefault();e.stopImmediatePropagation();stand();},true);
- canvas.addEventListener('click',()=>{if(mode==='food-seated')canvas.requestPointerLock?.()?.catch?.(()=>{});});
+ addEventListener('keydown',e=>{if(mode!=='food-seated'||VoidInputState.current.shortcuts!=='seat'||!['KeyE','Space','Escape'].includes(e.code))return;e.preventDefault();e.stopImmediatePropagation();stand();},true);
+ addEventListener('void-input-clear',()=>{lookPointer=null;});
  canvas.addEventListener('pointerdown',e=>{if(mode==='food-seated')lookPointer={x:e.clientX,y:e.clientY};});
  canvas.addEventListener('pointerup',()=>lookPointer=null);
- canvas.addEventListener('pointermove',e=>{if(mode!=='food-seated'||!walker)return;const locked=document.pointerLockElement===canvas;if(!locked&&!lookPointer)return;const dx=locked?e.movementX:e.clientX-lookPointer.x,dy=locked?e.movementY:e.clientY-lookPointer.y;walker.yaw+=dx*VoidExplorer.config.sensitivity;walker.pitch=FM.clamp(walker.pitch+dy*VoidExplorer.config.sensitivity,-1.35,1.35);if(lookPointer)lookPointer={x:e.clientX,y:e.clientY};});
+ canvas.addEventListener('pointermove',e=>{if(mode!=='food-seated'||!walker||!VoidInputState.current.camera)return;const locked=document.pointerLockElement===canvas;if(!locked&&!lookPointer)return;const dx=locked?e.movementX:e.clientX-lookPointer.x,dy=locked?e.movementY:e.clientY-lookPointer.y;walker.yaw+=dx*VoidExplorer.config.sensitivity;walker.pitch=FM.clamp(walker.pitch+dy*VoidExplorer.config.sensitivity,-1.35,1.35);if(lookPointer)lookPointer={x:e.clientX,y:e.clientY};});
  $('walking-interact').addEventListener('click',e=>{if(mode!=='food-seated')return;e.preventDefault();e.stopImmediatePropagation();stand();},true);
  root.VoidFoodSeat={get active(){return !!seated;},stand};
 })(globalThis);

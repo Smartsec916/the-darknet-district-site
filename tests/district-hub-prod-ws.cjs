@@ -166,3 +166,22 @@ test('a slow look refresh keeps the verified session and ignores a concurrent re
   fox.ws.close();bolt.ws.close();
  }finally{release?.();await hub.close();}
 });
+
+test('an authenticated player answering transport pings remains in the room without sending animation frames',async()=>{
+ const w=world(),hub=await boot(w);
+ try{
+  const fox=await join(hub,w.accounts.fox);
+  await fox.until(c=>c.of('welcome').length);
+  const peer=[...hub.hub.peers.values()][0];
+  // Move the application clock beyond the pose deadline without waiting on a real background tab.
+  const start=hub.hub.now();
+  hub.hub.now=()=>start+20000;
+  const pong=new Promise(resolve=>peer.conn.once('pong',resolve));
+  peer.conn.ping();
+  await pong;
+  hub.hub.sweep();
+  assert.equal(hub.hub.peers.get(peer.uid),peer);
+  assert.equal(fox.of('welcome').length,1);
+  fox.ws.close();
+ }finally{await hub.close();}
+});
