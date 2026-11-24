@@ -61488,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "3d790965e391ac96",
+  "revision": "712ccdf91058436c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79288,6 +79288,48 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 21,
+      "text": "const validLines=new Set(Object.values(profile.dialogue).flat());",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 35,
+      "text": "throw Error('Companion voice recording has invalid dialogue metadata.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 42,
+      "text": "personality:profile.personality,dialogue:profile.dialogue,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 53,
+      "text": "dialogueLineCount:validLines.size,recordedLineCount:new Set(attachedVoices.map(p=>p.meta.record.text)).size,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 56,
+      "text": "warnings:[...(orphanVoices?['Ignored '+orphanVoices+' old voice recording(s) whose text is no longer in the personality dialogue.']:[]),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 70,
+      "text": "const active=new Set(Object.values(profile.dialogue).flat());",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-companion-import.js",
+      "line": 79,
+      "text": "const meta={...originalParts.meta,name,about:profile.about,personality:profile.personality,dialogue:profile.dialogue,",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/npc-device.js",
       "line": 15,
       "text": "(and Dax) now and then idle-check theirs, never while a conversation is open, and Juno Vex's own \"device\" beat uses this panel. Never companions, players or dialogue",
@@ -79463,55 +79505,193 @@
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 490,
-      "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));const own=S().local().characters?.[e.id],cp=own?.companionProfile;if(own?.relationships?.length){const rel=el('details');rel.append(el('summary','Transferred relationships'));for(const r of own.relationships)rel.append(el('p',r.target+' · '+r.type+' · '+r.activity+' · '+r.distance+' m'),...r.lines.map(t=>el('p',t)));box.append(rel);}if(cp){const profile=el('details');profile.append(el('summary','Transferred companion personality'),el('p',cp.about||'No description'),el('p','Walking speed and conversation initiative apply outside missions. Other traits are available as authoring reference.'));for(const [k,v] of Object.entries(cp.personality))profile.append(el('p',k+': '+v));for(const [k,v] of Object.entries(cp.dialogue)){if(v.length)profile.append(el('h5',k),...v.map(t=>el('p',t)));}box.append(profile);}if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
+      "line": 493,
+      "text": "area.value=JSON.stringify(current||{about:'',personality:{},dialogue:{}},null,2);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 571,
-      "text": "if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time=\"from:'+k+'\"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});",
+      "line": 509,
+      "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));const own=S().local().characters?.[e.id],cp=own?.companionProfile;if(own?.relationships?.length){const rel=el('details');rel.append(el('summary','Transferred relationships'));for(const r of own.relationships)rel.append(el('p',r.target+' · '+r.type+' · '+r.activity+' · '+r.distance+' m'),...r.lines.map(t=>el('p',t)));box.append(rel);}if(cp){const profile=el('details');profile.append(el('summary','Transferred companion personality'),el('p',cp.about||'No description'),el('p','Walking speed and conversation initiative apply outside missions. Other traits are available as authoring reference.'));for(const [k,v] of Object.entries(cp.personality))profile.append(el('p',k+': '+v));for(const [k,v] of Object.entries(cp.dialogue)){if(v.length)profile.append(el('h5',k),...v.map(t=>el('p',t)));}box.append(profile);}if(own)box.append(rosterPersonality(e,cp));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 572,
-      "text": "p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point=\"'+i+'\"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green ground'});});}",
+      "line": 547,
+      "text": "personality:inspected.personality,dialogue:inspected.dialogue,worldBehavior:inspected.worldBehavior,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 573,
-      "text": "if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/npc-editor.js",
-      "line": 574,
-      "text": "return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play=\"'+CSS.escape(e.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/npc-editor.js",
-      "line": 575,
-      "text": "if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/npc-editor.js",
-      "line": 577,
-      "text": "if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/npc-editor.js",
-      "line": 578,
-      "text": "if(!L.source)needs.push({sel:'[data-npc-lic=\"source\"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic=\"type\"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai=\"true\"]',text:'answer “No AI licence?”'});",
+      "line": 551,
+      "text": "dialogueLineCount:inspected.dialogueLineCount,recordedLineCount:inspected.recordedLineCount,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
       "line": 579,
+      "text": "if(!root.confirm('Replace the personality and dialogue pools for '+characters[id].name+' in your mission draft? Their existing recordings and model will be kept.'))return;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 585,
+      "text": "const V=root.VoidVoiceImports,active=new Set(Object.values(profile.dialogue).flat()),prepared=[];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 593,
+      "text": "prepared.push(V.record({...clip,who:id,text}));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 620,
+      "text": "el('p',Object.values(p.dialogue||{}).reduce((n,arr)=>n+arr.length,0)+' dialogue entries · '+(p.recordedLineCount||0)+' recorded lines · '+(p.missingVoiceLines||[]).length+' missing voice lines','me-small'),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 640,
+      "text": "audio.append(el('summary','Recorded dialogue'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 641,
+      "text": "const available=(p.voices||[]).filter(v=>Object.values(p.dialogue||{}).some(lines=>lines.includes(v.record?.text)));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 656,
+      "text": "}else audio.append(el('p','No recordings match the current dialogue.'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 660,
+      "text": "detail.append(el('summary','Edit personality and dialogue JSON (local draft)'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 662,
+      "text": "area.value=JSON.stringify({about:p.about||'',personality:p.personality||{},dialogue:p.dialogue||{}},null,2);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 663,
+      "text": "detail.append(area,hint('Paste the ChatGPT JSON here, then validate and save. This edits only this private model draft. Existing recordings are kept; changed dialogue lines are marked missing.'));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 670,
+      "text": "const template={about:'600 characters maximum',personality:Object.fromEntries(Object.entries(studio.ranges).map(([k,v])=>[k,v[0]])),dialogue:Object.fromEntries(studio.pools.map(k=>[k,[]]))};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 671,
+      "text": "const prompt='Create a personality and dialogue for a Void Runner NPC named '+rec.name+'. Return ONLY a JSON object matching this template. Include 3–5 concise, non-explicit lines in each dialogue pool. Keep the description below 600 characters, all numeric settings within the documented ranges, and respect declined invitations. Adapt the personality to my instructions.\\\\nBehavior ranges: '+JSON.stringify(studio.ranges)+'\\\\nTemplate: '+JSON.stringify(template,null,2);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 680,
+      "text": "const all=[...new Set(Object.values(profile.dialogue).flat())];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 682,
+      "text": "Object.assign(rec.companion,profile,{dialogueLineCount:all.length,recordedLineCount:recorded.size,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 728,
+      "text": "if(!preview.missing){voiceStatus.textContent='Every dialogue line already has a recording.';return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 737,
+      "text": "if(!Object.values(rec.companion.dialogue||{}).flat().includes(job.text))throw Error('Dialogue changed; batch stopped.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 738,
+      "text": "if(job.speakText.length>700)throw Error('One dialogue line exceeds the 700-character generation limit.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 740,
+      "text": "const output=await dev.request('developer/companion-voice',{voiceId:voice.voiceId,text:job.speakText});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 749,
+      "text": "record:root.VoidVoiceImports.record({...prepared,who:rec.companion.id,text:job.text}),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 828,
+      "text": "companion:rec.companion?{id:rec.companion.id,about:rec.companion.about,personality:rec.companion.personality,dialogue:rec.companion.dialogue,dialogueLineCount:rec.companion.dialogueLineCount,recordedLineCount:rec.companion.recordedLineCount,missingVoiceLines:rec.companion.missingVoiceLines,originalPackage:rec.sourceFileName,voiceAndMotionFiles:'Included only in original .vrcompanion transfer'}:null,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 853,
+      "text": "if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time=\"from:'+k+'\"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 854,
+      "text": "p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point=\"'+i+'\"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green ground'});});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 855,
+      "text": "if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 856,
+      "text": "return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play=\"'+CSS.escape(e.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 857,
+      "text": "if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 859,
+      "text": "if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 860,
+      "text": "if(!L.source)needs.push({sel:'[data-npc-lic=\"source\"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic=\"type\"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai=\"true\"]',text:'answer “No AI licence?”'});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 861,
       "text": "return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}",
       "kind": "source-reference"
     },
@@ -79747,6 +79927,18 @@
       "source": "void-runner/npc-paths.js",
       "line": 318,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-voice-batch.js",
+      "line": 1,
+      "text": "/* Reusable, side-effect-free ElevenLabs missing-line planner for NPC dialogue.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-voice-batch.js",
+      "line": 24,
+      "text": "jobs:missing.map((r,i)=>({id:r.id,pool:r.pool,text:r.text,speakText:spoken[i]})),",
       "kind": "source-reference"
     },
     {
@@ -82330,8 +82522,9 @@
     "void-runner/npc-areas.js": "429ffa6f16f3a0cafe3de9f78ca3d06cfaee2119bbde04e66b98f6a2243648d8",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
+    "void-runner/npc-companion-import.js": "cc459fd07823efd164ede570ac8225dfd52523d05c718c86020a7ad07ed58e9b",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "1000360c1ec5318bb9d0124e3e0537a3e61db6941e2720ebcc972815398902ee",
+    "void-runner/npc-editor.js": "c5e12d6d5e0cda420f3f4f8896f530f380bb19bb0c9f1264908818dc049f9297",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "97b31de243204d78f9804a4a16579d58f0431bd559b41796b01987a27c52d10d",
@@ -82343,6 +82536,7 @@
     "void-runner/npc-paths.js": "0d01e501b549457049c2386f681b83eb7fdf1bd5d04abce885bfa83326d689a9",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
+    "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
