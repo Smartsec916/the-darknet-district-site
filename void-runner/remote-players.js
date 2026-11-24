@@ -90,7 +90,8 @@
  // Their device, drawn by npc-device.js (the one path by which it draws a player): the cuff and hologram (V1, V2) or the eye (V3 // Shadow), only while the hub says it is open.
  function mark(node,p){node.metadata={...(node.metadata||{}),remoteDevice:{id:p.id,tier:()=>p.dev,force:()=>root.VoidNPCDevice?.remotePose?.(p.dev,p.devPose)||null}};return node;}
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
- function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
+ const npcTurns=new Map();
+ function clearPeers(){npcTurns.clear();for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
   const scene=root.VoidBabylon?.scene;if(!scene||!walker||!consistent())return false;if(p.node&&!p.node.isDisposed())return true;
   // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
@@ -123,9 +124,14 @@
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
  }
  function onMessage(m){
+  if(m.t==='npc-turn'){
+   const turn={...m,at:performance.now()};npcTurns.set(m.group,turn);
+   setTimeout(()=>{if(npcTurns.get(m.group)===turn){npcTurns.delete(m.group);root.VoidRemotePlayers.endNpcTurn(turn);}},1200);
+   return;
+  }
   if(m.t==='error'&&m.reason==='unknown room'){refusedRoom=joinedRoom;return;}   // this hub does not carry this place: it is played alone, and other places still connect
   if(m.t==='voice-token'||m.t==='voice-refused'){const w=voiceWaiting;voiceWaiting=null;if(w){clearTimeout(w.timer);m.t==='voice-token'&&/^wss:\/\//.test(String(m.url))?w.resolve({url:m.url,token:m.token,room:m.room,identity:m.identity,expires:m.expires}):w.reject(new Error(m.reason||'Voice is not available.'));}return;}
-  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={npcDialogue:!!m.features?.npcDialogue,trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
   else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
@@ -236,6 +242,14 @@
   vrLeave(){vrWant=null;if(vrSession&&hubVr&&ws?.readyState===1)ws.send('{"t":"vr-leave"}');vrSession=null;clearPeers();},
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
+  npcTurn(group,cooldown){
+   if(status!=='in'||!features.npcDialogue||ws?.readyState!==1)return null;
+   const turn=npcTurns.get(group);npcTurns.delete(group);
+   if(turn&&performance.now()-turn.at<1200)return turn;
+   if(turn)this.endNpcTurn(turn);
+   ws.send(JSON.stringify({t:'npc-ready',group,cooldown}));return null;
+  },
+  endNpcTurn(turn){if(status==='in'&&ws?.readyState===1)ws.send(JSON.stringify({t:'npc-end',group:turn.group,token:turn.token}));},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
   nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed()||p.elsewhere)continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
   get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,dev:p.dev||null,devPose:p.devPose||null,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
