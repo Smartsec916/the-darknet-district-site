@@ -61940,7 +61940,7 @@
       "spawn"
     ]
   },
-  "revision": "3b29654e688c2349",
+  "revision": "c9d9c6ec2c078b8e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83203,7 +83203,7 @@
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
-    "void-runner/skirmish.js": "3b7205101d6e6f651bef09f0846b0caa2b20d87f5b0a221e348816ae84bd8af0",
+    "void-runner/skirmish.js": "f8446088784856e81db46395cd22abb3e43174f8dfdcb6a068d4fad2b267f8b8",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/sound-studio-editor.js": "18382f9f26e4641af878e9436a2a668f8129ccca1bd32e2daf72654fbdcb4b04",
     "void-runner/sound-studio-runtime.js": "4dc408d955f1e7efc8d46dbae5fbbcbba7dfceb30a958d1aa26396feab11e66b",

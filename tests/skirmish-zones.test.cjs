@@ -17,3 +17,20 @@ test('shared campaign rules lock friendly and allow first-press fire in neutral 
  assert.equal(Z.hostileNow(esc,'neutral',2),true);assert.equal(Z.hostileNow(esc,'friendly',2),false);
  assert.equal(Z.press(st,'hostile',3,c),'fire');
 });
+
+test('the separate faction scenario uses real station doorways and noncombatants',()=>{
+ const stationContext={URL,document:{currentScript:{src:'https://example.test/void-runner/derelict-station.js'}}};
+ vm.runInNewContext(fs.readFileSync(require.resolve('../void-runner/derelict-station.js'),'utf8'),stationContext);
+ const room=stationContext.VoidDerelictStation.layout;
+ assert.notEqual(room.id,S.layout.id);
+ assert.equal(S.factionZone({z:room.spawn[2]}),'friendly');
+ for(const post of S.factionPosts)for(const [x,z] of post.enemies){
+  assert.equal(S.factionZone({z}),post.id);
+  assert.ok(!room.solids.some(b=>Math.abs(x-b.position[0])<b.size[0]/2+.38&&Math.abs(z-b.position[2])<b.size[2]/2+.38),'clear post '+[x,z]);
+ }
+ assert.ok(S.factionPosts.some(group=>group.civilian&&group.id==='neutral'));
+ for(const [z,from,to] of [[-27,'friendly','neutral'],[72,'neutral','hostile']]){
+  assert.equal(S.factionZone({z:z-.5}),from);assert.equal(S.factionZone({z:z+.5}),to);
+  assert.ok(!room.solids.some(b=>Math.abs(b.position[0])<b.size[0]/2+.38&&Math.abs(z-b.position[2])<b.size[2]/2+.38));
+ }
+});
