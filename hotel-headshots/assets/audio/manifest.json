@@ -1,0 +1,47 @@
+{
+  "created": "2026-11-24",
+  "provider": "ElevenLabs",
+  "model": "eleven_v4",
+  "voice_id": "0zj1iWvloMkAXydIFsJR",
+  "voice_name": "Lana - Young & Lively",
+  "flow_id": "FgLKDGO5WieXubuO5ia3",
+  "script_source": "Owner-requested four NPC foam-hit reactions",
+  "generation_ids": [
+    "W4TN6BjHqzjEojPFinRq",
+    "TPDyDqhihu7vhmHDA8sS",
+    "YDXmvTKJpIsI0z9RSXDj",
+    "1zgH1Et0DfsIDXujuDXb"
+  ],
+  "clips": [
+    {
+      "file": "eww.wav",
+      "text": "Eww!",
+      "direction": "disgusted",
+      "source_sha256": "60712c67c23aa86146d4eb3920d592be6b3967d6952cc939d333cc03a0bf3366",
+      "sha256": "b805799515a7583b4c5984c0a03da00970281338bc6bb2253fa6428750f534a1"
+    },
+    {
+      "file": "ahhh.wav",
+      "text": "Ahhh!",
+      "direction": "startled",
+      "source_sha256": "44162402cc006c529e427e7e2461258fa295754978bcf541595a10a7fe012259",
+      "sha256": "b7a6e762a88c861a81191f716234b9e117544c26b05ac6a513dad064af63a767"
+    },
+    {
+      "file": "ohhh.wav",
+      "text": "Ohhh!",
+      "direction": "surprised",
+      "source_sha256": "32cfca01ac281a2b83788fbbb2d1d11ea761f35fe2c02aa093113901d31f7e01",
+      "sha256": "e6d6506de344db29c3861ceb91b96d01014d4e6b8a3fc5ce5906aa40f2277cbb"
+    },
+    {
+      "file": "oh-my-god.wav",
+      "text": "Oh My God!",
+      "direction": "shocked",
+      "source_sha256": "282274802a3ec6d110a9e4042da4fe178fec5749face7acd25f66ec010a607f3",
+      "sha256": "fae8c6328b7ada53e795752225d064db7c1f493784490f40fbb5e430dbc85c14"
+    }
+  ],
+  "notes": "Generated through the owner-connected ElevenLabs workspace for this game. No cloned voice or District registry changes. The provider terms for this workspace govern generated audio.",
+  "processing": "Provider word alignment used to isolate the exclamations; mono 24 kHz PCM WAV, peak normalized to 0.85, 8 ms edge fades."
+}

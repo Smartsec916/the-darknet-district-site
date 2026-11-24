@@ -34,13 +34,13 @@ Defensive poses alternate between forehead cover, palms-out and crossed forearms
 
 The games list has a Hotel Headshots card in root and static copies. Cabinet 1 (`arcade-cab-01`, formerly LASER MOTH) now runs `hotel-headshots/index.html` through the existing isolated arcade iframe. TURBO KELP remains unused. The cabinet has its own title, colors, poster, interaction and four-frame attract image captured from the game's actual opening screen. The existing anti-WarFlying screen is retained in place; only its obsolete `replaces: laser-moth` metadata is removed.
 
-The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-7`.
+The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-24-hotel-headshots-8`.
 
 No Sleeping Pod, music-player, account/save implementation, production API, merchandise, entitlement, payment or licensed-model file changed. The District HTML entrypoints remain unchanged and byte-identical.
 
 ## Verification
 
-- Full Node suite (24 Nov): **1,167 passed, 0 failed, 1 skipped** (1,168 total), including embedded model/animation integrity.
+- Full Node suite (24 Nov): **1,171 passed, 0 failed, 1 skipped** (1,172 total), including embedded model/animation integrity.
 - Save compatibility: **19 Python tests passed** (`tests.test_story_save`, `tests.test_progression_save`).
 - Account/API contracts: **35 Python tests passed** (`tests.test_void_runner_api`, `tests.test_identity_api`), using their fake services, not production data.
 - `node tests/hotel-headshots-browser.cjs`: real Edge/WebGL rendering; pointer lock, movement, entrance, payment, pause/resume, actual projectile headshot, arm interception, live theft and harmless retreat, refill, all floor transitions, victory, bankruptcy, persisted leaderboard and 4:3/native resolution. Also regenerates cabinet captures. Screenshots are inspected, not just created.
@@ -70,3 +70,11 @@ Furnishing validation: all 12 Hotel Headshots rule/model tests passed; the compl
 Every guest room has a framed window, sill, mullion and transparent glass. The view is an original low-detail 3D city with apartment towers, rooftop equipment, signs, street lamps and parked vehicles. A perspective-correct offscreen view provides parallax through a virtual opening; walls retain their collision and room isolation. This is the owner-authorized rendering shortcut, not a newly navigable outdoor map. One 512-square render texture is shared by all room windows, updated at most 20 times per second only in a guest room facing the window side. The exterior has six merged meshes, no NPCs, physics, shadows or reflection passes. Upper floors move the street downward to provide higher views. No hardware FPS guarantee is claimed.
 
 Verification: all 13 Hotel Headshots rules/model tests passed, including placements for all 32 windows. Browser checks on floors 1 and 5 verified nonempty rendered city pixels, camera-relative parallax, transparent glazing, six exterior meshes, matching room/window counts, scene replacement, no page errors and no exterior updates while in the hallway. New screenshots: `hotel-headshots/window-floor-1.png`, `hotel-headshots/window-floor-5.png`. Cyan strokes identify windows on the updated floor plans.
+
+## Recorded hit reactions — 24 November 2026
+
+The owner requested four spoken reactions: Eww!, Ahhh!, Ohhh!, and Oh My God! They were generated as separate ElevenLabs v4 recordings using the workspace Lana voice and packaged as short mono 24 kHz WAV files (about 167 KB total). Provider alignment isolates the requested exclamations; edge fades and normalization avoid abrupt starts and clipping. Source IDs and file hashes are recorded in `hotel-headshots/assets/audio/manifest.json`. `tools/audio/process-hotel-reactions.cjs` packages source MP3s kept outside version control. The existing District voice registry and approved clips are untouched.
+
+`reactions.js` decodes these files once after the Start gesture. Confirmed NPC foam hits trigger a shuffled selection, mild voice-pitch variation, stereo position and distance attenuation. At most two voices overlap, with 180 ms global and 1.1 s per-guest cooldowns. There is no queued speech. Pause, mute, floor changes, restart and game-over stop active voices. No generation/API service is contacted during gameplay. Browser checks cover actual projectile-hit playback, all four decoded files, nonconsecutive repeats, cooldown, overlap cap, pause and mute.
+
+Final reaction validation: full Node suite 1,171 passed, 0 failed, 1 skipped; 14 Hotel Headshots checks passed. `node tests/hotel-headshots-residents-browser.cjs --audio` passed with the final WAVs, including a real projectile hit producing a live audio source, a two-voice overlap cap, cooldown, shuffle, pause and mute. Automated checks do not certify the sound of physical speakers.

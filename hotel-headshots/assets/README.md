@@ -9,3 +9,7 @@ Idle and walk animation are retargeted from this repository's public `void-runne
 Three self-contained GLBs, approximately 5 MB each, with textures capped at 1024 pixels. Skeletons and materials are shared through scene asset containers; every guest has an independent animated skeleton. Runtime models are unpickable; skeletal region proxies handle combat. The receptionist uses a guest variant. The original public companion supplies only offline animation-retargeting input; it is not loaded at runtime.
 
 Rebuild requires the existing local MPFB installation/assets and Blender; run Blender in background with `--python tools/assets/hotel/build_characters.py` from the repository root. Temporary build specs/logs belong in `.test-temp/hotel-headshots`.
+
+## Hit-reaction audio
+
+`audio/*.wav` are the four owner-requested NPC exclamations generated on 24 November 2026 through the connected ElevenLabs workspace, using Lana - Young & Lively with eleven_v4. They are separate from the CC0 character assets above and are governed by the provider terms for that workspace. `audio/manifest.json` records prompts/direction, voice identity, generation IDs, processing and source/output hashes. Only the trimmed local WAVs ship; no ElevenLabs credentials, runtime API calls, voice clone, or change to the District voice registry is included.
