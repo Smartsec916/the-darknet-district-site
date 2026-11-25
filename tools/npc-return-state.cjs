@@ -8,28 +8,39 @@ const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const copy=p=>({x:p.x,z:p.z});
 const near=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z)<=.025;
 function createReturnTracker(){
- let route=[],signature=null,last=null,lastStop=null,anchor=null;
- const clear=()=>{route=[];signature=null;anchor=null;};
+ let route=[],signature=null,last=null,lastStop=null,anchor=null,resumeOnly=false;
+ const clear=()=>{route=[];signature=null;anchor=null;resumeOnly=false;};
  const snapshot=(status,reason,waypoint)=>({status,reason,waypoint:waypoint?copy(waypoint):null,lastObserved:last?{area:last.area,...copy(last)}:null,lastLegalStop:lastStop?{area:lastStop.area,...copy(lastStop)}:null});
  function update({position,area,destination,sceneLoaded=true,preempted=false,options={}}={}){
-  if(!sceneLoaded||preempted){clear();return snapshot('paused',!sceneLoaded?'scene-unloaded':'priority-interaction');}
+  if(!sceneLoaded||preempted){
+   // Unload is not a new movement authorization. Retain only evidence of an
+   // already observed transit-only position, and issue no movement while away.
+   // Priority interactions always invalidate that evidence.
+   if(!preempted&&anchor&&route.length&&signature&&last&&last!==lastStop)resumeOnly=true;
+   else clear();
+   return snapshot('paused',!sceneLoaded?'scene-unloaded':'priority-interaction');
+  }
   options={...options,passing:false};
   const legal=(p,a)=>{if(!point(p)||!A.get(a))return false;const c=A.check(p,a,undefined,options);return c.ok&&c.area===a;};
   if(!legal(position,area)){
    // A verified leg may pass through a doorway or narrower clearance where
    // stopping is illegal. Only continue that exact already-authorized leg.
    const next=route[0],sig=destination&&JSON.stringify([destination.key,destination.area,destination.x,destination.z]);
-   const transit=point(position)&&anchor&&next&&A.get(area)&&last?.area===area&&sig===signature&&legal(destination,area)&&legal(next,area);
+   // On re-entry require the exact retained physical observation, not an
+   // inferred position anywhere else on the old leg. Recheck current geometry.
+   const sameObservation=!resumeOnly||(position?.x===last?.x&&position?.z===last?.z);
+   const transit=point(position)&&sameObservation&&anchor&&next&&A.get(area)&&last?.area===area&&sig===signature&&legal(destination,area)&&legal(next,area);
    if(transit){
     const dx=next.x-anchor.x,dz=next.z-anchor.z,l2=dx*dx+dz*dz;
     const t=l2?((position.x-anchor.x)*dx+(position.z-anchor.z)*dz)/l2:-1;
     const c=A.check(position,area,A.CLEAR-.1,{...options,passing:true});
     if(t>=0&&t<=1&&near(position,{x:anchor.x+t*dx,z:anchor.z+t*dz})&&c.ok&&c.area===area&&!A.leg(position,next,options).length){
-     last={area,...copy(position)};return snapshot('walking','verified-transit-leg',next);
+     last={area,...copy(position)};resumeOnly=false;return snapshot('walking','verified-transit-leg',next);
     }
    }
    clear();return snapshot('hold','invalid-observed-position');
   }
+  if(resumeOnly)clear(); // Legal re-entry replans against current geometry.
   last=lastStop={area,...copy(position)};
   if(!destination||typeof destination.key!=='string'||!destination.key||!point(destination)){clear();return snapshot('hold','no-current-routine-target');}
   if(destination.area!==area){clear();return snapshot('hold','authorized-area-transition-required');}
