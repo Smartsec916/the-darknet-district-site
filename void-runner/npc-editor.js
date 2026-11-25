@@ -784,7 +784,7 @@
     if(!workshop.isConnected)return;
     w.panel(workshop,{get:()=>rec.blob,set:async blob=>{
      if(!DTX()?.authorized||!workshop.isConnected)throw Error('Reopen the signed-in NPC editor.');
-     const updated={...rec,blob,bytes:blob.size,info:null};await saveRec(updated);Object.assign(rec,updated);
+     const updated={...rec,blob,bytes:blob.size,info:null};await dbPut(updated);Object.assign(rec,updated);
     },preview:async blob=>{ui.preview?.dispose();const stage=el('div');workshop.append(stage);ui.preview=root.VoidNPCPreview.mount(stage);ui.previewFor=e.id;await ui.preview.show({file:blob});return ui.preview;}});
    }).catch(err=>workshop.textContent=err.message);
   }
@@ -807,32 +807,46 @@
   else if(!root.VoidNPCClipIndex){const load=btn('SCAN GAME ANIMATIONS',async()=>{load.disabled=true;try{const r=await fetch('void-runner/npc-clip-index.json',{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);root.VoidNPCClipIndex=await r.json();draw();}catch(err){status='Could not read animation index: '+err.message;draw();}});compatible.append(load);}
   else{const offers=X().importClips(rec.info),select=el('select','','',{'aria-label':'Compatible game animation'});for(const o of offers)select.append(new Option(o.name+' — '+o.asset,o.id));const result=el('p',offers.length+' compatible candidates (runtime confirmation required).','me-small');compatible.append(result,select,btn('TRY ANIMATION',async()=>{if(!ui.preview||ui.previewFor!==e.id){result.textContent='Show me in 3D first.';return;}const r=await ui.preview.tryLibrary(select.value,e.id);result.textContent=r.ok?'Preview passed: '+select.value:r.why;},'',offers.length?{}:{disabled:''}));}
   main.append(compatible);
-  const nm=el('section','','me-check');const ni=el('input','','',{'aria-label':'Name of the model','data-npc-import-name':rec.id,maxlength:rec.companion?'40':'60'});ni.value=rec.name||'';ni.onchange=async()=>{rec.name=ni.value.trim().slice(0,rec.companion?40:60);if(rec.companion)rec.companion.name=rec.name;await saveRec(rec);draw();};
+  function persistEdit(){
+   dbPut(rec).catch(err=>{if(ui.id!==e.id)return;status='Change applied in this session. Browser storage could not save it: '+err.message;draw();});
+  }
+  function refreshPackage(){
+   const missing=[];
+   if(!rec.info)missing.push('Show the 3D preview to run the checklist.');
+   else if(refused)missing.push('Resolve the red checklist items.');
+   if(!rec.name)missing.push('Enter the model name.');
+   if(!L.source)missing.push('Enter where the model is from.');
+   if(!L.type)missing.push('Enter the licence type.');
+   if(typeof L.noAI!=='boolean')missing.push('Choose Yes or No for the No AI licence question.');
+   exportButton.disabled=missing.length>0;
+   exportButton.title=packageHint.textContent=missing.join(' ');
+  }
+  const nm=el('section','','me-check');const ni=el('input','','',{'aria-label':'Name of the model','data-npc-import-name':rec.id,maxlength:rec.companion?'40':'60'});ni.value=rec.name||'';ni.onchange=()=>{rec.name=ni.value.trim().slice(0,rec.companion?40:60);if(rec.companion)rec.companion.name=rec.name;refreshPackage();persistEdit();listInto(host.querySelector('.npc-list'));};
   const l=el('label','','me-field');l.append(el('span','Name'),ni,hint('What you call it (shown in the list and in the package).'));nm.append(l);main.append(nm);
   const refused=verdict&&!verdict.ok;
   // placement (local test)
   const clips=(rec.info&&rec.info.clips)||[],bx=el('section','','me-check',{'data-npc-place':'import:'+rec.id});bx.append(el('h4','Where it stands in the test'),hint('Put it on The Avenue’s north pavement for a local test: STAY HERE at a spot doing its own clips, or a ROUTE of points. Only in a throwaway test session in this browser.'));
   if(refused)bx.append(el('p','Resolve the failed checklist items before trying this model.','me-bad'));
   else{const p=rec.placement,mode=p?p.mode:'none',modes=el('div','','me-row');
-   for(const [m_,n] of [['stay','STAY HERE'],['path','ROUTE']])modes.append(btn(n,async()=>{rec.placement=m_==='stay'?{mode:'stay',x:p&&p.x||100,z:p&&p.z||-6.4,yaw:p&&Number.isFinite(p.yaw)?p.yaw:Math.PI,actions:[clips.find(c=>/idle/.test(c))||clips[0]||'wait']}:{mode:'path',points:p&&p.points||[]};await saveRec(rec);draw();},mode===m_?'on':'',{'data-npc-mode':m_}));bx.append(modes);
+   for(const [m_,n] of [['stay','STAY HERE'],['path','ROUTE']])modes.append(btn(n,()=>{rec.placement=m_==='stay'?{mode:'stay',x:p&&p.x||100,z:p&&p.z||-6.4,yaw:p&&Number.isFinite(p.yaw)?p.yaw:Math.PI,actions:[clips.find(c=>/idle/.test(c))||clips[0]||'wait']}:{mode:'path',points:p&&p.points||[]};persistEdit();draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));bx.append(modes);
    if(p){const markers=p.mode==='stay'?[{id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#7fe0ff',label:rec.name,drag:true,facing:true}]:[];
-    const put=async(x,z,i)=>{const s_={x:Math.round(Math.max(X().AVENUE_NORTH.x0,Math.min(X().AVENUE_NORTH.x1,x))*10)/10,z:Math.round(Math.max(X().AVENUE_NORTH.z0,Math.min(X().AVENUE_NORTH.z1,z))*10)/10};if(p.mode==='stay')Object.assign(p,s_);else if(i==null)p.points.push({...s_,action:clips[0]||'wait',seconds:5});else Object.assign(p.points[i],s_);await saveRec(rec);draw();};
-    const map=root.VoidNPCMap.create({npc:null,markers,route:p.mode==='path'?p.points:[],selected:'stay',onPick:(x,z)=>put(x,z),onDrag:(m,x,z)=>put(x,z),onFacing:async(m,yaw)=>{p.yaw=yaw;await saveRec(rec);draw();},onPoint:p.mode==='path'?(i,x,z)=>put(x,z,i):null});map.el.dataset.npcMap='import';bx.append(map.el);
-    const opts=['wait',...clips];if(p.mode==='stay'){const s_=el('select','','',{'aria-label':'Clip it plays','data-npc-import-clip':'1'});for(const c of opts)s_.append(new Option(c,c));s_.value=p.actions[0];s_.onchange=async()=>{p.actions=[s_.value];await saveRec(rec);};const r=el('div','','me-row');r.append(el('b','Plays'),s_,hint('One of the clips in its own file.'));bx.append(r);}
-    else p.points.forEach((q,i)=>{const r=el('div','','me-row',{'data-npc-point':String(i)}),s_=el('select','','',{'aria-label':'Clip at point '+(i+1)});for(const c of opts)s_.append(new Option(c,c));s_.value=q.action;s_.onchange=async()=>{q.action=s_.value;await saveRec(rec);};
-     const sec=el('input','','',{type:'number',min:'1',max:'120',style:'width:5em','aria-label':'Seconds'});sec.value=String(q.seconds||5);sec.onchange=async()=>{q.seconds=Math.max(1,Math.min(120,Math.round(+sec.value||5)));await saveRec(rec);};
-     r.append(el('b',String(i+1)),el('span','x '+q.x.toFixed(1)+', z '+q.z.toFixed(1),'me-small'),s_,sec,btn('×',async()=>{p.points.splice(i,1);await saveRec(rec);draw();},'me-x'));bx.append(r);});
+    const put=(x,z,i)=>{const s_={x:Math.round(Math.max(X().AVENUE_NORTH.x0,Math.min(X().AVENUE_NORTH.x1,x))*10)/10,z:Math.round(Math.max(X().AVENUE_NORTH.z0,Math.min(X().AVENUE_NORTH.z1,z))*10)/10};if(p.mode==='stay')Object.assign(p,s_);else if(i==null)p.points.push({...s_,action:clips[0]||'wait',seconds:5});else Object.assign(p.points[i],s_);persistEdit();draw();};
+    const map=root.VoidNPCMap.create({npc:null,markers,route:p.mode==='path'?p.points:[],selected:'stay',onPick:(x,z)=>put(x,z),onDrag:(m,x,z)=>put(x,z),onFacing:(m,yaw)=>{p.yaw=yaw;persistEdit();draw();},onPoint:p.mode==='path'?(i,x,z)=>put(x,z,i):null});map.el.dataset.npcMap='import';bx.append(map.el);
+    const opts=['wait',...clips];if(p.mode==='stay'){const s_=el('select','','',{'aria-label':'Clip it plays','data-npc-import-clip':'1'});for(const c of opts)s_.append(new Option(c,c));s_.value=p.actions[0];s_.onchange=()=>{p.actions=[s_.value];persistEdit();};const r=el('div','','me-row');r.append(el('b','Plays'),s_,hint('One of the clips in its own file.'));bx.append(r);}
+    else p.points.forEach((q,i)=>{const r=el('div','','me-row',{'data-npc-point':String(i)}),s_=el('select','','',{'aria-label':'Clip at point '+(i+1)});for(const c of opts)s_.append(new Option(c,c));s_.value=q.action;s_.onchange=()=>{q.action=s_.value;persistEdit();};
+     const sec=el('input','','',{type:'number',min:'1',max:'120',style:'width:5em','aria-label':'Seconds'});sec.value=String(q.seconds||5);sec.onchange=()=>{q.seconds=Math.max(1,Math.min(120,Math.round(+sec.value||5)));persistEdit();};
+     r.append(el('b',String(i+1)),el('span','x '+q.x.toFixed(1)+', z '+q.z.toFixed(1),'me-small'),s_,sec,btn('×',()=>{p.points.splice(i,1);persistEdit();draw();},'me-x'));bx.append(r);});
     const probs=X().importPlanProblems(p,clips);for(const pr of probs)bx.append(el('p','⚠ '+pr,'me-bad',{'data-npc-problem':'1'}));
     const a=el('div','','me-row me-actions');a.append(btn('PLAY THIS DRAFT (LOCAL TEST)',()=>playNpc({id:'import:'+rec.id,kind:'import',rec}),'me-play',{'data-npc-play':'import:'+rec.id,...(probs.length||!rec.info?{disabled:''}:{})}),hint(HELP.play+' The model appears only in that test.'));bx.append(a);}}
   main.append(bx);
   // licence and the package
   const lic=el('section','','me-check',{'data-npc-licence':rec.id});lic.append(el('h4','Add to the game'),hint(HELP.licence));
   const L=rec.licence||(rec.licence={source:'',type:'',noAI:null});
-  const f=(label,key,ph)=>{const i=el('input','','',{'aria-label':label,'data-npc-lic':key,placeholder:ph,maxlength:key==='source'?'300':'120'});i.value=L[key]||'';i.onchange=async()=>{L[key]=i.value.trim();await saveRec(rec);draw();};const w=el('label','','me-field');w.append(el('span',label),i);return w;};
+  const f=(label,key,ph)=>{const i=el('input','','',{'aria-label':label,'data-npc-lic':key,placeholder:ph,maxlength:key==='source'?'300':'120'});i.value=L[key]||'';i.onchange=()=>{L[key]=i.value.trim();refreshPackage();persistEdit();};const w=el('label','','me-field');w.append(el('span',label),i);return w;};
   lic.append(f('Where it is from','source','e.g. made in Meshy by me / CGTrader item 12345 / Sketchfab link'),f('Licence type','type','e.g. my own work / Royalty Free / CC-BY 4.0'));
-  const ai=el('div','','me-row',{'data-npc-lic':'noAI'});ai.append(el('b','No AI licence?'));for(const [v,n] of [[true,'YES (No AI)'],[false,'NO']])ai.append(btn(n,async()=>{L.noAI=v;await saveRec(rec);draw();},L.noAI===v?'on':'',{'data-npc-noai':String(v),'aria-pressed':String(L.noAI===v)}));ai.append(hint('Yes if its licence forbids AI tools or AI training. Then it is only ever processed on your PC (Blender), never with Meshy or any AI tool.'));lic.append(ai);
-  const ready=rec.info&&!refused&&L.source&&L.type&&(L.noAI===true||L.noAI===false)&&rec.name;
-  const r=el('div','','me-row me-actions');r.append(btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',async()=>{
+  const ai=el('div','','me-row',{'data-npc-lic':'noAI'});ai.append(el('b','No AI licence?'));for(const [v,n] of [[true,'YES (No AI)'],[false,'NO']])ai.append(btn(n,()=>{L.noAI=v;persistEdit();draw();},L.noAI===v?'on':'',{'data-npc-noai':String(v),'aria-pressed':String(L.noAI===v)}));ai.append(hint('Yes if its licence forbids AI tools or AI training. Then it is only ever processed on your PC (Blender), never with Meshy or any AI tool.'));lic.append(ai);
+  const packageHint=el('p','','me-warn',{role:'status'});
+  const exportButton=btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',async()=>{
    try{
     let companionExport=null;
     if(rec.transferBlob){
@@ -845,7 +859,9 @@
     status='Downloaded model, '+(companionExport?'updated companion transfer with current voices and personality, and ':'')+'integration package. No character was published.';
    }catch(err){status='Cannot export companion package: '+err.message;}
    draw();
-  },'me-play',{'data-npc-add-to-game':rec.id,...(ready?{}:{disabled:'',title:'Fill in the name and the licence questions first (and the checklist must pass).'})}),hint(HELP.addToGame));lic.append(r);
+  },'me-play',{'data-npc-add-to-game':rec.id});
+  refreshPackage();
+  const r=el('div','','me-row me-actions');r.append(exportButton,hint(HELP.addToGame));lic.append(packageHint,r);
   lic.append(btn('Delete this model (from this browser)',async()=>{if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
   main.append(lic);}
  function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
