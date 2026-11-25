@@ -64,7 +64,7 @@
   {const C=root.VoidCrowd||{},seen=new Set([...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
   for(const r of imports)out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
   return out;}
- const GROUPS=[['made','Made by you (mission givers you created)'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models (local test only, not in the live game)'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
+ const GROUPS=[['made','Made by you (mission givers you created)'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models in this browser'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
  // ---------------------------------------------------------------- imported models (this browser only: IndexedDB)
  const DB='void-npc-imports',ST='models';
  function db(){return new Promise((ok,fail)=>{try{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore(ST,{keyPath:'id'});};r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);}catch(e){fail(e);}});}
@@ -618,7 +618,7 @@
   return pane;
  }
  function importDetail(main,rec,pv){
-  main.append(el('p','LOCAL TEST ONLY · not in the live game · kept in this browser · '+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
+  main.append(el('p','Local import draft · kept in this browser · '+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
   if(rec.companion){
    const p=rec.companion,summary=el('section','','me-check',{'data-npc-companion-profile':'1'});
    summary.append(el('h4','Imported companion profile'),el('p',p.about||'No personality description','me-small'),
