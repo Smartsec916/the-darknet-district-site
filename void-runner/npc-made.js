@@ -234,7 +234,10 @@
    const crossing=!!root.VoidRoadTaxi?.crossing||md==='preparing',job=taxiJob(),tellE=(ev,x)=>{try{root.VoidStreetPair?.onEscort?.({npc:p.id,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z,...(x||{})});}catch{}};
    // her taxi ride with the player (npc-escort.js rideAlong): seated in the companion's seat (the model's sit clip, else out of sight behind the tinted glass)
    const rr=E.rideAlong?E.rideAlong(e.st,{me:mp,job,riding,dt,set:P.set,crossing,can:true}):{busy:false,ev:null};if(rr.busy&&job&&e.st.ride==='in-cab')e.cab=job.cab;
-   if(rr.ev==='ride-out'||rr.ev==='ride-left'){e.trail.pts.length=0;e.trail.shifted=0;const R=root.VoidRoadTaxiRules,c=e.cab;if(c&&R){const ds=R.doorPoints(c),pick=ds.filter(q=>{try{return !root.VoidExplorer?.blocked?.(q.x,q.z,wl());}catch{return true;}}).sort((a,b)=>mp?Math.hypot(b.x-mp.x,b.z-mp.z)-Math.hypot(a.x-mp.x,a.z-mp.z):0)[0]||ds[2];if(pick){e.st.x=pick.x;e.st.z=pick.z;e.st.yaw=c.yaw||0;}}e.cab=null;}
+   if(rr.ev==='ride-out'||rr.ev==='ride-left'){e.trail.pts.length=0;e.trail.shifted=0;const R=root.VoidRoadTaxiRules,c=e.cab;if(c&&R){const ds=R.doorPoints(c),pick=ds.filter(q=>{try{return !root.VoidExplorer?.blocked?.(q.x,q.z,wl());}catch{return true;}}).sort((a,b)=>mp?Math.hypot(b.x-mp.x,b.z-mp.z)-Math.hypot(a.x-mp.x,a.z-mp.z):0)[0]||ds[2];if(pick){
+     const landing=P.social&&P.area?root.VoidNPCAreas?.nearest(pick,P.area,12):null;
+     e.st.x=landing?.x??pick.x;e.st.z=landing?.z??pick.z;e.st.yaw=c.yaw||0;
+    }}e.cab=null;}
    if(rr.ev)tellE(rr.ev,{ride:e.st.ride||null});
    if(e.st.ride==='in-cab'){p.seat=e.cab&&root.VoidRoadTaxiRules?.companionSeat?root.VoidRoadTaxiRules.companionSeat(e.cab):null;if(p.seat){e.st.x=p.seat.x;e.st.z=p.seat.z;e.st.yaw=p.seat.yaw;}p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return 'sit';}
    p.seat=null;if(e.st.ride==='to-cab'){p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return e.st.clip||'walk';}

@@ -5,10 +5,10 @@ const Q=require('../void-runner/ncz-quarters.js'),A=require('../void-runner/npc-
 const lane=Q.lane('north:bay-s'),cab={x:lane.mid[0],z:lane.mid[1],yaw:Math.PI},seat=T.companionSeat(cab),key='social:test:1';
 const start=source.indexOf(' function socialCabPose('),end=source.indexOf(' function roomTick(');
 const planner=source.slice(start<0?source.indexOf(' function socialPlan('):start,end);
-function run({cabAt=cab,area='oldtown',position=T.companionSeat(cabAt),ride='in-cab',actorKey=key,released=false,noJob=false,wrongCab=false,phase,carryArea=null,noPlan=false,mission=false,timeout=false}={}){
+function run({cabAt=cab,area='oldtown',position=T.companionSeat(cabAt),ride='in-cab',actorKey=key,released=false,exitSeat=null,noJob=false,wrongCab=false,phase,carryArea=null,noPlan=false,mission=false,timeout=false}={}){
  const f={role:'follow',districtTravel:true,maxWait:120},s={phase:'active',generation:1,record:f,area,from:{x:52.8,z:-27.25},waitSince:timeout?Date.now()-121000:null};
  const actor={id:'test',...position,esc:{key:actorKey,ride}};
- const root={VoidNPCAreas:A,VoidNPCPaths:{MOVABLE:{test:{name:'Test'}}},VoidMadeNPCs:{live:()=>({people:[actor]})},VoidRoadTaxi:{world:{job:noJob?null:{cab:{...cabAt,phase,x:cabAt.x+(wrongCab?20:0)},released}}},VoidRoadTaxiRules:T};
+ const root={VoidNPCAreas:A,VoidNPCPaths:{MOVABLE:{test:{name:'Test'}}},VoidMadeNPCs:{live:()=>({people:[actor]})},VoidRoadTaxi:{world:{job:noJob?null:{cab:{...cabAt,phase,x:cabAt.x+(wrongCab?20:0)},released,exitSeat}}},VoidRoadTaxiRules:T};
  const old={key,area,mode:'escort',social:true,resume:null};
  const carry=carryArea?{test:{key,area:carryArea,x:position.x,z:position.z}}:{};
  const ended=[];
@@ -57,3 +57,9 @@ for(const lane of Q.LANES){
   }
  });
 }
+
+test('only the actual passenger may finish stepping out at the recorded arrival seat',()=>{
+ assert.equal(run({released:true,exitSeat:seat}).plan?.key,key);
+ for(const opts of [{actorKey:'other'},{ride:null},{exitSeat:{x:seat.x+15,z:seat.z}}])
+  assert.equal(run({released:true,exitSeat:seat,...opts}).plan,null);
+});

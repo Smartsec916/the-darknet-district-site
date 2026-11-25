@@ -110,6 +110,93 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   await page.screenshot({path:path.join(out,'social-gate-'+result.socialGate.length+'.png')});
  }
  assert.equal(await page.evaluate(()=>walkingLocation.quarter),'oldtown','checkpoint retry returned to the original test district');
+
+ // Reuse the actual disposable follower, never a removed world NPC. Drive the real taxi
+ // controller; only accelerate its public traffic rules on open road, as in ncz-quarters-browser.
+ // No actor/escort/carry state is injected. Fail after loading the destination, then hail again.
+ result.socialTaxi=[];
+ const taxiSnapshot=()=>page.evaluate(id=>{
+  const T=VoidRoadTaxi,j=T.world?.job,p=VoidLiveContent.plans()[id],a=VoidMadeNPCs.live?.()?.people.find(x=>x.id===id),c=VoidLiveContent.carried(id),policy=VoidLiveContent.socialTravelPolicy(id,p?.step);
+  const seat=j&&!j.released?VoidRoadTaxiRules.companionSeat(j.cab):null;
+  return {quarter:walkingLocation?.quarter,mode,gate:VoidGateTransit.state,rideOutcome:globalThis.socialTaxiProbe?.outcome||null,busy:VoidGateTransit.busy,crossing:T.crossing,active:T.active,phase:j&&!j.released?j.cab.phase:null,area:p?.area,session:p?.step,leg:policy?.leg,carry:c,actor:a||null,seatDistance:seat&&a?.esc?Math.hypot(a.esc.x-seat.x,a.esc.z-seat.z):null,credits:state.credits,trip:state.story.flags.roadTaxiTrip||null};
+ },socialId);
+ async function taxiUntil(test,label,advancePickup=false,advanceOccupied=false){
+  const deadline=Date.now()+240000;let previous='';
+  for(;;){
+   if(advancePickup||advanceOccupied)await page.evaluate(({pickup,occupied})=>{
+    const taxi=VoidRoadTaxi,world=taxi.world,cab=world?.job?.cab,made=VoidBabylon.district?.streetPair?.made;
+    if(!cab||taxi.crossing||VoidGateTransit.busy)return;
+    const phase=pickup?'to-pickup':'to-dest';
+    if(occupied&&(!made||mode!=='road-taxi'))return;
+    // Each traffic step has a matching actor step, including through corners.
+    for(let i=0;i<25&&cab.phase===phase&&cab.pathLen-cab.s>3;i++){
+     VoidRoadTaxiRules.stepWorld(world,.1,{x:walker.x,z:walker.z,riding:occupied});
+     if(occupied)made.tick(.1);
+    }
+   },{pickup:advancePickup,occupied:advanceOccupied});
+   const s=await taxiSnapshot();
+   const key=JSON.stringify([s.mode,s.quarter,s.gate,s.crossing,s.phase,s.session,s.actor?.esc?.ride,s.rideOutcome?.ok]);
+   if(key!==previous){previous=key;console.log('SOCIAL TAXI PROGRESS',label,JSON.stringify(s));}
+   if(test(s))return s;
+   assert(Date.now()<deadline,label+' timed out: '+JSON.stringify(s));await page.waitForTimeout(350);
+  }
+ }
+ for(const fail of [true,false]){
+  const origin=await taxiSnapshot();assert.equal(origin.quarter,'oldtown');assert(origin.session&&Number.isSafeInteger(origin.leg),'invitation survived foot journey');
+  // Stand beside the existing actor on the origin pavement before hailing.
+  assert(await page.evaluate(id=>{const a=VoidMadeNPCs.live?.()?.people.find(p=>p.id===id),P=VoidLiveContent.plans()[id],point=a&&P&&VoidNPCAreas.nearest(a,P.area,12);if(!point)return false;Object.assign(walker,{x:point.x,z:point.z,yaw:0,pitch:0});state.credits=1000;return VoidRoadTaxi.hail('avenue');},socialId),'hail real taxi to the adjacent quarter');
+  await taxiUntil(s=>s.phase==='waiting','taxi reaches pickup',true);
+  assert(await page.evaluate(id=>{const P=VoidLiveContent.plans()[id],j=VoidRoadTaxi.world?.job;if(!P||!j)return false;const ds=VoidRoadTaxiRules.doorPoints(j.cab);for(const d of ds.slice(0,2)){const p=VoidNPCAreas.nearest(d,P.area,8);if(p){Object.assign(walker,{x:p.x,z:p.z,yaw:0,pitch:0});return true;}}return false;},socialId),'approach a real taxi door from the pavement');
+  const seated=await taxiUntil(s=>s.actor?.esc?.ride==='in-cab'&&s.session===origin.session&&s.seatDistance<=1,'actual NPC boards',false);
+  console.log('SOCIAL TAXI SEATED',JSON.stringify(seated));
+  // Record the real scene exchange without changing its arrival callbacks.
+  await page.evaluate(({id,fail})=>{
+   const original=enterWalking,ride=VoidGateTransit.ride,records=[];
+   const probe=globalThis.socialTaxiProbe={original,ride,records,outcome:null};
+   const snap=()=>{const p=VoidLiveContent.plans()[id],a=VoidMadeNPCs.live?.()?.people.find(x=>x.id===id);return {phase:VoidGateTransit.state,quarter:walkingLocation?.quarter,carry:VoidLiveContent.carried(id),session:p?.step,leg:VoidLiveContent.socialTravelPolicy(id,p?.step)?.leg,ride:a?.esc?.ride||null};};
+   // Capture the controller's own result before its walking tick resets RECOVERY to IDLE.
+   VoidGateTransit.ride=async function(o){
+    console.log('SOCIAL TAXI RIDE START',JSON.stringify({lane:o.lane,from:o.from,to:o.to,...snap()}));
+    try{const ok=await ride.apply(this,arguments);probe.outcome={ok,...snap(),history:VoidGateTransit.history.slice(-15)};console.log('SOCIAL TAXI RIDE END',JSON.stringify(probe.outcome));return ok;}
+    catch(e){console.log('SOCIAL TAXI RIDE ERROR',String(e));throw e;}
+   };
+   enterWalking=async function(key,opts){
+    const bay=opts?.gateLane&&VoidQuarters.lane(opts.gateLane)?.kind==='bay'&&VoidGateTransit.state==='EXCHANGE';
+    if(bay)records.push({point:'before',...snap()});
+    const value=await original.apply(this,arguments);
+    if(bay){records.push({point:'loaded',...snap()});if(fail)throw Error('intentional social taxi failure after destination load');}
+    return value;
+   };
+  },{id:socialId,fail});
+  let end,records;
+  try{
+   await page.evaluate(()=>VoidRoadTaxi.board());
+   assert.equal(await page.evaluate(()=>mode),'road-taxi','player boarded the actual taxi');
+   end=await taxiUntil(s=>!s.crossing&&!s.busy&&(fail?s.rideOutcome?.ok===false&&s.rideOutcome.phase==='RECOVERY'&&s.quarter==='oldtown'&&s.mode==='walking':s.rideOutcome?.ok===true&&s.rideOutcome.phase==='COMPLETE'&&s.quarter==='avenue'&&s.mode==='road-taxi'),'taxi checkpoint '+(fail?'recovery':'clearance'),false,true);
+  }finally{records=await page.evaluate(()=>{const p=globalThis.socialTaxiProbe;enterWalking=p.original;VoidGateTransit.ride=p.ride;delete globalThis.socialTaxiProbe;return p.records;});console.log('SOCIAL TAXI EXCHANGE TRACE',JSON.stringify(records));}
+  result.socialTaxi.push({fail,origin,seated,records,end});console.log('SOCIAL TAXI TRANSACTION',JSON.stringify(result.socialTaxi.at(-1)));
+  assert.deepEqual(records.map(x=>x.point),['before','loaded'],'one actual bay exchange');
+  assert.equal(records[0].ride,'in-cab','actual actor remains seated at exchange');
+  assert.equal(records[0].session,origin.session);
+  assert.equal(records[1].carry?.area,origin.area,'no premature taxi arrival');
+  assert.equal(records[1].leg,origin.leg,'no premature leg advance');
+  assert.equal(end.carry?.key,origin.session,'same invitation after exchange');
+  assert.equal(end.leg,origin.leg+(fail?0:1),'only clearance advances the journey');
+  const area=await page.evaluate(()=>VoidNPCEscort.areaOfQuarter(walkingLocation.quarter));
+  assert.equal(end.carry?.area,area);
+  if(fail){
+   assert.equal(end.credits,1000,'failed trip refunded exactly once');assert.equal(end.trip,null);
+   await taxiUntil(s=>s.actor?.enabled&&s.actor.esc?.key===origin.session&&!s.actor.esc.ride&&s.area===area,'actual NPC recovers on the source pavement',false);
+  }else{
+   await taxiUntil(s=>s.actor?.esc?.key===origin.session&&s.actor.esc.ride==='in-cab'&&s.seatDistance<=1,'actual NPC seated after clearance',false);
+   await taxiUntil(s=>s.phase==='arrived','taxi reaches actual destination',false,true);
+   await page.evaluate(()=>VoidRoadTaxi.exit());
+   await taxiUntil(s=>s.mode==='walking'&&s.actor?.enabled&&s.actor.esc?.key===origin.session&&!s.actor.esc.ride&&s.area===area,'actual NPC exits taxi with player',false);
+   assert.equal(await page.evaluate(()=>state.story.flags.roadTaxiTrip||null),null,'successful trip closes fare record');
+  }
+  await page.screenshot({path:path.join(out,'social-taxi-'+(fail?'recovery':'clearance')+'.png')});
+ }
+
  await page.evaluate(()=>{VoidLiveContent.resetRun();VoidLiveContent.use(null,'shipped',0);VoidLiveContent.replan();});
  // Full campaign data lives in the original object; VR gets only a detached simulation state.
  const options=smoke?[['forest',{}]]:[['forest',{}],['tropical',{}],['suite',{companion:'seren'}],['suite',{companion:'kai'}],['suite',{companion:'nadia'}]];

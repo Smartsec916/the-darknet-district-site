@@ -324,9 +324,11 @@
  }
  // A seated social follower is physically in the cab, not on the pavement grid. This is not gate clearance.
  function socialCabPose(id,key,here){
-  try{const job=root.VoidRoadTaxi?.world?.job;if(!job||job.released||!job.cab)return false;
+  try{const job=root.VoidRoadTaxi?.world?.job;if(!job||!job.cab)return false;
    const p=root.VoidMadeNPCs?.live?.()?.people?.find(q=>q.id===id),e=p?.esc;
    if(e?.key!==key)return false;
+   // The real passenger can still occupy the arrival seat for one actor frame after exitRide.
+   if(job.released)return e.ride==='in-cab'&&!!job.exitSeat&&Math.hypot(here.x-job.exitSeat.x,here.z-job.exitSeat.z)<1;
    // A boarding follower leaves the pedestrian grid on its short approach to a side door.
    if(e.ride==='to-cab'&&job.cab.phase==='waiting'){
     const doors=root.VoidRoadTaxiRules?.doorPoints?.(job.cab)||[];
