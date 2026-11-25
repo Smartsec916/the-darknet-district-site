@@ -4,7 +4,7 @@
  const inflight=new Map(),states={};
  const base=root.location&&!['localhost','127.0.0.1'].includes(root.location.hostname)?'https://the-darknet-district-site.onrender.com':'';
  class ServiceError extends Error{constructor(message,kind,status=0){super(message);this.name='ServiceError';this.kind=kind;this.status=status;}}
- function report(path,state,details={}){states[path]={state,...details};root.dispatchEvent?.(new CustomEvent('void-service-state',{detail:{path,...states[path]}}));}
+ function report(path,state,details={}){path=path.split('?')[0];states[path]={state,...details};root.dispatchEvent?.(new CustomEvent('void-service-state',{detail:{path,...states[path]}}));}
  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  function request(path,{body,token,scope='public'}={}){
   const post=body!==undefined&&body!==null,key=scope+':'+path;

@@ -44,7 +44,7 @@
     ['device','#personal-device.open,#pd-callpill,#pod-music-input'],
     ['vr','#vr-menu'],
     ['store','#trade-window,#trade-toast:has(button),.pod-vend,#shop-here:has(button)'],
-    ['activity','.tea-duo-choices,#milked-studio-request-panel,#arcade-play'],
+    ['activity','.tea-duo-choices:not(.tea-seated),#milked-studio-request-panel,#arcade-play'],
     ['feed','#cam-feed'],
     ['floating','#screen.conversation-live,.vr-companion-menu'],
     ['conversation','#screen:has(.dialogue-window)'],

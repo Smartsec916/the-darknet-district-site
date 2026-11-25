@@ -33,8 +33,13 @@
  async function backToStreet(){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);if(d.scene==='corporate'){await go('corporate',{spawn:[d.front[0],1.7,d.front[1]],yaw});return;}   // the Corporate District's maintenance door (apartments.js CORP_DOORS)
  await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
  /* Through a door that leads elsewhere (a connection) or out to the street. */
+ async function presentInteriorCard(inst,d){
+  const target=['interior',inst.door,inst.mission,inst.id,d.id].join('/');
+  const scene=here();
+  return !!await A.presentCard?.(target)&&here()===scene&&visit?.inst?.key===inst.key;
+ }
  async function cross(doorId){const wl=here();const inst=visit&&now(visit.inst.key);if(!wl||!inst)return;const an=M.analyse(inst.loc),d=an.doors.find(x=>x.id===doorId);if(!d)return;
-  if(d.kind==='entry'){await backToStreet();return;}if(M.lockedNow(inst,an,d)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}
+  if(d.kind==='entry'){await backToStreet();return;}if(M.lockedNow(inst,an,d)&&!await presentInteriorCard(inst,d)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}
   const mine=new Set(wl.cluster?.mods?.map(m=>m.id)||[]),pa=M.parseRef(d.a),side=mine.has(pa.mod)?d.a:d.b,to=side===d.a?d.b:d.a,c=an.clusterOf(M.parseRef(to).mod);if(!c)return;
   await goCluster(inst,c.id,{ref:to},{veiled:true});}
  async function ride(floor){const inst=visit&&now(visit.inst.key);const cid=inst&&M.clusterAtFloor(inst,floor);if(!cid){note('That floor does not answer.');return;}
@@ -78,7 +83,11 @@
   R('mod-exit',()=>{try{resumeWalking();}catch{}const z=zone();let w=0;for(const d of z?.doors||[])if(d.rec?.kind==='entry'||d.id==='street'){d.force?.(1);w=Math.max(w,DW(d));}setTimeout(()=>backToStreet(),w);});
   R('mod-portal',({item})=>{try{resumeWalking();}catch{}if(!item.door){note('Locked.');return;}const z=zone(),d=(z?.doors||[]).find(x=>x.id===item.door||x.rec?.id===item.door);const inst=visit&&now(visit.inst.key),an=inst&&M.analyse(inst.loc),dd=an&&an.doors.find(x=>x.id===item.door);
    if(dd&&M.lockedNow(inst,an,dd)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}d?.force?.(1);setTimeout(()=>cross(item.door),DW(d));});
-  R('mod-door',()=>note('DOOR · LOCKED. A card reader and a keypad; the access point beside it could be bypassed.'));
+  R('mod-door',async({item})=>{
+   const inst=visit&&now(visit.inst.key),d=inst&&M.analyse(inst.loc).doors.find(x=>x.id===item.door);
+   if(d&&await presentInteriorCard(inst,d)){zone()?.unlock?.(d.id);return;}
+   note('DOOR · LOCKED. A card reader and a keypad; the access point beside it could be bypassed.');
+  });
   R('mod-elev',({item})=>{try{resumeWalking();}catch{}ride(item.floor);});}
  /* Back in by the street door (the entrance module): Mission 006's way out after being taken down in an alarm (zone-integration.js getUp; 21 Nov 2026). */
  async function reenter(){const v=visit;if(!v||!v.door||!v.inst)return false;const inst=now(v.inst.key);if(!inst)return false;await enter(v.door,inst);return true;}

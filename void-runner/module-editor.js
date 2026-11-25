@@ -31,37 +31,76 @@
     marker at its real place: coloured by the building's own style (luxury violet, normal blue, rundown tan, the Outskirts' containers rust / green), offices a square,
     shops' back entrances a diamond; a door another location of this mission already uses is grey; the chosen door ringed white. Hover: "No. 204, Main Street — rundown
     apartment building". A click chooses it (the list follows). doorPick(sel, {used:{doorId: 'location l2'}, key}) -> an element holding the list, a MAP button and the map. */
- const DSTYLE={luxury:'#c79bff',normal:'#6fb0ff',rundown:'#d9a066','container-rundown':'#c0703a','container-regular':'#5fc39a',office:'#74eee3',commercial:'#ffd34d'};
- const QN={avenue:'The Avenue',oldtown:'Old Town','far-south':'Far South',port:'The Port',outskirts:'The Outskirts'};
+ const QN={avenue:'The Avenue',oldtown:'Old Town','far-south':'Far South',port:'The Port',outskirts:'The Outskirts',corporate:'Corporate District',district:'District interior',milked:'Milked Studio',underground:'The Underground',temple:'Zen Zephyr Temple'};
  const mapUi=new Map();   // per door list (its key): {open, area, zoom, cx}
  function doorKind(d){const f=d.family||'city';if(f==='office')return 'office entrance';if(f==='commercial')return 'shop back entrance';if(f==='container')return 'container home in The Outskirts ('+(d.style==='container-regular'?'regular':'rundown')+')';return d.style+' apartment building';}
  function doorTitle(d){return d.name.replace(/ \((offices|shop)\)$/,'')+' — '+doorKind(d);}
- function doorMap(sel,opts={}){const A=X();if(!A||!A.doors)return null;const ids=new Set([...sel.options].map(o=>o.value).filter(Boolean)),list=A.doors().filter(d=>ids.has(d.id)),used=opts.used||{},S=mapUi.get(opts.key)||{};
-  const qs=Object.keys(QN).filter(q=>list.some(d=>d.quarter===q));if(!qs.length)return null;const cur=A.door(sel.value);if(!S.area||!qs.includes(S.area))S.area=cur&&qs.includes(cur.quarter)?cur.quarter:qs[0];if(opts.key)mapUi.set(opts.key,S);
+ let housingCache;
+ function mapHousing(){
+  const tools=root.VoidDevTools;
+  if(!tools?.authorized||!tools.uid||!tools.request)return Promise.resolve(new Map());
+  if(housingCache?.uid===tools.uid&&Date.now()-housingCache.time<30000)return housingCache.result;
+  const entry={uid:tools.uid,time:Date.now()};housingCache=entry;
+  entry.result=Promise.resolve().then(()=>tools.request('developer/properties')).then(record=>{
+   const players=new Map();
+   for(const [unit,assignment] of Object.entries(record.units||{})){
+    const [,id,slot]=unit.split('/');
+    if(!players.has(id))players.set(id,[]);
+    players.get(id).push({slot:Number(slot),name:assignment.name});
+   }
+   return players;
+  }).catch(()=>{if(housingCache===entry)housingCache=null;return new Map();});
+  return entry.result;
+ }
+ root.addEventListener?.('vr-property-assigned',()=>{housingCache=null;});
+ function doorMap(sel,opts={}){const A=X();if(!A||!A.doors)return null;const ids=new Set([...sel.options].map(o=>o.value).filter(Boolean)),list=A.doors().filter(d=>ids.has(d.id)).map(d=>({...d,...A.editorDoorPoint(d)})),used=opts.used||{},S=mapUi.get(opts.key)||{};
+  const qs=Object.keys(QN).filter(q=>opts.allAreas||list.some(d=>d.quarter===q));if(!qs.length)return null;const cur=A.door(sel.value);if(!S.area||!qs.includes(S.area))S.area=cur&&qs.includes(cur.quarter)?cur.quarter:qs[0];if(opts.key)mapUi.set(opts.key,S);
   const wrap=el('div','','mod-dmap',{'data-door-map':opts.key||'1'}),bar=el('div','','me-row'),area=el('select','','',{'aria-label':'Which part of town the map shows','data-door-map-area':'1'});for(const q of qs)area.append(new Option(QN[q]+' ('+list.filter(d=>d.quarter===q).length+' doors)',q));area.value=S.area;
   const zoom=el('select','','',{'aria-label':'Map zoom','data-door-map-zoom':'1'});zoom.append(new Option('Whole area','all'),new Option('Close up','near'));zoom.value=S.zoom||'all';
   const tip=el('div','Click a numbered door to choose it. Hover a door to see what it is.','me-small mod-dmap-tip',{'data-door-map-tip':'1','aria-live':'polite'});
-  const key=el('div','','me-small mod-dmap-key');for(const [k,t] of [['luxury','luxury'],['normal','normal'],['rundown','rundown'],['office','office (square)'],['commercial','shop (diamond)'],['container-rundown','container rundown'],['container-regular','container regular']]){const s=el('span','● '+t,'',{style:'color:'+DSTYLE[k]+';margin-right:8px'});key.append(s);}key.append(el('span','● used by another location','',{style:'color:#777'}));
+  const key=el('div','','me-small mod-dmap-key');
+  for(const {label,colors} of Object.values(A.entranceLegend)){
+   const item=el('span','','',{style:'margin-right:10px'}),swatch=el('span','');
+   Object.assign(swatch.style,{display:'inline-block',width:'1em',height:'1em',marginRight:'.3em',
+    background:colors.length===1?colors[0]:'linear-gradient(90deg,'+colors[0]+' 50%,'+colors[1]+' 50%)'});
+   item.append(swatch,document.createTextNode(label));key.append(item);
+  }
+  const draft=root.VoidMissionEditor?.local?.()||{}, live=root.VoidLiveContent?.env||{};
+  const rows=opts.rows||A.addressRegistry([...(root.VoidMainStory?.trees?.()||[]),...(live.trees||[]),...(draft.trees||[])],{...live.characters,...draft.characters});
   bar.append(area,zoom);const cv=el('canvas','','mod-dmap-cv',{width:'640',height:'200',role:'img','data-door-map-canvas':'1'});wrap.append(bar,cv,tip,key);
-  const W=640;let k=1,vx0=0,vz1=0,H=200,pts=[];
+  let players=opts.players;
+  const W=640;let k=1,vx0=0,vz1=0,H=200,pts=[],drag=null,suppressClick=false;
   const draw=()=>{const ds=list.filter(d=>d.quarter===S.area),P=root.VoidNPCPaths;let data=null;try{data=P&&P.mapData?P.mapData(S.area):null;}catch{data=null;}
-   let v=data&&data.view?{...data.view}:null;if(!v){v={x0:Math.min(...ds.map(d=>d.x))-8,x1:Math.max(...ds.map(d=>d.x))+8,z0:Math.min(...ds.map(d=>d.z))-8,z1:Math.max(...ds.map(d=>d.z))+8};}
-   if(S.zoom==='near'){const c=ds.find(d=>d.id===sel.value)||ds[0],w=Math.min(v.x1-v.x0,45),h=Math.min(v.z1-v.z0,30),cx=Number.isFinite(S.cx)?S.cx:c.x,cz=c.z;v={x0:Math.max(v.x0,Math.min(v.x1-w,cx-w/2)),z0:Math.max(v.z0,Math.min(v.z1-h,cz-h/2))};v.x1=v.x0+w;v.z1=v.z0+h;}
+   let v=data&&data.view?{...data.view}:null;if(!v&&!ds.length)v={x0:-30,x1:30,z0:-30,z1:30};if(!v){v={x0:Math.min(...ds.map(d=>d.x))-8,x1:Math.max(...ds.map(d=>d.x))+8,z0:Math.min(...ds.map(d=>d.z))-8,z1:Math.max(...ds.map(d=>d.z))+8};}
+   if(S.zoom==='near'){const c=ds.find(d=>d.id===sel.value)||ds[0]||{x:(v.x0+v.x1)/2,z:(v.z0+v.z1)/2},w=Math.min(v.x1-v.x0,45),h=Math.min(v.z1-v.z0,30),cx=Number.isFinite(S.cx)?S.cx:c.x,cz=Number.isFinite(S.cz)?S.cz:c.z;v={x0:Math.max(v.x0,Math.min(v.x1-w,cx-w/2)),z0:Math.max(v.z0,Math.min(v.z1-h,cz-h/2))};v.x1=v.x0+w;v.z1=v.z0+h;}
    const vw=v.x1-v.x0,vh=v.z1-v.z0;H=Math.round(Math.max(150,Math.min(380,W*vh/vw)));k=Math.min(W/vw,H/vh);vx0=v.x0-(W/k-vw)/2;vz1=v.z1+(H/k-vh)/2;cv.height=H;
    const px=x=>(x-vx0)*k,py=z=>(vz1-z)*k,g=cv.getContext('2d');if(!g)return;g.fillStyle='#14161d';g.fillRect(0,0,W,H);
    const rect=(r,f)=>{g.fillStyle=f;g.fillRect(px(r.x0),py(r.z1),(r.x1-r.x0)*k,(r.z1-r.z0)*k);};
-   if(data){for(const f of data.floors||[])rect(f,'#2a2e38');for(const r of data.roads||[])rect(r,'#20232b');for(const w of data.walk||[])rect(w,'#3d4352');g.font='11px sans-serif';g.textAlign='center';g.fillStyle='#8a90a0';for(const l of data.labels||[])g.fillText(l.name,px(l.x),py(l.z));}
+   if(data&&opts.geometry!==false){for(const f of data.floors||[])rect(f,'#2a2e38');for(const r of data.roads||[])rect(r,'#20232b');for(const w of data.walk||[])rect(w,'#3d4352');g.font='11px sans-serif';g.textAlign='center';g.fillStyle='#8a90a0';for(const l of data.labels||[])g.fillText(l.name,px(l.x),py(l.z));}
    g.fillStyle='#6c7280';g.font='11px sans-serif';g.textAlign='right';g.fillText('N ↑',W-6,14);g.textAlign='left';g.fillText(QN[S.area],6,14);
-   pts=[];const r=Math.max(5,Math.min(9,k*.9));for(const d of ds){const x=px(d.x),y=py(d.z);if(x<-10||x>W+10||y<-10||y>H+10)continue;const f=d.family||'city',col=used[d.id]?'#6a6f78':DSTYLE[f==='office'||f==='commercial'?f:d.style]||'#aaa',on=d.id===sel.value;
-    g.fillStyle=col;g.beginPath();if(f==='office')g.rect(x-r,y-r,2*r,2*r);else if(f==='commercial'){g.moveTo(x,y-r-1);g.lineTo(x+r+1,y);g.lineTo(x,y+r+1);g.lineTo(x-r-1,y);g.closePath();}else g.arc(x,y,r,0,7);g.fill();
+   for(const line of opts.routes||[]){
+    if(line.area!==S.area)continue;
+    g.lineWidth=2;g.strokeStyle='#f4ca43';g.fillStyle='#f4ca43';g.beginPath();
+    line.points.forEach(([x,z],i)=>i?g.lineTo(px(x),py(z)):g.moveTo(px(x),py(z)));g.stroke();
+    for(const [x,z] of line.points){g.beginPath();g.arc(px(x),py(z),3,0,Math.PI*2);g.fill();}
+    if(line.label&&line.points.length){const [x,z]=line.points[0];g.textAlign='left';g.fillText(line.label,px(x)+5,py(z)-5);}
+   }
+   pts=[];const r=Math.max(5,Math.min(9,k*.9));for(const d of opts.entrances===false?[]:ds){const x=px(d.x),y=py(d.z);if(x<-10||x>W+10||y<-10||y>H+10)continue;const f=d.family||'city',colors=A.entranceLegend[used[d.id]?'mission':A.entranceType(d,rows.get(d.id),players?.get(d.id))].colors,on=d.id===sel.value;
+    g.fillStyle=colors[0];if(colors.length===2){const fill=g.createLinearGradient(x-r,y,x+r,y);fill.addColorStop(.5,colors[0]);fill.addColorStop(.5,colors[1]);g.fillStyle=fill;}g.beginPath();if(f==='office')g.rect(x-r,y-r,2*r,2*r);else if(f==='commercial'){g.moveTo(x,y-r-1);g.lineTo(x+r+1,y);g.lineTo(x,y+r+1);g.lineTo(x-r-1,y);g.closePath();}else g.arc(x,y,r,0,7);g.fill();
     g.lineWidth=on?3:1;g.strokeStyle=on?'#ffffff':'#000';g.stroke();if(on){g.strokeStyle='#ffb347';g.lineWidth=2;g.beginPath();g.arc(x,y,r+5,0,7);g.stroke();}g.lineWidth=1;
     const n=String(d.number),side=(d.n&&d.n[1])||0,ty=side>0?y-r-3:side<0?y+r+10:y+3,tx=side?x:x+((d.n&&d.n[0])>0?r+3+g.measureText(n).width/2:-r-3-g.measureText(n).width/2);
     g.font=(on?'bold ':'')+'10px sans-serif';g.textAlign='center';g.fillStyle=used[d.id]?'#8a8f98':on?'#fff':'#e8eef4';g.fillText(n,tx,ty);pts.push({d,x,y,r:r+3});}
    cv.setAttribute('aria-label','Street doors in '+QN[S.area]+': '+ds.map(d=>d.number).join(', '));cv.dataset.doorMapDoors=pts.map(p=>p.d.id).join(' ');};
   const at=e=>{const b=cv.getBoundingClientRect(),sx=W/(b.width||W),sy=H/(b.height||H),x=(e.clientX-b.left)*sx,y=(e.clientY-b.top)*sy;let best=null,bd=1e9;for(const p of pts){const q=Math.hypot(p.x-x,p.y-y);if(q<=Math.max(p.r,10)&&q<bd){bd=q;best=p;}}return best;};
   cv.onmousemove=e=>{const p=at(e);cv.style.cursor=p?'pointer':'default';tip.textContent=p?doorTitle(p.d)+(used[p.d.id]?' · already used by '+used[p.d.id]+' in this mission':'')+(p.d.id===sel.value?' · chosen':''):'Click a numbered door to choose it. Hover a door to see what it is.';cv.title=p?doorTitle(p.d):'';};
-  cv.onclick=e=>{const p=at(e);if(!p)return;sel.value=p.d.id;draw();sel.dispatchEvent(new Event('change',{bubbles:true}));};
-  area.onchange=()=>{S.area=area.value;delete S.cx;draw();};zoom.onchange=()=>{S.zoom=zoom.value;delete S.cx;draw();};sel.addEventListener('change',()=>{const d=A.door(sel.value);if(d&&qs.includes(d.quarter)){S.area=d.quarter;area.value=S.area;delete S.cx;}draw();});
+  cv.onpointerdown=e=>{if(S.zoom!=='near'||e.button!==0)return;
+   drag={x:e.clientX,y:e.clientY,cx:vx0+W/(2*k),cz:vz1-H/(2*k)};suppressClick=false;cv.setPointerCapture(e.pointerId);};
+  cv.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)<4&&!suppressClick)return;
+   suppressClick=true;const box=cv.getBoundingClientRect();S.cx=drag.cx-dx*W/(box.width*k);S.cz=drag.cz+dy*H/(box.height*k);draw();};
+  cv.onpointerup=cv.onpointercancel=()=>{drag=null;};
+  cv.onclick=e=>{if(suppressClick){suppressClick=false;return;}const p=at(e);if(!p)return;sel.value=p.d.id;draw();sel.dispatchEvent(new Event('change',{bubbles:true}));};
+  area.onchange=()=>{S.area=area.value;delete S.cx;delete S.cz;draw();};zoom.onchange=()=>{S.zoom=zoom.value;delete S.cx;delete S.cz;draw();};const selectDoor=()=>{const d=A.door(sel.value);if(d&&qs.includes(d.quarter)){S.area=d.quarter;area.value=S.area;delete S.cx;delete S.cz;}draw();};sel.addEventListener('change',selectDoor);wrap.dispose=()=>sel.removeEventListener('change',selectDoor);
+  if(!players)mapHousing().then(next=>{if(wrap.isConnected){players=next;draw();}});
   draw();wrap.redraw=draw;wrap.points=()=>pts.map(p=>({id:p.d.id,x:p.x,y:p.y}));return wrap;}
  // The street-door list with its map: the list, a MAP button, and the map under them (open while no door is chosen; it remembers being opened or closed).
  function doorPick(sel,opts={}){const box=el('span','','mod-dpick',{'data-door-pick':opts.key||'1'}),S=mapUi.get(opts.key)||{};if(opts.key)mapUi.set(opts.key,S);if(S.open==null)S.open=!sel.value;

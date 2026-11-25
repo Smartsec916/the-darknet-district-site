@@ -28,8 +28,9 @@
    catch(e){if(dialog.open)note.textContent=e.message||'The shop could not complete the request.';}
    finally{busy=false;dialog.removeAttribute('aria-busy');if(dialog.open)draw();}
   }
-  async function refresh(){const [inventory,data]=await Promise.all([game.refresh(),vendor?game.request('shop/vendor/'+encodeURIComponent(vendor)):null]);
-   if(same()){bag=inventory;listing=data;}}
+  let dropped=[],pickupDoor=null;
+  async function refresh(){const door=nearbyEntrance();const [inventory,data,drops]=await Promise.all([game.refresh(),vendor?game.request('shop/vendor/'+encodeURIComponent(vendor)):null,door?game.request('keycards/drops/'+encodeURIComponent(door.id)):null]);
+   if(same()){bag=inventory;listing=data;dropped=drops?.cards||[];pickupDoor=door?.id;}}
   async function sync(){
    const current=campaign();if(!current||!confirm('Save this browser campaign to your account for shopping? This replaces the current cloud campaign.'))return;
    const snapshot=JSON.parse(JSON.stringify(current)),v=await game.request('save',{save:snapshot,revision:account.revision});
@@ -54,6 +55,53 @@
     const sound=entry.purchaseSound||listing?.vendor.rules?.sound;if(sound&&/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(sound)){const a=new Audio('void-runner/'+sound);a.volume=.45;a.play().catch(()=>{});}note.textContent=result.service?entry.name+' started.':entry.name+' added to inventory.';await refresh();if(result.service&&same())close();
    });
   }
+  function nearbyEntrance(){
+   if(typeof walker==='undefined'||!walker||typeof walkingLocation==='undefined'||walkingLocation?.area!=='street')return null;
+   const door=root.VoidApartments?.nearestDoor(walker.x,walker.z,5);
+   return door?.quarter===walkingLocation.quarter?door:null;
+  }
+  function moveCard(card,actionName,fields){
+   return operation(async()=>{
+    if(root.VoidDevTest?.active)throw Error('Exit the test session before moving a physical keycard.');
+    if(fields.door&&fields.door!==nearbyEntrance()?.id)throw Error('Return to this entrance before moving the keycard.');
+    if(actionName==='pickup'){
+     const position=root.VoidApartments.pickupPosition(walkingLocation,walker,fields.door);
+     if(!position)throw Error('Return to the street entrance to pick up this card.');
+     fields={...fields,position};
+    }
+    const r=receipt([actionName,card.id,fields.door||fields.recipient].join('/'));
+    await game.request('keycards/move',{action:actionName,card:card.id,nonce:r.nonce,...fields});r.clear();
+    await refresh();note.textContent='Keycard inventory updated.';
+   });
+  }
+  function cardRow(card){
+   const details=document.createElement('details'),header=document.createElement('summary');
+   header.textContent=(card.icon||'')+' '+card.name;details.append(header);
+   const line=value=>{const p=document.createElement('p');p.textContent=value;details.append(p);};
+   line(card.description);
+   const locations=new Set();
+   for(const id of card.doors||[]){
+    const parts=id.split('/'),door=root.VoidApartments?.door(parts.length===1?id:parts[1]);
+    if(door)locations.add(door);
+    if(door)line(door.name+' · '+door.quarter+(parts[0]==='interior'?' · '+parts[3]+' · '+parts[4]:parts.length===3?' · Apartment '+root.VoidApartments.slotNumber(Number(parts[2]),door.style):' · Street entrance'));
+   }
+   for(const door of locations)action(details,'Locate Address · '+door.name,()=>{
+    note.textContent=root.VoidDistrictMap?.locateAddress(door.id)?'Waypoint set for '+door.name+'.':'Open the NeoChinatown map to locate this entrance.';
+   });
+   if(card.notes)line(card.notes);
+   if(Number.isInteger(card.gameRemaining))line(card.gameRemaining ? card.gameRemaining+' gameplay minutes remaining' : 'Expired');
+   if(card.expires)line('Expires '+new Date(card.expires*1000).toLocaleString());
+   if(card.transferable){
+    const recipient=document.createElement('input');recipient.setAttribute('aria-label','Recipient account ID');recipient.placeholder='Recipient account ID';
+    details.append(recipient);action(details,'Transfer',()=>moveCard(card,'transfer',{recipient:recipient.value.trim()}));
+   }
+   if(card.droppable){
+    const door=nearbyEntrance();
+    if(door)action(details,'Drop at '+door.name,()=>moveCard(card,'drop',{door:door.id}));
+    else line('Stand beside a street entrance to drop this card.');
+   }
+   content.append(details);
+  }
   function use(id){operation(async()=>{const r=receipt('use/'+id+'/'+bag.owned[id]);let data;
     try{data=await game.request('shop/use',{item:id,nonce:r.nonce});}catch(e){if(e.status>=400&&e.status<500)r.clear();throw e;}
     r.clear();if(!same())return;const sound=bag.items[id]?.useSound;if(sound&&/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(sound)){const a=new Audio('void-runner/'+sound);a.volume=.45;a.play().catch(()=>{});}note.textContent=(data.definition?.name||id)+' used.';await refresh();});}
@@ -67,7 +115,15 @@
    if(tab==='bag'){
     if(bag?.service){const service=bag.service,p=document.createElement('p');p.textContent=service.name+' · '+service.definition.participation+' · '+Math.max(0,Math.ceil(service.end-game.now()))+' seconds remaining.';content.append(p);
      if(game.now()>=service.end)action(content,'Complete service',()=>operation(async()=>{await game.request('shop/service/finish',{nonce:service.id});await refresh();}));}
-    for(const [id,n] of Object.entries(bag?.owned||{})){const it=bag.items[id],row=document.createElement('p');row.append((it?.icon||'')+' '+(it?.name||id)+' × '+n+' ');action(row,'Use',()=>use(id));content.append(row);}
+    if(pickupDoor&&nearbyEntrance()?.id===pickupDoor)for(const card of dropped){
+     action(content,'Pick up '+card.name,()=>moveCard(card,'pickup',{door:pickupDoor}));
+    }
+    for(const reward of bag?.cardRewards||[])action(content,'Claim mission reward · '+reward.name,()=>operation(async()=>{
+     if(root.VoidDevTest?.active)throw Error('Exit the test session before claiming a reward.');
+     await game.request('keycards/reward',{item:reward.id});await refresh();note.textContent='Mission keycard added to inventory.';
+    }));
+    for(const card of bag?.keycards||[])cardRow(card);
+    for(const [id,n] of Object.entries(bag?.owned||{})){const it=bag.items[id];if(it?.kind==='keycard')continue;const row=document.createElement('p');row.append((it?.icon||'')+' '+(it?.name||id)+' × '+n+' ');action(row,'Use',()=>use(id));content.append(row);}
     if(!content.childNodes.length)content.textContent='Inventory is empty.';return;}
    if(!listing)return;
    const options=listing.vendor.rules||{};if(options.color)dialog.style.borderColor=options.color;

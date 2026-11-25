@@ -8,6 +8,7 @@ test('independent home test preserves published mission content and rejects rese
  assert.throws(()=>studio.worldHomeDraft(entry,live,{...registry,complete:false},'test-world'),/verified/);
  assert.throws(()=>studio.worldHomeDraft(entry,live,{complete:true,rows:new Map([['example',{missions:[{id:'mission'}],residents:[]} ]])},'test-world'),/reserved/);
  assert.throws(()=>studio.worldHomeDraft(entry,live,{complete:true,rows:new Map([['example',{missions:[],residents:[{id:'other',slot:2}]}]])},'test-world'),/already has/);
+ assert.ok(studio.worldHomeDraft(entry,live,{complete:true,rows:new Map([['example',{missions:[],residents:[{id:'neighbor',slot:3}]}]])},'test-world').characters['test-world']);
  assert.throws(()=>studio.worldHomeDraft(entry,live,registry,'other'),/already in use/);
  assert.throws(()=>studio.worldHomeDraft({...entry,residence:{...entry.residence,mode:'schedule'}},live,registry,'test-world'),/Always home/);
  assert.equal(studio.worldHomeDraft(entry,null,registry,'test-world').version,1);

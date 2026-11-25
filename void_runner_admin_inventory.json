@@ -1,6 +1,110 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
+  "interiorDoors": {
+    "interior/apt-avenue-n-30/m005-behind-closed-doors/reyes/flat.entry|hall.d0": {
+      "id": "interior/apt-avenue-n-30/m005-behind-closed-doors/reyes/flat.entry|hall.d0",
+      "entrance": "apt-avenue-n-30",
+      "mission": "m005-behind-closed-doors",
+      "location": "reyes",
+      "door": "flat.entry|hall.d0",
+      "name": "hall.d0 ↔ flat.entry"
+    },
+    "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/lift.s0|lobby.n1": {
+      "id": "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/lift.s0|lobby.n1",
+      "entrance": "biz-avenue-n-41",
+      "mission": "m006-hostile-takeover",
+      "location": "veyra",
+      "door": "lift.s0|lobby.n1",
+      "name": "lobby.n1 ↔ lift.s0"
+    },
+    "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/hall.n0|lift1.s0": {
+      "id": "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/hall.n0|lift1.s0",
+      "entrance": "biz-avenue-n-41",
+      "mission": "m006-hostile-takeover",
+      "location": "veyra",
+      "door": "hall.n0|lift1.s0",
+      "name": "lift1.s0 ↔ hall.n0"
+    },
+    "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/hall.s0|office.n1": {
+      "id": "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/hall.s0|office.n1",
+      "entrance": "biz-avenue-n-41",
+      "mission": "m006-hostile-takeover",
+      "location": "veyra",
+      "door": "hall.s0|office.n1",
+      "name": "hall.s0 ↔ office.n1"
+    },
+    "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/hall.w1|store.e1": {
+      "id": "interior/biz-avenue-n-41/m006-hostile-takeover/veyra/hall.w1|store.e1",
+      "entrance": "biz-avenue-n-41",
+      "mission": "m006-hostile-takeover",
+      "location": "veyra",
+      "door": "hall.w1|store.e1",
+      "name": "hall.w1 ↔ store.e1"
+    },
+    "interior/biz-main-w-166/m008-private-network/contractor/hall.s0|shop.n1": {
+      "id": "interior/biz-main-w-166/m008-private-network/contractor/hall.s0|shop.n1",
+      "entrance": "biz-main-w-166",
+      "mission": "m008-private-network",
+      "location": "contractor",
+      "door": "hall.s0|shop.n1",
+      "name": "shop.n1 ↔ hall.s0"
+    },
+    "interior/biz-main-w-166/m008-private-network/contractor/shop.w1|store.e1": {
+      "id": "interior/biz-main-w-166/m008-private-network/contractor/shop.w1|store.e1",
+      "entrance": "biz-main-w-166",
+      "mission": "m008-private-network",
+      "location": "contractor",
+      "door": "shop.w1|store.e1",
+      "name": "shop.w1 ↔ store.e1"
+    },
+    "interior/biz-main-w-166/m008-private-network/contractor/maint.w1|shop.e1": {
+      "id": "interior/biz-main-w-166/m008-private-network/contractor/maint.w1|shop.e1",
+      "entrance": "biz-main-w-166",
+      "mission": "m008-private-network",
+      "location": "contractor",
+      "door": "maint.w1|shop.e1",
+      "name": "shop.e1 ↔ maint.w1"
+    },
+    "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/lobby.s1|maint.n0": {
+      "id": "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/lobby.s1|maint.n0",
+      "entrance": "biz-corp-s-40",
+      "mission": "m009-ghost-in-the-network",
+      "location": "facility",
+      "door": "lobby.s1|maint.n0",
+      "name": "maint.n0 ↔ lobby.s1"
+    },
+    "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/hall.n0|maint.w1": {
+      "id": "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/hall.n0|maint.w1",
+      "entrance": "biz-corp-s-40",
+      "mission": "m009-ghost-in-the-network",
+      "location": "facility",
+      "door": "hall.n0|maint.w1",
+      "name": "maint.w1 ↔ hall.n0"
+    },
+    "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/maint.e1|security.w1": {
+      "id": "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/maint.e1|security.w1",
+      "entrance": "biz-corp-s-40",
+      "mission": "m009-ghost-in-the-network",
+      "location": "facility",
+      "door": "maint.e1|security.w1",
+      "name": "maint.e1 ↔ security.w1"
+    },
+    "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/lobby.n1|servers.s1": {
+      "id": "interior/biz-corp-s-40/m009-ghost-in-the-network/facility/lobby.n1|servers.s1",
+      "entrance": "biz-corp-s-40",
+      "mission": "m009-ghost-in-the-network",
+      "location": "facility",
+      "door": "lobby.n1|servers.s1",
+      "name": "lobby.n1 ↔ servers.s1"
+    }
+  },
+  "shippedMissionEntrances": [
+    "apt-avenue-n-30",
+    "biz-avenue-n-41",
+    "biz-corp-s-40",
+    "biz-main-w-166"
+  ],
   "missionEditor": {
     "givers": {
       "admin": {
@@ -59782,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "c6f1b670b6c00332",
+  "revision": "09df16cee495d80b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -73563,7 +73667,7 @@
     },
     {
       "source": "void-runner/item-catalog-editor.js",
-      "line": 57,
+      "line": 88,
       "text": "field('line','Dialogue',step.line||'')+'<button data-drop-step=\"'+i+'\">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';",
       "kind": "source-reference"
     },
@@ -77199,19 +77303,19 @@
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 59,
+      "line": 64,
       "text": "const SAY={computer:'DESK COMPUTER: a locked workstation. Mail, a ticket queue, a half-written report. It wants a badge and a PIN.','manager-pc':'MANAGER’S COMPUTER: locked behind a biometric pad. A calendar notification glows: “Board call — 09:00”.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 73,
+      "line": 78,
       "text": "else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 74,
+      "line": 79,
       "text": "msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}",
       "kind": "source-reference"
     },
@@ -79479,13 +79583,13 @@
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 549,
+      "line": 550,
       "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms,hardEnd:now+MAX_LINE-250};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 579,
+      "line": 580,
       "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};",
       "kind": "source-reference"
     },
@@ -80766,8 +80870,8 @@
     "void-runner/anim-library.js": "b4879bd34b9014a5d73cd566c3fd72b15b81dfc628483b99667e6547aa455a45",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
-    "void-runner/apartment-integration.js": "53f7c9b66281794a5c697c0dd2e30ebe4ebc73157f476cb5b73bd04321b369b4",
-    "void-runner/apartments.js": "2510e10e118e5692a4fd58088be8ed44c175fc7552c80a9c9ae1dde89193cc92",
+    "void-runner/apartment-integration.js": "d233ef6b7bc55600694ca313d96f495c2551c289b245f576dfd8ae73db8d8e6f",
+    "void-runner/apartments.js": "d52f4742d9d511a0a7a5880fb14d61547dc520e8f64300564948d7103a607c1f",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
@@ -80782,7 +80886,7 @@
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "9f562a4da9b7d5d46e16a380f52b22f831beb6605912d0863139316daf56a141",
-    "void-runner/catalog-shop.js": "7536068ea2348c109fcdcbdf6b6d36acb6f445a9e2598801ae279752be69718f",
+    "void-runner/catalog-shop.js": "2f513dbc85c7470619dbfb82d0af9377b70ae40cabff694c0ccb043c6251f522",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -80804,11 +80908,11 @@
     "void-runner/companion-mobile.js": "ad56e714d984c859b791e9e5431f7c42934037d0b706b46a4804e3357efddd82",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/consumable-audio.js": "455264d71994edf623ea49940524c66f804b397d1dcf74be4031dd37c718e81e",
-    "void-runner/consumable-gameplay.js": "7853c92fd3df71825b284a1faec8f61b09ec542ee67818556e2a9f7d065bd949",
+    "void-runner/consumable-gameplay.js": "ab42f97e3110b518dce64336a7125b14d0aaa0be45549ce5f9ef158c5e184ff0",
     "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
-    "void-runner/consumable-spec.js": "b56b96f11301a84c9b5c4a4ac727e1e9e3665c9c05eb4ded464ff3af43559392",
+    "void-runner/consumable-spec.js": "9ca4f5fc817475e1de6f63c1f220b69941d18ac673996f4ffb4dd978c196bc3d",
     "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
-    "void-runner/consumables.js": "eb55038948395091d3637849062f1d3d98ad6354042ac63f6b237f54be34083c",
+    "void-runner/consumables.js": "58608afe90f3fbcdf9595d37ce2fe63ba6769a118f30777eab53a767ad19f928",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -80828,7 +80932,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "d512402f4233210283b64ca7ec4d8d3dc70aebae6daa772451697e13f93b5e31",
+    "void-runner/dev-tools.js": "5f6f1024975740aead9df5087fbcc142c3ecf9c756882a99ec83cdf8bb3afb92",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "69755eb313451dfdc5b9079e21610d4d6283c3142336aa345edd2733e8f07598",
@@ -80838,7 +80942,7 @@
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
-    "void-runner/district-map.js": "42a44b7beafd5e3db9ce96f7cd4b0b68beff60590eea58feb006b36bd34cfd7f",
+    "void-runner/district-map.js": "7d803c370dbe66a80ffc65b48a58a159fd46b7fd5ecd0758a5379a16720b0301",
     "void-runner/district-people.js": "8bbb7424c4ef8a1b8118875cb895a910b4d78c437f1bd69ffbcb2010a8ef40da",
     "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
@@ -80882,11 +80986,11 @@
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "ff140346e56ce4d0d43aa0baf45551daf7e49204ffdd58aea907b0bfa5fe241a",
+    "void-runner/input-state.js": "79f89975a1d155b07e83f5d0b4a608f387153966285f54a61de7ce1c735f30a5",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "3080629bfbce16879ef7be6332a47488a72a78f002761edaf197298be5f85ccb",
+    "void-runner/item-catalog-editor.js": "8e8b940270612d5b215e36be10fe55f10fb25923aa3fbb12c8638e91ce855c1c",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "2406e3d21042dc9ad99395049cf84bf93f938b35a79f3a428969f71074d4cb08",
@@ -80910,7 +81014,7 @@
     "void-runner/mission-blocks.js": "1af9c0a679b9b1503b92760f1110decd16cf68f5719cabfa320bbab98d94364a",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "91dd6458400e81067684c452cb2c5dfb8276113101688e0eab00baf7f78595fc",
+    "void-runner/mission-editor.js": "8cee73fa42a28131ced07e20528f1a28e091a05fa685c030791b4f6ba9a21ab5",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -80919,9 +81023,9 @@
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
     "void-runner/mission-trees.js": "2baba4dedd1e25f5eb502812a97f8d03324c1d83a3615571bca537ae73f266d8",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "ec7d7f4df27ae5572f886ed2cb63da8dd33afdbe0cad60020bdaebb76891a68e",
-    "void-runner/module-editor.js": "67cdac049bb19024d04685cfbccfb94c5f31be8ef9c9fd4f5d280a63a2567cfc",
-    "void-runner/module-integration.js": "c2b8ec3c6c09a4dec8c54c47c56dd73b163276c0c137d9edd27572b9e02ef7bc",
+    "void-runner/module-build.js": "a77ce029aceb9b3a70c3a9f9059c599864a5ab0963c7410bcc513a1697610c38",
+    "void-runner/module-editor.js": "be5789fdec950e6c04f769ea8303cc8594ccfe0a053866cfaaf643936028df43",
+    "void-runner/module-integration.js": "0100e004d16e983a56b43bad3c1dab50414163210043fcc8f22b621b0c2c3ef8",
     "void-runner/modules.js": "baac3cc82c2f01a78418e588c7ec1210a99d392cc759c4bc710b6af49e240c3f",
     "void-runner/mouse-control.js": "33d7d3da26d2dde7a1f1c0cd88b05e15b6263ac8214f4fa8719e9d751fa3865b",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
@@ -80933,7 +81037,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "3a2e038547e5191a3de2a9cff1e76d247c85e32b806c6e7341ec403c5b6fce34",
+    "void-runner/ncz-backalleys.js": "63d21c5a2d8d9b5a2acb46313ea3b28eca19d7bfa333f4d7d6a60fdf42d44a97",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
@@ -80950,7 +81054,7 @@
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
     "void-runner/neochinatown.js": "5a9f04601c4430c7de97afd52dff17541123a79d1fcbf738c604620473234bdf",
-    "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
+    "void-runner/network.js": "5740953eccbbd9dd90568ebb040d3847bc02b0270c7f78c397c4239993395307",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
     "void-runner/npc-areas.js": "d648d52f8eeca2576b55cae0344ef7d78c0cbab296624c1a6fdbb506936139e1",
@@ -80999,7 +81103,7 @@
     "void-runner/remote-players.js": "5f56de7492cde8788e9d839a5126efaa76426330bc95200115b7afbbdad5fc65",
     "void-runner/road-taxi-rules.js": "78f664cd9459e6b88b9e5bb14f80bfc2abc4535f995d6674223d7e809cf61f37",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
-    "void-runner/road-taxi.js": "054d081e2decd57ed4247d5ec0582479ab37989679e8d471ee004cf5dbd9aeea",
+    "void-runner/road-taxi.js": "4e386484bda8d6b5297320510c2fd1183f88e71a46c904c6fce8251bed38e1b6",
     "void-runner/rook-cargo-gen.js": "5a1b3c8d0db9f57545e80be13e9d8d174c52a0819f5126b8de014905eb7c9500",
     "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
@@ -81025,7 +81129,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "efcadb0198f8be07f37bbe7928e0af28950e24a43612fd9fee7569ba368cb167",
+    "void-runner/tea-duo.js": "974f73e9bf49f284d8d65af0242dc227afdc1f8551d12dad48dccd53aa87b029",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
@@ -81038,11 +81142,11 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "a02fcaaa7f99752cd8312d922684a36d3a1867ea87018163ef491614b93e86f1",
+    "void-runner/voice-clips.js": "a2fc5106599175d02bd4d19878db57af671c60bbd5f8b6715a683834e08067bf",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
-    "void-runner/vr-companion-studio.js": "502ca2d7cc42d8b141e79da2ee8e4f1d6d9c37e745dd479ecfe32f3ce853f2df",
+    "void-runner/vr-companion-studio.js": "00a74b8721263ee3feb86a67418f3b89268b76a22cf2c3b4f3973b7fa354b840",
     "void-runner/vr-companions.js": "406f9b8480b4405823d894fd91df65624ea690f1c3557214b27f2df4b5618b96",
     "void-runner/vr-core.js": "321a3f2c16d1c309599c3b3be376f4c6dcbffadc84712588ce2a60554839dfcf",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
@@ -81056,6 +81160,7 @@
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
+    "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
@@ -81063,7 +81168,7 @@
     "void-runner/zone-integration.js": "ef3729c94039128a20e150c53f117c43fe199aadb0dc0433d6dcfc2ac93760c1",
     "void-runner/zones.js": "d5b1201f90f4a4edbcab30e2408061df4ff8b331e7c40ead1e3c79c9bae3ccc5",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
-    "tools/admin-inventory.cjs": "685af14f4e20d69a0eaa0cdbc7aadd28f7a1dc685e0846c50bc2d9b8bb4002dd",
+    "tools/admin-inventory.cjs": "4cba225b1c4a56bfa9ed659f9ed0dfc80028442615992ebecb43aa997c6b352a",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
     "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
     "void-runner/save-manifest.json": "b9f065b33262f83661385458906ddd77caa9ac5d665bae9153cc3413af27dca9"

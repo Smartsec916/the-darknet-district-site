@@ -1057,7 +1057,7 @@
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
    clock:clockText,enter:async()=>{state.location='earth';
     // the area of the spot (npc-areas.js): a street quarter or the District interior; the player stands a few steps away on ground they can walk, facing it
-    const AR=root.VoidNPCAreas,a=AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
+    const AR=root.VoidNPCAreas,a=AR?.list().some(p=>p.id===opts.area)?opts.area:AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
     if(w.walk==='darknet-district'){state.story.flags.area='district';state.story.flags.districtBadge=true;await enterWalking(VoidDistrictArea.KEY.interior,{silent:true});}
     else{delete state.story.flags.area;await enterWalking(w.walk,{silent:true,quarter:w.quarter});}
     if(!AR)return;

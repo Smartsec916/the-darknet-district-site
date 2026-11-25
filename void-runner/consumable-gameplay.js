@@ -11,6 +11,10 @@
  function now(){return Date.now()/1000+offset;}
  async function request(path,body){
   const user=root.VoidAccount?.user;if(!user||user.isAnonymous)throw Error('Sign in with a District account.');
+  if(!root.VoidDevTest?.active && typeof state!=='undefined' && root.VoidClock &&
+     ['shop/state','shop/purchase','keycards/access','keycards/move','keycards/reward'].includes(path)){
+   path+='?gameMinute='+root.VoidClock.minutes(state);
+  }
   const id=user.uid;let token=await user.getIdToken();
   const call=()=>{if(root.VoidAccount?.user?.uid!==id)throw Error('Account changed.');return root.VoidNetwork.request(path,{token,body,scope:id+':shop'});};
   try{return await call();}catch(e){if(e.status!==401)throw e;token=await user.getIdToken(true);return call();}

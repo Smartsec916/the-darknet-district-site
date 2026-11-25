@@ -32,7 +32,7 @@ test('the interior is a place of its own that keeps NeoChinatown\'s id and coord
  assert.match(read('void-runner/babylon-renderer.js'),/def\.milked&&root\.VoidMilked\?\.build/);
  // taxis do not come indoors
  const R=require('../void-runner/road-taxi-rules.js');assert.equal(R.availability(s,{onFoot:true,area:'milked'}).ok,false);assert.match(R.availability(s,{onFoot:true,area:'milked'}).reason,/Step outside/);assert.equal(R.availability(s,{onFoot:true,area:'street'}).ok,true);
- assert.match(read('void-runner/road-taxi.js'),/area!=='milked'/);
+ assert.match(read('void-runner/road-taxi.js'),/walkingLocation\.area==='street'/);
 });
 
 // ---- the orchestration, with fakes ----
