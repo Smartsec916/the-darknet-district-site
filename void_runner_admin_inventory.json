@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "79f247259bdaf8a8",
+  "revision": "4bba25d0c6a828e1",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12204,6 +12204,48 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/published-content.js",
+      "line": 11,
+      "text": "const originals=clone(missions.definitions),scenes=clone(story.dialogue);let pinned=false;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/published-content.js",
+      "line": 16,
+      "text": "keys(data,['schemaVersion','sourceRevision','missions','dialogue','companions']);if(data.schemaVersion!==1||data.sourceRevision!==sourceRevision)throw Error('Invalid content version.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/published-content.js",
+      "line": 17,
+      "text": "keys(data.missions,Object.keys(originals));keys(data.dialogue,Object.keys(scenes));if(!Array.isArray(data.companions)||data.companions.length>20||Object.keys(data.missions).length+Object.keys(data.dialogue).length+data.companions.length>20)throw Error('Published content exceeds limits.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/published-content.js",
+      "line": 25,
+      "text": "for(const [key,d]of Object.entries(data.dialogue)){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/published-content.js",
+      "line": 32,
+      "text": "const active=new Set(),done=new Set();function visit(k){if(active.has(k))throw Error('Cyclic dialogue.');if(done.has(k))return;active.add(k);const n=scene.nodes[k];for(const next of [n.next,...(n.choices||[]).map(c=>c.next)].filter(Boolean))visit(next);active.delete(k);done.add(k);}visit(scene.start);if(done.size!==Object.keys(scene.nodes).length)throw Error('Unreachable nodes.');plannedS[key]=scene;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/published-content.js",
+      "line": 34,
+      "text": "for(const slot of data.companions){keys(slot,['id','path','text']);if(!id(slot.id)||!Array.isArray(slot.path)||slot.path[0]!=='dialogue'||slot.path.length>6||slot.path.some(p=>typeof p!=='string'||!(/^[a-zA-Z0-9_-]+$/.test(p))||['__proto__','constructor','prototype'].includes(p)))throw Error('Invalid companion path.');text(slot.text);const target=companions.get(slot.id);if(!target)throw Error('Unknown companion.');let owner=target;for(const part of slot.path.slice(0,-1)){if(!Object.hasOwn(owner,part))throw Error('Unknown companion slot.');owner=owner[part];}const last=slot.path.at(-1);if(!owner||!Object.hasOwn(owner,last)||typeof owner[last]!=='string')throw Error('Unknown text slot.');const key=slot.id+':'+slot.path.join('.');if(slots.has(key))throw Error('Duplicate text slot.');slots.add(key);plannedC.push({owner,last,text:slot.text});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/published-content.js",
+      "line": 36,
+      "text": "Object.assign(missions.definitions,plannedM);Object.assign(story.dialogue,plannedS);for(const c of plannedC)c.owner[c.last]=c.text;pinned=true;return {generation:envelope.generation,applied:true};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/relay-radio.js",
       "line": 5,
       "text": "- The station gives way to combat, mission dialogue and conversations; breaking news waits for",
@@ -13174,7 +13216,7 @@
     "void-runner/babylon-renderer.js": "65aef7c4c7f19d4140ae66f9d317d7f0c791770dbaa9141edd307c2a56bd2e61",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
-    "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
+    "void-runner/bootstrap.js": "7457468d50c85d18057c191d11a015a02cc78cb6b29c88dfeecb08c9a5f49628",
     "void-runner/cache.js": "a796e718fbe982cbdbec26e66705c8dfce47f9b3882a671244400cd48437bb4e",
     "void-runner/campaign.js": "d38f22017a1394e992e82a16d4bcbe8437ef8b4452984b1f694477464b66edec",
     "void-runner/city-taxi.js": "0e5034fa45257dbcc8a26a52ad33b1dc12b52ecd2c95d22a1929ddcd96155eb0",
@@ -13227,7 +13269,7 @@
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-log.js": "f9637251347e1250b78d3bef32ef6082e462393a0231b72e4e68970c7650b8c6",
+    "void-runner/mission-log.js": "f4b3cefd05536876d863a62c11a873d4783ef2c858d918bf3fb8b6652ac5d3be",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "e22165f19bef53595dba679424375e039e776e19359e075fbea720cc4d10ca95",
     "void-runner/music-director.js": "a751c57ffcc8fd9928ecd8baa1f962d21f86ae842b87a3724e31c045887795a8",
@@ -13252,6 +13294,7 @@
     "void-runner/preparation.js": "d4cd81b11203b5727a1192a8a5138b02fe6e1570d7310215526e3ddc4ce0502f",
     "void-runner/progression.js": "2350090515fb4942fa72b198380f3dcd960251f2d54955abaf689a57ab630b24",
     "void-runner/prologue-integration.js": "a169b3ef6964ad272721edc2500203d4801cccc2ca735409277cb5aec181a8f3",
+    "void-runner/published-content.js": "958290e045f2561263f43530b1b5c2345d562f62d1ca4558eadf5bddb8be8ff8",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "5ce31904c15f630a01d00f51d566d66ae97c736d5734d7531835588714269806",
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
@@ -13268,7 +13311,7 @@
     "void-runner/station-layouts.js": "04310755d7074c6b47fcf8b67c4218959debc861c7a286ccd53d586a61a60879",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
-    "void-runner/story.js": "2257083dc07c296e8a271d097f103508f7ec582f14bcdb2b869ec031bb7d0abe",
+    "void-runner/story.js": "fd4b6d64ea5145c25f149f40b12977262f0b819e3b02729a5194fd3c15243107",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/taxi-rules.js": "62262cf05aa12c3d22f9c3928faabaa32442756d29dbbc9425f37a8db4566ab4",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
@@ -13293,10 +13336,13 @@
     "void-runner/world-integration.js": "d9bd871321a7f30669575cc1049391497a164f836e9f32327453e4782d63e8e6",
     "void-runner/world-markers.js": "af9570bfc272ccb17b8a9b0dabd7fc018f2d60d270edf8281066c101f09bfe15",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
-    "tools/admin-inventory.cjs": "4b545f1e29bc40745983ecd5a113f20926a6f73b52a1b4ed4c2e8106df0a4ed0",
+    "tools/admin-inventory.cjs": "407c6e6999f09e1ae24878f02e5f5ecd6c7b5f92258fe1a5cd08a25ecadc3555",
     "tools/audio/npc-voice-registry.json": "216866bb6a355e0cfa2ac6792cb880ecc98ce4f6c1790ca0437b52bb3866f0c2",
     "void-runner/assets/audio/voice/manifest.json": "be220f919a172ad4122718393d1b92d3726fe44819639c88c0579cf9d224e8ac",
-    "void-runner/save-manifest.json": "a68d75a8a7781d2a1ec9c606487c0a1a6eaff141eda4e28ddea832c3fde985f0"
+    "void-runner/save-manifest.json": "a68d75a8a7781d2a1ec9c606487c0a1a6eaff141eda4e28ddea832c3fde985f0",
+    "void_runner_drafts.py": "920615d438693594fa3283c522f666e6d52e0f4936a93db710c1f8a494cf52af",
+    "void_runner_publication.py": "ad5132abc89f670fa10215fcb28f63425224c3e325c60584b68135f3ef03133d",
+    "void_runner_content_runtime.py": "b94f41ab1087b0ae3e0cf3202a3f7ccf958f7501aa23c2120046247f3fdb1ca9"
   },
   "coverage": {
     "structuredScenes": 1,

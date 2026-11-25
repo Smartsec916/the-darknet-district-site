@@ -1,0 +1,4 @@
+// Proposed merge fragment only: review the complete deployed rules for broad overlapping grants.
+match /vr_runtime_content/{document=**} { allow read, write: if false; }
+match /vr_runtime_versions/{document=**} { allow read, write: if false; }
+match /vr_runtime_audit/{document=**} { allow read, write: if false; }

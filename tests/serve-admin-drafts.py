@@ -22,4 +22,4 @@ if __name__ == '__main__':
             import void_runner_drafts as drafts
             older=copy.deepcopy(drafts.inventory());older['revision']='older-'+older['revision']
             drafts.save(db,'owner','stale-flight',{'revision':0,'document':drafts.template('mission','registry:flight-training',older)},older)
-        app.run(host='127.0.0.1',port=5196,debug=False)
+        app.run(host='127.0.0.1',port=int(os.getenv('VOID_ADMIN_TEST_PORT','5196')),debug=False)

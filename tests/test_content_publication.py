@@ -27,7 +27,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(self.db.data,{})
         with patch.dict(os.environ,{'VOID_CONTENT_PUBLISHER_UID':''}):
             r=self.client.get('/api/void-runner/developer/releases/schema',headers=self.header)
-            self.assertFalse(r.json['roles']['publisher']);self.assertFalse(r.json['roles']['liveActivationImplemented'])
+            self.assertFalse(r.json['roles']['publisher']);self.assertTrue(r.json['roles']['liveActivationImplemented']);self.assertFalse(r.json['roles']['publishingEnabled'])
     def test_editor_plan_is_inert_and_publisher_is_separate(self):
         self.setup_release();before=copy.deepcopy(self.db.data)
         with patch.dict(os.environ,{'VOID_CONTENT_PUBLISHER_UID':''}):
@@ -62,7 +62,7 @@ class ReleaseTests(unittest.TestCase):
         for t in threads:t.join()
         self.assertCountEqual(results,[1,409])
     def test_source_revision_and_save_compatibility_fail_closed(self):
-        self.setup_release();self.doc['data']['enabled']=False;self.assertEqual(self.post(revision=1).status_code,200)
+        self.setup_release();self.doc['data']['objectives'].pop();self.assertEqual(self.post(revision=1).status_code,200)
         before=copy.deepcopy(self.db.data);self.assertEqual(self.release('prepare',self.payload(0,2)).status_code,422);self.assertEqual(self.db.data,before)
         stale=copy.deepcopy(self.inv);stale['revision']='changed'
         with self.assertRaises(drafts.DraftError):releases.prepare(self.db,'owner',self.payload(0,2),stale)

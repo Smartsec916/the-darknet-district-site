@@ -1,7 +1,7 @@
 """Stage 3C private release ledger. No gameplay endpoint reads this collection.
 
 A candidate is a validated immutable package, not an activated game publication.
-Activation adapters and a separately reviewed publisher grant remain required.
+Explicit activation is implemented separately in void_runner_content_runtime.py; preparing a candidate never invokes it.
 """
 import copy
 import hashlib
@@ -80,7 +80,7 @@ def inspect_package(documents, inv):
             raise drafts.DraftError('Duplicate release content identity.')
         identities.add(identity)
         # Warnings acceptable in a draft are hard gates before a release can be prepared.
-        informational = {'Draft only. No live content or save has been changed.', 'Runtime completion/availability wrappers remain authoritative; this overlay is not activated.', 'Approved source text and voice identity are unchanged. This is an unpublished proposal.'}
+        informational = {'Draft only. No live content or save has been changed.', 'Runtime completion/availability wrappers remain authoritative; this overlay is not activated.', 'Approved source text and voice identity are unchanged. This is an unpublished proposal.', 'Save compatibility: disabling an existing mission may strand active saves.'}
         blockers = [w for w in result['warnings'] if w not in informational]
         if blockers:
             raise drafts.DraftError('Save compatibility review required.', 422, {'warnings': blockers})

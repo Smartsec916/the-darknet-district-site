@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Saved private draft and prepared candidate are not publicly served",
+    "Compile/review acknowledgement, authenticated publish and sanitized public snapshot",
+    "Actual game bootstrap consumes compiled Unicode snapshot; District missions stay closed and no reward executes",
+    "Rollback is atomic; an open game stays pinned and reload adopts generation 2 without changing campaign storage",
+    "Mobile layout and sign-out clearing",
+    "Late panel imports recover authorized inventory instead of missing startup events"
+  ],
+  "errors": []
+}
