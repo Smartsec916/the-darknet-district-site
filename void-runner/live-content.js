@@ -322,15 +322,35 @@
   if(!policy||policy.leg!==point?.leg||s.area!==from||!point.area||!Number.isFinite(point.x)||!Number.isFinite(point.z))return false;
   s.leg=policy.leg+1;s.area=point.area;s.from={x:point.x,z:point.z};s.waitSince=null;carry[id]={...point,key:session};planAt=0;delete planCache[id];return true;
  }
+ // A seated social follower is physically in the cab, not on the pavement grid. This is not gate clearance.
+ function socialCabPose(id,key,here){
+  try{const job=root.VoidRoadTaxi?.world?.job;if(!job||job.released||!job.cab)return false;
+   const p=root.VoidMadeNPCs?.live?.()?.people?.find(q=>q.id===id),e=p?.esc;
+   if(e?.key!==key)return false;
+   // A boarding follower leaves the pedestrian grid on its short approach to a side door.
+   if(e.ride==='to-cab'&&job.cab.phase==='waiting'){
+    const doors=root.VoidRoadTaxiRules?.doorPoints?.(job.cab)||[];
+    return doors.slice(0,2).some(d=>Math.hypot(here.x-d.x,here.z-d.z)<=6);
+   }
+   if(e.ride!=='in-cab')return false;
+   const seat=root.VoidRoadTaxiRules?.companionSeat?.(job.cab);
+   return !!(seat&&Number.isFinite(seat.x)&&Number.isFinite(seat.z)&&Math.hypot(here.x-seat.x,here.z-seat.z)<=4);
+  }catch{return false;}
+ }
  function socialPlan(id){const s=social.get(id);if(!s||s.phase!=='active')return null;if(missionBusy(id)){endSocial(id,'preempt');return null;}const f=env.interactions?.[id]?.advanced?.follow,X=root.VoidNPCPaths;if(!f||f!==s.record||!X?.MOVABLE?.[id]){endSocial(id,'preempt');return null;}if(s.waitSince!=null&&Date.now()-s.waitSince>=f.maxWait*1000){endSocial(id,'timeout');return null;}
   const to=(f.place||f.role==='lead')?socialDestination(id,f):null;if((f.place||f.role==='lead')&&!to){endSocial(id,'cancel');return null;}
   const A=root.VoidNPCAreas,here=livePos(id),key='social:'+id+':'+s.generation,C=carry[id]?.key===key?carry[id]:null,area=s.area||(here&&A?.areaOf(here));
   // A published cross-district lead takes one registered gate at a time from its last physical position.
-  if(!area||(here&&A?.areaOf(here)!==area)||(C&&C.area!==area)){endSocial(id,'preempt');return null;}
+  const old=planCache[id];
+  if(!area||(C&&C.area!==area)){endSocial(id,'preempt');return null;}
+  if(here&&A?.areaOf(here)!==area){
+   if(old?.social&&old.key===key&&old.area===area&&socialCabPose(id,key,here))return old.resume===(C||null)?old:{...old,resume:C||null};
+   endSocial(id,'preempt');return null;
+  }
   const destArea=to&&A?.areaOf(to),policy=socialTravelPolicy(id,key),E=root.VoidNPCEscort;
   const leg=to&&destArea!==area&&policy?E?.socialGateLeg(id,{...(here||C||s.from),area},{...to,area:destArea},policy):null;
   if(to&&((destArea!==area&&!leg)||(E?.mayEnter&&!E.mayEnter(id,destArea,to).ok))){endSocial(id,'cancel');return null;}
-  s.area=area;if(!s.from&&here)s.from={x:here.x,z:here.z};const old=planCache[id];if(old&&old.key===key&&old.resume===(C||null)&&old.leg?.key===leg?.key)return old;
+  s.area=area;if(!s.from&&here)s.from={x:here.x,z:here.z};if(old&&old.key===key&&old.resume===(C||null)&&old.leg?.key===leg?.key)return old;
   return {key,area,mode:'escort',why:'social',social:true,leg,kind:f.role==='lead'?'follow-them':'they-follow',npc:id,name:X.MOVABLE[id].name,step:key,to:leg?leg.to:to?{x:to.x,z:to.z}:null,final:to?{x:to.x,z:to.z}:null,set:{wait:8,lost:40,ifLost:'pause'},resume:C||null,from:s.from||null};}
  function roomTick(blocked){try{const A=root.VoidAdvancedInteractions,P=root.VoidPlaces,U=root.VoidUnderground,L=typeof walkingLocation==='undefined'?null:walkingLocation,W=where();if(!A||!P||!L||!W||mode!=='walking'){roomVisits.clear();roomScene=null;return false;}
   const scene=[L.id,L.area,L.quarter].join('/');if(roomFor!==env.interactions||roomScene!==scene){roomVisits.clear();roomFor=env.interactions;roomScene=scene;}
