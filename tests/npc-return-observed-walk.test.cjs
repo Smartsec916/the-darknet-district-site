@@ -10,9 +10,9 @@ function legal(p,area,passing=false){
  const c=A.check(p,area,passing?A.CLEAR-.1:undefined,{...options,passing});
  return c.ok&&c.area===area;
 }
-function walk(from,to,area){
+function walk(from,to,area,unloadTransit=false){
  const tracker=createReturnTracker(),destination={...to,area,key:'current-routine'};
- let pos={...from},distanceWalked=0,transitObservations=0,lastStop={...from};
+ let pos={...from},distanceWalked=0,transitObservations=0,unloads=0,lastStop={...from};
  for(let i=0;i<2000;i++){
   const result=tracker.update({position:pos,area,destination,options});
   assert.deepEqual(result.lastObserved,{area,...pos},'tracker must use actual measured position');
@@ -21,13 +21,21 @@ function walk(from,to,area){
    transitObservations++;
    assert.ok(legal(pos,area,true),'only authorized transit may be observed');
    assert.equal(result.reason,'verified-transit-leg');
+   if(unloadTransit&&!unloads){
+    const paused=tracker.update({sceneLoaded:false});
+    assert.equal(paused.status,'paused');assert.equal(paused.waypoint,null);
+    assert.deepEqual(paused.lastObserved,result.lastObserved);
+    assert.deepEqual(paused.lastLegalStop,result.lastLegalStop);
+    assert.deepEqual(tracker.update({position:pos,area,destination,options}),result);
+    unloads++;
+   }
   }
   assert.deepEqual(result.lastLegalStop,{area,...lastStop});
   if(result.status==='arrived'){
    assert.equal(result.waypoint,null);
    assert.ok(distance(pos,to)<=.025);
    assert.ok(distanceWalked+.025>=distance(from,to),'no teleport or unobserved arrival');
-   return {distanceWalked,transitObservations};
+   return {distanceWalked,transitObservations,unloads};
   }
   assert.equal(result.status,'walking',JSON.stringify({pos,result}));
   assert.ok(legal(result.waypoint,area),'next stopping point must be legal');
@@ -63,5 +71,7 @@ test('actual Old Town doorway transit never becomes a standing waypoint or telep
  for(const [from,to] of [[fixture.a,fixture.b],[fixture.b,fixture.a]]){
   const result=walk(from,to,area);
   assert.ok(result.transitObservations>0,'test must actually enter passing-only geometry');
+  const resumed=walk(from,to,area,true);
+  assert.equal(resumed.unloads,1,'test must pause and resume inside the actual doorway');
  }
 });
