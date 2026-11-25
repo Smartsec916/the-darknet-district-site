@@ -297,6 +297,6 @@
   return DRIVE.some(id=>{const r=S[id];return r&&x>=r[0]-m&&x<=r[1]+m&&z>=r[2]-m&&z<=r[3]+m;});
  }
 
- const api={fare,REGISTRY,FLAG,SPEC,PICKUP_REACH,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,companionSeat,onRoad,snap};
+ const api={fare,REGISTRY,FLAG,SPEC,PICKUP_REACH,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,release,doorPoints,seatPoint,companionSeat,onRoad,snap};
  if(node)module.exports=api;else root.VoidRoadTaxiRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
