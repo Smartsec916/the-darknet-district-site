@@ -12,6 +12,9 @@ function validateCandidate(from,to,area,points,opts={}){
  if(!Array.isArray(points)||!points.length||!points.every(point))return false;
  const end=points[points.length-1];
  if(end.x!==to.x||end.z!==to.z)return false;
+ // A.leg permits passing through doorways with reduced clearance; a
+ // returned waypoint must also be a legal place to stop in this area.
+ if(!points.every(p=>{const c=A.check(p,area,undefined,opts);return c.ok&&c.area===area;}))return false;
  return points.every((p,i)=>A.leg(i?points[i-1]:from,p,opts).length===0);
 }
 function preflight(from,to,area,opts={}){
