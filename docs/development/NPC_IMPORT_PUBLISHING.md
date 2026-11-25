@@ -2,7 +2,11 @@
 
 In Developer Tools, open NPCs and select the imported model. Run the preview checklist, fill in the source and licence, and choose a spot or route on The Avenue. Select **Publish NPC to game** and confirm the placement. The editor shows the live content version once the server accepts it.
 
-For a new model, open a terminal in this repository on your Windows PC and run:
+On Windows, run the following once in PowerShell from this repository. It registers the **Open PC Publisher** button for your Windows account.
+
+    .\tools\install-npc-publisher.ps1
+
+When a new model needs registration, select **Open PC Publisher** in the pairing dialog and accept the browser's request to open it. If the publisher is already open, use the code in its window. For a manual start, run:
 
     node tools/npc-publisher.cjs
 
