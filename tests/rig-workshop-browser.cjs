@@ -14,17 +14,31 @@ const root=path.resolve(__dirname,'..');
   const model=await open(new Blob([fs.readFileSync(process.env.RIG_BROWSER_MODEL||path.join(root,'void-runner/assets/models/crowd/vr-companion-f.glb'))]));
   model.json.animations=[];const testFile={name:'Rig test.glb',mimeType:'model/gltf-binary',buffer:Buffer.from(GLB.write(model.json,model.binary))};
   browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_EXECUTABLE,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
-  const page=await browser.newPage({serviceWorkers:'block'}),base='http://127.0.0.1:'+server.address().port;
+  const page=await browser.newPage({serviceWorkers:'block'}),base='https://thedarknetdistrict.com';
+  console.log('Production asset smoke against',base,'with local mock developer identity and all non-static network traffic blocked');
   page.setDefaultTimeout(60000);
-  await page.route('https://**/*',r=>r.abort());
+  await page.route('**/*',r=>{
+   const request=r.request(),url=new URL(request.url());
+   // No production login, API, writes, publishing, or third-party requests.
+   if(url.origin!==base||!['GET','HEAD'].includes(request.method())||url.pathname.startsWith('/api/'))return r.abort();
+   return r.continue();
+  });
+  const fetched=new Set();
+  page.on('response',r=>{const u=new URL(r.url());if(u.origin===base&&r.ok())fetched.add(u.pathname);});
+  for(const path of ['/void-runner/rig-workshop.mjs','/void-runner/rig-motion.mjs']){
+   const response=await page.request.get(base+path,{maxRedirects:0,timeout:30000});
+   assert.equal(response.status(),200,path+' HTTP status');
+   assert.match(response.headers()['content-type']||'',/javascript|ecmascript/i,path+' module MIME');
+   console.log('Production module available:',path);
+  }
   await page.route('**/firebase-auth.js',r=>r.fulfill({contentType:'text/javascript',body:"export const auth={currentUser:{uid:'rig-test',getIdToken:async()=>''}},provider={},getRedirectResult=async()=>{},signInWithPopup=async()=>{},signInWithRedirect=async()=>{},signOut=async()=>{},onAuthStateChanged=(a,fn)=>fn(a.currentUser);"}));
   await page.route('**/api/void-runner/developer/balance',r=>r.fulfill({json:{values:{},revision:1}}));
   for(const editor of ['companion','npc']){
    if(editor==='companion'){
-    await page.goto(base+'/vr-companion-studio.html');await page.getByRole('button',{name:'Auto-Fix All',exact:true}).waitFor();
+    assert.equal((await page.goto(base+'/vr-companion-studio.html',{timeout:120000})).status(),200);await page.getByRole('button',{name:'Auto-Fix All',exact:true}).waitFor();
     await page.locator('input[type=file][accept*=".glb"]').first().setInputFiles(testFile);
    }else{
-    await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:180000});
+    assert.equal((await page.goto(base+'/void-runner.html',{timeout:120000})).status(),200);await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:180000});
     await page.evaluate(async()=>{await VoidDevTools.identity(async p=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1};throw Error('offline');},{uid:'rig-test'});VoidDevTools.open('npcs');});
     const picked=page.waitForEvent('filechooser');await page.locator('[data-npc-start-card=import]').click();await (await picked).setFiles(testFile);
    }
@@ -39,7 +53,9 @@ const root=path.resolve(__dirname,'..');
     g.pause();const a=await sample(g.from),b=await sample(g.from+(g.to-g.from)*.25);return Math.max(...a.map((v,i)=>Math.abs(v-b[i])));
    });assert.ok(displacement>.01,editor+' animated skeleton matrix variation '+displacement);
    await page.getByRole('button',{name:'Undo rig repair'}).click();
-   console.log('PASS',editor,'Babylon animated skin matrix delta',displacement);
+   assert.ok(fetched.has('/void-runner/rig-workshop.mjs'),'Production workshop module was fetched');
+   assert.ok(fetched.has('/void-runner/rig-motion.mjs'),'Production motion module was fetched');
+   console.log('PASS production static editor with mocked local identity',editor,'Babylon animated skin matrix delta',displacement);
   }
  }finally{await browser?.close();server.closeAllConnections();server.close();}
 })().catch(err=>{console.error(err);process.exitCode=1;});
