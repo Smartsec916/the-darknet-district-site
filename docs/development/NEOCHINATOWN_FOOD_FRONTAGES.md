@@ -35,4 +35,6 @@ The five shop markers use physical counter coordinates. V1 shows the order point
 
 Two independent local Edge accounts saw each other sit and stand at the Avenue stall using the repository's test hub. All five quarters loaded the vendor, diner, three available seats and the native seated cup animation in Babylon. Draw calls, frame times, geometry and time from travel start to both actors appearing were sampled from the actual browser. Software-rendered front views and paired fixed-view Radeon measurements are preserved under the isolated worktree's .test-temp directory. Crowds and background streaming vary between runs.
 
+The normal apartment mission playthrough exposed a dropped hallway exit while its incoming transition was finishing. The exit now waits for that transition and verifies the current visit before returning to the street. The same Edge playthrough then entered the flat, completed the safe, hack and lighting objectives, returned to the original door and verified the real save was intact.
+
 The next project in the owner's queue is the Visual Consumables Studio redesign. Start it after the street frontage release and outstanding merges are complete.
