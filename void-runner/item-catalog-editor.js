@@ -71,7 +71,8 @@
     }).join('')+'</ul></details>'+
     '<label>Player-visible notes <textarea data-card-text="notes" maxlength="600">'+esc(card.notes)+'</textarea></label>'+
     '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
-    flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
+    flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Expiry clock <select data-card-clock>'+options([['real','Real time'],['game','Gameplay time']],card.expiryClock||'real')+'</select></label>'+
+    (card.expiryClock==='game' ? '<label>Lifetime in gameplay minutes (0 for permanent) <input type="number" min="0" max="5256000" data-card-game-minutes value="'+(card.gameMinutes??0)+'"></label><p>Counts down while a player carries the card and their campaign clock advances. Pauses on the ground or with an NPC.</p>' : '<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+(card.duration??0)+'"></label>')+
     '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details>'+
     '<label>Mission reward <select data-card-text="rewardMission">'+options([['','No mission reward'],...missions],card.rewardMission||'')+'</select></label>'+
     '<details><summary>Issue a published keycard</summary><label>Player account ID <input data-card-recipient></label>'+button('grant-player','Give to player')+
@@ -152,6 +153,8 @@
     if(el.dataset.cardDoor){const id=el.dataset.cardDoor;c.doors=c.doors.filter(d=>d!==id);if(el.checked)c.doors.push(id);mark();draw();return;}
     if(el.dataset.cardFlag){c[el.dataset.cardFlag]=el.checked;mark();return;}
     if(el.dataset.cardText){c[el.dataset.cardText]=el.value;mark();return;}
+    if(el.matches('[data-card-clock]')){c.expiryClock=el.value;mark();draw();return;}
+    if(el.matches('[data-card-game-minutes]')){c.gameMinutes=el.valueAsNumber;mark();return;}
     if(el.matches('[data-card-duration]')){c.duration=el.valueAsNumber;mark();return;}
    }
    if(el.matches('[data-import]')){

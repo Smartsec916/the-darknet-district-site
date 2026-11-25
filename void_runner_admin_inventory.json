@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "434335c9be1921a1",
+  "revision": "3eded3da53915ab4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -73667,7 +73667,7 @@
     },
     {
       "source": "void-runner/item-catalog-editor.js",
-      "line": 87,
+      "line": 88,
       "text": "field('line','Dialogue',step.line||'')+'<button data-drop-step=\"'+i+'\">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';",
       "kind": "source-reference"
     },
@@ -80886,7 +80886,7 @@
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "9f562a4da9b7d5d46e16a380f52b22f831beb6605912d0863139316daf56a141",
-    "void-runner/catalog-shop.js": "f555b3c8c5e2e0b783a9f8a0a73a91745e280dbc443a18874a658dce50e38c1a",
+    "void-runner/catalog-shop.js": "99261c80f7a0e0bf9886567f1404aac36c455f7ae753438fe58449ad1fd75e49",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -80908,11 +80908,11 @@
     "void-runner/companion-mobile.js": "ad56e714d984c859b791e9e5431f7c42934037d0b706b46a4804e3357efddd82",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/consumable-audio.js": "455264d71994edf623ea49940524c66f804b397d1dcf74be4031dd37c718e81e",
-    "void-runner/consumable-gameplay.js": "7853c92fd3df71825b284a1faec8f61b09ec542ee67818556e2a9f7d065bd949",
+    "void-runner/consumable-gameplay.js": "ab42f97e3110b518dce64336a7125b14d0aaa0be45549ce5f9ef158c5e184ff0",
     "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
     "void-runner/consumable-spec.js": "9ca4f5fc817475e1de6f63c1f220b69941d18ac673996f4ffb4dd978c196bc3d",
     "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
-    "void-runner/consumables.js": "41f90d08a68e978b5ed76702dfc35a7e30ec7be54383e50cd46e02fc8fcff810",
+    "void-runner/consumables.js": "58608afe90f3fbcdf9595d37ce2fe63ba6769a118f30777eab53a767ad19f928",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -80990,7 +80990,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "9e588fac7798c0e6c2b9f6cef9b00258f2cbe6b6a5725f190bd81237da67a9b0",
+    "void-runner/item-catalog-editor.js": "8bc1370c31c60a9264d10f27c0f26f1e0957deb595cd62988ca47e9548af7d8e",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "2406e3d21042dc9ad99395049cf84bf93f938b35a79f3a428969f71074d4cb08",
@@ -81054,7 +81054,7 @@
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
     "void-runner/neochinatown.js": "5a9f04601c4430c7de97afd52dff17541123a79d1fcbf738c604620473234bdf",
-    "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
+    "void-runner/network.js": "5740953eccbbd9dd90568ebb040d3847bc02b0270c7f78c397c4239993395307",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
     "void-runner/npc-areas.js": "d648d52f8eeca2576b55cae0344ef7d78c0cbab296624c1a6fdbb506936139e1",

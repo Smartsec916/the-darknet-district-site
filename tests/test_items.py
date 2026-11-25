@@ -150,6 +150,34 @@ class ItemTests(unittest.TestCase):
             self.assertFalse(items.card_allows(card, 'outsider', target, 105))
             self.assertFalse(items.card_allows(card, owner, target[:-1]+'0', 105))
 
+    def test_gameplay_expiry_follows_the_physical_card(self):
+        door = 'apt-avenue-n-16'
+        content = catalog()
+        item = next(it for it in content['items'] if it['id'] == 'ghost-circuit')
+        rules = dict(doors=[door], duration=1, expiryClock='game', gameMinutes=10,
+                     transferable=True, droppable=True, pickup=True, bearer=True)
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none', keycard=rules)
+        self.assertEqual(self.publish(content).status_code, 200)
+        self.fund('owner', 1000)
+        self.fund('outsider', 1000)
+        self.db.data['vr_players/'+items._tag('owner')]['save']['story'] = {'flags': {'gameMin': 100}}
+        self.assertEqual(self.buy().status_code, 200)
+        card = self.get('shop/state?gameMinute=103').json['keycards'][0]
+        self.assertEqual((card['expires'], card['gameRemaining']), (0, 7))
+        with patch.object(items.time, 'time', return_value=4000000000):
+            self.assertEqual(self.get('shop/state?gameMinute=103').json['keycards'][0]['gameRemaining'], 7)
+        move = dict(card=card['id'], door=door, action='drop', nonce=self.nonce())
+        self.assertEqual(self.post('keycards/move?gameMinute=104', move).status_code, 200)
+        self.assertEqual(self.post('keycards/move?gameMinute=600', dict(move, action='pickup', nonce=self.nonce())).status_code, 200)
+        transfer = dict(card=card['id'], recipient='outsider', action='transfer', nonce=self.nonce())
+        self.assertEqual(self.post('keycards/move?gameMinute=602', transfer).status_code, 200)
+        for minute, expected in [(3, True), (4, False), (1, False)]:
+            self.assertEqual(self.post('keycards/access?gameMinute='+str(minute), {'door':door}, 'outsider').json['allowed'], expected)
+        self.assertEqual(self.get('shop/state?gameMinute=-1').status_code, 400)
+        rules['gameMinutes'] = 0
+        permanent = items.issue_card(item, 'owner', 'a'*64, 0)
+        self.assertTrue(items.card_allows(permanent, 'owner', door, 4000000000))
+
     def test_two_accounts_racing_to_pick_up_one_card(self):
         from concurrent.futures import ThreadPoolExecutor
         door = 'apt-avenue-n-16'

@@ -84,6 +84,7 @@
     note.textContent=root.VoidDistrictMap?.locateAddress(door.id)?'Waypoint set for '+door.name+'.':'Open the NeoChinatown map to locate this entrance.';
    });
    if(card.notes)line(card.notes);
+   if(Number.isInteger(card.gameRemaining))line(card.gameRemaining ? card.gameRemaining+' gameplay minutes remaining' : 'Expired');
    if(card.expires)line('Expires '+new Date(card.expires*1000).toLocaleString());
    if(card.transferable){
     const recipient=document.createElement('input');recipient.setAttribute('aria-label','Recipient account ID');recipient.placeholder='Recipient account ID';

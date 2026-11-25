@@ -132,7 +132,7 @@ def valid_card_door(target, doors=None):
 
 
 def keycard_problems(card):
-    if not _only(card, ['doors', 'notes', 'privateNotes', 'discoverable', 'rewardMission', 'duration', *CARD_FLAGS]):
+    if not _only(card, ['doors', 'notes', 'privateNotes', 'discoverable', 'rewardMission', 'duration', 'expiryClock', 'gameMinutes', *CARD_FLAGS]):
         return ['Invalid keycard configuration.']
     registry = inventory()['apartments']['doors']
     doors = card.get('doors')
@@ -147,6 +147,8 @@ def keycard_problems(card):
         return ['Set the transfer, drop, pickup and bearer permissions.']
     if not all(_plain(card.get(k, ''), 600) for k in ('notes', 'privateNotes')):
         return ['Keycard notes must be plain text of at most 600 characters.']
+    if card.get('expiryClock', 'real') not in ('real', 'game') or not _int(card.get('gameMinutes', 0), 0, 5256000):
+        return ['Choose a lifetime clock and a whole number of gameplay minutes.']
     if not _int(card.get('duration', 0), 0, 315360000):
         return ['Choose a valid keycard lifetime in seconds.']
     return []
@@ -165,7 +167,8 @@ def issue_card(item, owner, identity, now):
         'id': identity, 'template': item['id'], 'name': item['name'], 'icon': item.get('icon', ''),
         'description': item.get('description', ''), 'doors': list(rules['doors']),
         'notes': rules.get('notes', ''), 'discoverable': rules.get('discoverable', True), 'issuedTo': _tag(owner),
-        'expires': int(now) + rules['duration'] if rules.get('duration') else 0,
+        'expires': int(now) + rules['duration'] if rules.get('duration') and rules.get('expiryClock') != 'game' else 0,
+        **({'gameRemaining': rules['gameMinutes']} if rules.get('expiryClock') == 'game' and rules.get('gameMinutes') else {}),
         **{flag: rules[flag] for flag in CARD_FLAGS}
     }
 
@@ -225,6 +228,7 @@ def grant_card(db, editor, body):
                 raise DraftError('The player needs a saved campaign.', 404)
             holder = _player_ref(db, target)
             bag = _clean_player(holder.get(transaction=tx).to_dict())
+            tick_inventory(db, target, bag, tx, receiving=card)
             _receive_card(bag, card)
             tx.set(holder, bag)
         tx.create(receipt, command)
@@ -276,7 +280,7 @@ def completed_mission(campaign, mission):
     return isinstance(record, dict) and record.get('completed') is True
 
 
-def claim_reward(db, uid, body):
+def claim_reward(db, uid, body, minute=None):
     from firebase_admin import firestore
     if not isinstance(body, dict) or set(body) != {'item'} or not isinstance(body['item'], str):
         raise DraftError('Choose a mission reward.')
@@ -298,15 +302,66 @@ def claim_reward(db, uid, body):
         if not completed_mission(campaign.get(transaction=tx).to_dict() or {}, mission):
             raise DraftError('Complete the mission and save the campaign first.', 409)
         identity = _tag('reward/' + uid + '/' + grant)
-        _receive_card(bag, issue_card(item, uid, identity, time.time()))
+        card = issue_card(item, uid, identity, time.time())
+        tick_inventory(db, uid, bag, tx, minute, card)
+        _receive_card(bag, card)
         bag['claimedCards'][grant] = identity
         tx.set(holder, bag)
         return {'id': identity, 'duplicate': False}
     return write(db.transaction())
 
 
+def saved_minute(account):
+    value = (((account or {}).get('save') or {}).get('story') or {}).get('flags', {}).get('gameMin', 0)
+    return value if _int(value, 0, 2**53-1) else 0
+
+
+def advance_cards(bag, minute):
+    previous = bag.get('cardMinute', minute)
+    elapsed = max(0, minute - previous)
+    for card in bag['cards'].values():
+        if 'gameRemaining' in card:
+            card['gameRemaining'] = max(0, card['gameRemaining'] - elapsed)
+    bag['cardMinute'] = max(minute, previous)
+
+
+def tick_inventory(db, uid, bag, tx, observed=None, receiving=None):
+    if not any('gameRemaining' in c for c in bag['cards'].values()) and 'gameRemaining' not in (receiving or {}):
+        return
+    account = db.collection('vr_players').document(_tag(uid)).get(transaction=tx).to_dict()
+    advance_cards(bag, max(saved_minute(account), observed or 0))
+
+
+def checkpoint_card_clock(db, tx, uid, prior, campaign):
+    """Checkpoint carried cards in the same transaction as a revision-checked save."""
+    ref = _player_ref(db, uid)
+    bag = _clean_player(ref.get(transaction=tx).to_dict())
+    if not any('gameRemaining' in c for c in bag['cards'].values()):
+        return
+    before, after = saved_minute(prior), saved_minute({'save': campaign})
+    advance_cards(bag, max(before, after))
+    if after < before:
+        bag['cardMinute'] = after
+    tx.set(ref, bag)
+
+
+def timed_inventory(db, uid, minute):
+    from firebase_admin import firestore
+    ref = _player_ref(db, uid)
+
+    @firestore.transactional
+    def read(tx):
+        bag = _clean_player(ref.get(transaction=tx).to_dict())
+        previous = bag.get('cardMinute')
+        tick_inventory(db, uid, bag, tx, minute)
+        if bag.get('cardMinute') != previous:
+            tx.set(ref, bag)
+        return bag
+    return read(db.transaction())
+
+
 def card_allows(card, holder, target, now):
-    return (target in card['doors'] and (not card['expires'] or card['expires'] > now)
+    return (target in card['doors'] and card.get('gameRemaining', 1) > 0 and (not card['expires'] or card['expires'] > now)
             and (card['bearer'] or card['issuedTo'] == _tag(holder)))
 
 
@@ -318,15 +373,15 @@ def npc_card_access(db, npc, target, now=None):
     return any(card_allows(c, 'npc/' + npc, target, at) for c in bag.get('cards', {}).values())
 
 
-def card_access(db, uid, target, now=None):
+def card_access(db, uid, target, now=None, minute=None):
     if not valid_card_door(target):
         raise DraftError('Choose a registered door.')
-    player = _clean_player(_player_ref(db, uid).get().to_dict())
+    player = timed_inventory(db, uid, minute)
     return any(card_allows(card, uid, target, time.time() if now is None else now)
                for card in player['cards'].values())
 
 
-def move_card(db, uid, body):
+def move_card(db, uid, body, minute=None):
     """Move the same physical card atomically between inventories or a registered entrance."""
     from firebase_admin import firestore
     if not _only(body, ['action', 'card', 'door', 'recipient', 'nonce']):
@@ -363,9 +418,11 @@ def move_card(db, uid, body):
                 raise DraftError('This card is unavailable here.', 409)
             if not card['transferable'] and card['issuedTo'] != _tag(uid):
                 raise DraftError('Only the original holder can reclaim this card.', 403)
+            tick_inventory(db, uid, player, tx, minute, card)
             _receive_card(player, card)
             tx.delete(drop_ref)
         else:
+            tick_inventory(db, uid, player, tx, minute)
             card = player['cards'].get(card_id)
             if not card:
                 raise DraftError('You no longer hold this card.', 409)
@@ -377,6 +434,7 @@ def move_card(db, uid, body):
                     raise DraftError('The recipient needs a saved campaign.', 404)
                 other_ref = _player_ref(db, recipient)
                 other = _clean_player(other_ref.get(transaction=tx).to_dict())
+                tick_inventory(db, recipient, other, tx, receiving=card)
                 _receive_card(other, card)
                 tx.set(other_ref, other)
             else:
@@ -876,7 +934,7 @@ def _player_ref(db, uid):
 def _clean_player(rec):
     rec = rec or {}
     owned = {k: v for k, v in (rec.get('owned') or {}).items() if isinstance(k, str) and type(v) is int and v > 0}
-    return {'claimedCards': dict(rec.get('claimedCards') or {}), 'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
+    return {**({'cardMinute': rec['cardMinute']} if 'cardMinute' in rec else {}), 'claimedCards': dict(rec.get('claimedCards') or {}), 'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
 
 
 def _span(defn):
@@ -915,10 +973,10 @@ def modifiers_now(active, now):
     return {k: max(SPEC['modifiers'][k]['min'], min(SPEC['modifiers'][k]['max'], v)) for k, v in total.items()}
 
 
-def player_state(db, uid, now=None):
+def player_state(db, uid, now=None, minute=None):
     now = now or time.time()
     content = live(db)['content']
-    p = _clean_player(_player_ref(db, uid).get().to_dict())
+    p = timed_inventory(db, uid, minute)
     active = _active_view(p, content, now)
     items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
     rewards = [i for i in content['items'] if reward_mission(i) and reward_mission(i)+'/'+i['id'] not in p['claimedCards']]
@@ -934,7 +992,7 @@ def _nonce(payload):
     return n
 
 
-def purchase(db, uid, payload, now=None):
+def purchase(db, uid, payload, now=None, minute=None):
     from firebase_admin import firestore
     now = now or time.time()
     if not _only(payload, ['vendor', 'item', 'qty', 'credits', 'nonce', 'revision']):
@@ -1013,7 +1071,9 @@ def purchase(db, uid, payload, now=None):
             if len(p['cards']) >= 64:
                 raise DraftError('Your keycard inventory is full.', 409)
             card_id = _tag(uid + '/' + nonce)
-            p['cards'][card_id] = issue_card(item, uid, card_id, now)
+            card = issue_card(item, uid, card_id, now)
+            advance_cards(p, max(saved_minute(campaign), minute or 0))
+            p['cards'][card_id] = card
         if not service:
             p['owned'][item['id']] = have + qty
         p['nonces'] = (p['nonces'] + [nonce])[-30:]
