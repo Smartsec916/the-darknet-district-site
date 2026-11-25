@@ -56,7 +56,11 @@
    const flag=(id,label)=>'<label><input type="checkbox" data-card-flag="'+id+'" '+((card[id]??(id==='discoverable'))?'checked':'')+'> '+label+'</label>';
    return '<fieldset><legend>Keycard access</legend><label>Building <select data-card-building>'+options(doors.map(d=>[d.id,d.name]),current?.id)+'</select></label>'+
     targets.map(([id,label])=>'<label><input type="checkbox" data-card-door="'+esc(id)+'" '+(card.doors.includes(id)?'checked':'')+'> '+esc(label)+'</label>').join(' ')+
-    '<p>'+card.doors.length+' authorized doors</p>'+
+    '<details data-card-map><summary>Select a building on the map</summary></details>'+
+    '<details><summary>'+card.doors.length+' authorized doors</summary><ul>'+card.doors.map(target=>{
+     const parts=target.split('/'),d=A.door(parts.length===1?target:parts[1]);
+     return '<li>'+esc(d?d.name+(parts.length===1?' · Street entrance':' · Apartment '+A.slotNumber(Number(parts[2]),d.style)):target)+'</li>';
+    }).join('')+'</ul></details>'+
     '<label>Player-visible notes <textarea data-card-text="notes" maxlength="600">'+esc(card.notes)+'</textarea></label>'+
     '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
     flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
@@ -80,7 +84,9 @@
      (e.restock.mode==='interval'?field('every','Interval (seconds)',e.restock.every)+field('amount','Units per interval',e.restock.amount):''):'')+'</fieldset>';
    }).join('');
   }
+  let propertyMap;
   function draw(){
+   propertyMap?.dispose();propertyMap=null;
    if(!host.isConnected||!current())return;
    const c=s.data,it=item(),npc=tools.catalogNpc;
    if(!c){host.innerHTML='<h3>Items &amp; Vendors</h3><p role="status">'+esc(s.message||'Loading catalog…')+'</p>'+(!s.busy?button('reload','Reload catalog'):'');return;}
@@ -101,6 +107,16 @@
     '<label>Import catalog <input type="file" data-import accept=".json,application/json"></label>'+button('export','Export JSON')+
     (s.history.length?'<label>Version <select data-version>'+options(s.history.map(v=>[String(v.version),'Version '+v.version+' '+(v.note||'')]),'')+'</select></label>'+button('restore','Restore version'):'')+
     '</fieldset>';
+   const mapPanel=host.querySelector('[data-card-map]');
+   if(mapPanel)mapPanel.ontoggle=async()=>{
+    if(!mapPanel.open||propertyMap)return;
+    try{
+     if(!root.VoidModuleEditor)await tools.loadEditor();
+     if(!mapPanel.isConnected||!mapPanel.open||propertyMap)return;
+     propertyMap=root.VoidModuleEditor.doorMap(host.querySelector('[data-card-building]'),{key:'item-keycards',allAreas:true});
+     if(propertyMap)mapPanel.append(propertyMap);
+    }catch{mapPanel.append(document.createTextNode('Map unavailable. Select a building above.'));}
+   };
   }
   s.draw=draw;
   async function work(fn){

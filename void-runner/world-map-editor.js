@@ -19,6 +19,15 @@
  async function render(panel,tools){
   const A=root.VoidApartments,M=root.VoidMissionEditor;
   const housing=await tools.request('developer/properties');
+  let catalog;
+  try{catalog=await tools.request('developer/items');}catch{}
+  const cards=new Map();
+  for(const [source,items] of [['Published',catalog?.live?.content?.items],['Draft',catalog?.draft?.content?.items]]){
+   for(const card of items||[])for(const target of card.keycard?.doors||[]){
+    if(!cards.has(target))cards.set(target,new Set());
+    cards.get(target).add(card.name+' ('+source+')');
+   }
+  }
   const players=new Map();
   function indexPlayers(){
    players.clear();
@@ -66,12 +75,15 @@
    const d=A.door(entrance.value),r=records.get(entrance.value);if(!d||!r)return;
    detail.append(element('h3',root.VoidModuleEditor.doorTitle(d)),element('p',A.entranceLegend[r.kind].label+' · '+d.quarter));
    for(const m of r.missions)detail.append(element('p',m.title+' · '+[...(registry.missionSources.get(m.id)||[])].join(', ')));
+   if(!catalog)detail.append(element('p','Keycard catalog unavailable.'));
+   if(cards.has(d.id))detail.append(element('p','Entrance keycards · '+[...cards.get(d.id)].join(', ')));
    for(const u of r.units){
     const labels=[...u.residents.map(x=>x.name),...u.players.map(x=>x.name),...u.reservations.map(x=>x.title)];
-    const line=element('details'),title=element('summary','Apartment '+u.number+' — '+(labels.join(', ')||(registry.complete?'Available':'Assignment unverified')));
+    const line=element('details'),title=element('summary','Apartment '+u.number+' — '+(labels.join(', ')||(r.missions.length?'Mission entrance':registry.complete?'Available':'Assignment unverified')));
     line.append(title);detail.append(line);
+    if(cards.has(u.id))line.append(element('p','Unit keycards · '+[...cards.get(u.id)].join(', ')));
     const assigned=u.players.length>0;
-    if(!assigned&&(labels.length||!registry.complete))continue;
+    if(!assigned&&(labels.length||r.missions.length||!registry.complete))continue;
     const recipient=element('input'),button=element('button',assigned?'Release player assignment':'Assign player');
     recipient.placeholder='Saved player account ID';if(!assigned)line.append(field('Player account',recipient));
     button.type='button';line.append(button);const feedback=element('p');feedback.setAttribute('role','status');line.append(feedback);

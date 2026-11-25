@@ -59788,7 +59788,7 @@
       "spawn"
     ]
   },
-  "revision": "ae1604b44b830fbe",
+  "revision": "e644ef5ba1aa8298",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -73569,7 +73569,7 @@
     },
     {
       "source": "void-runner/item-catalog-editor.js",
-      "line": 72,
+      "line": 76,
       "text": "field('line','Dialogue',step.line||'')+'<button data-drop-step=\"'+i+'\">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';",
       "kind": "source-reference"
     },
@@ -80892,7 +80892,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "1960e0336f1c258faa7aea61f1efcfda612767ae62452a3fd73ac809e5890959",
+    "void-runner/item-catalog-editor.js": "1c6c489b7e0e9c56f500d4ce2427a156fbbc0e7d1e881d550d0f88a290415067",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "2406e3d21042dc9ad99395049cf84bf93f938b35a79f3a428969f71074d4cb08",
@@ -81062,7 +81062,7 @@
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
-    "void-runner/world-map-editor.js": "d124a701807db642f091c6b45c7083ed160640f08d99ae12308e379e1489d0b0",
+    "void-runner/world-map-editor.js": "a50e1e561929df430c86dcb8022f399448e3e961627cb46362703fce1aa5aa3c",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
