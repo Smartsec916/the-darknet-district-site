@@ -101,11 +101,11 @@ class LiveContentTests(unittest.TestCase):
             {'x': 125.3, 'z': -99.9, 'action': 'walk-on', 'seconds': 0},
         ]}
         schedule = dict(stay, schedule=[dict(route, **{'from': '08:00', 'to': '09:00'})])
-        invalid = [dict(stay, x=100, z=-6.4), dict(stay, anims=['npc-rin/laugh'])]
+        invalid = [dict(stay, x=100, z=-6.4), dict(stay, anims=['npc-rin/unknown-clip'])]
         for plan in invalid:
             refused = self.post('live-content/publish', {'expected': 0, 'content': content(npcs={'dax': plan})})
             self.assertEqual(refused.status_code, 422, refused.json)
-        for revision, plan in enumerate([stay, route, schedule, None]):
+        for revision, plan in enumerate([stay, dict(stay, anims=['npc-rin/laugh']), route, schedule, None]):
             npcs = {} if plan is None else {'dax': plan}
             saved = self.post('live-content/publish', {'expected': revision, 'content': content(npcs=npcs)})
             self.assertEqual(saved.status_code, 200, saved.json)

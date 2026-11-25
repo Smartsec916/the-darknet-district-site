@@ -79,7 +79,8 @@
  const GROUPS={street:'Street people',named:'Named characters’ models',older:'Older figures (off-world places)',licensed:'Licensed models (recolour and hide only, never any AI tool)'};
  const modelOf=a=>models().find(m=>m.asset===a)||null;
  /* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */
- function fileOf(asset){const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
+ function teaResident(asset){const duo=node?req('./tea-duo.js'):root.VoidTeaDuo;return Object.values(duo?.PEOPLE||{}).find(p=>p.model===asset);}
+ function fileOf(asset){const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
  /* Every item a giver can carry: personal gear, a hacking device when the game has one, ship modules and ship gear. show: how it is seen on them, or null (data only). */
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');
@@ -169,7 +170,7 @@
   for(const [key,clip] of Object.entries(draft.clips||{}))if(clip?.who===id)delete draft.clips[key];
   return true;
  }
- const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game

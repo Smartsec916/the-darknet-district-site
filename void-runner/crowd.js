@@ -175,8 +175,7 @@
    const L=root.VoidAnimLibrary,src=L?.clip?.(name),m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(name);
    if(!src&&!m)return false;
    if(src?.library==='sexyzips'){
-    const P=root.VoidNPCPaths,M=P?.MOVABLE[node.metadata?.character];
-    if(M?(!M.adult||M.youthful):!P?.ADULT.test(look))return false;
+    if(!root.VoidNPCPaths?.adultMotionTarget(node.metadata?.character,look))return false;
    }
    if(m&&!clips[m[1]]?.includes(m[2]))return false;
    if(unavailable.has(name))return false;if(requested===name)return true;requested=name;

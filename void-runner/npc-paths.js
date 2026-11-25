@@ -38,7 +38,7 @@
   // THE TEA ROOM HOST (the owner, 20 Nov 2026: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): a
   // character of the game drawn by the made-giver runtime (npc-made.js BUILTIN: builtin, made), always at his post behind the tea station of the underground tea room
   // (`home`: a spot of ncz-underground.js spots(); his own routine). The NPCs tab can move him like anyone here. Placeholder name; no lines of his own.
-  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',adult:true,area:'city',quarter:'underground',device:false,sit:false,youthful:false,combatAnimations:true,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
+  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',adultPerformer:true,area:'city',quarter:'underground',device:false,sit:false,youthful:false,combatAnimations:true,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
  // Ordinary, non-sexual shared clips verified against the current public rig index (24 joints, rest offset <=25°).
  // Keep these exact allowlists so a missing index never widens the permission to untested assets.
  // Combat is an ordinary gameplay capability, independent of age-sensitive source and venue rules.
@@ -105,9 +105,14 @@
   ['V1 / device',/phone|device|selfie|scroll|menu/],['work',/work|wipe|pickup|interact|cook|smoke|drink|repair/],['combat / action',/aim|shoot|hit|duck|punch|fight|vr-/],['other',/./]];
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
  /* Every clip the game has, for NPC id, with whether she can use it: {id, title, source, category, status ('own' | 'shared' | 'library' | 'no'), ok, why}. */
+ function adultMotionTarget(id,asset){
+  const actor=MOVABLE[id];if(actor)return (actor.adult===true||actor.adultPerformer===true)&&!actor.youthful;
+  const made=node?require('./npc-made.js'):root.VoidMadeNPCs;
+  return ADULT.test(asset)||made?.teaResident?.(asset)?.adult===true;
+ }
  function libraryOffer(id,idx=INDEX(),asset=MOVABLE[id]?.asset){
   if(!asset||MOVABLE[id]?.cat||idx?.files?.[asset]?.humanoid===false)return [];
-  const M=MOVABLE[id],L=AL(),out=[],adult=M?M.adult===true&&!M.youthful:ADULT.test(asset);
+  const L=AL(),out=[],adult=adultMotionTarget(id,asset);
   for(const c of L?.all?.()||[]){
    if(c.library!=='actorcore'&&c.library!=='sexyzips')continue;
    if(c.library==='sexyzips'&&!adult)continue;
@@ -325,6 +330,6 @@
      else if(from!==dest){const why=ESC()&&ESC().reachWhy?ESC().reachWhy(id,from,dest):'there is no way through.';if(why)out.push(bw+why);}}}
    if(b.mode!=='original'){const {from,to,name,cross,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={combatAllowed,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
+ const api={adultMotionTarget,combatAllowed,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

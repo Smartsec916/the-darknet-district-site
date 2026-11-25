@@ -59345,7 +59345,7 @@
       "spawn"
     ]
   },
-  "revision": "a68a0d8cfe791d9f",
+  "revision": "d438f82659f31f59",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -77698,61 +77698,61 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 114,
+      "line": 115,
       "text": "if(c.companionProfile!=null&&!validProfile(c.companionProfile))out.push(w+'invalid transferred companion personality or dialogue.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 135,
+      "line": 136,
       "text": "out[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim():id,group:'district',say:id,made:true,role:typeof c.role==='string'?c.role:'',model:c.model,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 172,
-      "text": "const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};",
+      "line": 173,
+      "text": "const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 215,
+      "line": 216,
       "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 223,
+      "line": 224,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 225,
+      "line": 226,
       "text": "const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 255,
+      "line": 256,
       "text": "if(!p.near){p.near=true;p.nearTarget=null;const last=p.lastRemark??-Infinity;if(clock-last>=(traits.remarkCooldown??30)){p.lastRemark=clock;const lines=rel?.r.lines.length?[rel.r.lines[Math.floor(rnd()*rel.r.lines.length)]]:conversationLines(p.c,rnd);if(lines[0]!=='…'&&rnd()<(rel?rel.r.affection:traits.initiative??.5)&&(!rel||rel.r.target==='player'||player&&Math.hypot(player.x-origin.x,player.z-origin.z)<8)){try{if(typeof announce==='function')announce(p.c.name+(rel&&rel.r.target!=='player'?' → '+rel.r.target:'')+' · '+lines[0]);}catch{}}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 267,
+      "line": 268,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 291,
+      "line": 292,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 307,
+      "line": 308,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -77800,19 +77800,19 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 131,
+      "line": 136,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 295,
+      "line": 300,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 324,
+      "line": 329,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
       "kind": "source-reference"
     },
@@ -80375,7 +80375,7 @@
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
     "void-runner/crosswalks.js": "69acf44a540a6ba7314d68bf38fa74ad93482ca993629675eae3ca0d8a9a1d60",
-    "void-runner/crowd.js": "f6dc8bae08996fd764f00c58b9caf18c994277e1a2cd1622c76aa12167ab448b",
+    "void-runner/crowd.js": "26cded3dae8c1b25a0392c202a6cd4cf3bdd41f92032cc8834612366d4217cb4",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
     "void-runner/cult-room.js": "e4c485f0586d02c2aae26b5bfb4940f4e8abc434726aa42e9044734565431a1c",
@@ -80515,16 +80515,16 @@
     "void-runner/npc-behaviour.js": "da2a6aa446947446d3a8c57c4653f01ac82ea1c276452ffb56b8d1f9da9ada32",
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "7bdcc5c06095b3ae40a85e1153565589e8c7020e13559cd42ad3cb10194c0603",
+    "void-runner/npc-editor.js": "15dab5367e8ba4be6f32e225ee6e92a0492bac4c8d568dfd57103870a717a4c3",
     "void-runner/npc-escort-across.js": "f48a2fbf8c66912ef533f5cf19363e3ca589f0873e2448fdfc6a2e5a702aaf3a",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "3cb9c7ebf775c25e2d61639fbc196d2d367175d8f96c67671b0b9c5e6e23a83a",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "3a77ae4ba8ef731094dadcf4143346af636d9814efcdd10962528aa61a35a4dd",
-    "void-runner/npc-made.js": "37608e0b2af2398c909885c79321ea2341e380b8c9c2e5b780367e68fa77a93a",
+    "void-runner/npc-made.js": "f714e6f855b1026906e5ca7f83bb008f4416ac4b9c36029afaf62cc8315ddd6a",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
-    "void-runner/npc-paths.js": "c0f6a54f8d6e39298d5dfeee897cf72ba082185fa5cc4c02140eab0faa101784",
+    "void-runner/npc-paths.js": "526a50a260e06fc817eabae24141a916a7e916aa81f5ae5e4fd766b52e7e1da1",
     "void-runner/npc-preview.js": "25ea09154441b533d8c50515afb122204739fde372b62c33eb9cb72dcc6a6ee9",
     "void-runner/npc-services.js": "72aa9d104d395c57e85eaa2668a089daf81fcade5f12f254ea37c13bfebd0912",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
