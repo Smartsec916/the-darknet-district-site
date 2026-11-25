@@ -9,7 +9,7 @@
      are marked local retarget only), and their lines and voice.
    - Placements are part of the Mission Editor's DRAFT (localStorage + the server copy), PLAY THIS DRAFT, and PUBLISH (content.npcs, checked by mission-content.js and the server).
    - IMPORT MODEL: a .glb / .gltf from this computer, read in this browser only (IndexedDB), never uploaded; a checklist with hard caps (npc-paths.js IMPORT); placed on the map
-     and tried in a throwaway test session (LOCAL TEST ONLY); ADD TO THE GAME downloads the file and a package JSON for Claude/Codex to check, optimise and commit. */
+     and previewed in a local session before explicit publication through the versioned world-content API. */
 (function(root){
  'use strict';
  const DTX=()=>typeof VoidDevTools!=='undefined'?VoidDevTools:null;   // dev-tools.js declares it with const (not a window property)
@@ -126,7 +126,7 @@
   if(!all.length)list.append(el('p','Nobody has that name. Try fewer letters, or clear the box to see everyone.','me-small'));}
  // ---------------------------------------------------------------- one NPC
  function detail(main,e,pv){
-  main.append(el('h3',e.name));if(advanced())main.append(el('p','id '+e.id,'me-small',{'data-npc-id':e.id}));if(e.kind==='import')main.append(el('p','LOCAL TEST ONLY: not in the live game','me-warn'));
+  main.append(el('h3',e.name));if(advanced())main.append(el('p','id '+e.id,'me-small',{'data-npc-id':e.id}));
   if(e.kind==='import')return importDetail(main,e.rec,pv);
   const g=e.giver,asset=e.look,clips=clipsOf(asset);
   const facts=el('section','','me-check',{'data-npc-facts':e.id});facts.append(el('h4','About'));
