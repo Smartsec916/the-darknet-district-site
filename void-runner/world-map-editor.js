@@ -144,7 +144,7 @@
      button.disabled=true;
      try{
       const next=await tools.request('developer/properties',{revision:housing.revision,unit:u.id,player:assigned?null:recipient.value.trim()});
-      Object.assign(housing,next);indexPlayers();records.set(d.id,A.propertyRecord(d,registry.rows.get(d.id),players.get(d.id)));filter();
+      Object.assign(housing,next);root.dispatchEvent(new Event('vr-property-assigned'));indexPlayers();records.set(d.id,A.propertyRecord(d,registry.rows.get(d.id),players.get(d.id)));filter();
      }catch(e){feedback.textContent=e.message;button.disabled=false;}
     };
    }
