@@ -35,7 +35,12 @@ def clear_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
 def bare(name):
-    return name.split(':')[-1]
+    n = name.split(':')[-1]
+    aliases = {'Chest':'Spine2', 'LeftUpperArm':'LeftArm', 'RightUpperArm':'RightArm',
+               'LeftUpperLeg':'LeftUpLeg', 'RightUpperLeg':'RightUpLeg',
+               'LeftLowerLeg':'LeftLeg', 'RightLowerLeg':'RightLeg',
+               'LeftToes':'LeftToeBase', 'RightToes':'RightToeBase'}
+    return aliases.get(n,n)
 
 # ---- the target: one of our characters; only its armature is kept ----
 clear_scene()
@@ -107,7 +112,13 @@ def retarget(clip):
     t0, t1 = clip.get('span') or (0.0, (f1 - f0) / src_fps)
     t1 = min(t1, (f1 - f0) / src_fps)
     count = int((t1 - t0) * FPS) + 1
-    ratio = t_rest[hips].to_translation().z / max(1e-4, s_rest[smap[hips]].to_translation().z)
+    feet = [tb[b] for b in ('LeftFoot','RightFoot') if tb.get(b) in smap]
+    if not feet:
+        raise ValueError('Foot alignment requires at least one mapped foot.')
+    t_height = t_rest[hips].translation.z - min(t_rest[n].translation.z for n in feet)
+    s_height = s_rest[smap[hips]].translation.z - min(s_rest[smap[n]].translation.z for n in feet)
+    studio_rig = rig.data.bones.get('LeftUpperArm') and rig.data.bones.get('Chest')
+    ratio = t_height / max(1e-4,s_height) if studio_rig else t_rest[hips].translation.z / max(1e-4,s_rest[smap[hips]].translation.z)
     poses, locs, first = [], [], None
     for k in range(count):
         f = f0 + (t0 + k / FPS) * src_fps

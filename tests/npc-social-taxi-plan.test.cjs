@@ -5,10 +5,10 @@ const Q=require('../void-runner/ncz-quarters.js'),A=require('../void-runner/npc-
 const lane=Q.lane('north:bay-s'),cab={x:lane.mid[0],z:lane.mid[1],yaw:Math.PI},seat=T.companionSeat(cab),key='social:test:1';
 const start=source.indexOf(' function socialCabPose('),end=source.indexOf(' function roomTick(');
 const planner=source.slice(start<0?source.indexOf(' function socialPlan('):start,end);
-function run({position=seat,ride='in-cab',actorKey=key,released=false,noJob=false,wrongCab=false,carryArea=null,noPlan=false,mission=false,timeout=false}={}){
+function run({position=seat,ride='in-cab',actorKey=key,released=false,noJob=false,wrongCab=false,phase,carryArea=null,noPlan=false,mission=false,timeout=false}={}){
  const f={role:'follow',districtTravel:true,maxWait:120},s={phase:'active',generation:1,record:f,area:'oldtown',from:{x:52.8,z:-27.25},waitSince:timeout?Date.now()-121000:null};
  const actor={id:'test',...position,esc:{key:actorKey,ride}};
- const root={VoidNPCAreas:A,VoidNPCPaths:{MOVABLE:{test:{name:'Test'}}},VoidMadeNPCs:{live:()=>({people:[actor]})},VoidRoadTaxi:{world:{job:noJob?null:{cab:wrongCab?{...cab,x:cab.x+20}:cab,released}}},VoidRoadTaxiRules:T};
+ const root={VoidNPCAreas:A,VoidNPCPaths:{MOVABLE:{test:{name:'Test'}}},VoidMadeNPCs:{live:()=>({people:[actor]})},VoidRoadTaxi:{world:{job:noJob?null:{cab:{...cab,phase,x:cab.x+(wrongCab?20:0)},released}}},VoidRoadTaxiRules:T};
  const old={key,area:'oldtown',mode:'escort',social:true,resume:null};
  const carry=carryArea?{test:{key,area:carryArea,x:position.x,z:position.z}}:{};
  const ended=[];
@@ -35,4 +35,11 @@ test('a conflicting carry area, mission preemption and expired invitation still 
 });
 test('a matching source carry remains attached to the retained plan without advancing the area',()=>{
  const r=run({carryArea:'oldtown'});assert.equal(r.plan?.resume?.area,'oldtown');assert.equal(r.plan?.area,'oldtown');assert.deepEqual(r.ended,[]);
+});
+
+test('the curb-to-door approach stays active only at a waiting cab',()=>{
+ const door=T.doorPoints(cab)[0];
+ assert.equal(run({position:door,ride:'to-cab',phase:'waiting'}).plan?.key,key);
+ assert.equal(run({position:door,ride:'to-cab',phase:'to-dest'}).plan,null);
+ assert.equal(run({position:door,ride:'to-cab',phase:'waiting',wrongCab:true}).plan,null);
 });

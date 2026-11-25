@@ -39,6 +39,30 @@ async function json(file){
  if(!response.ok)throw Error('The deployed NPC registry is unavailable ('+response.status+').');
  return response.json();
 }
+function requestPairingCode(){
+ const dialog=document.createElement('dialog');
+ dialog.setAttribute('aria-label','Pair with PC publisher');
+ dialog.innerHTML=`<form method="dialog">
+  <h2>Pair with PC publisher</h2>
+  <button type="button" data-open>Open PC Publisher</button>
+  <p>Allow your browser to open the publisher, then enter the code shown in its window.</p>
+  <label>Pairing code <input name="code" required autocomplete="off" spellcheck="false"></label>
+  <p><button type="submit" value="pair">Continue</button> <button type="button" data-cancel>Cancel</button></p>
+  <details><summary>Publisher didn’t open?</summary><p>On Windows, run <code>tools/install-npc-publisher.ps1</code> once from your game repository. You can also start the publisher manually with <code>node tools/npc-publisher.cjs</code>.</p></details>
+ </form>`;
+ const form=dialog.querySelector('form');
+ dialog.querySelector('[data-open]').onclick=()=>window.location.assign('voidrunner-publisher://open');
+ dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
+ document.body.append(dialog);
+ return new Promise(resolve=>{
+  dialog.addEventListener('close',()=>{
+   const code=dialog.returnValue==='pair'?form.elements.code.value.trim():'';
+   dialog.remove();
+   resolve(code);
+  },{once:true});
+  dialog.showModal();
+ });
+}
 export async function deployedModel(rec,progress){
  const blob=await prepareModel(rec);
  let hash=rec.library?.sha256;
@@ -54,7 +78,7 @@ export async function deployedModel(rec,progress){
  };
  const known=await find();if(known)return known;
  if(!blob)throw Error('The source model is missing. Reimport it to register the asset.');
- const code=prompt('Start node tools/npc-publisher.cjs on your PC and enter its pairing code to register this new model privately.');
+ const code=await requestPairingCode();
  if(!code)throw Error('Model registration cancelled.');
  progress('Registering the model in the private asset repository…');
  let response;

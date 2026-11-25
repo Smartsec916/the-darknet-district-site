@@ -105,6 +105,7 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+Advanced NPC workshop development branch, local previews and validation: [resume report](ADVANCED_NPC_WORKSHOP.md).
 **24 Nov 2026 draft: Hotel Headshots account scores.** Authenticated runs now post ordered floor checkpoints and a completed balance to `/api/void-runner/hotel-headshots`. Shared District Firebase identity and public handles; transactional personal bests and top-100 board; score-bearing Personal Best and current highest-balance achievements on V1 player profiles. Existing local scores remain separate and are never imported as account achievements. See `HOTEL_HEADSHOTS.md` for validation and release requirements. Local changes only; backend and frontend must both be deployed before this is live.
 
 **Owner naming correction, 24 Nov 2026:** the 3D game is called **Void Runner** again. This supersedes the earlier “The Darknet District - Game” public title. The games-list card, browser/loading/menu/HUD titles and device gate use Void Runner; The Darknet District remains the site and in-world location name. Internal filenames, save keys and IDs are unchanged. Its games-list attract preview now carries a persistent VOID RUNNER title and scene captions, with versioned preview/script URLs to refresh cached copies.
