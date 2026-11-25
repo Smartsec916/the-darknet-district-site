@@ -54,16 +54,16 @@
  const movable=id=>{const X=NPX();const m=X?.MOVABLE?.[id];return m&&!m.placementOnly?m:null;};
  /* Can this NPC do this kind of step? {ok, why}. */
  function can(id,k){if(!id)return {ok:false,why:'Choose who walks with the player.'};const M=movable(id);
-  if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can (today Reverie, Lace and the street cat). Others are added as the path system grows.'};
+  if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can. Others are added as the path system grows.'};
   if(CAB.has(k)&&M.cat)return {ok:false,why:'The cat walks with the player but does not ride in cabs (it is a cat).'};
-  if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together works only with Reverie or Lace for now (a made character walks: use “Follow them” or “They follow you”).'};
+  if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together is unavailable for created characters (a made character walks: use “Follow them” or “They follow you”).'};
   return {ok:true,why:null};}
  /* Every cab stop and far place, with whether this NPC can go there: {id, name, quarter, far, ok, why}. */
  function stops(id,area='avenue'){const Q=QT(),M=movable(id),out=[],A=AR(),q=A&&A.get(area)?A.get(area).quarter:'avenue';if(!Q)return out;
   // (20 Nov 2026, escort across) the cab drives through the gates' bays like the player's own: any stop of the city, as long as her area has taxis (she calls it there)
   const taxis=!!q&&(Q.STOPS||[]).some(s=>s.quarter===q);
   for(const s of Q.STOPS||[]){const ok=!!M&&!M.cat&&!M.made&&taxis;
-   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'Cab rides: only Reverie or Lace for now.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
+   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'This character does not support shared cab rides.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
   for(const f of Q.FAR||[])out.push({id:f.id,name:f.name,quarter:null,far:true,ok:false,why:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.name+' stays in the city (her content rule): never the Corporate District or the Temple.'});
   return out;}
  const stopOk=(id,stop,area='avenue')=>stops(id,area).some(s=>s.id===stop&&s.ok);
@@ -164,7 +164,12 @@
   else if(d>gap){const p=tr.pts;let i=Math.min(st.ti||0,p.length-1);while(i<p.length-1&&dist(p[i],st)<.35)i++;st.ti=i;
    // straight to the player when the trail's next crumb is further than the player (a trail that loops back)
    const t=p[i]&&dist(p[i],me)<d?p[i]:me,want=(st.meV||0)+(d-gap)*SPEED.gain,cap=cat?(d>SPEED.catDashOver?SPEED.catDash:SPEED.catTrot):SPEED.max;
-   st.speed=Math.max(0,Math.min(cap,Math.max(want,Math.min(cap,cat?SPEED.catWalk:SPEED.walk)*Math.min(1,(d-gap)/.6))));st.clip=st.speed>SPEED.runAbove?'run':'walk';stepTo(st,t,st.speed,dt);if(dist(me,st)<gap)face(st,me,dt);}
+   st.speed=Math.max(0,Math.min(cap,Math.max(want,Math.min(cap,cat?SPEED.catWalk:SPEED.walk)*Math.min(1,(d-gap)/.6))));st.clip=st.speed>SPEED.runAbove?'run':'walk';const fromX=st.x,fromZ=st.z;stepTo(st,t,st.speed,dt);
+   // A social follower can approach the scanner, but only the completed exchange moves it off its source walk grid.
+   if(inp.social&&inp.area&&AR()?.areaOf({x:fromX,z:fromZ},inp.area)===inp.area&&AR().areaOf(st,inp.area)!==inp.area){
+    st.x=fromX;st.z=fromZ;st.speed=0;st.clip='idle';
+   }
+   if(dist(me,st)<gap)face(st,me,dt);}
   else face(st,me,dt);
   if(inp.to&&!inp.door&&!inp.noDone&&dist(me,inp.to)<=LIMIT.arrive&&dist(st,inp.to)<=LIMIT.arrive+gap+1){go('done');}
   return ev;}

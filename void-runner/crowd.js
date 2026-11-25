@@ -34,8 +34,6 @@
   'npc-monk-elder':['idle','talk','walk','look','watch','sit'],'npc-monk-tech':['idle','talk','walk','look','watch','sit'],'npc-monk-grey':['idle','talk','walk','look','watch','sit'],
   // The Avenue's street pair (ncz-street-pair.js; the owner's own Meshy generations, remade standing in an A-pose and rigged 18 Nov 2026): the same casual street
   // library for both (VoidStreetPair.CLIP_LIST; never sensual, flirt or club clips). The street cat (npc-street-cat) is moved by code and has no clips.
-  'npc-grey-reverie':['idle','idle-shift','idle-stretch','look','watch','walk','run','sit-enter','sit','sit-exit','sit-wave','dance-groove','dance-bop','talk','gesture','shrug'],
-  'npc-ethereal-lace':['idle','idle-shift','idle-stretch','look','watch','walk','run','sit-enter','sit','sit-exit','sit-wave','dance-groove','dance-bop','talk','gesture','shrug'],
   // VR arcade companions (vr-suite.js).
   'studio-warrior':['slow-dance','dance','idle'],'npc-milked-auburn':['idle','dance','dance-allnight','dance-shake','dance-lovepop','dance-denim','dance-omg'],   /* her five Meshy library club dances (18 Nov 2026, the owner: "she just swaying a little") */   // Milked studio 4's dancer Auburn (the owner's Meshy model, 18 Nov 2026): vr-player-b's dance and idle, retargeted   // Milked studio 2's dancer (licensed Female Warrior, private .vrpak; 18 Nov 2026)
   'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-fc1':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],
@@ -174,8 +172,22 @@
   // Moving crew call this every frame. It must leave a clip that is already playing alone: group names carry
   // the figure's prefix (crowd:look-walk), so compare the group itself, never the bare clip name. Comparing
   // names restarted the clip each frame and froze it on one pose while the figure slid along.
+  // Shared actions are bound on first explicit use. Ambient selection still uses the native catalog.
+  let requested=null;const unavailable=new Set();
+  function loadShared(name){
+   const L=root.VoidAnimLibrary,src=L?.clip?.(name),m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(name);
+   if(!src&&!m)return false;
+   if(src?.library==='sexyzips'){
+    if(!root.VoidNPCPaths?.adultMotionTarget(node.metadata?.character,look))return false;
+   }
+   if(m&&!clips[m[1]]?.includes(m[2]))return false;
+   if(unavailable.has(name))return false;if(requested===name)return true;requested=name;
+   root.VoidNPCPaths?.applyAnims(node,look,[name]).then(added=>{
+    if(!added.includes(name))unavailable.add(name);if(!disposed&&requested===name){requested=null;if(added.includes(name)&&groupFor(name))play(name);}
+   }).catch(()=>{if(requested===name)requested=null;});return true;
+  }
   function play(name){
-   if(disposed)return;if(perf){perf.wanted=name;return;}name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;named=name;
+   if(disposed)return;if(perf){perf.wanted=name;return;}if(!groupFor(name)&&loadShared(name))return;requested=null;name=groupFor(name)?name:clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;named=name;
    if(current===next&&!walking&&!once)return;walking=false;once=null;
    for(const g of list)if(g!==next)g.stop();
    next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;held=false;if(!live())next.pause();
@@ -185,7 +197,7 @@
   let once=null;
   function playOnce(name,after){
    if(disposed)return 0;if(perf){if(after)perf.wanted=after;return 0;}
-   const g=clipIn(look,name)===name?groupFor(name):null;if(!g){if(after)play(after);return 0;}
+   const g=groupFor(name);if(!g){if(after)play(after);return 0;}
    // Claim the figure first: stopping the previous one-shot fires its end handler, which must not start another clip.
    walking=false;current=g;once=g;held=false;for(const o of list)if(o!==g)o.stop();
    g.start(false,1,g.from,g.to);g.onAnimationGroupEndObservable.addOnce(()=>{if(!disposed&&!node.isDisposed?.()&&once===g){once=null;if(after)play(after);}});
@@ -193,7 +205,7 @@
   }
   // Walking plays the Quaternius walk loop (CC0). A look without it holds the idle clip's first pose (arms down)
   // and swings its legs and arms from there.
-  function walk(time){
+  function walk(time){requested=null;
    if(perf){perf.wanted='walk';return;}if(clipIn(look,'walk')==='walk'){play('walk');return;}
    const B=root.BABYLON;
    if(!walking){const idle=list.find(g=>g.name==='idle'||g.name.endsWith('-idle'))||list[0];for(const g of list)if(g!==idle)g.stop();
@@ -206,8 +218,8 @@
   /* A clip asked for by a mission line or an animation step (npc-gestures.js): it plays for `seconds` (a one-movement clip once, at most `seconds`), while the scene's own
      calls (play / playOnce / walk) wait; then the clip the scene wanted last (or the one playing before) comes back. Returns the seconds it will take, or 0. */
   let perf=null;
-  function perform(name,{seconds=3,once:one=false}={}){
-   if(disposed||clipIn(look,name)!==name)return 0;const g=groupFor(name);if(!g)return 0;const prev=perf?perf.wanted:named;if(perf)clearTimeout(perf.timer);
+  function perform(name,{seconds=3,once:one=false}={}){requested=null;
+   if(disposed)return 0;const g=groupFor(name);if(!g)return 0;const prev=perf?perf.wanted:named;if(perf)clearTimeout(perf.timer);
    walking=false;once=null;held=false;for(const o of list)if(o!==g)o.stop();g.start(!one,1,g.from,g.to);current=g;if(!live())g.pause();
    const len=(g.to-g.from)/(g.targetedAnimations[0]?.animation?.framePerSecond||30),secs=Math.max(.5,Math.min(30,one?Math.min(len,Math.max(seconds,len)):seconds));
    const me={clip:name,wanted:prev,until:performance.now()+secs*1000};me.timer=setTimeout(()=>{if(perf!==me)return;perf=null;if(disposed||node.isDisposed?.())return;current=null;const w=me.wanted||'idle';if(w==='walk')walk(0);else play(w);},secs*1000);perf=me;return secs;}

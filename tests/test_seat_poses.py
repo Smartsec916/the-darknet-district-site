@@ -10,8 +10,11 @@ import void_runner_live_content as live
 INV = json.loads((Path(__file__).resolve().parent.parent / 'void_runner_admin_inventory.json').read_text(encoding='utf-8'))
 
 
+INV = live.with_made({'sitter': {'name': 'Sitter', 'model': 'npc-casual-m'}}, INV)
+
+
 def seat(sid):
-    return next(s for s in INV['npcPaths']['movable']['grey-reverie']['seats'] if s['id'] == sid)
+    return next(s for s in INV['npcPaths']['movable']['sitter']['seats'] if s['id'] == sid)
 
 
 def stay(npc, s, actions):
@@ -24,16 +27,16 @@ class SeatPoseServerTests(unittest.TestCase):
         self.assertEqual(seat('under-mahjong-stool-e-w')['poses'], ['chair'])
         self.assertEqual(seat('under-sleeping-room-cot-2')['poses'], ['knees', 'cross'])
         for a in ('sit-kneel', 'sit-cross', 'sit-knees'):
-            self.assertIn(a, INV['npcPaths']['movable']['grey-reverie']['actions'])
+            self.assertIn(a, INV['npcPaths']['movable']['sitter']['actions'])
 
     def test_poses_only_where_the_seat_takes_them(self):
         c, st, cot = seat('under-tea-room-cushion-c-w'), seat('under-mahjong-stool-e-w'), seat('under-sleeping-room-cot-2')
-        self.assertEqual(live.npc_problems(stay('grey-reverie', c, ['sit-kneel', 'sit-cross', 'sit-knees']), INV), [])
-        self.assertTrue(live.npc_problems(stay('grey-reverie', c, ['sit']), INV), 'no chair on a cushion')
-        self.assertEqual(live.npc_problems(stay('grey-reverie', st, ['sit']), INV), [])
-        self.assertTrue(live.npc_problems(stay('grey-reverie', st, ['sit-kneel']), INV), 'no kneeling on a stool')
-        self.assertEqual(live.npc_problems(stay('grey-reverie', cot, ['sit-knees']), INV), [])
-        self.assertTrue(live.npc_problems(stay('grey-reverie', cot, ['sit-kneel']), INV))
+        self.assertEqual(live.npc_problems(stay('sitter', c, ['sit-kneel', 'sit-cross', 'sit-knees']), INV), [])
+        self.assertTrue(live.npc_problems(stay('sitter', c, ['sit']), INV), 'no chair on a cushion')
+        self.assertEqual(live.npc_problems(stay('sitter', st, ['sit']), INV), [])
+        self.assertTrue(live.npc_problems(stay('sitter', st, ['sit-kneel']), INV), 'no kneeling on a stool')
+        self.assertEqual(live.npc_problems(stay('sitter', cot, ['sit-knees']), INV), [])
+        self.assertTrue(live.npc_problems(stay('sitter', cot, ['sit-kneel']), INV))
         made = live.with_made({'sitter': {'name': 'Sitter', 'model': 'npc-casual-m'}}, INV)
         self.assertEqual(live.npc_problems(stay('sitter', c, ['sit-cross']), made), [])
 

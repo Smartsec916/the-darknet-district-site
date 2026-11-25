@@ -1521,7 +1521,7 @@ def escort_problems(o, inv, area='avenue', m=None):
     kind, npc = o.get('kind'), o.get('npc')
     who = (esc.get('npcs') or {}).get(npc)
     if not who or not _movable(inv).get(npc):
-        return ['only someone who can walk with the player (Reverie, Lace, the street cat) can do this step.']
+        return ['only someone who can walk with the player can do this step.']
     out = []
     allowed = (esc.get('fields') or {}).get(kind) or []
     for f in ESCORT_FIELDS:
@@ -1601,7 +1601,7 @@ def wait_at_problems(giver, w, inv):
     if w is None:
         return []
     if not _movable(inv).get(giver) or _movable(inv)[giver].get('placementOnly'):
-        return ['"Giver waits at" works only for a giver the editor can move (Reverie or Lace).']
+        return ['"Giver waits at" works only for a giver the editor can move.']
     if not _keys(w, ['x', 'z', 'yaw']):
         return ['"Giver waits at" has unknown fields.']
     return spot_problems(giver, w, inv)
@@ -1623,7 +1623,7 @@ def npc_problems(npcs, inv):
             out.append(w + 'unknown kind of placement.')
             continue
         anims = p.get('anims')
-        if anims is not None and (not isinstance(anims, list) or len(anims) > 8 or any(a not in (mv.get('anims') or []) for a in anims)):
+        if anims is not None and (not isinstance(anims, list) or any(not isinstance(a, str) for a in anims) or len(set(anims)) != len(anims) or not set(anims).issubset(mv.get('anims') or [])):
             out.append(w + 'an added animation is not allowed for this NPC.')
         ok = set(mv.get('actions') or []) | set(a for a in (anims if isinstance(anims, list) else []) if isinstance(a, str))
         rest = {k: v for k, v in p.items() if k != 'schedule'}
@@ -1984,7 +1984,7 @@ def import_package_problems(pkg, inv=None):
     tri, size = m.get('triangles'), m.get('bytes')
     if type(tri) is not int or tri < 0:
         out.append('The package does not say how many triangles the model has.')
-    elif tri > cap.get('maxTriangles', 50000):
+    elif tri > cap.get('maxTriangles', 50000) and pkg.get('allowOverTriangleLimit') is not True:
         out.append('This model has %d triangles; the limit is %d.' % (tri, cap.get('maxTriangles', 50000)))
     if type(size) is not int or size < 0:
         out.append('The package does not say how big the file is.')
@@ -3582,9 +3582,12 @@ def with_made(chars, inv):
         v = md.get('adult') if adult and md.get('adult') else md
         name = c.get('name') if isinstance(c.get('name'), str) and c.get('name').strip() else cid
         mv = v.get('movable') or {}
+        animations = list(mv.get('anims') or [])
+        for index in mv.get('animationLists') or []:
+            animations.extend(mc['animationLists'][index])
         # (20 Nov 2026) made characters sit too: on the Avenue's ledges and the tunnels' alcove seats (the same list as everyone's, npc-paths.js inventory)
         seat_src = next((m for m in (inv.get('npcPaths') or {}).get('movable', {}).values() if isinstance(m, dict) and m.get('ledges')), {})
-        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
+        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': animations, 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
         me['givers'][cid] = {'name': name, 'canTalk': True, 'players': True, 'draft': True, 'group': 'district'}
         if v.get('gestures'):
             me['gestures'][cid] = {'look': c.get('model'), 'clips': v['gestures']}

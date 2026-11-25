@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=(...p)=>path.join(__dirname,'..',...p);
 const B=require(R('void-runner/npc-behaviour.js')),X=require(R('void-runner/npc-paths.js')),SP=require(R('void-runner/ncz-street-pair.js'));
-const REV='grey-reverie',CAT='street-cat';
+const REV='tea-host',CAT='street-cat';
 const base=(extra={})=>({recipe:B.KIND,version:1,npc:REV,...extra});
 const pts=[{at:'repair',action:'look',seconds:5},{at:'laundry',action:'idle',seconds:5}];
 
@@ -31,7 +31,7 @@ test('the schema is strict: unknown keys, wrong NPC, places off her pavement, di
  bad(base({allDay:{do:'usual'},notes:'hi'}),/Unknown field at the top: “notes”/);
  bad({...base({allDay:{do:'usual'}}),recipe:'other'},/“recipe” must be/);
  bad({...base({allDay:{do:'usual'}}),version:2},/“version” must be 1/);
- bad({...base({allDay:{do:'usual'}}),npc:'ethereal-lace'},/This recipe is for Lace, but you are editing Reverie/);
+ bad({...base({allDay:{do:'usual'}}),npc:'street-cat'},/This recipe is for Street cat, but you are editing Tea Room Host/);
  bad(base(),/says nothing for her to do/);
  bad(base({allDay:{do:'dance'}}),/"do" must be "usual", "stay" or "route"/);
  bad(base({allDay:{do:'stay',at:'laundry',actions:['idle'],speed:3}}),/unknown field “speed”/);
@@ -45,7 +45,7 @@ test('the schema is strict: unknown keys, wrong NPC, places off her pavement, di
  bad(base({allDay:{do:'stay',at:'laundry',actions:['walk-on']}}),/cannot do “walk-on” at a spot/);
  bad(base({allDay:{do:'stay',at:'laundry',actions:[]}}),/1 to 6 actions/);
  bad(base({allDay:{do:'stay',at:'laundry',actions:['idle'],face:'up'}}),/"face" must be/);
- bad(base({allDay:{do:'stay',at:'tea-house',actions:['sit']}}),/Sit” needs a ledge/);
+ bad(base({allDay:{do:'stay',at:'tea-house',actions:['sit']}}),/cannot do “sit”/);
  bad(base({allDay:{do:'route',points:[pts[0]]}}),/2 to 12 points/);
  bad(base({allDay:{do:'route',points:Array.from({length:13},(_,i)=>({at:{x:90+i,z:-6.2},action:'idle',seconds:2}))}}),/2 to 12 points \(this one has 13\)/);
  bad(base({allDay:{do:'route',points:[pts[0],{...pts[1],seconds:500}]}}),/whole number from 1 to 120/);
@@ -67,13 +67,13 @@ test('the schema is strict: unknown keys, wrong NPC, places off her pavement, di
  const ok=B.validate(base({schedule:[{from:'8:00',to:'9:30',do:'stay',at:'laundry',actions:['idle','look']}]}),REV);assert.equal(ok.ok,true,ok.problems.join());assert.equal(ok.plan.schedule[0].from,'08:00');assert.equal(ok.plan.schedule[0].to,'09:30');});
 
 test('a good recipe becomes the same placement the route editor makes (content.npcs), with her added animations kept, and passes the full check',()=>{
- for(const id of [REV,'ethereal-lace',CAT]){for(const ex of B.examples(id)){const r=B.validate(ex,id);assert.equal(r.ok,true,id+': '+r.problems.join(' | '));assert.deepEqual(X.planProblems(id,r.plan),[]);assert.deepEqual(X.clean(r.plan),r.plan);assert.ok(r.summary.length>=1);}}
+ for(const id of [REV,'tea-host',CAT]){for(const ex of B.examples(id)){const r=B.validate(ex,id);assert.equal(r.ok,true,id+': '+r.problems.join(' | '));assert.deepEqual(X.planProblems(id,r.plan),[]);assert.deepEqual(X.clean(r.plan),r.plan);assert.ok(r.summary.length>=1);}}
  const r=B.validate(B.examples(REV)[0],REV,{anims:['x/y']});assert.equal(r.ok,false);   // an animation she does not have is refused by the full check
  const pl=B.places(REV);assert.ok(pl.length>=10);for(const p of pl)assert.deepEqual(X.spotProblems(REV,p),[],p.id);assert.ok(pl.some(p=>p.ledge&&p.id==='ledge-reverie'));
- const plan=B.validate(B.examples(REV)[0],REV).plan;assert.equal(plan.mode,'original');assert.equal(plan.schedule.length,3);assert.equal(plan.schedule[1].mode,'stay');assert.deepEqual(plan.schedule[1].actions,['sit']);});
+ const plan=B.validate(B.examples(REV)[0],REV).plan;assert.equal(plan.mode,'original');assert.equal(plan.schedule.length,3);assert.equal(plan.schedule[1].mode,'stay');assert.deepEqual(plan.schedule[1].actions,['idle']);});
 
 test('the ChatGPT prompt is self-contained: schema, her places and actions, the limits, examples; no banned clip is offered',()=>{
- const p=B.prompt(REV);for(const s of ['ONLY ONE JSON OBJECT','"recipe": "void-runner-npc-behaviour"','"schedule"','"from": "HH:MM"','past midnight','laundry','ledge-reverie','scroll','walk-on','12.5','141.5','EXAMPLE 1','EXAMPLE 2','WHAT I WANT REVERIE TO DO'])assert.ok(p.includes(s),s);
+ const p=B.prompt(REV);for(const s of ['ONLY ONE JSON OBJECT','"recipe": "void-runner-npc-behaviour"','"schedule"','"from": "HH:MM"','past midnight','laundry','ledge-reverie','work','walk-on','12.5','141.5','EXAMPLE 1','EXAMPLE 2','WHAT I WANT TEA ROOM HOST TO DO'])assert.ok(p.includes(s),s);
  for(const a of X.actionsFor(REV))assert.ok(p.includes('  '+a.id+': '),a.id);for(const l of p.split('ACTIONS')[1].split('EXAMPLE 1')[0].split('\n').slice(1))if(l.trim())assert.doesNotMatch(l.trim().split(':')[0],SP.BANNED);
  assert.equal(B.CODE.test(p.split('```json')[1]),false,'the examples themselves are not refused as code');
  const c=B.prompt(CAT);assert.ok(c.includes('the street cat'));assert.ok(c.includes('cat-sit'));assert.ok(!c.includes('  scroll: '));assert.equal(B.prompt('admin'),'');});
@@ -85,12 +85,12 @@ test('daily schedules: the block for an in-game minute, across midnight; outside
  assert.equal(X.blockAt(plan.schedule,1440+at(8)),0,'a minute count past one day wraps');
  const now=m=>X.planNow(REV,{plan,minute:m});
  assert.equal(now(at(9)).mode,'path');assert.match(now(at(9)).key,/^sched:0:08:00-12:00:/);assert.equal(now(at(12,30)).mode,'stay');assert.match(now(at(12,30)).key,/^sched:1:/);
- assert.equal(now(at(15)),null,'outside: her usual thing (the all-day plan)');assert.equal(now(at(23)).mode,'stay');assert.equal(now(at(1)).key,now(at(23)).key,'the same block on both sides of midnight');
- assert.equal(X.planNow(REV,{plan}),null,'no clock: the all-day plan');
+ assert.equal(now(at(15)).why,'home','outside: her usual thing (the all-day plan)');assert.equal(now(at(23)).mode,'stay');assert.equal(now(at(1)).key,now(at(23)).key,'the same block on both sides of midnight');
+ assert.equal(X.planNow(REV,{plan}).why,'home','no clock: the all-day plan');
  const stayAll={...plan,mode:'stay',x:104.4,z:-6.1,yaw:Math.PI,actions:['idle']};assert.match(X.planNow(REV,{plan:stayAll,minute:at(15)}).key,/^stay:/);
  assert.equal(X.planNow(REV,{plan,minute:at(9),waiting:{x:100,z:-6.5,mission:'m'}}).why,'waiting');
  // a block that is "her usual thing" inside a stay all day: her own routine then
- const o={...stayAll,schedule:[{from:'10:00',to:'11:00',mode:'original'}]};assert.equal(X.planNow(REV,{plan:o,minute:at(10,30)}),null);assert.deepEqual(X.planProblems(REV,o),[]);
+ const o={...stayAll,schedule:[{from:'10:00',to:'11:00',mode:'original'}]};assert.equal(X.planNow(REV,{plan:o,minute:at(10,30)}).why,'home');assert.deepEqual(X.planProblems(REV,o),[]);
  // the game: live-content.js passes the game clock's minute of the day
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/GC\.now\(state\)\.minuteOfDay/);assert.match(lc,/let w=wait\[id\]\|\|null;/);assert.match(lc,/planNow\(id,\{waiting:w,plan:\(env\.npcPlans\|\|\{\}\)\[id\]\|\|null,minute\}\)/);});
 

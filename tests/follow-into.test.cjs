@@ -3,7 +3,7 @@
    the save flag, and the browser files' wiring (source checks). */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const R=f=>path.resolve(__dirname,'..',f),E=require(R('void-runner/npc-escort.js')),M=require(R('void-runner/modules.js')),A=require(R('void-runner/apartments.js'));
-const REV='grey-reverie',DOOR='apt-avenue-n-16',OT_DOOR='apt-main-w-96';
+const REV='tea-host',DOOR='apt-avenue-n-16',OT_DOOR='apt-main-w-96';
 const office=()=>({id:'a1',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='office-servers').loc))});
 const flat=(door=DOOR)=>({id:'a2',style:'rundown',door,number:104});
 const ctx=(apartments,steps)=>({area:'avenue',apartments,steps:steps||[]});
@@ -23,14 +23,14 @@ test('the place list: a follow step may end in an apartment or a room of a locat
 test('who: never the cat (greyed with the reason); Reverie and Lace never into a bar back room; the street door in her area; the place open by then',()=>{
  const cat=E.problems(step({npc:'street-cat',apt:'a2'}),ctx([flat()]));assert.match(cat.join(' '),/cat stays outside/);assert.equal(E.canInto('street-cat').ok,false);assert.equal(E.canInto(REV).ok,true);
  const bar={id:'a3',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='bar').loc))};
- assert.deepEqual(E.problems(step({apt:'a3',mod:'bar'}),ctx([bar])),[]);const pit={id:'a4',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='fight-pit').loc))};assert.match(E.problems(step({apt:'a4',mod:'pit'}),ctx([pit])).join(' '),/fight pit/);assert.match(E.problems(step({apt:'a3'}),ctx([bar])).join(' '),/^$/);
+ assert.deepEqual(E.problems(step({apt:'a3',mod:'bar'}),ctx([bar])),[]);const pit={id:'a4',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='fight-pit').loc))};assert.deepEqual(E.problems(step({apt:'a4',mod:'pit'}),ctx([pit])),[]);assert.match(E.problems(step({apt:'a3'}),ctx([bar])).join(' '),/^$/);
  assert.deepEqual(E.problems(step({apt:'a2'}),ctx([flat(OT_DOOR)])),[],'(escort across, 20 Nov 2026) a door in Old Town: she walks there through the North Gate');
  assert.match(E.problems(step({npc:'street-cat',kind:'they-follow',to:{x:-2.7,z:-80}}),ctx([])).join(' '),/cat never goes inside or down into the tunnels/);
  assert.deepEqual(E.problems(step({apt:'a2'}),{...ctx([flat(OT_DOOR)]),area:'oldtown'}),[]);
  const steps=[{id:'s1',kind:'talk'},{id:'s2',kind:'follow-them'},{id:'s3',kind:'apt-enter'}];
  assert.match(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s3'}],steps)).join(' '),/opens later/);assert.deepEqual(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s2'}],steps)),[]);
  assert.deepEqual(E.needs(step({}),ctx([flat()])).map(n=>n.key),['step-spot']);assert.deepEqual(E.needs(step({apt:'zz'}),ctx([flat()])).map(n=>n.key),['step-into']);
- const inv=E.inventory();assert.equal(inv.into.doorAreas[DOOR],'avenue');assert.deepEqual(inv.into.adultRooms,['fight-pit']);assert.equal(inv.npcs['street-cat'].into,false);assert.equal(inv.npcs[REV].youthful,true);});
+ const inv=E.inventory();assert.equal(inv.into.doorAreas[DOOR],'avenue');assert.deepEqual(inv.into.adultRooms,['fight-pit']);assert.equal(inv.npcs['street-cat'].into,false);assert.equal(inv.npcs[REV].youthful,false);});
 test('rooms: the way from the street door to the server room (doorways, then the elevator); an older apartment is hallway then apartment',()=>{
  const g=E.roomGraph(office());assert.equal(g.entry,'hall');assert.deepEqual(E.roomPath(g,'hall','servers').map(p=>p.room+':'+p.edge.kind),['office:snap','lift:snap','lift2:lift','servers:snap']);
  assert.equal(g.clusters.hall,g.clusters.lift);assert.notEqual(g.clusters.lift,g.clusters.servers);assert.deepEqual(E.roomPath(g,'servers','servers'),[]);

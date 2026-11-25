@@ -71,7 +71,8 @@ test('repacking a character exports edited JSON and newly generated voices inste
    {record:{text:'Welcome back',voiceId:'ABCDEFGHIJKLMNOPQRST',model:'eleven_v4'},blob:new Blob(['new-audio'])},
    {record:{text:'Deleted old line'},blob:new Blob(['orphan-audio'])}
   ]};
- const repacked=await importer.repack(original,updated);
+ const repaired=glb([{joints:[0]}],[{name:'walk'}]);
+ const repacked=await importer.repack(original,updated,repaired);
  const manifest=await studio.unpackTransfer(repacked);
  assert.equal(manifest.meta.name,'Example Two');
  assert.deepEqual(manifest.meta.dialogue,updated.dialogue);
@@ -80,6 +81,8 @@ test('repacking a character exports edited JSON and newly generated voices inste
   ['Hello there','Welcome back']);
  assert.equal(await manifest.parts.at(-1).blob.text(),'new-audio');
  const checked=await importer.inspect(repacked);
+ assert.deepEqual(checked.animationNames,['walk']);
+ assert.deepEqual(new Uint8Array(await checked.model.arrayBuffer()),new Uint8Array(await repaired.arrayBuffer()));
  assert.equal(checked.recordedLineCount,2);
  assert.deepEqual(checked.missingVoiceLines,[]);
 });

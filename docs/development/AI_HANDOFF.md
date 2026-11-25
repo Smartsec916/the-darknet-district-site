@@ -1,5 +1,13 @@
 # The Darknet District — current AI handoff
 
+## 24 Nov 2026 — Lace and Reverie removal (local development)
+
+The owner retired both Avenue NPCs and their Milked Studio 1 rotation. Studio 1 is vacant. The street cat still uses the Avenue runtime. Other characters use the same movement, seats and floor transitions. The shared rigging workshop loads its approved run from a skeleton-only animation asset. The public mission-content endpoint returned version 3 with no references to either retired ID during the audit.
+
+In the NPC Editor, deleting a created character checks draft missions, group interactions and relationships, then removes the character's owned records in one undoable draft save. Imported models use their separate local deletion control. Shipped NPCs with bespoke code require repository edits. Original downloads and unrelated personal editor drafts were left in place.
+
+Verification included real Edge NPC Editor deletion, Babylon NullEngine Avenue ticks and shared animation retargeting. No production deployment.
+
 ## 23 Nov 2026 — Approach greetings are random (Tea Room Host)
 
 - Bug: the NPC editor's "Approach greetings (one alternative per line)" box (Conversations & Interactions, saved as `interactions[id].near`) was stored in full, but the game played its lines strictly in written order from a counter that restarts at 0 on every page load or content reload. So a tester who reloads always saw line 1 (for the Tea Room Host, the "Our more intimate services" line).

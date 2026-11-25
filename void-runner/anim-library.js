@@ -30,8 +30,25 @@
   {id:'ac-cuddle-kiss-f',title:'Cuddle and kiss (her part)',category:'together',seconds:19,loop:false,root:'free',group:'cuddle-kiss',part:1,partner:'missing'},
   {id:'ac-sit-cuddle-hug-f',title:'Seated cuddle and hug (her part)',category:'together',seconds:12,loop:false,root:'free',needs:'seat',group:'sit-cuddle-hug',part:1,partner:'missing'}
  ],meshy:[{id:'meshy-run',title:'Running in place',category:'locomotion',seconds:.67,loop:true,root:'inplace'}]};
- const FILES={meshy:'assets/models/anim/anim-meshy.vrpak',actorcore:'assets/models/anim/anim-actorcore.vrpak'};
- const SOURCES={meshy:{name:'Meshy running export',reference:'vr-companion-f',skeleton:'Mixamo-named humanoid',licence:'Owner-supplied Meshy export, private asset storage'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
+ CLIPS.sexyzips=[["forceddoggyM",9.117],
+  ["forceddoggyF",11.133],
+  ["floorpoundM",4.917],
+  ["floorpoundF",4.85],
+  ["doggyM",6.733],
+  ["doggyF",6.733],
+  ["CommitmentF",14.383],
+  ["TiedB2M",6.733],
+  ["StandogM",6.733],
+  ["StandogF",6.733],
+  ["SpankM",1.05],
+  ["SpankF",1.05],
+  ["TiedBF",6.733],
+  ["TiedBM",6.733],
+  ["Femalemasturbation",7.35],
+  ["OysterF",8.067],
+  ["OysterM",8.067]].map(([title,seconds])=>({id:'sz-'+title.toLowerCase(),title,seconds,category:'adult',root:'free',loop:false}));
+ const FILES={meshy:'assets/models/anim/anim-meshy.vrpak',sexyzips:'assets/models/anim/anim-sexyzips.vrpak',actorcore:'assets/models/anim/anim-actorcore.vrpak'};
+ const SOURCES={meshy:{name:'Meshy running export',reference:'vr-companion-f',skeleton:'Mixamo-named humanoid',licence:'Owner-supplied Meshy export, private asset storage'},sexyzips:{name:'SexyZips.zip',licence:'Free use, per project owner',skeleton:'Retargeted humanoid'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
  const bare=n=>String(n||'').split(':').pop();
  const all=()=>Object.entries(CLIPS).flatMap(([lib,list])=>list.map(c=>({...c,library:lib})));
  const clip=id=>all().find(c=>c.id===id)||null;
@@ -88,14 +105,15 @@
   entry.promise=promise;entries.set(lib,entry);return promise;}
  /* Give a figure the library's clips. node: the figure's root (its bones are transform nodes under it); look: its look id (for VoidCrowd.clips);
     only: clip ids wanted (default: all). Returns the ids added. Safe to call twice. */
- async function apply(node,look,{library=null,only=null,scene=null,catalog=true}={}){
+ async function apply(node,look,{library=null,only=null,scene=null,catalog=true,targetFile=null}={}){
   if(!library&&only){
    const grouped=new Map();
    for(const id of only){const source=clip(id)?.library||'actorcore';if(!grouped.has(source))grouped.set(source,[]);grouped.get(source).push(id);}
-   const added=[];for(const [source,ids] of grouped)added.push(...await apply(node,look,{library:source,only:ids,scene,catalog}));
+   const added=[];for(const [source,ids] of grouped)added.push(...await apply(node,look,{library:source,only:ids,scene,catalog,targetFile}));
    return added;
   }
   library=library||'actorcore';
+  if(library==='sexyzips'||(library.startsWith('crowd:')&&!/\.gltf$/i.test(targetFile?.name||'')))return (await import('./rig-workshop.mjs')).bindSharedMotions(node,look,only,library.startsWith('crowd:')?library.slice(6):null,targetFile);
   const sc=scene||node.getScene(),B=root.BABYLON,L=await load(library,sc);if(!L||node.isDisposed())return [];
   const bones=new Map();for(const t of node.getDescendants(false))if(t.rotationQuaternion!==undefined&&t.getClassName?.()==='TransformNode'){const b=bare(t.name);if(!bones.has(b))bones.set(b,t);}
   const studio=studioRig(bones)&&studioRig(new Set(Object.keys(L.rest)));
@@ -116,7 +134,7 @@
     g.addTargetedAnimation(a,target);}
    if(!g.targetedAnimations.length){g.dispose();continue;}
    g.normalize(src.from,src.to);g.enableBlending=true;g.blendingSpeed=.045;g.loopAnimation=c.loop!==false;list.push(g);added.push(c.id);}
-  const clips=root.VoidCrowd?.clips;if(catalog&&clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
+  const clips=root.VoidCrowd?.clips;if(catalog&&library!=='sexyzips'&&clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
   meta.animLibrary=[...(meta.animLibrary||[]),...added.filter(id=>!(meta.animLibrary||[]).includes(id))];
   return added;}
  /* Another model file as a source of clips (Developer Tools > NPCs > Add animation, 18 Nov 2026): a public crowd file on a compatible rig. lib 'crowd:<asset>'; clips

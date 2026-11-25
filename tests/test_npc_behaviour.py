@@ -10,7 +10,7 @@ INV = json.loads((Path(__file__).resolve().parent.parent / 'void_runner_admin_in
 ROUTE = [{'x': 90, 'z': -6.6, 'action': 'look', 'seconds': 5}, {'x': 110, 'z': -6.6, 'action': 'idle', 'seconds': 5}]
 DAY = {'mode': 'original', 'schedule': [
     {'from': '08:00', 'to': '12:00', 'name': 'Morning walk', 'mode': 'path', 'points': ROUTE},
-    {'from': '12:00', 'to': '13:00', 'name': 'Lunch on the ledge', 'mode': 'stay', 'x': 104.4, 'z': -6.1, 'yaw': 3.14, 'actions': ['sit']},
+    {'from': '12:00', 'to': '13:00', 'name': 'Lunch on the ledge', 'mode': 'stay', 'x': 104.4, 'z': -6.1, 'yaw': 3.14, 'actions': ['idle']},
     {'from': '20:00', 'to': '02:00', 'mode': 'original'}]}
 
 
@@ -28,14 +28,14 @@ def with_block(**b):
 
 class NpcBehaviourServerTests(unittest.TestCase):
     def test_a_good_schedule_passes(self):
-        self.assertEqual(live.npc_problems({'grey-reverie': DAY, 'ethereal-lace': DAY}, INV), [])
-        self.assertEqual(live.check(doc(npcs={'grey-reverie': DAY}), INV), [])
+        self.assertEqual(live.npc_problems({'tea-host': DAY}, INV), [])
+        self.assertEqual(live.check(doc(npcs={'tea-host': DAY}), INV), [])
         stay = dict(DAY, mode='stay', x=100, z=-6.4, yaw=0, actions=['idle'])
-        self.assertEqual(live.npc_problems({'grey-reverie': stay}, INV), [])
+        self.assertEqual(live.npc_problems({'tea-host': stay}, INV), [])
 
     def test_bad_schedules_are_refused(self):
         def bad(plan, text):
-            p = live.npc_problems({'grey-reverie': plan}, INV)
+            p = live.npc_problems({'tea-host': plan}, INV)
             self.assertTrue(any(text in x for x in p), (text, p))
         bad(with_block(**{'from': '01:00', 'to': '03:00', 'mode': 'original'}), 'overlaps time block 3')   # across midnight
         bad(with_block(**{'from': '14:00', 'to': '14:10', 'mode': 'original'}), 'at least 15 minutes')
@@ -65,10 +65,10 @@ class NpcBehaviourServerTests(unittest.TestCase):
             return {'schemaVersion': 1, 'kind': 'workspace', 'adapter': 'mission-editor', 'sourceKey': drafts.WORKSPACE_ID, 'baseRevision': 0,
                     'data': {'id': drafts.WORKSPACE_ID, 'title': 'Mission Editor workspace', 'bundle': bundle}}
         half = {'mode': 'original', 'schedule': [{'from': '08:00', 'to': '09:00', 'mode': 'path', 'points': []}]}   # half made: fine in the backup
-        self.assertTrue(drafts.validate_workspace(ws({'npcs': {'grey-reverie': half}}))['valid'])
+        self.assertTrue(drafts.validate_workspace(ws({'npcs': {'tea-host': half}}))['valid'])
         for b in [{'from': '8am', 'to': '09:00', 'mode': 'original'}, {'from': '08:00', 'to': '09:00', 'mode': 'original', 'run': 'x'}, {'from': '08:00', 'to': '09:00', 'mode': 'original', 'name': '<b>'}]:
             with self.assertRaises(drafts.DraftError):
-                drafts.validate_workspace(ws({'npcs': {'grey-reverie': {'mode': 'original', 'schedule': [b]}}}))
+                drafts.validate_workspace(ws({'npcs': {'tea-host': {'mode': 'original', 'schedule': [b]}}}))
 
 
 if __name__ == '__main__':

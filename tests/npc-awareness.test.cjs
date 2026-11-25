@@ -17,9 +17,9 @@ test('sight is a cone and stops at a wall; a sprint is heard farther than a walk
  assert.deepEqual(A.problems(aw),[]);
  assert.match(A.problems({...aw,hear:{...aw.hear,sprint:10}}).join(' '),/sprint/);
  const plan={mode:'original',tier:2,awareness:aw};
- assert.deepEqual(P.planProblems('grey-reverie',plan),[]);
- assert.equal(P.planNow('grey-reverie',{plan:{...plan,mode:'stay',x:103.5,z:-6.4,yaw:0,actions:['idle']}}).awareness.sight,40);
- assert.match(P.planProblems('grey-reverie',{mode:'original',tier:1,awareness:aw}).join(' '),/Tier 2 or Tier 3/);
+ assert.deepEqual(P.planProblems('tea-host',plan),[]);
+ assert.equal(P.planNow('tea-host',{plan:{...plan,mode:'stay',x:103.5,z:-6.4,yaw:0,actions:['idle']}}).awareness.sight,40);
+ assert.match(P.planProblems('tea-host',{mode:'original',tier:1,awareness:aw}).join(' '),/Tier 2 or Tier 3/);
  const html=fs.readFileSync(R('void-runner.html'),'utf8');
  assert.ok(html.indexOf('npc-awareness.js')>0&&html.indexOf('npc-awareness.js')<html.indexOf('npc-paths.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);
