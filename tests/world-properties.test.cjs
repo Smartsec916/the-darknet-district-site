@@ -25,3 +25,11 @@ test('draft and live reservations remain visible for the same mission',async()=>
  assert.deepEqual([...result.missionSources.get('awakening')],['Published','Local draft']);
  assert.equal(result.rows.get(door.id).missions.length,1);
 });
+
+test('moving a mission entrance in a draft keeps each reservation source on the right door',async()=>{
+ const [oldDoor,newDoor]=A.doors();
+ const trees=d=>[{missions:[{id:'mission',apartments:[{id:'home',door:d.id}]}]}];
+ const result=await A.readAddressRegistry({readLive:async()=>({content:{trees:trees(oldDoor)}}),readLocal:()=>({version:1,trees:trees(newDoor)})});
+ assert.deepEqual([...result.doorSources.get(oldDoor.id+'/mission')],['Published']);
+ assert.deepEqual([...result.doorSources.get(newDoor.id+'/mission')],['Local draft']);
+});

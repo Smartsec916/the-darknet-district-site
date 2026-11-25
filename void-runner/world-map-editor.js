@@ -74,7 +74,7 @@
    detail.replaceChildren();
    const d=A.door(entrance.value),r=records.get(entrance.value);if(!d||!r)return;
    detail.append(element('h3',root.VoidModuleEditor.doorTitle(d)),element('p',A.entranceLegend[r.kind].label+' · '+d.quarter));
-   for(const m of r.missions)detail.append(element('p',m.title+' · '+[...(registry.missionSources.get(m.id)||[])].join(', ')));
+   for(const m of r.missions)detail.append(element('p',m.title+' · '+[...(registry.doorSources.get(d.id+'/'+m.id)||[])].join(', ')));
    if(!catalog)detail.append(element('p','Keycard catalog unavailable.'));
    if(cards.has(d.id))detail.append(element('p','Entrance keycards · '+[...cards.get(d.id)].join(', ')));
    for(const u of r.units){

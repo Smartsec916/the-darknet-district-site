@@ -59788,7 +59788,7 @@
       "spawn"
     ]
   },
-  "revision": "e644ef5ba1aa8298",
+  "revision": "07ead9f9b6a38794",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80772,8 +80772,8 @@
     "void-runner/anim-library.js": "b4879bd34b9014a5d73cd566c3fd72b15b81dfc628483b99667e6547aa455a45",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
-    "void-runner/apartment-integration.js": "a1cd77bbae41bcf821b444c5028846e9f912fe27ffd8e64e0d7898c891aa21af",
-    "void-runner/apartments.js": "1e02c8b553cc7427fcb9fb2b1ed7d00e70d3f0288e0b0f5d8a2113a95e01d706",
+    "void-runner/apartment-integration.js": "99e6106b812e7ce38f9ee0790cd50a25a9223b0481ed234a7db27e7f2041d905",
+    "void-runner/apartments.js": "6a97b9e1b0014769023398ac647917ba797d88dcd8c475ef8abc0c97f6b1902e",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
@@ -81062,7 +81062,7 @@
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
-    "void-runner/world-map-editor.js": "a50e1e561929df430c86dcb8022f399448e3e961627cb46362703fce1aa5aa3c",
+    "void-runner/world-map-editor.js": "ae1f737adbc9e7218e032173f146950f002ba8e66ce2304c9ce8b5dc11e0a691",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",

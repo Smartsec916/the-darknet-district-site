@@ -109,8 +109,44 @@
    const [p,q]=[r.path[r.leg],r.path[r.leg+1]],L=Math.hypot(q[0]-p[0],q[1]-p[1])||.01;r.k+=dt*1.3/L;const x=p[0]+(q[0]-p[0])*Math.min(1,r.k),z=p[1]+(q[1]-p[1])*Math.min(1,r.k);r.node.position.set(x,0,z);r.node.rotation.y=Math.atan2(q[0]-p[0],q[1]-p[1]);
    for(const id of [r.from.id,r.to.id]){const s=doorOf.get(id),dd=Math.hypot(s.door.x-x,s.door.z-z);if(dd<2.2)s.nearNpc=clock;}
    if(r.k>=1){r.leg++;r.k=0;if(r.leg>=r.path.length-1){r.phase='away';r.wait=12+rnd()*30;r.node.setEnabled(false);}}}
+  let pickupScene=null,pickupDoor=null,pickupUser=null,nextPoll=0,polling=false,disposed=false;
+  const pickups=new Map();
+  function clearPickups(){
+   if(pickupScene)pickupScene.interactions=pickupScene.interactions.filter(it=>!pickups.has(it.id));
+   for(const mesh of pickups.values())mesh.dispose();
+   pickups.clear();
+  }
+  function placePickups(cards,d,wl){
+   clearPickups();
+   for(const [i,c] of cards.entries()){
+    const id='keycard-'+c.id,x=d.front[0]+(i%4)*.15,z=d.front[1]+Math.floor(i/4)*.11;
+    const mesh=B.MeshBuilder.CreateBox(id,{width:.13,depth:.085,height:.012},scene);
+    mesh.parent=parent;mesh.position.set(x,.035,z);mesh.isPickable=false;
+    mesh.material=cardMaterial||(cardMaterial=P('keycard','#71f4e1',{r:.35,m:.25}));
+    mesh.material.emissiveColor=B.Color3.FromHexString('#247a6e');
+    pickups.set(id,mesh);
+    wl.interactions.push({id,action:'apt-keycard-pickup',card:c.id,door:d.id,label:'PICK UP · '+c.name,position:[x,.15,z],range:1.8});
+   }
+  }
+  let cardMaterial;
+  function updatePickups(p){
+   const wl=typeof walkingLocation==='undefined'?null:walkingLocation;
+   const uid=root.VoidAccount?.user?.uid;
+   const d=p&&wl?.area==='street'&&wl.quarter===quarter&&uid&&!root.VoidDevTest?.active?A.nearestDoor(p.x,p.z,5):null;
+   if(pickupDoor!==d?.id||pickupScene!==wl||pickupUser!==uid){
+    clearPickups();pickupDoor=d?.id;pickupScene=wl;pickupUser=uid;nextPoll=0;
+   }
+   if(!d||polling||clock<nextPoll||!root.VoidConsumableGame)return;
+   nextPoll=clock+12;polling=true;
+   root.VoidConsumableGame.request('keycards/drops/'+encodeURIComponent(d.id)).then(result=>{
+    if(disposed||walkingLocation!==wl||pickupDoor!==d.id||root.VoidAccount?.user?.uid!==uid)return;
+    const cards=result.cards||[];
+    if(cards.length===pickups.size&&cards.every(c=>pickups.has('keycard-'+c.id)))return;
+    placePickups(cards,d,wl);
+   }).catch(()=>{}).finally(()=>{polling=false;});
+  }
   function tick(dt){clock+=dt;const p=typeof walker!=='undefined'?walker:null;check-=dt;
-   if(check<=0){check=.5;const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)].filter(allowed));for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
+   if(check<=0){check=.5;updatePickups(p);const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)].filter(allowed));for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
    for(const r of residents)try{resTick(r,dt);}catch{}
    for(const s of doors){const npc=clock-(s.nearNpc??-9)<1.6;if(npc)s.locked=false;let near=npc;if(p&&s.mine){const dx=s.door.x-p.x,dz=s.door.z-p.z;near=near||dx*dx+dz*dz<3.2+(s.door.reach||0)*2.6;}s.near(near);const t0=s.t;s.tick(dt);
     const state=s.t>.02?'open':s.mine?'mine':'locked';if(state!==s.shown){s.shown=state;show(s,state);}
@@ -119,7 +155,7 @@
     if(p&&s.mine&&s.t>.9&&mode==='walking'&&!busy){const dx=s.door.x-p.x,dz=s.door.z-p.z,rr=.6+(s.door.reach||0);if(dx*dx+dz*dz<rr*rr)enterDoor(s.door.id);}}
    if(dirty){dirty=false;for(const m of [...Object.values(slab),...Object.values(lampM)])m.thinInstanceBufferUpdated('matrix');}}
   for(const s of doors){s.shown='locked';show(s,'locked');}
-  return {tick,doors,draws:()=>12,dispose(){for(const r of residents)r.node?.dispose?.(false,false);for(const x of own)try{x.dispose();}catch{}},forceOpen(id){const s=doorOf.get(id);if(s){s.locked=false;s.force(1);}},residents};}
+  return {tick,doors,draws:()=>12,dispose(){disposed=true;clearPickups();for(const r of residents)r.node?.dispose?.(false,false);for(const x of own)try{x.dispose();}catch{}},forceOpen(id){const s=doorOf.get(id);if(s){s.locked=false;s.force(1);}},residents};}
  {const NC=N();if(NC&&NC.build&&!NC.build.apartments){const orig=NC.build;NC.build=function(args){const h=orig.apply(this,arguments);try{if(args&&args.area==='street'&&h&&h.quarter){const sd=streetDoors({...args,quarter:h.quarter});if(sd){h.aptDoors=sd;const t=h.tick,d=h.dispose;let last=null;
    h.tick=function(time){const r=t.apply(this,arguments);const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{sd.tick(dt);}catch(e){console.warn('[apartments]',e);}return r;};h.dispose=function(){try{sd.dispose();}catch{}return d.apply(this,arguments);};}}}catch(e){console.warn('[apartments] street doors',e);}return h;};NC.build.apartments=true;}}
  // ---- going in and out ----
@@ -162,6 +198,14 @@
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof announce==='undefined')return;clearInterval(wait);start();},300);
  function start(){const R=(a,f)=>VoidInteractions.register(a,f);
   R('apt-door',({item})=>{try{resumeWalking();}catch{}enterDoor(item.door);});
+  R('apt-keycard-pickup',async({item})=>{
+   if(root.VoidDevTest?.active||typeof walker==='undefined'||walkingLocation?.area!=='street'||A.nearestDoor(walker.x,walker.z,5)?.id!==item.door)return;
+   try{
+    item.nonce||=crypto.randomUUID();
+    await root.VoidConsumableGame.request('keycards/move',{action:'pickup',card:item.card,door:item.door,nonce:item.nonce});
+    item.hidden=true;await root.VoidConsumableGame.refresh();note('Keycard added to inventory.');
+   }catch(e){note(e.message||'Could not pick up this keycard.');}
+  });
   R('apt-ap',({item})=>useAP(item));
   R('apt-hall-exit',()=>{try{resumeWalking();}catch{}backToStreet();});
   R('apt-hall-door',async({item})=>{
