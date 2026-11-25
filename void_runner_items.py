@@ -126,12 +126,15 @@ def valid_card_door(target, doors=None):
 
 
 def keycard_problems(card):
-    if not _only(card, ['doors', 'notes', 'privateNotes', 'discoverable', 'duration', *CARD_FLAGS]):
+    if not _only(card, ['doors', 'notes', 'privateNotes', 'discoverable', 'rewardMission', 'duration', *CARD_FLAGS]):
         return ['Invalid keycard configuration.']
     registry = inventory()['apartments']['doors']
     doors = card.get('doors')
     if not isinstance(doors, list) or not 1 <= len(doors) <= 64 or not all(valid_card_door(d, registry) for d in doors) or len(set(doors)) != len(doors):
         return ['Select distinct registered entrances or apartment doors for this keycard.']
+    mission = card.get('rewardMission', '')
+    if not isinstance(mission, str) or (mission and not re.fullmatch('[a-z][a-z0-9-]{0,79}', mission)):
+        return ['Choose a valid reward mission.']
     if type(card.get('discoverable', True)) is not bool:
         return ['Choose whether holders can locate this address.']
     if not all(type(card.get(k)) is bool for k in CARD_FLAGS):
@@ -202,6 +205,45 @@ def grant_card(db, editor, body):
             tx.set(holder, bag)
         tx.create(receipt, command)
         return {'id': card_id, 'duplicate': False}
+    return write(db.transaction())
+
+
+def reward_mission(item):
+    if item.get('kind') == 'keycard' and item.get('status') == 'published':
+        return item.get('keycard', {}).get('rewardMission')
+
+
+def completed_mission(campaign, mission):
+    record = ((campaign.get('save') or {}).get('universe') or {}).get('missions', {}).get(mission)
+    return isinstance(record, dict) and record.get('completed') is True
+
+
+def claim_reward(db, uid, body):
+    from firebase_admin import firestore
+    if not isinstance(body, dict) or set(body) != {'item'} or not isinstance(body['item'], str):
+        raise DraftError('Choose a mission reward.')
+    holder = _player_ref(db, uid)
+    campaign = db.collection('vr_players').document(_tag(uid))
+
+    @firestore.transactional
+    def write(tx):
+        bag = _clean_player(holder.get(transaction=tx).to_dict())
+        version = (_state_ref(db).get(transaction=tx).to_dict() or {}).get('live', 0)
+        content = (_version_ref(db, version).get(transaction=tx).to_dict() or {}).get('content', {}) if version else {}
+        item = next((i for i in content.get('items', []) if i['id'] == body['item']), {})
+        mission = reward_mission(item)
+        if not mission:
+            raise DraftError('This mission reward is unavailable.', 404)
+        grant = mission + '/' + item['id']
+        if grant in bag['claimedCards']:
+            return {'id': bag['claimedCards'][grant], 'duplicate': True}
+        if not completed_mission(campaign.get(transaction=tx).to_dict() or {}, mission):
+            raise DraftError('Complete the mission and save the campaign first.', 409)
+        identity = _tag('reward/' + uid + '/' + grant)
+        _receive_card(bag, issue_card(item, uid, identity, time.time()))
+        bag['claimedCards'][grant] = identity
+        tx.set(holder, bag)
+        return {'id': identity, 'duplicate': False}
     return write(db.transaction())
 
 
@@ -276,7 +318,11 @@ def move_card(db, uid, body):
                     raise DraftError('This card cannot be dropped.', 403)
                 tx.create(drop_ref, {'door': door, 'card': card})
             del player['cards'][card_id]
-            player['owned'].pop(card['template'], None)
+            remaining = sum(c['template'] == card['template'] for c in player['cards'].values())
+            if remaining:
+                player['owned'][card['template']] = remaining
+            else:
+                player['owned'].pop(card['template'], None)
         tx.set(ref, player)
         tx.create(receipt, command)
         return {'duplicate': False}
@@ -295,10 +341,10 @@ def dropped_cards(db, uid, door):
 
 
 def _receive_card(player, card):
-    if player['owned'].get(card['template']) or len(player['cards']) >= 64:
+    if len(player['cards']) >= 64:
         raise DraftError('The receiving inventory cannot hold this card.', 409)
     player['cards'][card['id']] = card
-    player['owned'][card['template']] = 1
+    player['owned'][card['template']] = player['owned'].get(card['template'], 0) + 1
 
 
 def item_problems(it, cats):
@@ -734,7 +780,7 @@ def _player_ref(db, uid):
 def _clean_player(rec):
     rec = rec or {}
     owned = {k: v for k, v in (rec.get('owned') or {}).items() if isinstance(k, str) and type(v) is int and v > 0}
-    return {'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
+    return {'claimedCards': dict(rec.get('claimedCards') or {}), 'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
 
 
 def _span(defn):
@@ -779,7 +825,10 @@ def player_state(db, uid, now=None):
     p = _clean_player(_player_ref(db, uid).get().to_dict())
     active = _active_view(p, content, now)
     items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
-    return {'keycards': [{k:v for k,v in c.items() if k != 'issuedTo' and (k != 'doors' or c.get('discoverable', True))} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
+    rewards = [i for i in content['items'] if reward_mission(i) and reward_mission(i)+'/'+i['id'] not in p['claimedCards']]
+    campaign = db.collection('vr_players').document(_tag(uid)).get().to_dict() or {} if rewards else {}
+    available = [{'id': i['id'], 'name': i['name']} for i in rewards if completed_mission(campaign, reward_mission(i))]
+    return {'cardRewards': available, 'keycards': [{k:v for k,v in c.items() if k != 'issuedTo' and (k != 'doors' or c.get('discoverable', True))} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
 
 
 def _nonce(payload):

@@ -54,6 +54,10 @@
    const units=current?A.propertyRecord(current).units:[];
    const targets=current?[[current.id,'Street entrance'],...units.map(u=>[u.id,'Apartment '+u.number])]:[];
    for(const inner of A.interiorDoors(root.VoidMainStory?.trees?.()||[]).values())if(inner.entrance===current?.id)targets.push([inner.id,inner.location+' · '+inner.name]);
+   const missions=new Map();
+   for(const tree of [...(root.VoidMainStory?.trees?.()||[]),...(root.VoidLiveContent?.env?.trees||[])])
+    for(const m of tree.missions||[])missions.set(m.id,m.title||m.id);
+   if(card.rewardMission&&!missions.has(card.rewardMission))missions.set(card.rewardMission,card.rewardMission);
    const flag=(id,label)=>'<label><input type="checkbox" data-card-flag="'+id+'" '+((card[id]??(id==='discoverable'))?'checked':'')+'> '+label+'</label>';
    return '<fieldset><legend>Keycard access</legend><label>Building <select data-card-building>'+options(doors.map(d=>[d.id,d.name]),current?.id)+'</select></label>'+
     targets.map(([id,label])=>'<label><input type="checkbox" data-card-door="'+esc(id)+'" '+(card.doors.includes(id)?'checked':'')+'> '+esc(label)+'</label>').join(' ')+
@@ -66,6 +70,7 @@
     '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
     flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
     '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details>'+
+    '<label>Mission reward <select data-card-text="rewardMission">'+options([['','No mission reward'],...missions],card.rewardMission||'')+'</select></label>'+
     '<details><summary>Issue a published keycard</summary><label>Player account ID <input data-card-recipient></label>'+button('grant-player','Give to player')+button('grant-ground','Place at selected street entrance')+'</details></fieldset>';
   }
   function serviceFields(it){

@@ -112,6 +112,10 @@
     if(pickupDoor&&nearbyEntrance()?.id===pickupDoor)for(const card of dropped){
      action(content,'Pick up '+card.name,()=>moveCard(card,'pickup',{door:pickupDoor}));
     }
+    for(const reward of bag?.cardRewards||[])action(content,'Claim mission reward · '+reward.name,()=>operation(async()=>{
+     if(root.VoidDevTest?.active)throw Error('Exit the test session before claiming a reward.');
+     await game.request('keycards/reward',{item:reward.id});await refresh();note.textContent='Mission keycard added to inventory.';
+    }));
     for(const card of bag?.keycards||[])cardRow(card);
     for(const [id,n] of Object.entries(bag?.owned||{})){const it=bag.items[id];if(it?.kind==='keycard')continue;const row=document.createElement('p');row.append((it?.icon||'')+' '+(it?.name||id)+' × '+n+' ');action(row,'Use',()=>use(id));content.append(row);}
     if(!content.childNodes.length)content.textContent='Inventory is empty.';return;}

@@ -117,6 +117,31 @@ class ItemTests(unittest.TestCase):
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
 
+    def test_reward_requires_saved_completion_and_stays_claimed_after_transfer(self):
+        c = catalog()
+        item = next(i for i in c['items'] if i['id'] == 'ghost-circuit')
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard={'doors': ['apt-avenue-n-16'], 'rewardMission': 'm001-awakening',
+                             'duration': 0, 'transferable': True, 'droppable': True, 'pickup': True, 'bearer': True})
+        self.assertEqual(self.publish(c).status_code, 200)
+        self.fund('owner', 1000)
+        self.fund('outsider', 1000)
+        body = {'item': item['id']}
+        self.assertEqual(self.get('shop/state').json['cardRewards'], [])
+        self.assertEqual(self.post('keycards/reward', body).status_code, 409)
+        campaign = self.db.data['vr_players/' + items._tag('owner')]
+        campaign['save']['universe'] = {'missions': {'m001-awakening': {'completed': True}}}
+        self.assertEqual(self.get('shop/state').json['cardRewards'][0]['id'], item['id'])
+        claim = self.post('keycards/reward', body)
+        self.assertEqual(claim.status_code, 200, claim.json)
+        self.assertFalse(claim.json['duplicate'])
+        self.assertEqual(self.get('shop/state').json['cardRewards'], [])
+        move = {'action': 'transfer', 'card': claim.json['id'], 'recipient': 'outsider', 'nonce': self.nonce()}
+        self.assertEqual(self.post('keycards/move', move).status_code, 200)
+        self.assertTrue(self.post('keycards/reward', body).json['duplicate'])
+        self.assertEqual(self.get('shop/state').json['keycards'], [])
+        self.assertEqual(self.post('keycards/reward', body, 'outsider').status_code, 409)
+
     def test_player_housing_grants_only_its_doors_and_releases_the_physical_card(self):
         self.fund('owner', 1000)
         self.fund('second', 1000)

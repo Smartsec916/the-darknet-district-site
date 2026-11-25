@@ -1199,6 +1199,12 @@ def property_registry(db, uid):
     return jsonify(properties.assignments(db))
 
 
+@api.post('/keycards/reward')
+@signed_in
+def claim_keycard_reward(db, uid):
+    return jsonify(items_service.claim_reward(db, uid, request.get_json(silent=True)))
+
+
 @api.post('/keycards/access')
 @signed_in
 def keycard_access(db, uid):

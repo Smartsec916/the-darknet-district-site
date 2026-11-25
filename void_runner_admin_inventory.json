@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "34227fb14bb14c31",
+  "revision": "e407bc277806b378",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -73667,7 +73667,7 @@
     },
     {
       "source": "void-runner/item-catalog-editor.js",
-      "line": 78,
+      "line": 83,
       "text": "field('line','Dialogue',step.line||'')+'<button data-drop-step=\"'+i+'\">Remove step</button></fieldset>').join('')+button('step','Add routine step')+'</fieldset>';",
       "kind": "source-reference"
     },
@@ -80886,7 +80886,7 @@
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "9f562a4da9b7d5d46e16a380f52b22f831beb6605912d0863139316daf56a141",
-    "void-runner/catalog-shop.js": "0b0f4c18c2163ee4fb9ffe0a4ce8495fa730fd9616387c8d5b4754a8e51b6116",
+    "void-runner/catalog-shop.js": "f555b3c8c5e2e0b783a9f8a0a73a91745e280dbc443a18874a658dce50e38c1a",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -80912,7 +80912,7 @@
     "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
     "void-runner/consumable-spec.js": "9ca4f5fc817475e1de6f63c1f220b69941d18ac673996f4ffb4dd978c196bc3d",
     "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
-    "void-runner/consumables.js": "340e905abe77949fb232703a9bc2e428b6c5d6f4eff0aa31d0ab4fe4e70abf1e",
+    "void-runner/consumables.js": "41f90d08a68e978b5ed76702dfc35a7e30ec7be54383e50cd46e02fc8fcff810",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -80990,7 +80990,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "3a2d0f73b0162342baad96277f65de5f294726eb0d09fe3b730df8fbd0fdc062",
+    "void-runner/item-catalog-editor.js": "b95ceb805d70822f83570bb7d334b1aa75322bd41c2ce82f4fa6bc1d0ed2d905",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "2406e3d21042dc9ad99395049cf84bf93f938b35a79f3a428969f71074d4cb08",
