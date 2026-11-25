@@ -55,7 +55,7 @@
   wear:'Which look the game uses for everyone drawn with this model: none (as made), one of your looks, or a mix (each person keeps one of your looks).'};
  // ---------------------------------------------------------------- who is in the list
  const people=()=>root.VoidDistrictPeople?.npcs?.()||root.VoidDistrictPeople?.NPCS||[];
- function lookOf(id){const M=X().MOVABLE[id];if(M)return M.asset;const p=people().find(n=>n.id===id);if(p)return p.model||p.own||p.figure||p.look||null;
+ function lookOf(id){const tea=root.VoidTeaDuo?.PEOPLE?.[id];if(tea)return tea.model;const M=X().MOVABLE[id];if(M)return M.asset;const p=people().find(n=>n.id===id);if(p)return p.model||p.own||p.figure||p.look||null;
   const MM=root.VoidMilked?.MODELS||{};for(const k in MM)if(MM[k].id===id)return MM[k].asset||MM[k].look||null;if(root.VoidTemple?.MODEL?.id===id)return root.VoidTemple.MODEL.asset||null;return null;}
  const clipsOf=asset=>(root.VoidCrowd?.clips?.[asset]||[]).slice();
  function entries(){const g=S().givers||[],out=[];
@@ -469,18 +469,17 @@
  // ---- add animation: every clip in the game, grouped, searchable; usable ones can be tried and added, the rest say why (npc-paths.js libraryOffer, npc-clip-index.json)
  function animBox(main,e,asset){const id=e.id,mv=!!X().MOVABLE[id],box=el('section','','me-check',{'data-npc-anims':id});box.append(el('h4','Add animation'),hint(HELP.anim));
   if(!root.VoidNPCClipIndex){box.append(el('p','Reading the list of every animation in the game…','me-small'));fetch('void-runner/npc-clip-index.json',{cache:'no-cache'}).then(r=>r.json()).then(j=>{root.VoidNPCClipIndex=j;draw();}).catch(()=>{});main.append(box);return;}
-  if(!mv){box.append(el('p','Only characters the editor can move can use added animations in the game.','me-small me-warn'));main.append(box);return;}
-  const p=plan(id),have=new Set((p&&p.anims)||[]),offer=X().libraryOffer(id),q=String(ui.animSearch||'').toLowerCase(),show=ui.animAll?offer:offer.filter(o=>o.ok||have.has(o.id));
+  const p=plan(id),have=new Set((p&&p.anims)||[]),offer=X().libraryOffer(id,root.VoidNPCClipIndex,asset),q=String(ui.animSearch||'').toLowerCase(),show=ui.animAll?offer:offer.filter(o=>o.ok||have.has(o.id));
   const bar=el('div','','me-row'),s_=el('input','','',{'aria-label':'Find an animation',placeholder:'Find an animation (e.g. wave, dance, laugh)','data-npc-anim-search':'1'});s_.value=ui.animSearch||'';s_.onchange=()=>{ui.animSearch=s_.value;draw();};
   const all=el('label','','me-small'),ac=el('input','','',{type:'checkbox','data-npc-anim-all':'1'});ac.checked=!!ui.animAll;ac.onchange=()=>{ui.animAll=ac.checked;draw();};all.append(ac,' also show the ones she cannot use, and why');
   bar.append(s_,all);box.append(bar,el('p',offer.filter(o=>o.ok).length+' animations she can use · '+offer.length+' in the game · '+have.size+' added','me-small',{'data-npc-anim-count':id}));
   const byCat=new Map();for(const o of show){if(q&&!(o.title+' '+o.source+' '+o.category).toLowerCase().includes(q))continue;if(!byCat.has(o.category))byCat.set(o.category,[]);byCat.get(o.category).push(o);}
   if(!byCat.size)box.append(el('p','Nothing matches. Try another word, or tick “also show the ones she cannot use”.','me-small'));
   for(const [cat,list] of byCat){const d=el('details','','me-npc-group',{'data-npc-anim-cat':cat});d.open=!!q||byCat.size<4||list.some(o=>have.has(o.id));d.append(el('summary',cat+' ('+list.length+')'));
-   for(const o of list.slice(0,q?120:60)){const r=el('div','','me-row',{'data-npc-anim':o.id}),c=el('input','','',{type:'checkbox','aria-label':'Add '+o.title});c.checked=have.has(o.id);c.disabled=!o.ok&&!have.has(o.id);
-    c.onchange=()=>{const cur=plan(id)||{mode:'original'},lst=c.checked?[...new Set([...(cur.anims||[]),o.id])].slice(0,8):(cur.anims||[]).filter(x=>x!==o.id),nx={...cur,anims:lst};if(!lst.length)delete nx.anims;const before=cur;setPlan(id,nx.mode==='original'&&!lst.length?null:nx);status=c.checked?'Added “'+o.title+'”: it is now in her list of things to do.':'Removed “'+o.title+'”.';ui.undo=()=>setPlan(id,before.mode==='original'&&!(before.anims||[]).length?null:before);draw();};
-    r.append(c,el('span',o.title,o.ok?'':'me-small'),el('span',o.ok?(o.status==='library'?'animation library':'works on her rig'):o.why,o.ok?'me-ok me-small':'me-small me-warn'));
-    if(o.ok)r.append(btn('Try it',async()=>{if(!ui.preview||ui.previewFor!==id){status='Press “Show me in 3D” first (above), then try again.';draw();return;}const res=await ui.preview.tryLibrary(o.id,asset);status=res.ok?'Playing “'+o.title+'” on the preview.':res.why;draw();},'',{'data-npc-anim-try':o.id}));
+   for(const o of list.slice(0,q?120:60)){const r=el('div','','me-row',{'data-npc-anim':o.id}),c=el('input','','',{type:'checkbox','aria-label':'Add '+o.title});c.checked=have.has(o.id);c.disabled=!mv||(!o.ok&&!have.has(o.id));
+    c.onchange=()=>{const cur=plan(id)||{mode:'original'},lst=c.checked?[...new Set([...(cur.anims||[]),o.id])]:(cur.anims||[]).filter(x=>x!==o.id),nx={...cur,anims:lst};if(!lst.length)delete nx.anims;const before=cur;setPlan(id,nx.mode==='original'&&!lst.length?null:nx);status=c.checked?'Added “'+o.title+'”: it is now in her list of things to do.':'Removed “'+o.title+'”.';ui.undo=()=>setPlan(id,before.mode==='original'&&!(before.anims||[]).length?null:before);draw();};
+    r.append(c,el('span',o.title,o.ok?'':'me-small'),el('span',o.ok?(o.status==='library'?'animation library':'retarget on preview'):o.why,o.ok?'me-ok me-small':'me-small me-warn'));
+    if(o.ok)r.append(btn('Try it',async()=>{if(!ui.preview||ui.previewFor!==id){status='Press “Show me in 3D” first (above), then try again.';draw();return;}const res=await ui.preview.tryLibrary(o.id,asset,o.library);status=res.ok?'Playing “'+o.title+'” on the preview.':res.why;draw();},'',{'data-npc-anim-try':o.id}));
     else r.append(btn('Request it',()=>{ui.requestText=o.title+' ('+o.source+')';draw();setTimeout(()=>host.querySelector('[data-npc-request-text]')?.focus(),30);},'',{'data-npc-anim-request':o.id}));d.append(r);}
    if(list.length>(q?120:60))d.append(el('p','… and '+(list.length-(q?120:60))+' more: type in the box to find one.','me-small'));box.append(d);}
   main.append(box);}

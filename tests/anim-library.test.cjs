@@ -3,7 +3,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const L=require('../void-runner/anim-library.js');
 test('fourteen ActorCore clips, each with a title, a category and a length',()=>{
- const all=L.all();assert.equal(all.length,14);assert.equal(new Set(all.map(c=>c.id)).size,14);
+ const all=L.all().filter(c=>c.library==='actorcore');assert.equal(all.length,14);assert.equal(new Set(all.map(c=>c.id)).size,14);
  for(const c of all){assert.match(c.id,/^ac-[a-z0-9-]+$/);assert.ok(c.title&&c.category&&c.seconds>5,c.id);assert.ok(['inplace','free'].includes(c.root));}
  assert.equal(L.byCategory('dance').length,2);assert.equal(L.byCategory('floor').length,3);assert.equal(L.clip('ac-sit-bench-1').needs,'seat');assert.equal(L.clip('nope'),null);
 });
