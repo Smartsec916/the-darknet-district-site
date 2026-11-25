@@ -134,6 +134,12 @@
  const door=id=>doors().find(d=>d.id===id)||null;
  const doorsIn=q=>doors().filter(d=>d.quarter===q);
  // The door nearest a map click (within `max` metres), for the editor's map picker.
+ function pickupPosition(location,player,id){
+  const d=door(id);
+  if(!d||location?.area!=='street'||location.quarter!==d.quarter||!player||
+     !Number.isFinite(player.x)||!Number.isFinite(player.z)||Math.hypot(player.x-d.x,player.z-d.z)>=5)return null;
+  return {area:'street',quarter:d.quarter,x:player.x,z:player.z};
+ }
  function nearestDoor(x,z,max=12,family=null){let best=null,bd=max;for(const d of doors()){if(family&&(d.family||'city')!==family)continue;const k=Math.hypot(d.x-x,d.z-z);if(k<bd){bd=k;best=d;}}return best;}
 
  // ---------------------------------------------------------------- the interiors (local metres; world = ORIGIN + local)
@@ -395,7 +401,7 @@
  function inventory(){return {hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
-  HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
+  HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,pickupPosition,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
   readAddressRegistry,interiorDoors,editorDoorPoint,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
  if(node){module.exports=api;return;}
  root.VoidApartments=Object.assign(root.VoidApartments||{},api);

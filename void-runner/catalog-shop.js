@@ -64,6 +64,11 @@
    return operation(async()=>{
     if(root.VoidDevTest?.active)throw Error('Exit the test session before moving a physical keycard.');
     if(fields.door&&fields.door!==nearbyEntrance()?.id)throw Error('Return to this entrance before moving the keycard.');
+    if(actionName==='pickup'){
+     const position=root.VoidApartments.pickupPosition(walkingLocation,walker,fields.door);
+     if(!position)throw Error('Return to the street entrance to pick up this card.');
+     fields={...fields,position};
+    }
     const r=receipt([actionName,card.id,fields.door||fields.recipient].join('/'));
     await game.request('keycards/move',{action:actionName,card:card.id,nonce:r.nonce,...fields});r.clear();
     await refresh();note.textContent='Keycard inventory updated.';

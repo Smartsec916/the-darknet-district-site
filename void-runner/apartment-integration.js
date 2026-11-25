@@ -215,10 +215,12 @@
  function start(){const R=(a,f)=>VoidInteractions.register(a,f);
   R('apt-door',({item})=>{try{resumeWalking();}catch{}enterDoor(item.door);});
   R('apt-keycard-pickup',async({item})=>{
-   if(root.VoidDevTest?.active||typeof walker==='undefined'||walkingLocation?.area!=='street'||A.nearestDoor(walker.x,walker.z,5)?.id!==item.door)return;
+   if(root.VoidDevTest?.active||typeof walker==='undefined')return;
+   const position=A.pickupPosition(walkingLocation,walker,item.door);
+   if(!position||Math.hypot(walker.x-item.position[0],walker.z-item.position[2])>item.range)return;
    try{
     item.nonce||=crypto.randomUUID();
-    await root.VoidConsumableGame.request('keycards/move',{action:'pickup',card:item.card,door:item.door,nonce:item.nonce});
+    await root.VoidConsumableGame.request('keycards/move',{action:'pickup',card:item.card,door:item.door,position,nonce:item.nonce});
     item.hidden=true;await root.VoidConsumableGame.refresh();note('Keycard added to inventory.');
    }catch(e){note(e.message||'Could not pick up this keycard.');}
   });

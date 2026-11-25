@@ -89,7 +89,10 @@ class ItemTests(unittest.TestCase):
         self.assertEqual(self.post('keycards/move', drop).status_code, 200)
         self.assertTrue(self.post('keycards/move', drop).json['duplicate'])
         self.assertFalse(self.post('keycards/access', {'door': door}).json['allowed'])
-        pickup = dict(drop, action='pickup', nonce=self.nonce())
+        pickup = dict(drop, action='pickup', position={'area':'street','quarter':'avenue','x':16,'z':-5}, nonce=self.nonce())
+        for bad in [None, dict(pickup['position'], x=21), dict(pickup['position'], quarter='oldtown'),
+                    dict(pickup['position'], area='apartment')]:
+            self.assertEqual(self.post('keycards/move', dict(pickup, position=bad)).status_code, 403)
         result = self.post('keycards/move', pickup)
         self.assertEqual(result.status_code, 200, result.json)
         self.assertEqual(self.get('shop/state').json['keycards'], [held])
@@ -168,7 +171,7 @@ class ItemTests(unittest.TestCase):
             self.assertEqual(self.get('shop/state?gameMinute=103').json['keycards'][0]['gameRemaining'], 7)
         move = dict(card=card['id'], door=door, action='drop', nonce=self.nonce())
         self.assertEqual(self.post('keycards/move?gameMinute=104', move).status_code, 200)
-        self.assertEqual(self.post('keycards/move?gameMinute=600', dict(move, action='pickup', nonce=self.nonce())).status_code, 200)
+        self.assertEqual(self.post('keycards/move?gameMinute=600', dict(move, action='pickup', position={'area':'street','quarter':'avenue','x':16,'z':-5}, nonce=self.nonce())).status_code, 200)
         transfer = dict(card=card['id'], recipient='outsider', action='transfer', nonce=self.nonce())
         self.assertEqual(self.post('keycards/move?gameMinute=602', transfer).status_code, 200)
         for minute, expected in [(3, True), (4, False), (1, False)]:
@@ -189,7 +192,7 @@ class ItemTests(unittest.TestCase):
         def collect(uid):
             barrier.wait(timeout=5)
             try:
-                items.move_card(self.db, uid, {'card':card_id,'action':'pickup','door':door,'nonce':'pickup-'+uid+'-123'})
+                items.move_card(self.db, uid, {'card':card_id,'action':'pickup','door':door,'position':{'area':'street','quarter':'avenue','x':16,'z':-5},'nonce':'pickup-'+uid+'-123'})
                 return True
             except items.DraftError as error:
                 self.assertIn('unavailable', str(error))

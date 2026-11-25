@@ -384,7 +384,7 @@ def card_access(db, uid, target, now=None, minute=None):
 def move_card(db, uid, body, minute=None):
     """Move the same physical card atomically between inventories or a registered entrance."""
     from firebase_admin import firestore
-    if not _only(body, ['action', 'card', 'door', 'recipient', 'nonce']):
+    if not _only(body, ['action', 'card', 'door', 'recipient', 'nonce', 'position']):
         raise DraftError('Unknown keycard action.')
     action = body.get('action')
     card_id = body.get('card')
@@ -412,6 +412,13 @@ def move_card(db, uid, body, minute=None):
             return {'duplicate': True}
         player = _clean_player(ref.get(transaction=tx).to_dict())
         if action == 'pickup':
+            position = body.get('position')
+            entrance = inventory()['apartments']['doors'][door]
+            if (not _only(position, ['area', 'quarter', 'x', 'z'])
+                    or position.get('area') != 'street' or position.get('quarter') != entrance['quarter']
+                    or not all(_num(position.get(axis), -100000, 100000) for axis in ('x', 'z'))
+                    or sum((position[axis] - entrance[axis])**2 for axis in ('x', 'z')) >= 25):
+                raise DraftError('Stand beside this street entrance to pick up the keycard.', 403)
             drop = drop_ref.get(transaction=tx).to_dict() or {}
             card = drop.get('card')
             if not card or drop.get('door') != door or not card.get('pickup'):

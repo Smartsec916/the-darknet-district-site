@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "fabcc1b22179540e",
+  "revision": "30a5a66921f30b87",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80870,8 +80870,8 @@
     "void-runner/anim-library.js": "b4879bd34b9014a5d73cd566c3fd72b15b81dfc628483b99667e6547aa455a45",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
-    "void-runner/apartment-integration.js": "9636fcbf0178e488e7e18fe4a515fccac5f7bd827efb4a65166f9f204af678c4",
-    "void-runner/apartments.js": "2a9c3e2170afbe80b8f3378b727a48071fc5069b64915d56e6e3e60413a7f567",
+    "void-runner/apartment-integration.js": "d233ef6b7bc55600694ca313d96f495c2551c289b245f576dfd8ae73db8d8e6f",
+    "void-runner/apartments.js": "d52f4742d9d511a0a7a5880fb14d61547dc520e8f64300564948d7103a607c1f",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
@@ -80886,7 +80886,7 @@
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "9f562a4da9b7d5d46e16a380f52b22f831beb6605912d0863139316daf56a141",
-    "void-runner/catalog-shop.js": "99261c80f7a0e0bf9886567f1404aac36c455f7ae753438fe58449ad1fd75e49",
+    "void-runner/catalog-shop.js": "2f513dbc85c7470619dbfb82d0af9377b70ae40cabff694c0ccb043c6251f522",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
