@@ -124,7 +124,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   const deadline=Date.now()+240000;let previous='';
   for(;;){
    if(advancePickup||advanceOccupied)await page.evaluate(({pickup,occupied})=>{
-    const taxi=VoidRoadTaxi,world=taxi.world,cab=world?.job?.cab,made=VoidBabylon.district?.made;
+    const taxi=VoidRoadTaxi,world=taxi.world,cab=world?.job?.cab,made=VoidBabylon.district?.streetPair?.made;
     if(!cab||taxi.crossing||VoidGateTransit.busy)return;
     const phase=pickup?'to-pickup':'to-dest';
     if(occupied&&(!made||mode!=='road-taxi'))return;
