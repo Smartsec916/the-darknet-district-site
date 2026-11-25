@@ -25,9 +25,16 @@
   const out=[];if(!num(m.amount,d.min,d.max))out.push(n+d.label+' is from '+d.min+' to '+d.max);
   if(!num(m.fadeIn??0,0,60)||!num(m.fadeOut??0,0,120)||(m.fadeIn||0)+(m.fadeOut||0)>m.duration)out.push(n+'modifier fades must fit within the duration');
   if(!num(m.delay,0,L.delay))out.push(n+'delay is 0 to '+L.delay);if(!num(m.duration,1,L.duration))out.push(n+'duration is 1 to '+L.duration);return out;}
- const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound','service'];
+ const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound','service','keycard'];
  function itemProblems(it,cats){const out=[],n=(it&&it.id||'item')+': ';
   if(!hasOnly(it,ITEM_KEYS))return [n+'unknown fields'];
+  if(it.kind==='keycard'){
+   const c=it.keycard,flags=['transferable','droppable','pickup','bearer'];
+   if(it.stack!==1||it.category!=='keycards'||it.consumable||!c||!hasOnly(c,['doors','notes','privateNotes','duration',...flags])||
+    !Array.isArray(c.doors)||!c.doors.length||c.doors.length>64||new Set(c.doors).size!==c.doors.length||
+    c.doors.some(d=>typeof d!=='string'||!d.length)||flags.some(k=>typeof c[k]!=='boolean')||
+    !plain(c.notes||'',600)||!plain(c.privateNotes||'',600)||!int(c.duration,0,315360000))out.push(n+'choose authorized doors and valid keycard settings');
+  }else if(it.keycard!=null)out.push(n+'only keycards can carry door permissions');
   if(it.kind==='service'){
    const svc=it.service,steps=svc?.steps;
    if(!svc||!hasOnly(svc,['steps','participation','completion'])||!['watch','follow'].includes(svc.participation)||!['timer','confirm'].includes(svc.completion)||!Array.isArray(steps)||!steps.length||steps.length>12)out.push(n+'choose service steps and completion rules');

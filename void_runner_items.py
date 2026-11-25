@@ -13,7 +13,7 @@ import re
 import time
 from pathlib import Path
 
-from void_runner_drafts import DraftError
+from void_runner_drafts import DraftError, inventory
 
 ROOT = Path(__file__).parent
 _text = (ROOT / 'void-runner' / 'consumable-spec.js').read_text(encoding='utf-8')
@@ -108,12 +108,165 @@ def service_problems(service):
     return [] if total <= 600 else ['Services can run for up to ten minutes']
 
 
+CARD_FLAGS = ('transferable', 'droppable', 'pickup', 'bearer')
+
+
+def valid_card_door(target, doors=None):
+    if not isinstance(target, str):
+        return False
+    doors = inventory()['apartments']['doors'] if doors is None else doors
+    if target in doors:
+        return True
+    parts = target.split('/')
+    if len(parts) != 3 or parts[0] != 'residence' or not re.fullmatch(r'0|[1-9][0-9]?', parts[2]):
+        return False
+    door = doors.get(parts[1], {})
+    family = door.get('family')
+    return family in ('city', 'container') and int(parts[2]) < (4 if family == 'container' else 10)
+
+
+def keycard_problems(card):
+    if not _only(card, ['doors', 'notes', 'privateNotes', 'duration', *CARD_FLAGS]):
+        return ['Invalid keycard configuration.']
+    registry = inventory()['apartments']['doors']
+    doors = card.get('doors')
+    if not isinstance(doors, list) or not 1 <= len(doors) <= 64 or not all(valid_card_door(d, registry) for d in doors) or len(set(doors)) != len(doors):
+        return ['Select distinct registered entrances or apartment doors for this keycard.']
+    if not all(type(card.get(k)) is bool for k in CARD_FLAGS):
+        return ['Set the transfer, drop, pickup and bearer permissions.']
+    if not all(_plain(card.get(k, ''), 600) for k in ('notes', 'privateNotes')):
+        return ['Keycard notes must be plain text of at most 600 characters.']
+    if not _int(card.get('duration', 0), 0, 315360000):
+        return ['Choose a valid keycard lifetime in seconds.']
+    return []
+
+
+def public_catalog(published):
+    content = published['content']
+    return {**published, 'content': {**content, 'items': [
+        {k: v for k, v in item.items() if k != 'keycard'} for item in content['items']
+    ]}}
+
+
+def issue_card(item, owner, identity, now):
+    rules = item['keycard']
+    return {
+        'id': identity, 'template': item['id'], 'name': item['name'], 'icon': item.get('icon', ''),
+        'description': item.get('description', ''), 'doors': list(rules['doors']),
+        'notes': rules.get('notes', ''), 'issuedTo': _tag(owner),
+        'expires': int(now) + rules['duration'] if rules.get('duration') else 0,
+        **{flag: rules[flag] for flag in CARD_FLAGS}
+    }
+
+
+def card_allows(card, holder, target, now):
+    return (target in card['doors'] and (not card['expires'] or card['expires'] > now)
+            and (card['bearer'] or card['issuedTo'] == _tag(holder)))
+
+
+def card_access(db, uid, target, now=None):
+    if not valid_card_door(target):
+        raise DraftError('Choose a registered door.')
+    player = _clean_player(_player_ref(db, uid).get().to_dict())
+    return any(card_allows(card, uid, target, time.time() if now is None else now)
+               for card in player['cards'].values())
+
+
+def move_card(db, uid, body):
+    """Move the same physical card atomically between inventories or a registered entrance."""
+    from firebase_admin import firestore
+    if not _only(body, ['action', 'card', 'door', 'recipient', 'nonce']):
+        raise DraftError('Unknown keycard action.')
+    action = body.get('action')
+    card_id = body.get('card')
+    door = body.get('door')
+    recipient = body.get('recipient')
+    nonce = _nonce(body)
+    if action not in ('drop', 'pickup', 'transfer') or not isinstance(card_id, str) or not re.fullmatch('[a-f0-9]{64}', card_id):
+        raise DraftError('Choose a physical keycard.')
+    if action == 'transfer':
+        if not isinstance(recipient, str) or not re.fullmatch('[A-Za-z0-9_-]{1,128}', recipient) or recipient == uid or door is not None:
+            raise DraftError('Choose a different player.')
+    elif recipient is not None or not valid_card_door(door) or '/' in door:
+        raise DraftError('Choose a registered street entrance.')
+    ref = _player_ref(db, uid)
+    drop_ref = db.collection('vr_keycard_drops').document(card_id)
+    receipt = db.collection('vr_keycard_actions').document(_tag(uid + '/' + nonce))
+    command = {k: body[k] for k in ('action', 'card', 'door', 'recipient') if k in body}
+
+    @firestore.transactional
+    def commit(tx):
+        prior = receipt.get(transaction=tx).to_dict()
+        if prior:
+            if prior != command:
+                raise DraftError('This action reference has already been used.', 409)
+            return {'duplicate': True}
+        player = _clean_player(ref.get(transaction=tx).to_dict())
+        if action == 'pickup':
+            drop = drop_ref.get(transaction=tx).to_dict() or {}
+            card = drop.get('card')
+            if not card or drop.get('door') != door or not card.get('pickup'):
+                raise DraftError('This card is unavailable here.', 409)
+            if not card['transferable'] and card['issuedTo'] != _tag(uid):
+                raise DraftError('Only the original holder can reclaim this card.', 403)
+            _receive_card(player, card)
+            tx.delete(drop_ref)
+        else:
+            card = player['cards'].get(card_id)
+            if not card:
+                raise DraftError('You no longer hold this card.', 409)
+            if action == 'transfer':
+                if not card['transferable']:
+                    raise DraftError('This card cannot be transferred.', 403)
+                account = db.collection('vr_players').document(_tag(recipient)).get(transaction=tx)
+                if not account.to_dict():
+                    raise DraftError('The recipient needs a saved campaign.', 404)
+                other_ref = _player_ref(db, recipient)
+                other = _clean_player(other_ref.get(transaction=tx).to_dict())
+                _receive_card(other, card)
+                tx.set(other_ref, other)
+            else:
+                if not card['droppable']:
+                    raise DraftError('This card cannot be dropped.', 403)
+                tx.create(drop_ref, {'door': door, 'card': card})
+            del player['cards'][card_id]
+            player['owned'].pop(card['template'], None)
+        tx.set(ref, player)
+        tx.create(receipt, command)
+        return {'duplicate': False}
+    return commit(db.transaction())
+
+
+def dropped_cards(db, uid, door):
+    if not valid_card_door(door) or '/' in door:
+        raise DraftError('Choose a registered street entrance.')
+    result = []
+    for doc in db.collection('vr_keycard_drops').where('door', '==', door).limit(64).stream():
+        card = doc.to_dict()['card']
+        if card['pickup'] and (card['transferable'] or card['issuedTo'] == _tag(uid)):
+            result.append({k:card[k] for k in ('id', 'name', 'icon')})
+    return result
+
+
+def _receive_card(player, card):
+    if player['owned'].get(card['template']) or len(player['cards']) >= 64:
+        raise DraftError('The receiving inventory cannot hold this card.', 409)
+    player['cards'][card['id']] = card
+    player['owned'][card['template']] = 1
+
+
 def item_problems(it, cats):
     n = (it.get('id') if isinstance(it, dict) else 'item') + ': '
-    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound', 'service']
+    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound', 'service', 'keycard']
     if not _only(it, keys):
         return [n + 'unknown fields']
     out = []
+    if it.get('kind') == 'keycard':
+        out.extend(keycard_problems(it.get('keycard')))
+        if it.get('stack') != 1 or it.get('consumable') or it.get('category') != 'keycards':
+            out.append(n + 'keycards are individual items in the Keycards category')
+    elif 'keycard' in it:
+        out.append(n + 'only keycards have door permissions')
     if it.get('kind') == 'service':
         out.extend(service_problems(it.get('service')))
     elif it.get('service') is not None:
@@ -535,7 +688,7 @@ def _player_ref(db, uid):
 def _clean_player(rec):
     rec = rec or {}
     owned = {k: v for k, v in (rec.get('owned') or {}).items() if isinstance(k, str) and type(v) is int and v > 0}
-    return {'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
+    return {'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
 
 
 def _span(defn):
@@ -580,7 +733,7 @@ def player_state(db, uid, now=None):
     p = _clean_player(_player_ref(db, uid).get().to_dict())
     active = _active_view(p, content, now)
     items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
-    return {'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
+    return {'keycards': [{k:v for k,v in c.items() if k != 'issuedTo'} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
 
 
 def _nonce(payload):
@@ -663,6 +816,11 @@ def purchase(db, uid, payload, now=None):
         tx.set(campaign_ref, campaign)
         tx.create(receipt_ref, {'vendor': v['id'], 'item': item['id'], 'qty': qty, 'cost': cost, 'at': int(now), 'service': service})
         r['remaining'] -= qty
+        if item['kind'] == 'keycard':
+            if len(p['cards']) >= 64:
+                raise DraftError('Your keycard inventory is full.', 409)
+            card_id = _tag(uid + '/' + nonce)
+            p['cards'][card_id] = issue_card(item, uid, card_id, now)
         if not service:
             p['owned'][item['id']] = have + qty
         p['nonces'] = (p['nonces'] + [nonce])[-30:]

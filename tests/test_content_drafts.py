@@ -19,6 +19,7 @@ class Collection:
 class Transaction:
     def __init__(self,db):self.db=db;self.writes=[]
     def set(self,ref,data):self.writes.append((ref.key,copy.deepcopy(data),False))
+    def delete(self,ref):self.writes.append((ref.key,None,False))
     def create(self,ref,data):self.writes.append((ref.key,copy.deepcopy(data),True))
 class DB:
     def __init__(self):self.data={};self.lock=threading.Lock()
@@ -30,7 +31,9 @@ def transactional(fn):
             result=fn(tx)
             for key,value,create in tx.writes:
                 if create and key in tx.db.data:raise ValueError('immutable revision exists')
-            for key,value,_ in tx.writes:tx.db.data[key]=value
+            for key,value,_ in tx.writes:
+                if value is None:tx.db.data.pop(key,None)
+                else:tx.db.data[key]=value
             return result
     return call
 
@@ -111,7 +114,8 @@ class DraftTests(unittest.TestCase):
         self.post();before=copy.deepcopy(self.db.data);d=copy.deepcopy(self.doc);d['sourceKey']='new';d['data']['id']='draft-altered';self.assertEqual(self.post(d,revision=1).status_code,409);self.assertEqual(self.db.data,before)
     def test_cursor_compatibility_warnings_remain_separate_from_live_saves(self):
         scene=drafts.template('dialogue','mara_workshop_intro',self.inv);scene['data']['nodes']=[scene['data']['nodes'][0]];scene['data']['nodes'][0]['next']=None
-        report=drafts.validate(scene,self.inv);self.assertTrue(any('cursor node IDs' in w for w in report['warnings']));self.assertEqual(self.db.data,{})
+        report=drafts.validate(scene,self.inv);self.assertTrue(any('cursor node IDs' in w for w in report['warnings']));self.assertEqual(self.db.data,{})
+
 
 
 class WorkspaceBackupTests(unittest.TestCase):

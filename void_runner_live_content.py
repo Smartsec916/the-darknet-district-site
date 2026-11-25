@@ -2916,6 +2916,12 @@ def _commit(db, uid, expected, action, content_for, note='', interaction_only=Fa
             raise DraftError('The version history is full.', 409)
         nxt = (history[-1]['version'] if history else 0) + 1
         content, source = content_for(tx, live, history)
+        if (content or {}).get('characters'):
+            from void_runner_properties import registry_ref, validate_new_npc_units
+            before = (_version_ref(db, live).get(transaction=tx).to_dict() or {}).get('content') if live else {}
+            players = (registry_ref(db).get(transaction=tx).to_dict() or {}).get('units', {})
+            validate_new_npc_units(before, content, players)
+
         # Numbers once published are never reused: the ledger on the state document keeps every number any version published.
         ledger = {int(k): v for k, v in (state.get('numbers') or {}).items()}
         ledger.update({k: v for k, v in shipped_numbers().items() if k not in ledger})

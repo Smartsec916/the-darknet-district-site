@@ -65,6 +65,51 @@ class ItemTests(unittest.TestCase):
             self.fund(t, 1000)
         return self.post('shop/purchase', {'vendor': vendor, 'item': item, 'qty': qty, 'credits': credits, 'nonce': self.nonce()}, t)
 
+    def test_physical_card_access_and_notes(self):
+        catalog_data = catalog()
+        door = 'apt-avenue-n-16'
+        unit = 'residence/' + door + '/2'
+        card = next(it for it in catalog_data['items'] if it['id'] == 'ghost-circuit')
+        card.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard={'doors': [door, unit], 'notes': 'Use the rear entrance.',
+                             'privateNotes': 'Editor-only reservation', 'duration': 0,
+                             'transferable': True, 'droppable': True, 'pickup': True, 'bearer': True})
+        published = self.publish(catalog_data)
+        self.assertEqual(published.status_code, 200, published.json)
+        self.assertNotIn('Editor-only reservation', self.get('items/catalog').get_data(as_text=True))
+        bought = self.buy()
+        self.assertEqual(bought.status_code, 200, bought.json)
+        held = self.get('shop/state').json['keycards'][0]
+        self.assertEqual(held['notes'], 'Use the rear entrance.')
+        self.assertNotIn('privateNotes', held)
+        for target in [door, unit]:
+            self.assertTrue(self.post('keycards/access', {'door': target}).json['allowed'])
+        self.assertFalse(self.post('keycards/access', {'door': unit[:-1]+'3'}).json['allowed'])
+        drop = {'action': 'drop', 'card': held['id'], 'door': door, 'nonce': self.nonce()}
+        self.assertEqual(self.post('keycards/move', drop).status_code, 200)
+        self.assertTrue(self.post('keycards/move', drop).json['duplicate'])
+        self.assertFalse(self.post('keycards/access', {'door': door}).json['allowed'])
+        pickup = dict(drop, action='pickup', nonce=self.nonce())
+        result = self.post('keycards/move', pickup)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(self.get('shop/state').json['keycards'], [held])
+        self.assertTrue(self.post('keycards/move', pickup).json['duplicate'])
+
+    def test_player_housing_grants_only_its_doors_and_releases_the_physical_card(self):
+        self.fund('owner', 1000)
+        self.fund('second', 1000)
+        door = 'apt-avenue-n-16'
+        unit = f'residence/{door}/0'
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': 'owner', 'revision': 0}).status_code, 200)
+        self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
+        self.assertFalse(self.post('keycards/access', {'door': unit[:-1]+'1'}).json['allowed'])
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': 'second', 'revision': 1}).status_code, 409)
+        self.assertEqual(self.post('developer/properties', {'unit': unit[:-1]+'1', 'player': 'second', 'revision': 1}).status_code, 200)
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': None, 'revision': 1}).status_code, 409)
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': None, 'revision': 2}).status_code, 200)
+        self.assertFalse(self.post('keycards/access', {'door': unit}).json['allowed'])
+        self.assertEqual(self.get('shop/state').json['keycards'], [])
+
     def test_seed_is_valid_and_matches_the_browser(self):
         self.assertEqual(items.problems(items.SEED), [])
         self.assertEqual(self.client.get(U + 'items/catalog').json['content']['items'][0]['id'], 'sprint-tonic')

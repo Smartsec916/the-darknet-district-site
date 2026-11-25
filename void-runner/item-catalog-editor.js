@@ -47,6 +47,21 @@
     (kiosk?field('slot','Physical kiosk bay',r.slot||'',[['','Original bay'],...Object.entries(spec.kioskSlots).map(([id,s])=>[id,s.name])])+field('model','Kiosk cabinet',r.model||'',[['','Original scanner'],...Object.entries(spec.kioskModels).map(([id,m])=>[id,m.name])])+'<label>Screen light <input type="color" data-field="screen" value="'+esc(r.screen||'#68e0db')+'"></label>':'')+
     wrap('message','Promotional message',r.message||'')+wrap('sound','Purchase sound (game asset path)',r.sound||''):'')+'</fieldset>';
   }
+  function keycardFields(it){
+   const card=it.keycard,A=root.VoidApartments;
+   if(!card||!A)return '<p>Open the game property registry to configure door permissions.</p>';
+   const doors=A.doors(),current=doors.find(d=>d.id===s.cardBuilding)||doors[0];
+   const units=current?A.propertyRecord(current).units:[];
+   const targets=current?[[current.id,'Street entrance'],...units.map(u=>[u.id,'Apartment '+u.number])]:[];
+   const flag=(id,label)=>'<label><input type="checkbox" data-card-flag="'+id+'" '+(card[id]?'checked':'')+'> '+label+'</label>';
+   return '<fieldset><legend>Keycard access</legend><label>Building <select data-card-building>'+options(doors.map(d=>[d.id,d.name]),current?.id)+'</select></label>'+
+    targets.map(([id,label])=>'<label><input type="checkbox" data-card-door="'+esc(id)+'" '+(card.doors.includes(id)?'checked':'')+'> '+esc(label)+'</label>').join(' ')+
+    '<p>'+card.doors.length+' authorized doors</p>'+
+    '<label>Player-visible notes <textarea data-card-text="notes" maxlength="600">'+esc(card.notes)+'</textarea></label>'+
+    '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
+    flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
+    '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details></fieldset>';
+  }
   function serviceFields(it){
    const svc=it.service,steps=svc?.steps||[],id=tools.catalogNpc?.id||sellers(s.data,it.id).find(v=>v.kind==='npc')?.entity.replace(/^npc-/,'');
    const choices=id&&root.VoidNPCPaths?.actionsFor(id),clips=(choices||[]).map(v=>[v.id||v.clip,v.label||v.name||v.id||v.clip]).filter(v=>v[0]);
@@ -78,7 +93,7 @@
     '<label><input type="checkbox" data-instock '+(s.filter.stock?'checked':'')+'> In stock</label><p><label>Items <select data-picker>'+options([['','Choose an item'],...list.map(v=>[v.id,v.name])],s.id)+'</select></label> '+list.length+' items</p>'+
     field('newId','New item ID','')+'<label>Template <select data-example>'+options([['','Blank item'],...Object.entries(root.VoidConsumableStudio?.examples||{}).map(([id,v])=>[id,v[0]])],'')+'</select></label>'+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
     (it?'<fieldset><legend>'+esc(it.name)+' · '+esc(it.id)+'</legend>'+field('name','Name',it.name)+field('description','Description',it.description)+field('category','Category',it.category,cats)+
-     field('kind','Item type',it.kind,spec.kinds)+(it.kind==='service'?serviceFields(it):'')+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
+     field('kind','Item type',it.kind,spec.kinds)+(it.kind==='keycard'?keycardFields(it):'')+(it.kind==='service'?serviceFields(it):'')+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
      field('image','Product image path',it.image||'')+field('purchaseSound','Purchase sound',it.purchaseSound||'')+field('useSound','Use sound',it.useSound||'')+field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+
      ('<button data-effects type="button">Open Consumables Studio</button>')+field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset>'+
      '<h4>Sold at</h4><p>'+esc(where.map(v=>v.name+' · '+v.location).join(', ')||'No vendors assigned')+'</p>'+assignments(it):'')+
@@ -104,6 +119,14 @@
   };
   host.onchange=async e=>{
    if(s.busy||!current())return;const el=e.target,k=el.dataset.field,it=item(),reg=el.closest('[data-seller]')?.dataset.seller;
+   if(el.matches('[data-card-building]')){s.cardBuilding=el.value;draw();return;}
+   if(it?.keycard){
+    const c=it.keycard;
+    if(el.dataset.cardDoor){const id=el.dataset.cardDoor;c.doors=c.doors.filter(d=>d!==id);if(el.checked)c.doors.push(id);mark();draw();return;}
+    if(el.dataset.cardFlag){c[el.dataset.cardFlag]=el.checked;mark();return;}
+    if(el.dataset.cardText){c[el.dataset.cardText]=el.value;mark();return;}
+    if(el.matches('[data-card-duration]')){c.duration=el.valueAsNumber;mark();return;}
+   }
    if(el.matches('[data-import]')){
     const f=el.files[0];if(!f)return;
     await work(async()=>{if(f.size>spec.limits.bytes)throw Error('File exceeds the catalog size limit.');const c=JSON.parse(await f.text()),p=rules.problems(c);if(p.length)throw Error(p.slice(0,5).join(' '));
@@ -117,7 +140,13 @@
     obj[k]=k==='point'?Number(el.value):el.type==='number'?el.valueAsNumber:el.value;mark();return;
    }
    if(k==='kind'&&!reg){
-    it.kind=el.value;if(it.kind==='service'){it.service||={participation:'watch',completion:'timer',steps:[{seconds:15,point:0,clip:'',line:''}]};it.consumable=null;}
+    it.kind=el.value;
+    if(it.kind==='keycard'){
+     delete it.service;it.consumable=null;it.stack=1;it.category='keycards';
+     if(!s.data.categories.some(c=>c.id==='keycards'))s.data.categories.push({id:'keycards',name:'Keycards'});
+     it.keycard||={doors:[],notes:'',privateNotes:'',duration:0,transferable:false,droppable:false,pickup:true,bearer:false};
+    }else delete it.keycard;
+    if(it.kind==='service'){it.service||={participation:'watch',completion:'timer',steps:[{seconds:15,point:0,clip:'',line:''}]};it.consumable=null;}
     else{delete it.service;if(!it.consumable&&it.kind==='consumable')it.consumable={effects:[],modifiers:[]};}mark();draw();return;
    }
    if(reg){

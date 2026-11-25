@@ -1118,9 +1118,9 @@ def items_admin(uid):
 @api.get('/items/catalog')
 def items_catalog():
     if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
-        return jsonify(version=0, content=items_service.SEED)
+        return jsonify(items_service.public_catalog({'version': 0, 'content': items_service.SEED}))
     db, _, _ = services()
-    return jsonify(items_service.live(db))
+    return jsonify(items_service.public_catalog(items_service.live(db)))
 
 
 @api.get('/developer/items')
@@ -1168,6 +1168,37 @@ def shop_vendor(db, uid, vendor):
 @signed_in
 def shop_state(db, uid):
     return jsonify(items_service.player_state(db, uid))
+
+
+@api.get('/keycards/drops/<door>')
+@signed_in
+def keycard_drops(db, uid, door):
+    return jsonify(cards=items_service.dropped_cards(db, uid, door))
+
+
+@api.post('/keycards/move')
+@signed_in
+def keycard_move(db, uid):
+    return jsonify(items_service.move_card(db, uid, request.get_json(silent=True)))
+
+
+@api.route('/developer/properties', methods=['GET', 'POST'])
+@signed_in
+def property_registry(db, uid):
+    import void_runner_properties as properties
+    items_admin(uid)
+    if request.method == 'POST':
+        return jsonify(properties.assign(db, request.get_json(silent=True)))
+    return jsonify(properties.assignments(db))
+
+
+@api.post('/keycards/access')
+@signed_in
+def keycard_access(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or set(body) != {'door'}:
+        raise DraftError('Choose one door.')
+    return jsonify(allowed=items_service.card_access(db, uid, body['door']))
 
 
 @api.post('/shop/purchase')

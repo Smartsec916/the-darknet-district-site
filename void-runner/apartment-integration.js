@@ -31,7 +31,7 @@
  /* Street doors IN USE for this player (the owner, 20 Nov 2026: "doors on the streets without anything placed on them shouldn't show the option to open it when walking by"):
     only these show their prompts (the door and its access point; apartments.js doorsInUse: a taken mission's apartment or location on it, from-step reached or not, a hack
     step aimed at it) or one a hack opened, or the Mission Editor's test apartment. Every other street door shows nothing: the door itself is still drawn, locked. */
- function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);return u;}
+ function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);for(const c of root.VoidConsumableGame?.data?.keycards||[])for(const id of c.doors)if(!id.includes('/'))u.add(id);return u;}
  let visit=null;   // {door (street door record), list (instances on it), inst (the one inside), slots}
  const here=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.apartment?walkingLocation:null;}catch{return null;}};
  // ---- the locations ----
@@ -123,7 +123,18 @@
  {const NC=N();if(NC&&NC.build&&!NC.build.apartments){const orig=NC.build;NC.build=function(args){const h=orig.apply(this,arguments);try{if(args&&args.area==='street'&&h&&h.quarter){const sd=streetDoors({...args,quarter:h.quarter});if(sd){h.aptDoors=sd;const t=h.tick,d=h.dispose;let last=null;
    h.tick=function(time){const r=t.apply(this,arguments);const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{sd.tick(dt);}catch(e){console.warn('[apartments]',e);}return r;};h.dispose=function(){try{sd.dispose();}catch{}return d.apply(this,arguments);};}}}catch(e){console.warn('[apartments] street doors',e);}return h;};NC.build.apartments=true;}}
  // ---- going in and out ----
- async function enterDoor(id){const d=A.door(id);if(!d||busy)return;const list=onDoor(id);if(!allowed(id)){note(d.name.toUpperCase()+': locked. '+accessHint(list.find(a=>a.streetAccess)?.streetAccess));return;}
+ async function presentCard(door){
+  const shop=root.VoidConsumableGame,uid=root.VoidAccount?.user?.uid;
+  if(!uid||!shop)return false;
+  try{
+   const held=shop.data||await shop.refresh();
+   if(!held?.keycards?.some(c=>c.doors.includes(door)))return false;
+   const result=await shop.request('keycards/access',{door});
+   return uid===root.VoidAccount?.user?.uid&&result.allowed===true;
+  }catch{return false;}
+ }
+ async function enterDoor(id){const d=A.door(id);if(!d||busy)return;const list=onDoor(id),scene=walkingLocation;if(!allowed(id)&&!await presentCard(id)){note(d.name.toUpperCase()+': locked. '+accessHint(list.find(a=>a.streetAccess)?.streetAccess));return;}
+  if(busy||walkingLocation!==scene)return;
   let was=1;try{const h=root.VoidBabylon?.district?.aptDoors;was=h?.doors?.find(s=>s.door.id===id)?.t??0;h?.forceOpen(id);}catch{}if(was<.9)await new Promise(r=>setTimeout(r,DW()));
   const loc=list.find(a=>a.modular);if(loc&&root.VoidModules?.enter){await root.VoidModules.enter(d,loc);return;}   // a location built from modules (modules.js, module-integration.js)
   await enterHall(d,list);}
@@ -153,8 +164,21 @@
   R('apt-door',({item})=>{try{resumeWalking();}catch{}enterDoor(item.door);});
   R('apt-ap',({item})=>useAP(item));
   R('apt-hall-exit',()=>{try{resumeWalking();}catch{}backToStreet();});
-  R('apt-hall-door',({item})=>{const wl=here(),o=(wl?.open||[]).find(x=>x.slot===item.slot);if(!o){note('APARTMENT '+A.slotNumber(item.slot,wl?.style)+': locked.');return;}const home=(visit?.list||[]).find(x=>x.key===o.key&&x.residenceSlot!=null);if(home?roomLocked(home):o.locked){note('APARTMENT '+(o.number||A.slotNumber(item.slot,wl?.style))+': locked. '+(home?accessHint(home.apartmentAccess):'The access point beside it could be bypassed.'));return;}
-   const inst=(visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key);if(!inst){note('Locked.');return;}try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),(d?.t??0)>.9?0:DW());});
+  R('apt-hall-door',async({item})=>{
+   const wl=here(),v=visit;if(!wl||!v?.door)return;
+   const o=(wl.open||[]).find(x=>x.slot===item.slot);
+   const home=o&&v.list.find(x=>x.key===o.key&&x.residenceSlot!=null);
+   const target=A.residenceKey(v.door.id,item.slot);
+   const number=A.slotNumber(item.slot,wl.style);
+   if((!o||(home?roomLocked(home):o.locked))&&!await presentCard(target)){
+    note('APARTMENT '+number+': locked. '+(home?accessHint(home.apartmentAccess):''));return;
+   }
+   if(here()!==wl||visit!==v||busy)return;
+   const inst=o?(v.list.find(a=>a.key===o.key)||open().find(a=>a.key===o.key)):
+    {key:target,id:'residence-'+item.slot,door:v.door.id,style:wl.style,residenceSlot:item.slot,number,items:[],residents:[]};
+   if(!inst){note('Locked.');return;}
+   v.slots[inst.key]=item.slot;
+   try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),(d?.t??0)>.9?0:DW());});
   R('apt-exit',()=>{try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.id==='entry');d?.force?.(1);setTimeout(()=>backToHall(),(d?.t??0)>.9?0:DW());});
   R('apt-item',({item})=>{const wl=here(),it=(wl?.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
   const TEXT={
