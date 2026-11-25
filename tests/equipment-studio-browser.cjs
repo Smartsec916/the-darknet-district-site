@@ -27,7 +27,7 @@ const assets=path.join(__dirname,'../void-runner');
    await dialog.getByRole('button',{name:'Play',exact:true}).click();
    await page.waitForFunction(()=>/Hit|Miss/.test(document.querySelector('[data-readout]').textContent));
    await dialog.locator('details[data-group="Guidance"] summary').click();
-   const rect=await plot.boundingBox(),x=rect.x+(78+160*Math.log10(3.6)/Math.log10(11))*rect.width/640,y=rect.y+282*rect.height/340;
+   const rect=await plot.boundingBox(),x=rect.x+Number(await plot.getAttribute('data-turn-x'))*rect.width/640,y=rect.y+Number(await plot.getAttribute('data-turn-y'))*rect.height/340;
    await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y,{steps:3});await page.mouse.up();
    assert.notEqual(await dialog.locator('[data-stat=missileM1TurnRate]').inputValue(),'2.6');
    await dialog.getByRole('button',{name:'Undo',exact:true}).click();

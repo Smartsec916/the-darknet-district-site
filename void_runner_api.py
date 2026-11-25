@@ -44,7 +44,8 @@ def clean_equipment_profiles(profiles):
     fields = EQUIPMENT_FIELDS
     choices = {'impactStyle': ('missile', 'large', 'impact'), 'launchSound': ('missile', 'laser'),
                'impactSound': ('explosion', 'hit', 'shieldHit')}
-    limits = {'absorption': 1, 'capacity': 200, 'recharge': 60, 'cost': 4, 'heat': 4, 'shieldScale': 4, 'hullScale': 4}
+    limits = {'absorption': 1, 'capacity': 200, 'recharge': 60, 'cost': 4, 'heat': 4, 'shieldScale': 4, 'hullScale': 4,
+              'minimumDamage': 10000, 'maximumDamage': 10000, 'damageMultiplier': 4}
     for item, options in profiles.items():
         if item not in fields or not isinstance(options, dict) or not set(options) <= set(fields[item]):
             raise ApiError('Unknown equipment profile setting.')
@@ -57,6 +58,8 @@ def clean_equipment_profiles(profiles):
                 valid = value in choices[key]
             if not valid:
                 raise ApiError('Invalid equipment setting: ' + key)
+        if options.get('minimumDamage', 0) > options.get('maximumDamage', math.inf):
+            raise ApiError('Minimum damage exceeds maximum damage.')
     return profiles
 
 

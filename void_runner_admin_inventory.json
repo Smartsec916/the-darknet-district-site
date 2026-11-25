@@ -60036,7 +60036,7 @@
       "spawn"
     ]
   },
-  "revision": "e602df0395d7f5be",
+  "revision": "bdf075ad0ffd0d71",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81124,8 +81124,8 @@
     "void-runner/editor-wizard.js": "625bb24baeb9a101c810edb2cc612f07a7b89faec8c45bebe1136f70ed3de218",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
-    "void-runner/equipment-profiles.js": "c162bf0a7b8cd9ce85728e04338e8cd83b102d1b477aec613df155aa3091dda4",
-    "void-runner/equipment-studio.js": "d5ac80d070a1535cb3d61111ba8551d761843756f7bc26191e9eba6ceccf7cae",
+    "void-runner/equipment-profiles.js": "750a69177ca9e62a1c8213e47af2ea5ce61214ae14de9b20c688d719028bc7a2",
+    "void-runner/equipment-studio.js": "d8e835d4b4bf141a327f649f0d5818d655b3983c2f25d9a4a26bf7191fb8438b",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "e7064d9228b8d9912440e6dd144a723f027ffaef8d08503955a7206751ea3cbd",
     "void-runner/exploration-controller.js": "332f6c32af488d1b2bc1fbab5126522a127c191619f815280a8d6d2f2d2614bc",

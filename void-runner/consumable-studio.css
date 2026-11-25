@@ -54,7 +54,6 @@
 
 .eq-studio {width:min(1120px,94vw);max-height:88vh;overflow:auto;background:#0b1923;color:#d9e9eb;border:1px solid #436473;}
 .eq-head {display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #36505c;}
-.eq-head small {color:#91b7c1;letter-spacing:.12em;}
 .eq-head h2 {margin:.25rem 0 .7rem;}
 .eq-studio .cs-workspace {margin:1rem 0;grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);}
 .eq-studio [data-plot] {width:100%;height:auto;aspect-ratio:640/340;touch-action:none;}

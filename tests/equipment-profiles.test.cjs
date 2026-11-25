@@ -5,6 +5,8 @@ const flat=y=>({mode:'smooth',points:[[0,y],[1,y]]});
 test('equipment defaults match legacy shield, armor and splash behavior',()=>{
  assert.deepEqual(profiles.damageLayers(4,10),{absorbed:4,hullDamage:6});
  assert.deepEqual(profiles.damageLayers(4,10,{shieldScale:2,hullScale:.5}),{absorbed:4,hullDamage:4});
+ assert.deepEqual(profiles.damageLayers(0,20,{maximumDamage:8,damageMultiplier:3}),{absorbed:0,hullDamage:8});
+ assert.throws(()=>profiles.validate({pulse:{minimumDamage:8,maximumDamage:2}}));
  assert.equal(profiles.absorb(4,10,.25),2.5);assert.equal(profiles.recharge(10,20,20,flat(.25)),15);
  assert.equal(profiles.splash(.25),.375);assert.throws(()=>profiles.validate({pulseCoils:{energyCurve:{mode:'linear',points:[[1,0],[0,1]]}}}));
 });
