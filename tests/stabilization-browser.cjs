@@ -120,10 +120,16 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   const seat=j&&!j.released?VoidRoadTaxiRules.companionSeat(j.cab):null;
   return {quarter:walkingLocation?.quarter,mode,gate:VoidGateTransit.state,rideOutcome:globalThis.socialTaxiProbe?.outcome||null,busy:VoidGateTransit.busy,crossing:T.crossing,active:T.active,phase:j&&!j.released?j.cab.phase:null,area:p?.area,session:p?.step,leg:policy?.leg,carry:c,actor:a||null,seatDistance:seat&&a?.esc?Math.hypot(a.esc.x-seat.x,a.esc.z-seat.z):null,credits:state.credits,trip:state.story.flags.roadTaxiTrip||null};
  },socialId);
- async function taxiUntil(test,label,advance=true){
-  const deadline=Date.now()+120000;let previous='';
+ async function taxiUntil(test,label,advancePickup=false){
+  const deadline=Date.now()+240000;let previous='';
   for(;;){
-   if(advance)await page.evaluate(()=>{const T=VoidRoadTaxi,w=T.world,j=w?.job,c=j&&!j.released?j.cab:null;if(!c||T.crossing||VoidGateTransit.busy)return;for(let i=0;i<25&&['to-pickup','to-dest'].includes(c.phase)&&c.pathLen-c.s>14;i++)VoidRoadTaxiRules.stepWorld(w,.1,{x:walker.x,z:walker.z,riding:mode==='road-taxi'});});
+   // Once a passenger boards, the renderer must advance the cab and its rider together.
+   if(advancePickup)await page.evaluate(()=>{
+    const world=VoidRoadTaxi.world,cab=world?.job?.cab;
+    if(!cab||cab.phase!=='to-pickup')return;
+    for(let i=0;i<25&&cab.phase==='to-pickup'&&cab.pathLen-cab.s>14;i++)
+     VoidRoadTaxiRules.stepWorld(world,.1,{x:walker.x,z:walker.z,riding:false});
+   });
    const s=await taxiSnapshot();
    const key=JSON.stringify([s.mode,s.quarter,s.gate,s.crossing,s.phase,s.session,s.actor?.esc?.ride,s.rideOutcome?.ok]);
    if(key!==previous){previous=key;console.log('SOCIAL TAXI PROGRESS',label,JSON.stringify(s));}
@@ -135,7 +141,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   const origin=await taxiSnapshot();assert.equal(origin.quarter,'oldtown');assert(origin.session&&Number.isSafeInteger(origin.leg),'invitation survived foot journey');
   // Stand beside the existing actor on the origin pavement before hailing.
   assert(await page.evaluate(id=>{const a=VoidMadeNPCs.live?.()?.people.find(p=>p.id===id),P=VoidLiveContent.plans()[id],point=a&&P&&VoidNPCAreas.nearest(a,P.area,12);if(!point)return false;Object.assign(walker,{x:point.x,z:point.z,yaw:0,pitch:0});state.credits=1000;return VoidRoadTaxi.hail('avenue');},socialId),'hail real taxi to the adjacent quarter');
-  await taxiUntil(s=>s.phase==='waiting','taxi reaches pickup');
+  await taxiUntil(s=>s.phase==='waiting','taxi reaches pickup',true);
   assert(await page.evaluate(id=>{const P=VoidLiveContent.plans()[id],j=VoidRoadTaxi.world?.job;if(!P||!j)return false;const ds=VoidRoadTaxiRules.doorPoints(j.cab);for(const d of ds.slice(0,2)){const p=VoidNPCAreas.nearest(d,P.area,8);if(p){Object.assign(walker,{x:p.x,z:p.z,yaw:0,pitch:0});return true;}}return false;},socialId),'approach a real taxi door from the pavement');
   const seated=await taxiUntil(s=>s.actor?.esc?.ride==='in-cab'&&s.session===origin.session&&s.seatDistance<=1,'actual NPC boards',false);
   console.log('SOCIAL TAXI SEATED',JSON.stringify(seated));
