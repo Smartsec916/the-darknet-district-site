@@ -104,7 +104,7 @@
   }
   function use(id){operation(async()=>{const r=receipt('use/'+id+'/'+bag.owned[id]);let data;
     try{data=await game.request('shop/use',{item:id,nonce:r.nonce});}catch(e){if(e.status>=400&&e.status<500)r.clear();throw e;}
-    r.clear();if(!same())return;const sound=bag.items[id]?.useSound;if(sound&&/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(sound)){const a=new Audio('void-runner/'+sound);a.volume=.45;a.play().catch(()=>{});}note.textContent=(data.definition?.name||id)+' used.';await refresh();});}
+    r.clear();if(!same())return;if(!data.duplicate)root.VoidZoneRun?.consumeNow(data.definition);const sound=bag.items[id]?.useSound;if(sound&&/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(sound)){const a=new Audio('void-runner/'+sound);a.volume=.45;a.play().catch(()=>{});}note.textContent=(data.definition?.name||id)+' used.';await refresh();});}
   function draw(){
    title.textContent=tab==='bag'?'Consumable inventory':listing?.vendor.name||'Vendor catalog';
    summary.textContent=uid?'Available credits · '+fmt(campaign()?.credits):'Sign in with a District account to use this catalog.';

@@ -45,6 +45,21 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
 
+  consumables-editor:
+    name: Visual item editor in Chromium and Firefox
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium firefox
+      - run: node tests/item-catalog-browser.cjs
+
   browser:
     name: Babylon stabilization smoke
     runs-on: ubuntu-latest

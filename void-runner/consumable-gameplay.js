@@ -26,6 +26,7 @@
   const work=request('shop/state').then(d=>{if(who===root.VoidAccount?.user?.uid&&v===revision){uid=who;active=d.active||[];data=d;offset=d.now-Date.now()/1000;lastPoll=Date.now();}return d;}).finally(()=>{if(pending?.work===work)pending=null;});
   pending={work,uid:who};return work;
  }
+ let sounds;
  let sampledRows,sampledTick,sampledFrame;
  function currentFrame(){
   const t=now(),tick=Math.floor(t*60);
@@ -34,10 +35,12 @@
  }
  function loop(){
   const who=root.VoidAccount?.user?.uid;
-  if(who!==uid){uid=who;active=[];data=null;lastPoll=0;retryAt=0;revision++;pending=null;}
+  if(who!==uid){sounds?.stopAll();uid=who;active=[];data=null;lastPoll=0;retryAt=0;revision++;pending=null;}
   if(who&&root.VoidAccount.profileReady&&!document.hidden&&Date.now()>retryAt&&Date.now()-lastPoll>60000){
    retryAt=Date.now()+15000;refresh().catch(()=>{});
   }
+  if(root.VoidAudio?.ready){sounds??=root.VoidConsumableAudio.cues(root.VoidConsumableAudio.playAsset);sounds.tick(active,now());}
+  else sounds?.stopAll();
   const world=root.VoidBabylon?.scene;
   if(active.length&&world&&world!==scene){scene=world;root.VoidConsumableRenderer.attach(scene,()=>{
     if(!active.length)return null;return {frame:currentFrame(),limits:prefs,time:now()%8192};

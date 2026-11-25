@@ -48,10 +48,37 @@ def _only(o, keys):
     return isinstance(o, dict) and set(o) <= set(keys)
 
 
+def valid_curve(curve):
+    if not _only(curve, ['mode', 'points']) or curve.get('mode') not in ('linear', 'smooth', 'step'):
+        return False
+    points = curve.get('points')
+    if not isinstance(points, list) or not 2 <= len(points) <= 32:
+        return False
+    return (all(isinstance(p, list) and len(p) == 2 and all(_num(v, 0, 1) for v in p) for p in points)
+            and points[0][0] == 0 and points[-1][0] == 1
+            and all(a[0] < b[0] for a, b in zip(points, points[1:])))
+
+
+def curve_value(curve, t):
+    if curve is None:
+        return 1
+    for (x, y), (right, value) in zip(curve['points'], curve['points'][1:]):
+        if t < right:
+            u = (t - x) / (right - x)
+            if curve['mode'] == 'step':
+                return y
+            if curve['mode'] == 'smooth':
+                u = u * u * (3 - 2 * u)
+            return y + (value - y) * u
+    return curve['points'][-1][1]
+
+
 def effect_problems(e, at):
     n = at + ': '
-    if not _only(e, ['id', 'type', 'intensity', 'delay', 'duration', 'fadeIn', 'fadeOut', 'speed', 'stacking', 'params']):
+    if not _only(e, ['id', 'type', 'intensity', 'delay', 'duration', 'fadeIn', 'fadeOut', 'speed', 'stacking', 'params', 'curve']):
         return [n + 'an effect has unknown fields']
+    if 'curve' in e and not valid_curve(e['curve']):
+        return [n + 'invalid intensity curve']
     d = SPEC['effects'].get(e.get('type'))
     if not d:
         return [n + 'unknown effect']
@@ -77,8 +104,10 @@ def effect_problems(e, at):
 
 def modifier_problems(m, at):
     n = at + ': '
-    if not _only(m, ['stat', 'amount', 'delay', 'duration', 'fadeIn', 'fadeOut']):
+    if not _only(m, ['stat', 'amount', 'delay', 'duration', 'fadeIn', 'fadeOut', 'curve']):
         return [n + 'a modifier has unknown fields']
+    if 'curve' in m and not valid_curve(m['curve']):
+        return [n + 'invalid intensity curve']
     d = SPEC['modifiers'].get(m.get('stat'))
     if not d:
         return [n + 'unknown gameplay modifier']
@@ -484,7 +513,7 @@ def _receive_card(player, card):
 
 def item_problems(it, cats):
     n = (it.get('id') if isinstance(it, dict) else 'item') + ': '
-    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound', 'service', 'keycard']
+    keys = ['id', 'name', 'description', 'category', 'subcategory', 'kind', 'icon', 'model', 'animation', 'price', 'stack', 'weight', 'rarity', 'status', 'cooldown', 'registryId', 'consumable', 'image', 'purchaseSound', 'useSound', 'loopSound', 'expireSound', 'service', 'keycard']
     if not _only(it, keys):
         return [n + 'unknown fields']
     out = []
@@ -499,7 +528,7 @@ def item_problems(it, cats):
     elif it.get('service') is not None:
         out.append(n + 'only a service item can run a routine')
 
-    for key, pattern in [('image', r'assets/[a-zA-Z0-9_/-]+\.(png|jpg|jpeg|webp)'), ('purchaseSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('useSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)')]:
+    for key, pattern in [('image', r'assets/[a-zA-Z0-9_/-]+\.(png|jpg|jpeg|webp)'), ('purchaseSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('useSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('loopSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)'), ('expireSound', r'assets/audio/[a-zA-Z0-9_/-]+\.(mp3|ogg|wav|m4a)')]:
         if it.get(key) and (not isinstance(it[key], str) or not re.fullmatch(pattern, it[key])):
             out.append(n + 'choose a game asset for ' + key)
 
@@ -537,9 +566,11 @@ def item_problems(it, cats):
         out.append(n + 'unknown registry item')
     c = it.get('consumable')
     if c is not None:
-        if not _only(c, ['effects', 'modifiers','repeat','group','maxStacks','maxSeconds']):
+        if not _only(c, ['effects', 'modifiers','repeat','group','maxStacks','maxSeconds','onUseHealth','onUseStamina']):
             out.append(n + 'bad consumable')
         else:
+            if not _num(c.get('onUseHealth', 0), -1, 1) or not _num(c.get('onUseStamina', 0), 0, 1):
+                out.append(n + 'invalid immediate health or stamina change')
             if c.get('repeat','refresh') not in SPEC['repeatPolicies'] or (c.get('group') and (not isinstance(c['group'],str) or not ID.fullmatch(c['group']))) or not _int(c.get('maxStacks',3),1,8) or not _int(c.get('maxSeconds',1800),1,3600):
                 out.append(n + 'invalid repeat-use settings')
             ef, mo = c.get('effects') or [], c.get('modifiers') or []
@@ -704,9 +735,17 @@ def problems(c):
         return out + ['Too many presets.']
     pids = set()
     for p in c['presets']:
-        if not _only(p, ['id', 'name', 'effects']) or not isinstance(p.get('id'), str) or not ID.match(p['id']) or not _plain(p.get('name'), LIM['name']) or not isinstance(p.get('effects'), list) or len(p['effects']) > LIM['effects']:
+        if not _only(p, ['id', 'name', 'effects', 'modifiers', 'onUseHealth', 'onUseStamina']) or not isinstance(p.get('id'), str) or not ID.match(p['id']) or not _plain(p.get('name'), LIM['name']) or not isinstance(p.get('effects'), list) or len(p['effects']) > LIM['effects']:
             out.append('A preset needs an id, a name and effects.')
             continue
+        if not _num(p.get('onUseHealth', 0), -1, 1) or not _num(p.get('onUseStamina', 0), 0, 1):
+            out.append('Invalid preset use amounts.')
+        mods = p.get('modifiers', [])
+        if not isinstance(mods, list) or len(mods) > LIM['modifiers']:
+            out.append('Invalid preset modifiers.')
+        else:
+            for m in mods:
+                out += modifier_problems(m, 'preset ' + p['id'])
         if p['id'] in pids:
             out.append('Two presets share ' + p['id'])
         pids.add(p['id'])
@@ -954,7 +993,7 @@ def use_definition(content, item_id):
     if not it or not it.get('consumable') or it['status'] == 'draft':
         return None
     c = it['consumable']
-    return {'id': it['id'], 'name': it['name'], 'cooldown': it.get('cooldown') or 0, 'animation': it.get('animation') or 'none', 'effects': c.get('effects') or [], 'modifiers': c.get('modifiers') or []}
+    return {'id': it['id'], 'name': it['name'], 'cooldown': it.get('cooldown') or 0, 'animation': it.get('animation') or 'none', **{k: it[k] for k in ('loopSound', 'expireSound') if it.get(k)}, **{k: c[k] for k in ('onUseHealth', 'onUseStamina') if c.get(k)}, 'effects': c.get('effects') or [], 'modifiers': c.get('modifiers') or []}
 
 
 def _active_view(player, content, now):
@@ -970,12 +1009,14 @@ def modifiers_now(active, now):
     """The gameplay modifiers in force right now, summed per stat and clamped to the schema's range. This is what the multiplayer service should trust."""
     total = {}
     for a in active:
+        if a.get('until') is not None and now >= a['until']:
+            continue
         for m in a['definition']['modifiers']:
             t = now - a['startedAt']
             elapsed = t-m['delay']
             duration = m['duration']+a.get('extension',0)
             if 0 <= elapsed < duration:
-                gain=min(1,elapsed/m['fadeIn'] if m.get('fadeIn') else 1,(duration-elapsed)/m['fadeOut'] if m.get('fadeOut') else 1)
+                gain=curve_value(m.get('curve'), elapsed/duration)*min(1,elapsed/m['fadeIn'] if m.get('fadeIn') else 1,(duration-elapsed)/m['fadeOut'] if m.get('fadeOut') else 1)
                 total[m['stat']] = total.get(m['stat'],0)+m['amount']*gain*a.get('gain',1)
     return {k: max(SPEC['modifiers'][k]['min'], min(SPEC['modifiers'][k]['max'], v)) for k, v in total.items()}
 

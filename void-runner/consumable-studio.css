@@ -1,0 +1,53 @@
+.cs-studio, [data-item-editor] { color-scheme: dark; font-family: "Segoe UI", system-ui, sans-serif; }
+.cs-studio { padding: clamp(16px, 3vw, 32px); border-radius: 10px; box-shadow: 0 18px 90px #000b; }
+.cs-studio::backdrop { background: #03090ed9; }
+.cs-studio h2, .cs-studio h3 { color: #edf9f8; letter-spacing: .02em; }
+.cs-studio [data-name] { color: #93d8d2; font-size: 1.15rem; }
+.cs-nav { display:flex; flex-wrap:wrap; gap:.5rem; margin: .6rem 0 1rem; }
+.cs-nav [aria-pressed=true] { background: #82e7d9; color: #081817; }
+.cs-studio [data-layers] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; align-items:start; }
+.cs-card { --category:#aeb8c0; color:#ddeaeb; background:#101f28; border:1px solid #33434d; border-inline-start:4px solid var(--category); border-radius:5px; margin:.25rem 0; padding:.75rem 1rem; }
+.cs-vendors { --category:#65d8ed; }
+.cs-card summary { cursor:pointer; color:var(--category); }
+.cs-card summary strong { font-size:1rem; }
+.cs-card summary small { display:block; margin:.3rem 0 0 1rem; color:#bbc7cc; line-height:1.5; }
+.cs-studio .cs-card[open] { grid-column:1/-1; }
+.cs-card[open]>summary { margin-bottom:.8rem; }
+.cs-studio label { display:inline-flex; align-items:center; flex-wrap:wrap; gap:.4rem; margin:.25rem .6rem .25rem 0; }
+.cs-studio fieldset { border:1px solid #354b55; margin:.5rem 0; padding:.8rem; }
+.cs-studio button, .cs-studio select,.cs-studio input { background:#11242f; color:#d5ecec; border:1px solid #526975; border-radius:3px; padding:.4rem; margin:.15rem; font:inherit; }
+.cs-studio button { cursor:pointer; }
+.cs-studio button:disabled { opacity:.45; }
+.cs-studio [data-apply] { background:#85dfce; color:#09221e; }
+.cs-studio [data-view] { overflow:hidden; border:1px solid #314c5d; }
+.cs-row { display:grid; grid-template-columns:minmax(7rem,22%) 1fr; align-items:center; gap:.5rem; }
+.cs-row>button { text-align:left; color:var(--category); }
+.cs-lane,.cs-scroll { background-color:#09161d; background-image:linear-gradient(90deg,#29404a 1px,transparent 1px); background-size:10% 100%; }
+.cs-lane { position:relative; height:28px; }
+.cs-lane .cs-bar { position:absolute; min-width:5px; height:24px; margin:2px 0; padding:0; border:1px solid var(--category); background:color-mix(in srgb,var(--category) 40%,#101f28); touch-action:none; cursor:grab; }
+.cs-edge { position:absolute; right:0; inset-block:0; color:white; cursor:ew-resize; }
+.cs-scroll { overflow:auto; }
+.cs-curve svg { display:block; width:100%; height:100px; color:var(--category); touch-action:none; }
+.cs-curve circle { cursor:move; }
+.cs-curve input[type=number] { width:6rem; }
+.cs-studio [data-meters] { margin:.5rem 0; }
+@media(max-width:680px) { .cs-studio [data-layers] {grid-template-columns:1fr;} .cs-studio {padding:12px;} }
+
+.cs-envelope { position:relative; touch-action:none; background:#0a161d; }
+.cs-envelope canvas { display:block; }
+.cs-envelope i { position:absolute; top:0; bottom:0; width:1px; background:white; pointer-events:none; }
+
+.cs-studio canvas { position:static; inset:auto; display:block; max-width:100%; min-height:0; border:0; }
+.cs-studio [data-view] canvas { height:260px !important; }
+.cs-workspace { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); align-items:start; gap:18px; }
+.cs-inspector,.cs-monitor { min-width:0; }
+.cs-monitor { background:#0d1c25; padding:.9rem; border:1px solid #314653; border-radius:5px; }
+.cs-monitor h3 { margin-top:0; }
+.cs-studio .cs-card summary { font:600 .94rem/1.35 system-ui,sans-serif; }
+.cs-studio .cs-card summary small { font-weight:400; }
+.cs-studio button { min-height:0; }
+.cs-studio .cs-actions { display:flex; align-items:center; gap:.5rem; position:sticky; bottom:-1px; padding:.5rem; background:#101f28; z-index:2; border-top:1px solid #39535e; }
+.cs-studio .cs-actions [role=status] { margin-right:auto; }
+@media(max-width:920px) { .cs-workspace {grid-template-columns:1fr;} }
+
+.cs-studio fieldset input[type=number] { width:5.2rem; }

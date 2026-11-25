@@ -32,7 +32,7 @@ function hitEnemy(e,damage,consequences=campaignEnemyHitConsequences){
  if(e.armor<=0){e.dead=true;resolved++;burst(e,e.boss?'#ff795f':'#ffbd69',e.boss?'large':'ship');consequences?.destroyed?.(e);}
 }
 function cockpitEquipment(dt){
- const stats=VoidFlightCraft.stats();shieldDelay=Math.max(0,shieldDelay-dt);driveCooldown=Math.max(0,driveCooldown-dt);driveTime=Math.max(0,driveTime-dt);if(!shieldDelay)shieldHP=Math.min(stats.shield,shieldHP+dt*stats.shieldRegen);if(VoidInput.down('boost'))activateDrive();
+ const stats=VoidFlightCraft.stats();shieldDelay=Math.max(0,shieldDelay-dt);driveCooldown=Math.max(0,driveCooldown-dt);driveTime=Math.max(0,driveTime-dt);if(!shieldDelay)shieldHP=Math.min(stats.shield,shieldHP+dt*stats.shieldRegen*(1+(globalThis.VoidConsumableGame?.modifier('shieldRecovery')||0)));if(VoidInput.down('boost'))activateDrive();
  updateEquipmentHud();
 }
 function cockpitMission(dt,velocity){

@@ -46,13 +46,15 @@
     const regen=effects?.modifier('staminaRegen')||0,drain=effects?.modifier('staminaDrain')||0;
     if(regen||drain){
       const running=input.run&&!input.crouch&&(input.x||input.z);
-      player.stamina=Math.max(0,Math.min(1,(player.stamina??1)+dt*(running?-.08*(1+drain):.14*(1+regen))));
+      const sampler=typeof module!=='undefined'&&module.exports?require('./consumable-renderer.js'):root.VoidConsumableRenderer;
+      player.stamina=sampler.staminaAfter(player.stamina??1,running,regen,drain,dt);
       if(running)speed=config.walk+(speed-config.walk)*Math.min(1,player.stamina*4);
     }else if(player.stamina!=null)delete player.stamina;
     speed*=1+(root.VoidConsumableGame?.modifier(input.run?'runSpeed':'walkSpeed')||0);
+    speed*=1-(effects?.modifier('movementRestriction')||0);
     const tx=(Math.cos(player.yaw)*input.x+Math.sin(player.yaw)*input.z)/length*speed,tz=(-Math.sin(player.yaw)*input.x+Math.cos(player.yaw)*input.z)/length*speed;
     const approach=(a,b,d)=>a+Math.sign(b-a)*Math.min(Math.abs(b-a),d),steps=Math.max(1,Math.ceil(dt/.008));
-    if(player.jumpRequested){if(!(player.height>0)){player.vy=config.jump;player.height=.001;}player.jumpRequested=false;}
+    if(player.jumpRequested){if(!(player.height>0)){player.vy=config.jump*Math.sqrt(1+(effects?.modifier('jumpHeight')||0));player.height=.001;}player.jumpRequested=false;}
     for(let i=0;i<steps;i++){const t=dt/steps,acc=(length>1||input.x||input.z?config.acceleration:config.braking)*(1+(root.VoidConsumableGame?.modifier('movementControl')||0))*t;
       const ax=tx-(player.vx||0),az=tz-(player.vz||0),delta=Math.hypot(ax,az),gain=delta?Math.min(1,acc/delta):0;
       player.vx=(player.vx||0)+ax*gain;player.vz=(player.vz||0)+az*gain;
