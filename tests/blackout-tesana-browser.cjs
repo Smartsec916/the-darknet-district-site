@@ -29,7 +29,7 @@ async function ready(page) {
     });
     await offline(page);
     await ready(page);
-    await page.getByRole('button', { name: 'LOCAL PLAY Â· RANKINGS OFFLINE' }).waitFor();
+    await page.getByRole('button', { name: 'LOCAL PLAY · RANKINGS OFFLINE' }).waitFor();
     await page.locator('#district-account-toggle').click();
     assert.match(await page.locator('#district-account-panel').innerText(), /no ranked score was submitted/i);
     await page.locator('#district-account-panel header button').click();
