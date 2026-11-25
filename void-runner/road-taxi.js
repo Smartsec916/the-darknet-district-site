@@ -15,7 +15,7 @@
  let world=null,own=[],signTex=null,mats=null,van=null,look={yaw:0,pitch:.08},visual={},upgrade=false;
  let modelLoading=false,modelFailed=false;   // the Meshy van's file: one load at a time (a quarter change releases the scene's models), none after a failure
  const B=()=>globalThis.BABYLON,scene=()=>globalThis.VoidBabylon?.scene;
- const inCity=()=>!!walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area!=='interior'&&walkingLocation.area!=='milked'&&!!walker&&state?.location==='earth';
+ const inCity=()=>!!walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area==='street'&&walkingLocation.quarter!=='underground'&&!!walker&&state?.location==='earth';
  const yawDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 
  function makeMats(sc){
@@ -211,6 +211,7 @@
  chip.querySelector('button').addEventListener('click',()=>cancel());
 
  const taxiUpdate=update;update=function(dt){taxiUpdate(dt);
+  if(mode==='preparing'&&!crossing){if(world&&!world.job)teardown();return;}
   if(crossing)return;   // a gate is exchanging quarters round the cab: nothing here runs until it is through
   if(state?.story?.flags?.[R.FLAG]&&!(world?.job&&world.job.charged)){const back=R.recover(state);if(back){try{save();hud();}catch{}announce?.('Your interrupted taxi trip was refunded: '+back+' CR.');}}
   if(!inCity()){if(world?.job?.charged&&world.job.cab?.phase!=='arrived'){const back=R.recover(state);if(back){try{save();hud();}catch{}announce?.('The taxi trip was refunded: '+back+' CR.');}}if(world)teardown();return;}

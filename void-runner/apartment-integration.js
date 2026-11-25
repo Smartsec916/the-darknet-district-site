@@ -31,7 +31,7 @@
  /* Street doors IN USE for this player (the owner, 20 Nov 2026: "doors on the streets without anything placed on them shouldn't show the option to open it when walking by"):
     only these show their prompts (the door and its access point; apartments.js doorsInUse: a taken mission's apartment or location on it, from-step reached or not, a hack
     step aimed at it) or one a hack opened, or the Mission Editor's test apartment. Every other street door shows nothing: the door itself is still drawn, locked. */
- function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);return u;}
+ function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);for(const c of root.VoidConsumableGame?.data?.keycards||[])for(const id of c.doors||[])if(!id.includes('/'))u.add(id);return u;}
  let visit=null;   // {door (street door record), list (instances on it), inst (the one inside), slots}
  const here=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.apartment?walkingLocation:null;}catch{return null;}};
  // ---- the locations ----
@@ -57,7 +57,7 @@
  {const NC=N();if(NC&&NC.layout&&!NC.layout.apartments){const orig=NC.layout;NC.layout=function(area,quarter){const l=orig.apply(this,arguments);if(area==='street'&&l&&l.quarter)l.interactions=[...l.interactions,...streetPrompts(l.quarter)];return l;};NC.layout.apartments=true;}}
  // the labels follow the player's missions (twice a second)
  setInterval(()=>{try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(!wl)return;
-   if(wl.area==='street'&&wl.id==='neochinatown'){const used=inUse();for(const it of wl.interactions){if(it.action==='apt-door'){const d=A.door(it.door);if(!d)continue;it.label=allowed(d.id)?'ENTER · '+d.name.toUpperCase():d.name.toUpperCase()+' · LOCKED';it.hidden=!used.has(d.id);}
+   if(wl.area==='street'&&wl.id==='neochinatown'){const used=inUse();for(const it of wl.interactions){if(it.action==='apt-door'){const d=A.door(it.door);if(!d)continue;it.label=allowed(d.id)?'ENTER · '+d.name.toUpperCase():d.name.toUpperCase()+' · LOCKED';it.hidden=!used.has(d.id)&&!root.VoidConsumableGame?.data?.keycards?.some(c=>c.discoverable===false);}
     else if(it.action==='apt-ap'&&/^aptap-/.test(it.id||''))it.hidden=!used.has(it.ap);}}
    else if(wl.apartment&&wl.part==='hall'){const op=new Map((wl.open||[]).map(o=>[o.slot,o]));for(const o of op.values()){const a=(visit?.list||[]).find(x=>x.key===o.key);if(a?.residenceSlot!=null){o.locked=roomLocked(a);root.VoidBabylon?.zone?.doors?.find(d=>d.slot===o.slot)?.set?.({locked:o.locked});}}for(const it of wl.interactions)if(it.action==='apt-hall-door'){const o=op.get(it.slot),num=o&&o.number||A.slotNumber(it.slot,wl.style);it.label=o?(o.locked?'APARTMENT '+num+' · LOCKED (ACCESS POINT)':'ENTER APARTMENT '+num):'APARTMENT '+num+' · LOCKED';}}
    else if(wl.apartment&&wl.part==='flat'){for(const it of wl.interactions){if(it.object==='lights')it.label='LIGHTS · '+(root.VoidBabylon?.zone?.lightsOn===false?'ON':'OFF');if(it.object==='screen')it.label='TURN SCREEN '+(root.VoidBabylon?.zone?.interactive?.screen?.open===false?'ON':'OFF');}}}catch{}},500);
@@ -109,8 +109,60 @@
    const [p,q]=[r.path[r.leg],r.path[r.leg+1]],L=Math.hypot(q[0]-p[0],q[1]-p[1])||.01;r.k+=dt*1.3/L;const x=p[0]+(q[0]-p[0])*Math.min(1,r.k),z=p[1]+(q[1]-p[1])*Math.min(1,r.k);r.node.position.set(x,0,z);r.node.rotation.y=Math.atan2(q[0]-p[0],q[1]-p[1]);
    for(const id of [r.from.id,r.to.id]){const s=doorOf.get(id),dd=Math.hypot(s.door.x-x,s.door.z-z);if(dd<2.2)s.nearNpc=clock;}
    if(r.k>=1){r.leg++;r.k=0;if(r.leg>=r.path.length-1){r.phase='away';r.wait=12+rnd()*30;r.node.setEnabled(false);}}}
+  let pickupScene=null,pickupDoor=null,pickupUser=null,nextPoll=0,polling=false,disposed=false;
+  const pickups=new Map();
+  function clearPickups(){
+   if(pickupScene)pickupScene.interactions=pickupScene.interactions.filter(it=>!pickups.has(it.id));
+   for(const mesh of pickups.values())mesh.dispose();
+   pickups.clear();
+  }
+  function placePickups(cards,d,wl){
+   clearPickups();
+   for(const [i,c] of cards.entries()){
+    const id='keycard-'+c.id,x=d.front[0]+(i%4)*.15,z=d.front[1]+Math.floor(i/4)*.11;
+    const mesh=B.MeshBuilder.CreateBox(id,{width:.13,depth:.085,height:.012},scene);
+    mesh.parent=parent;mesh.position.set(x,.035,z);mesh.isPickable=false;
+    mesh.material=cardMaterial||(cardMaterial=P('keycard','#71f4e1',{r:.35,m:.25}));
+    mesh.material.emissiveColor=B.Color3.FromHexString('#247a6e');
+    pickups.set(id,mesh);
+    wl.interactions.push({id,action:'apt-keycard-pickup',card:c.id,door:d.id,label:'PICK UP · '+c.name,position:[x,.15,z],range:1.8});
+   }
+  }
+  let cardMaterial;
+  const npcChecks=new Map();
+  function checkNpcDoors(){
+   if(!root.VoidAccount?.user?.uid||typeof walkingLocation==='undefined'||walkingLocation?.quarter!==quarter)return;
+   for(const item of walkingLocation.interactions||[]){
+    const npc=item.character||item.npc,pos=item.position;
+    if(typeof npc!=='string'||!Array.isArray(pos)||item.hidden)continue;
+    const door=A.nearestDoor(pos[0],pos[2],2.5),state=door&&doorOf.get(door.id);
+    if(!state)continue;
+    const key=npc+'/'+door.id,previous=npcChecks.get(key);
+    if(previous&&previous.until>clock){if(previous.allowed)state.nearNpc=clock;continue;}
+    const check={allowed:false,until:clock+12};npcChecks.set(key,check);
+    root.VoidConsumableGame?.request('keycards/npc-access',{npc,door:door.id}).then(answer=>{
+     if(!disposed&&answer.allowed===true)check.allowed=true;
+    }).catch(()=>{});
+   }
+  }
+  function updatePickups(p){
+   const wl=typeof walkingLocation==='undefined'?null:walkingLocation;
+   const uid=root.VoidAccount?.user?.uid;
+   const d=p&&wl?.area==='street'&&wl.quarter===quarter&&uid&&!root.VoidDevTest?.active?A.nearestDoor(p.x,p.z,5):null;
+   if(pickupDoor!==d?.id||pickupScene!==wl||pickupUser!==uid){
+    clearPickups();pickupDoor=d?.id;pickupScene=wl;pickupUser=uid;nextPoll=0;
+   }
+   if(!d||polling||clock<nextPoll||!root.VoidConsumableGame)return;
+   nextPoll=clock+12;polling=true;
+   root.VoidConsumableGame.request('keycards/drops/'+encodeURIComponent(d.id)).then(result=>{
+    if(disposed||walkingLocation!==wl||pickupDoor!==d.id||root.VoidAccount?.user?.uid!==uid)return;
+    const cards=result.cards||[];
+    if(cards.length===pickups.size&&cards.every(c=>pickups.has('keycard-'+c.id)))return;
+    placePickups(cards,d,wl);
+   }).catch(()=>{}).finally(()=>{polling=false;});
+  }
   function tick(dt){clock+=dt;const p=typeof walker!=='undefined'?walker:null;check-=dt;
-   if(check<=0){check=.5;const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)].filter(allowed));for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
+   if(check<=0){check=.5;updatePickups(p);checkNpcDoors();const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)].filter(allowed));for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
    for(const r of residents)try{resTick(r,dt);}catch{}
    for(const s of doors){const npc=clock-(s.nearNpc??-9)<1.6;if(npc)s.locked=false;let near=npc;if(p&&s.mine){const dx=s.door.x-p.x,dz=s.door.z-p.z;near=near||dx*dx+dz*dz<3.2+(s.door.reach||0)*2.6;}s.near(near);const t0=s.t;s.tick(dt);
     const state=s.t>.02?'open':s.mine?'mine':'locked';if(state!==s.shown){s.shown=state;show(s,state);}
@@ -119,11 +171,22 @@
     if(p&&s.mine&&s.t>.9&&mode==='walking'&&!busy){const dx=s.door.x-p.x,dz=s.door.z-p.z,rr=.6+(s.door.reach||0);if(dx*dx+dz*dz<rr*rr)enterDoor(s.door.id);}}
    if(dirty){dirty=false;for(const m of [...Object.values(slab),...Object.values(lampM)])m.thinInstanceBufferUpdated('matrix');}}
   for(const s of doors){s.shown='locked';show(s,'locked');}
-  return {tick,doors,draws:()=>12,dispose(){for(const r of residents)r.node?.dispose?.(false,false);for(const x of own)try{x.dispose();}catch{}},forceOpen(id){const s=doorOf.get(id);if(s){s.locked=false;s.force(1);}},residents};}
+  return {tick,doors,draws:()=>12,dispose(){disposed=true;clearPickups();for(const r of residents)r.node?.dispose?.(false,false);for(const x of own)try{x.dispose();}catch{}},forceOpen(id){const s=doorOf.get(id);if(s){s.locked=false;s.force(1);}},residents};}
  {const NC=N();if(NC&&NC.build&&!NC.build.apartments){const orig=NC.build;NC.build=function(args){const h=orig.apply(this,arguments);try{if(args&&args.area==='street'&&h&&h.quarter){const sd=streetDoors({...args,quarter:h.quarter});if(sd){h.aptDoors=sd;const t=h.tick,d=h.dispose;let last=null;
    h.tick=function(time){const r=t.apply(this,arguments);const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{sd.tick(dt);}catch(e){console.warn('[apartments]',e);}return r;};h.dispose=function(){try{sd.dispose();}catch{}return d.apply(this,arguments);};}}}catch(e){console.warn('[apartments] street doors',e);}return h;};NC.build.apartments=true;}}
  // ---- going in and out ----
- async function enterDoor(id){const d=A.door(id);if(!d||busy)return;const list=onDoor(id);if(!allowed(id)){note(d.name.toUpperCase()+': locked. '+accessHint(list.find(a=>a.streetAccess)?.streetAccess));return;}
+ async function presentCard(door){
+  const shop=root.VoidConsumableGame,uid=root.VoidAccount?.user?.uid;
+  if(!uid||!shop)return false;
+  try{
+   const held=shop.data||await shop.refresh();
+   if(!held?.keycards?.some(c=>c.discoverable===false||c.doors?.includes(door)))return false;
+   const result=await shop.request('keycards/access',{door});
+   return uid===root.VoidAccount?.user?.uid&&result.allowed===true;
+  }catch{return false;}
+ }
+ async function enterDoor(id){const d=A.door(id);if(!d||busy)return;const list=onDoor(id),scene=walkingLocation;if(!allowed(id)&&!await presentCard(id)){note(d.name.toUpperCase()+': locked. '+accessHint(list.find(a=>a.streetAccess)?.streetAccess));return;}
+  if(busy||walkingLocation!==scene)return;
   let was=1;try{const h=root.VoidBabylon?.district?.aptDoors;was=h?.doors?.find(s=>s.door.id===id)?.t??0;h?.forceOpen(id);}catch{}if(was<.9)await new Promise(r=>setTimeout(r,DW()));
   const loc=list.find(a=>a.modular);if(loc&&root.VoidModules?.enter){await root.VoidModules.enter(d,loc);return;}   // a location built from modules (modules.js, module-integration.js)
   await enterHall(d,list);}
@@ -151,10 +214,33 @@
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof announce==='undefined')return;clearInterval(wait);start();},300);
  function start(){const R=(a,f)=>VoidInteractions.register(a,f);
   R('apt-door',({item})=>{try{resumeWalking();}catch{}enterDoor(item.door);});
+  R('apt-keycard-pickup',async({item})=>{
+   if(root.VoidDevTest?.active||typeof walker==='undefined')return;
+   const position=A.pickupPosition(walkingLocation,walker,item.door);
+   if(!position||Math.hypot(walker.x-item.position[0],walker.z-item.position[2])>item.range)return;
+   try{
+    item.nonce||=crypto.randomUUID();
+    await root.VoidConsumableGame.request('keycards/move',{action:'pickup',card:item.card,door:item.door,position,nonce:item.nonce});
+    item.hidden=true;await root.VoidConsumableGame.refresh();note('Keycard added to inventory.');
+   }catch(e){note(e.message||'Could not pick up this keycard.');}
+  });
   R('apt-ap',({item})=>useAP(item));
   R('apt-hall-exit',()=>{try{resumeWalking();}catch{}backToStreet();});
-  R('apt-hall-door',({item})=>{const wl=here(),o=(wl?.open||[]).find(x=>x.slot===item.slot);if(!o){note('APARTMENT '+A.slotNumber(item.slot,wl?.style)+': locked.');return;}const home=(visit?.list||[]).find(x=>x.key===o.key&&x.residenceSlot!=null);if(home?roomLocked(home):o.locked){note('APARTMENT '+(o.number||A.slotNumber(item.slot,wl?.style))+': locked. '+(home?accessHint(home.apartmentAccess):'The access point beside it could be bypassed.'));return;}
-   const inst=(visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key);if(!inst){note('Locked.');return;}try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),(d?.t??0)>.9?0:DW());});
+  R('apt-hall-door',async({item})=>{
+   const wl=here(),v=visit;if(!wl||!v?.door)return;
+   const o=(wl.open||[]).find(x=>x.slot===item.slot);
+   const home=o&&v.list.find(x=>x.key===o.key&&x.residenceSlot!=null);
+   const target=A.residenceKey(v.door.id,item.slot);
+   const number=A.slotNumber(item.slot,wl.style);
+   if((!o||(home?roomLocked(home):o.locked))&&!await presentCard(target)){
+    note('APARTMENT '+number+': locked. '+(home?accessHint(home.apartmentAccess):''));return;
+   }
+   if(here()!==wl||visit!==v||busy)return;
+   const inst=o?(v.list.find(a=>a.key===o.key)||open().find(a=>a.key===o.key)):
+    {key:target,id:'residence-'+item.slot,door:v.door.id,style:wl.style,residenceSlot:item.slot,number,items:[],residents:[]};
+   if(!inst){note('Locked.');return;}
+   v.slots[inst.key]=item.slot;
+   try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),(d?.t??0)>.9?0:DW());});
   R('apt-exit',()=>{try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.id==='entry');d?.force?.(1);setTimeout(()=>backToHall(),(d?.t??0)>.9?0:DW());});
   R('apt-item',({item})=>{const wl=here(),it=(wl?.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
   const TEXT={
@@ -177,6 +263,6 @@
    if(d.slot!=null){const o=(wl.open||[]).find(x=>x.slot===d.slot);const inst=o&&((visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key));if(inst&&!(inst.residenceSlot!=null?roomLocked(inst):o.locked)){enterFlat(inst);return;}}}}catch{}},120);
  // the apartment the player is inside now ('<mission>/<id>'), for the mission engine's place events
  function inside(){const wl=here();return wl&&wl.part==='flat'&&wl.apt?wl.apt.mission+'/'+wl.apt.id:null;}
- Object.assign(root.VoidApartments,{open,allowed,inUse,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},resetRun(){preview=null;for(const x of [screenOff,screenSet,lightOff,lightSet])x.clear();},streetDoorsBuild:streetDoors});
+ Object.assign(root.VoidApartments,{open,allowed,inUse,inside,presentCard,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},resetRun(){preview=null;for(const x of [screenOff,screenSet,lightOff,lightSet])x.clear();},streetDoorsBuild:streetDoors});
  Object.defineProperties(root.VoidApartments,{visit:{get:()=>visit,configurable:true},hacking:{get:()=>hacking,configurable:true}});   // live values (Object.assign would copy them once)
 })(globalThis);

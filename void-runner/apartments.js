@@ -134,6 +134,12 @@
  const door=id=>doors().find(d=>d.id===id)||null;
  const doorsIn=q=>doors().filter(d=>d.quarter===q);
  // The door nearest a map click (within `max` metres), for the editor's map picker.
+ function pickupPosition(location,player,id){
+  const d=door(id);
+  if(!d||location?.area!=='street'||location.quarter!==d.quarter||!player||
+     !Number.isFinite(player.x)||!Number.isFinite(player.z)||Math.hypot(player.x-d.x,player.z-d.z)>=5)return null;
+  return {area:'street',quarter:d.quarter,x:player.x,z:player.z};
+ }
  function nearestDoor(x,z,max=12,family=null){let best=null,bd=max;for(const d of doors()){if(family&&(d.family||'city')!==family)continue;const k=Math.hypot(d.x-x,d.z-z);if(k<bd){bd=k;best=d;}}return best;}
 
  // ---------------------------------------------------------------- the interiors (local metres; world = ORIGIN + local)
@@ -224,16 +230,93 @@
  function residenceInstances(chars,lookup=door){const out=new Map(),street=new Map();for(const [id,c] of Object.entries(chars||{})){const r=c?.residence,d=r&&lookup(r.door);if(!d||!['city','container',undefined].includes(d.family)||!STYLE_IDS.includes(d.style)||!Number.isInteger(r.slot)||r.slot<0||r.slot>=geo(d.style).HALL.slots.length)continue;const key=residenceKey(d.id||r.door,r.slot);if(!out.has(key))out.set(key,{key,id:'residence-'+r.slot,mission:null,door:r.door,style:d.style,number:slotNumber(r.slot,d.style),residenceSlot:r.slot,locked:false,items:[],residents:[],rules:[]});const h=out.get(key);h.residents.push(id);h.rules.push(r.apartmentAccess);if(!street.has(r.door))street.set(r.door,[]);street.get(r.door).push(r.streetAccess);}return [...out.values()].map(h=>{const {rules,...rest}=h;return {...rest,apartmentAccess:accessRules(rules),streetAccess:accessRules(street.get(h.door))};});}
  function mergeResidenceInstances(missions,homes){const out=[...(missions||[])];for(const h of homes||[]){const same=out.filter(a=>a.door===h.door);if(same.some(a=>a.modular||a.style!==h.style)||same.length>=geo(h.style).HALL.slots.length)continue;out.push(h);}return out;}
  // Mission apartments occupy dynamically allocated hallway slots, so reserve the entire building, even before the mission starts.
- function addressRegistry(trees,characters){const result=new Map(),row=id=>{if(!result.has(id))result.set(id,{door:id,missions:[],apartments:[],residents:[]});return result.get(id);};for(const t of trees||[])for(const m of t?.missions||[]){const ids=new Set();for(const a of m.apartments||[]){if(!a?.door)continue;ids.add(a.door);const r=row(a.door),numbers=isLoc(a)?a.modules.filter(x=>Number.isInteger(x.number)).map(x=>x.number):Number.isInteger(a.number)?[a.number]:[];const existing=r.apartments.find(x=>x.mission===m.id&&x.id===a.id);if(existing){existing.numbers=[...new Set([...existing.numbers,...numbers])];}else r.apartments.push({mission:m.id,id:a.id,title:m.title||m.id,numbers:[...new Set(numbers)],modular:isLoc(a)});}for(const o of m.objectives||[]){const p=o?.kind==='hack'&&apOf(o.ap);if(p?.door)ids.add(p.door);}for(const id of ids){const r=row(id);if(!r.missions.some(x=>x.id===m.id))r.missions.push({id:m.id,title:m.title||m.id});}}for(const [id,c] of Object.entries(characters||{})){const r=c?.residence;if(r?.door&&Number.isInteger(r.slot)){const x=row(r.door);x.residents.push({id,name:c.name||id,slot:r.slot});}}return result;}
+ function addressRegistry(trees,characters){const result=new Map(),row=id=>{if(!result.has(id))result.set(id,{door:id,missions:[],apartments:[],residents:[]});return result.get(id);};for(const t of trees||[])for(const m of t?.missions||[]){const ids=new Set();for(const a of m.apartments||[]){if(!a?.door)continue;ids.add(a.door);const r=row(a.door),numbers=isLoc(a)?a.modules.filter(x=>Number.isInteger(x.number)).map(x=>x.number):Number.isInteger(a.number)?[a.number]:[];const existing=r.apartments.find(x=>x.mission===m.id&&x.id===a.id);if(existing){existing.numbers=[...new Set([...existing.numbers,...numbers])];}else r.apartments.push({mission:m.id,id:a.id,title:m.title||m.id,numbers:[...new Set(numbers)],modular:isLoc(a)});}for(const o of m.objectives||[]){const p=o?.kind==='hack'&&apOf(o.ap);if(p?.door)ids.add(p.door);}for(const id of ids){const r=row(id);if(!r.missions.some(x=>x.id===m.id))r.missions.push({id:m.id,title:m.title||m.id});}}for(const [id,c] of Object.entries(characters||{})){const r=c?.residence;if(r?.door&&Number.isInteger(r.slot)){const x=row(r.door);x.residents.push({id,name:c.name||id,slot:r.slot});}}
+  for(const t of trees||[])for(const m of t?.missions||[]){
+   const involved=new Set([m.giver,...(m.objectives||[]).map(o=>o?.npc),...(m.cast||[]).map(c=>c?.id)]);
+   for(const id of involved){
+    const home=characters?.[id]?.residence;
+    if(!home?.door||!Number.isInteger(home.slot))continue;
+    const r=row(home.door);
+    if(r.missions.some(x=>x.id===m.id))continue;
+    const associated=r.associatedMissions||=[];
+    if(!associated.some(x=>x.id===m.id))associated.push({id:m.id,title:m.title||m.id});
+   }
+  }
+  return result;}
 
+ const entranceLegend={
+  mission:{label:'Mission or reservation',colors:['#f4ca43']},
+  npc:{label:'NPC residence',colors:['#479eff']},
+  player:{label:'Player housing',colors:['#58ca81']},
+  shared:{label:'NPC and player housing',colors:['#479eff','#58ca81']},
+  commercial:{label:'Commercial property',colors:['#f19c48']},
+  available:{label:'Available entrance',colors:['#98a3ae']}
+ };
+ function entranceType(d,row,players=[]){
+  if(row?.missions?.length||row?.associatedMissions?.length)return 'mission';
+  if(row?.residents?.length)return players.length?'shared':'npc';
+  if(players.length)return 'player';
+  return ['office','commercial'].includes(d.family)?'commercial':'available';
+ }
+ function interiorDoors(trees){
+  const records=new Map(),modules=MOD();
+  if(!modules)return records;
+  for(const t of trees||[])for(const mission of t.missions||[])for(const loc of mission.apartments||[]){
+   if(!isLoc(loc)||!loc.door)continue;
+   for(const door of modules.analyse(loc).doors){
+    if(door.kind==='entry')continue;
+    const id=['interior',loc.door,mission.id,loc.id,door.id].join('/');
+    records.set(id,{id,entrance:loc.door,mission:mission.id,location:loc.id,door:door.id,name:door.a+' ↔ '+door.b});
+   }
+  }
+  return records;
+ }
+ function editorDoorPoint(d,point=[d.x,d.z]){
+  const areas=node?require('./npc-areas.js'):root.VoidNPCAreas;
+  const shift=areas?.SCENE_SHIFT?.[d.scene];
+  return {x:point[0]+(shift?.x||0),z:point[1]+(shift?.z||0)};
+ }
+ function propertyRecord(d,row,players=[]){
+  const residential=!['office','commercial'].includes(d.family);
+  const units=residential?geo(d.style).HALL.slots.map(({i})=>{
+   const number=slotNumber(i,d.style);
+   return {id:residenceKey(d.id,i),slot:i,number,
+    residents:(row?.residents||[]).filter(r=>r.slot===i),
+    players:players.filter(r=>r.slot===i),
+    reservations:(row?.apartments||[]).filter(a=>a.numbers.includes(number))};
+  }):[];
+  return {door:d.id,building:'building/'+d.id,hall:residential?'hall/'+d.id:null,kind:entranceType(d,row,players),units,
+   reserved:!!row?.missions?.length,missions:[...(row?.missions||[]),...(row?.associatedMissions||[]).filter(m=>!row?.missions?.some(x=>x.id===m.id))],apartments:row?.apartments||[],residents:row?.residents||[]};
+ }
  // Shared read-only address lookup. Neither editor needs to initialize the other.
- async function readAddressRegistry({shipped=[],cached={},readLive,readDraft,readLocal,companions={}}={}){
+ async function readAddressRegistry({shipped=[],cached={},readLive,readDraft,readLocal,readProperties,companions={}}={}){
   const trees=[...shipped,...(cached.trees||[])],characters={...(cached.characters||{})};let complete=true;
-  const add=d=>{if(!d)return;trees.push(...(d.trees||[]));Object.assign(characters,d.characters||{});};
-  try{const live=await readLive();if(!live||live.degraded)complete=false;add(live?.content);}catch{complete=false;}
-  if(readDraft)try{const rec=await readDraft();add(rec?.document?.data?.bundle);}catch(e){if(e?.status!==404)complete=false;}
-  if(readLocal)try{const d=readLocal();if(d&&d.version!==1)throw Error('Unrecognized draft');add(d);}catch{complete=false;}
-  Object.assign(characters,companions);return {rows:addressRegistry(trees,characters),complete};
+  const missionSources=new Map(),doorSources=new Map();
+  const record=(items,source)=>{for(const tree of items)for(const m of tree.missions||[]){
+   if(!missionSources.has(m.id))missionSources.set(m.id,new Set());
+   missionSources.get(m.id).add(source);
+   for(const id of addressRegistry([{missions:[m]}],{}).keys()){
+    const key=id+'/'+m.id;
+    if(!doorSources.has(key))doorSources.set(key,new Set());
+    doorSources.get(key).add(source);
+   }
+  }};
+  record(trees,'Published');
+  const add=(d,source)=>{if(!d)return;record(d.trees||[],source);trees.push(...(d.trees||[]));Object.assign(characters,d.characters||{});};
+  try{const live=await readLive();if(!live||live.degraded)complete=false;add(live?.content,'Published');}catch{complete=false;}
+  if(readDraft)try{const rec=await readDraft();add(rec?.document?.data?.bundle,'Draft');}catch(e){if(e?.status!==404)complete=false;}
+  if(readLocal)try{const d=readLocal();if(d&&d.version!==1)throw Error('Unrecognized draft');add(d,'Local draft');}catch{complete=false;}
+  Object.assign(characters,companions);
+  const rows=addressRegistry(trees,characters);
+  if(readProperties)try{
+   const assignments=await readProperties();
+   for(const [unit,player] of Object.entries(assignments.units)){
+    const [,door,slot]=unit.split('/');
+    if(!rows.has(door))rows.set(door,{door,missions:[],apartments:[],residents:[]});
+    const row=rows.get(door);(row.players||=[]).push({slot:Number(slot),name:player.name});
+   }
+  }catch{complete=false;}
+  return {rows,complete,missionSources,doorSources,trees};
  }
 
  // ---------------------------------------------------------------- mission data: checks and the instances open now
@@ -318,8 +401,8 @@
  function inventory(){return {hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
-  HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
-  readAddressRegistry,reset(){cache=null;}};
+  HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,pickupPosition,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
+  readAddressRegistry,interiorDoors,editorDoorPoint,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
  if(node){module.exports=api;return;}
  root.VoidApartments=Object.assign(root.VoidApartments||{},api);
 })(typeof globalThis!=='undefined'?globalThis:this);

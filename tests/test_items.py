@@ -65,6 +65,207 @@ class ItemTests(unittest.TestCase):
             self.fund(t, 1000)
         return self.post('shop/purchase', {'vendor': vendor, 'item': item, 'qty': qty, 'credits': credits, 'nonce': self.nonce()}, t)
 
+    def test_physical_card_access_and_notes(self):
+        catalog_data = catalog()
+        door = 'apt-avenue-n-16'
+        unit = 'residence/' + door + '/2'
+        card = next(it for it in catalog_data['items'] if it['id'] == 'ghost-circuit')
+        card.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard={'doors': [door, unit], 'notes': 'Use the rear entrance.',
+                             'privateNotes': 'Editor-only reservation', 'duration': 0,
+                             'transferable': True, 'droppable': True, 'pickup': True, 'bearer': True})
+        published = self.publish(catalog_data)
+        self.assertEqual(published.status_code, 200, published.json)
+        self.assertNotIn('Editor-only reservation', self.get('items/catalog').get_data(as_text=True))
+        bought = self.buy()
+        self.assertEqual(bought.status_code, 200, bought.json)
+        held = self.get('shop/state').json['keycards'][0]
+        self.assertEqual(held['notes'], 'Use the rear entrance.')
+        self.assertNotIn('privateNotes', held)
+        for target in [door, unit]:
+            self.assertTrue(self.post('keycards/access', {'door': target}).json['allowed'])
+        self.assertFalse(self.post('keycards/access', {'door': unit[:-1]+'3'}).json['allowed'])
+        drop = {'action': 'drop', 'card': held['id'], 'door': door, 'nonce': self.nonce()}
+        self.assertEqual(self.post('keycards/move', drop).status_code, 200)
+        self.assertTrue(self.post('keycards/move', drop).json['duplicate'])
+        self.assertFalse(self.post('keycards/access', {'door': door}).json['allowed'])
+        pickup = dict(drop, action='pickup', position={'area':'street','quarter':'avenue','x':16,'z':-5}, nonce=self.nonce())
+        for bad in [None, dict(pickup['position'], x=21), dict(pickup['position'], quarter='oldtown'),
+                    dict(pickup['position'], area='apartment')]:
+            self.assertEqual(self.post('keycards/move', dict(pickup, position=bad)).status_code, 403)
+        result = self.post('keycards/move', pickup)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(self.get('shop/state').json['keycards'], [held])
+        self.assertTrue(self.post('keycards/move', pickup).json['duplicate'])
+        self.fund('outsider', 1000)
+        transfer = {'action': 'transfer', 'card': held['id'], 'recipient': 'outsider', 'nonce': self.nonce()}
+        self.assertEqual(self.post('keycards/move', transfer).status_code, 200)
+        self.assertTrue(self.post('keycards/move', transfer).json['duplicate'])
+        self.assertEqual(self.get('shop/state', 'outsider').json['keycards'], [held])
+        self.assertFalse(self.post('keycards/access', {'door': unit}).json['allowed'])
+        self.assertTrue(self.post('keycards/access', {'door': unit}, 'outsider').json['allowed'])
+
+        card['keycard']['discoverable'] = False
+        self.assertEqual(self.publish(catalog_data, expected=1).status_code, 200)
+        bought = self.buy(credits=925)
+        self.assertEqual(bought.status_code, 200, bought.json)
+        mystery = self.get('shop/state').json['keycards'][0]
+        grant = {'item': card['id'], 'destination': 'ground', 'target': door, 'nonce': self.nonce()}
+        self.assertEqual(self.post('developer/keycards/grant', grant, 'outsider').status_code, 403)
+        granted = self.post('developer/keycards/grant', grant)
+        self.assertEqual(granted.status_code, 200, granted.json)
+        self.assertTrue(self.post('developer/keycards/grant', grant).json['duplicate'])
+        self.assertEqual(self.post('developer/keycards/grant', dict(grant, destination='player', target='owner')).status_code, 409)
+        npc_grant = dict(grant, destination='npc', target='iris', nonce=self.nonce())
+        self.assertEqual(self.post('developer/keycards/grant', dict(npc_grant, target='unknown-character')).status_code, 404)
+        issued = self.post('developer/keycards/grant', npc_grant)
+        self.assertEqual(issued.status_code, 200, issued.json)
+        held_by_npc = self.db.data['vr_npc_keycards/iris']['cards'][issued.json['id']]
+        self.assertTrue(items.card_allows(held_by_npc, 'npc/iris', unit, 0))
+        self.assertTrue(self.post('developer/keycards/grant', npc_grant).json['duplicate'])
+        who = {'npc': 'iris', 'door': unit}
+        self.assertTrue(self.post('keycards/npc-access', who).json['allowed'])
+        self.assertFalse(self.post('keycards/npc-access', dict(who, door=unit[:-1]+'3')).json['allowed'])
+        self.assertFalse(self.post('keycards/npc-access', dict(who, npc='admin')).json['allowed'])
+        event = 'test-encounter-once'
+        self.assertFalse(items.drop_npc_card(self.db, 'iris', issued.json['id'], door, event)['duplicate'])
+        self.assertNotIn(issued.json['id'], self.db.data['vr_npc_keycards/iris']['cards'])
+        self.assertFalse(self.post('keycards/npc-access', who).json['allowed'])
+        collect = dict(pickup, card=issued.json['id'], nonce=self.nonce())
+        self.assertEqual(self.post('keycards/move', collect, 'outsider').status_code, 200)
+        self.assertTrue(items.drop_npc_card(self.db, 'iris', issued.json['id'], door, event)['duplicate'])
+        self.assertNotIn('vr_keycard_drops/' + issued.json['id'], self.db.data)
+        self.assertEqual(next(c for c in self.get('shop/state', 'outsider').json['keycards']
+                              if c['id'] == issued.json['id'])['notes'], 'Use the rear entrance.')
+        self.assertNotIn('doors', mystery)
+        self.assertNotIn('privateNotes', mystery)
+        self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
+
+    def test_expiring_card_checks_holder_door_and_exact_expiry(self):
+        door = 'apt-avenue-n-16'
+        target = 'residence/'+door+'/1'
+        item = {'id':'resident','name':'Resident','keycard':{'doors':[door,target],'duration':10,
+                'droppable':True,'transferable':True,'pickup':True,'bearer':False}}
+        for owner in ['owner','npc/iris']:
+            card = items.issue_card(item, owner, 'a'*64, 100)
+            self.assertTrue(items.card_allows(card, owner, target, 109))
+            self.assertFalse(items.card_allows(card, owner, target, 110))
+            self.assertFalse(items.card_allows(card, 'outsider', target, 105))
+            self.assertFalse(items.card_allows(card, owner, target[:-1]+'0', 105))
+
+    def test_gameplay_expiry_follows_the_physical_card(self):
+        door = 'apt-avenue-n-16'
+        content = catalog()
+        item = next(it for it in content['items'] if it['id'] == 'ghost-circuit')
+        rules = dict(doors=[door], duration=1, expiryClock='game', gameMinutes=10,
+                     transferable=True, droppable=True, pickup=True, bearer=True)
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none', keycard=rules)
+        self.assertEqual(self.publish(content).status_code, 200)
+        self.fund('owner', 1000)
+        self.fund('outsider', 1000)
+        self.db.data['vr_players/'+items._tag('owner')]['save']['story'] = {'flags': {'gameMin': 100}}
+        self.assertEqual(self.buy().status_code, 200)
+        card = self.get('shop/state?gameMinute=103').json['keycards'][0]
+        self.assertEqual((card['expires'], card['gameRemaining']), (0, 7))
+        with patch.object(items.time, 'time', return_value=4000000000):
+            self.assertEqual(self.get('shop/state?gameMinute=103').json['keycards'][0]['gameRemaining'], 7)
+        move = dict(card=card['id'], door=door, action='drop', nonce=self.nonce())
+        self.assertEqual(self.post('keycards/move?gameMinute=104', move).status_code, 200)
+        self.assertEqual(self.post('keycards/move?gameMinute=600', dict(move, action='pickup', position={'area':'street','quarter':'avenue','x':16,'z':-5}, nonce=self.nonce())).status_code, 200)
+        transfer = dict(card=card['id'], recipient='outsider', action='transfer', nonce=self.nonce())
+        self.assertEqual(self.post('keycards/move?gameMinute=602', transfer).status_code, 200)
+        for minute, expected in [(3, True), (4, False), (1, False)]:
+            self.assertEqual(self.post('keycards/access?gameMinute='+str(minute), {'door':door}, 'outsider').json['allowed'], expected)
+        self.assertEqual(self.get('shop/state?gameMinute=-1').status_code, 400)
+        rules['gameMinutes'] = 0
+        permanent = items.issue_card(item, 'owner', 'a'*64, 0)
+        self.assertTrue(items.card_allows(permanent, 'owner', door, 4000000000))
+
+    def test_two_accounts_racing_to_pick_up_one_card(self):
+        from concurrent.futures import ThreadPoolExecutor
+        door = 'apt-avenue-n-16'
+        card_id = 'e'*64
+        self.db.data['vr_keycard_drops/'+card_id] = {'door':door,'card':{
+            'id':card_id,'template':'test-card','name':'Test card','icon':'K','doors':[door],
+            'issuedTo':items._tag('owner'),'pickup':True,'transferable':True,'bearer':True,'expires':0}}
+        barrier = threading.Barrier(2)
+        def collect(uid):
+            barrier.wait(timeout=5)
+            try:
+                items.move_card(self.db, uid, {'card':card_id,'action':'pickup','door':door,'position':{'area':'street','quarter':'avenue','x':16,'z':-5},'nonce':'pickup-'+uid+'-123'})
+                return True
+            except items.DraftError as error:
+                self.assertIn('unavailable', str(error))
+                return False
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(collect, ['owner','outsider']))
+        self.assertEqual(sorted(results), [False,True])
+        self.assertEqual(sum(card_id in (items._player_ref(self.db,u).get().to_dict() or {}).get('cards',{})
+                             for u in ['owner','outsider']),1)
+
+    def test_draft_interior_keycard_needs_a_published_door_before_release(self):
+        import void_runner_live_content as world
+        c = catalog()
+        item = next(i for i in c['items'] if i['id'] == 'ghost-circuit')
+        door = 'apt-avenue-n-16'
+        target = 'interior/'+door+'/draft-home-m1/home/flat.entry|hall.d0'
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard={'doors':[target], 'duration':0, 'transferable':False, 'droppable':False,
+                             'bearer':False, 'pickup':False})
+        self.assertNotEqual(self.publish(c).status_code, 200)
+        loc = {'id':'home', 'door':door, 'modules':[{'id':'hall','type':'hall-luxury'},
+               {'id':'flat','type':'apt-luxury','number':105}], 'entry':'hall.street',
+               'links':[{'a':'hall.d0','b':'flat.entry'}]}
+        self.db.data[world._state_ref(self.db).key] = {'live':1}
+        self.db.data[world._version_ref(self.db,1).key] = {'content':{'trees':[
+            {'missions':[{'id':'draft-home-m1','apartments':[loc]}]}]}}
+        self.assertEqual(self.publish(c).status_code, 200)
+        self.assertEqual(self.buy().status_code, 200)
+        self.assertTrue(self.post('keycards/access', {'door':target}).json['allowed'])
+        self.assertFalse(self.post('keycards/access', {'door':target.replace('hall.d0','hall.d1')}).json['allowed'])
+
+    def test_reward_requires_saved_completion_and_stays_claimed_after_transfer(self):
+        c = catalog()
+        item = next(i for i in c['items'] if i['id'] == 'ghost-circuit')
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard={'doors': ['apt-avenue-n-16'], 'rewardMission': 'm001-awakening',
+                             'duration': 0, 'transferable': True, 'droppable': True, 'pickup': True, 'bearer': True})
+        self.assertEqual(self.publish(c).status_code, 200)
+        self.fund('owner', 1000)
+        self.fund('outsider', 1000)
+        body = {'item': item['id']}
+        self.assertEqual(self.get('shop/state').json['cardRewards'], [])
+        self.assertEqual(self.post('keycards/reward', body).status_code, 409)
+        campaign = self.db.data['vr_players/' + items._tag('owner')]
+        campaign['save']['universe'] = {'missions': {'m001-awakening': {'completed': True}}}
+        self.assertEqual(self.get('shop/state').json['cardRewards'][0]['id'], item['id'])
+        claim = self.post('keycards/reward', body)
+        self.assertEqual(claim.status_code, 200, claim.json)
+        self.assertFalse(claim.json['duplicate'])
+        self.assertEqual(self.get('shop/state').json['cardRewards'], [])
+        move = {'action': 'transfer', 'card': claim.json['id'], 'recipient': 'outsider', 'nonce': self.nonce()}
+        self.assertEqual(self.post('keycards/move', move).status_code, 200)
+        self.assertTrue(self.post('keycards/reward', body).json['duplicate'])
+        self.assertEqual(self.get('shop/state').json['keycards'], [])
+        self.assertEqual(self.post('keycards/reward', body, 'outsider').status_code, 409)
+
+    def test_player_housing_grants_only_its_doors_and_releases_the_physical_card(self):
+        self.fund('owner', 1000)
+        self.fund('second', 1000)
+        reserved = {'unit': 'residence/apt-avenue-n-30/0', 'player': 'owner', 'revision': 0}
+        self.assertEqual(self.post('developer/properties', reserved).status_code, 409)
+        door = 'apt-avenue-n-16'
+        unit = f'residence/{door}/0'
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': 'owner', 'revision': 0}).status_code, 200)
+        self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
+        self.assertFalse(self.post('keycards/access', {'door': unit[:-1]+'1'}).json['allowed'])
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': 'second', 'revision': 1}).status_code, 409)
+        self.assertEqual(self.post('developer/properties', {'unit': unit[:-1]+'1', 'player': 'second', 'revision': 1}).status_code, 200)
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': None, 'revision': 1}).status_code, 409)
+        self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': None, 'revision': 2}).status_code, 200)
+        self.assertFalse(self.post('keycards/access', {'door': unit}).json['allowed'])
+        self.assertEqual(self.get('shop/state').json['keycards'], [])
+
     def test_seed_is_valid_and_matches_the_browser(self):
         self.assertEqual(items.problems(items.SEED), [])
         self.assertEqual(self.client.get(U + 'items/catalog').json['content']['items'][0]['id'], 'sprint-tonic')

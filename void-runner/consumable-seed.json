@@ -3,6 +3,10 @@
   "version": 1,
   "categories": [
     {
+      "id": "keycards",
+      "name": "Keycards"
+    },
+    {
       "id": "food",
       "name": "Food"
     },

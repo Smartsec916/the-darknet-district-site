@@ -5,10 +5,10 @@ globalThis.VoidConsumableSpec = {
  "format": "vr-items",
  "version": 1,
  "limits": {"items": 300, "vendors": 60, "entries": 80, "effects": 8, "modifiers": 6, "categories": 24, "presets": 40, "name": 60, "description": 400, "bytes": 600000, "delay": 600, "duration": 900, "fadeIn": 60, "fadeOut": 120, "price": 1000000, "stock": 9999, "stack": 99, "weight": 500, "cooldown": 3600, "restockEvery": 604800},
- "categories": [
+ "categories": [{"id":"keycards","name":"Keycards"},
   {"id": "food", "name": "Food"}, {"id": "beverages", "name": "Beverages"}, {"id": "medical", "name": "Medical supplies"}, {"id": "stimulants", "name": "Stimulants"},
   {"id": "substances", "name": "Fictional cyberpunk substances"}, {"id": "other", "name": "Other"}],
- "kinds": ["consumable", "food", "beverage", "weapon", "ammunition", "missile", "equipment", "medical", "misc", "service"],
+ "kinds": ["keycard", "consumable", "food", "beverage", "weapon", "ammunition", "missile", "equipment", "medical", "misc", "service"],
  "rarities": ["common", "uncommon", "rare", "epic", "legendary"],
  "stacking": ["max", "additive", "replace", "independent"],
  "animations": ["none", "drink", "eat", "inject", "inhale", "swallow", "apply"],

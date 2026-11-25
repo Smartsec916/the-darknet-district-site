@@ -595,6 +595,7 @@ def save_campaign(db, uid):
         if payload['revision'] != revision:
             raise ApiError('Another device changed your cloud save. Refresh your account before choosing which save to keep.', 409)
         timestamp = int(time.time())
+        items_service.checkpoint_card_clock(db, transaction, uid, prior, campaign)
         transaction.set(ref, {'save':campaign,'revision':revision+1,'savedAt':timestamp}, merge=True)
         return revision+1, timestamp
     revision, timestamp = commit(db.transaction())
@@ -1118,9 +1119,9 @@ def items_admin(uid):
 @api.get('/items/catalog')
 def items_catalog():
     if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
-        return jsonify(version=0, content=items_service.SEED)
+        return jsonify(items_service.public_catalog({'version': 0, 'content': items_service.SEED}))
     db, _, _ = services()
-    return jsonify(items_service.live(db))
+    return jsonify(items_service.public_catalog(items_service.live(db)))
 
 
 @api.get('/developer/items')
@@ -1164,10 +1165,72 @@ def shop_vendor(db, uid, vendor):
     return jsonify(items_service.vendor_listing(db, vendor, uid=uid))
 
 
+def keycard_minute():
+    raw = request.args.get('gameMinute')
+    if raw is None:
+        return None
+    if not re.fullmatch('[0-9]{1,16}', raw) or int(raw) > 2**53-1:
+        raise DraftError('Invalid campaign minute.')
+    return int(raw)
+
+
 @api.get('/shop/state')
 @signed_in
 def shop_state(db, uid):
-    return jsonify(items_service.player_state(db, uid))
+    return jsonify(items_service.player_state(db, uid, minute=keycard_minute()))
+
+
+@api.get('/keycards/drops/<door>')
+@signed_in
+def keycard_drops(db, uid, door):
+    return jsonify(cards=items_service.dropped_cards(db, uid, door))
+
+
+@api.post('/keycards/move')
+@signed_in
+def keycard_move(db, uid):
+    return jsonify(items_service.move_card(db, uid, request.get_json(silent=True), minute=keycard_minute()))
+
+
+@api.post('/developer/keycards/grant')
+@signed_in
+def grant_keycard(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.grant_card(db, uid, request.get_json(silent=True)))
+
+
+@api.route('/developer/properties', methods=['GET', 'POST'])
+@signed_in
+def property_registry(db, uid):
+    import void_runner_properties as properties
+    items_admin(uid)
+    if request.method == 'POST':
+        return jsonify(properties.assign(db, request.get_json(silent=True), uid))
+    return jsonify(properties.assignments(db))
+
+
+@api.post('/keycards/reward')
+@signed_in
+def claim_keycard_reward(db, uid):
+    return jsonify(items_service.claim_reward(db, uid, request.get_json(silent=True), minute=keycard_minute()))
+
+
+@api.post('/keycards/npc-access')
+@signed_in
+def npc_keycard_access(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or set(body) != {'npc', 'door'}:
+        raise DraftError('Choose an NPC and a door.')
+    return jsonify(allowed=items_service.npc_card_access(db, body['npc'], body['door']))
+
+
+@api.post('/keycards/access')
+@signed_in
+def keycard_access(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or set(body) != {'door'}:
+        raise DraftError('Choose one door.')
+    return jsonify(allowed=items_service.card_access(db, uid, body['door'], minute=keycard_minute()))
 
 
 @api.post('/shop/purchase')
@@ -1176,7 +1239,7 @@ def shop_purchase(db, uid):
     body = request.get_json(silent=True)
     if not isinstance(body, dict):
         raise DraftError('A JSON object is required.')
-    return jsonify(items_service.purchase(db, uid, body))
+    return jsonify(items_service.purchase(db, uid, body, minute=keycard_minute()))
 
 
 @api.post('/shop/service/finish')
