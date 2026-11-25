@@ -39,6 +39,7 @@ async function register(bytes,{allowOverTriangleLimit=false}={},run=gh){
  return {hash,asset};
 }
 function serve(){
+ if(process.platform==='win32')process.title='Void Runner NPC Publisher';
  const pairing=crypto.randomBytes(18).toString('base64url');let busy=false;
  const server=http.createServer(async(req,res)=>{
   const reply=(code,body)=>{res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};

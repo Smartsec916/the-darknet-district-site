@@ -3,7 +3,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const L=require('../void-runner/anim-library.js');
 test('fourteen ActorCore clips, each with a title, a category and a length',()=>{
- const all=L.all().filter(c=>c.library==='actorcore');assert.equal(all.length,14);assert.equal(new Set(all.map(c=>c.id)).size,14);
+ const all=L.all().filter(c=>c.library==='actorcore');assert.equal(L.clip('meshy-run').category,'locomotion');assert.equal(all.length,14);assert.equal(new Set(all.map(c=>c.id)).size,14);
  for(const c of all){assert.match(c.id,/^ac-[a-z0-9-]+$/);assert.ok(c.title&&c.category&&c.seconds>5,c.id);assert.ok(['inplace','free'].includes(c.root));}
  assert.equal(L.byCategory('dance').length,2);assert.equal(L.byCategory('floor').length,3);assert.equal(L.clip('ac-sit-bench-1').needs,'seat');assert.equal(L.clip('nope'),null);
 });
@@ -23,4 +23,16 @@ test('the licensed files are not in the public repository; the code and the page
  const tracked=require('node:child_process').execSync('git ls-files void-runner/assets/models/anim',{encoding:'utf8'}).trim();assert.equal(tracked,'','no library file is committed');
  const h=fs.readFileSync('void-runner.html','utf8');assert.ok(h.includes('void-runner/anim-library.js'));assert.equal(fs.readFileSync('static/void-runner.html','utf8'),h);
  assert.ok(fs.readFileSync('void-runner/vr-suite.js','utf8').includes('VoidAnimLibrary?.apply'));
+});
+test('shared motion containers are reused per scene and released with that scene',async()=>{
+ const vm=require('node:vm'),events=[],loads=[];
+ const fake={document:{},console,VoidAssets:{loadContainer:async(def,scene)=>{
+  loads.push(scene);return {animationGroups:[],transformNodes:[],dispose(){events.push(scene);}};
+ }}};
+ vm.runInNewContext(require('node:fs').readFileSync(require.resolve('../void-runner/anim-library.js'),'utf8'),fake);
+ const scene=()=>({onDisposeObservable:{addOnce(fn){this.close=fn;}}});
+ const a=scene(),b=scene(),lib=fake.VoidAnimLibrary;
+ await lib.load('actorcore',a);await lib.load('actorcore',b);await lib.load('actorcore',a);
+ assert.deepEqual(loads,[a,b]);a.onDisposeObservable.close();await Promise.resolve();
+ assert.deepEqual(events,[a]);await lib.load('actorcore',b);assert.equal(loads.length,2);
 });
