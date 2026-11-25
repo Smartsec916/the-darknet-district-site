@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "54d23a8e924245dd",
+  "revision": "738ff7d41e473733",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -76457,13 +76457,13 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1190,
+      "line": 1191,
       "text": "used to vanish as an unhandled promise rejection; now the editor says what stopped it, in the status line, and the browser console keeps the details. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1268,
+      "line": 1269,
       "text": "addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;",
       "kind": "source-reference"
     },
@@ -80931,7 +80931,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
-    "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
+    "void-runner/dev-test.js": "3b7d20ed061de37fb8632c808be0b1dc9673845c9d822efcb1841c335e63855f",
     "void-runner/dev-tools.js": "5f6f1024975740aead9df5087fbcc142c3ecf9c756882a99ec83cdf8bb3afb92",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
@@ -81014,7 +81014,7 @@
     "void-runner/mission-blocks.js": "1af9c0a679b9b1503b92760f1110decd16cf68f5719cabfa320bbab98d94364a",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "8cee73fa42a28131ced07e20528f1a28e091a05fa685c030791b4f6ba9a21ab5",
+    "void-runner/mission-editor.js": "62b72afe1f8e01d672b65f38a1fb23e373ec1da565e417bfa0b5b013aad6779d",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
