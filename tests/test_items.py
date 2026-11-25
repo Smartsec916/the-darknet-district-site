@@ -138,6 +138,18 @@ class ItemTests(unittest.TestCase):
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
 
+    def test_expiring_card_checks_holder_door_and_exact_expiry(self):
+        door = 'apt-avenue-n-16'
+        target = 'residence/'+door+'/1'
+        item = {'id':'resident','name':'Resident','keycard':{'doors':[door,target],'duration':10,
+                'droppable':True,'transferable':True,'pickup':True,'bearer':False}}
+        for owner in ['owner','npc/iris']:
+            card = items.issue_card(item, owner, 'a'*64, 100)
+            self.assertTrue(items.card_allows(card, owner, target, 109))
+            self.assertFalse(items.card_allows(card, owner, target, 110))
+            self.assertFalse(items.card_allows(card, 'outsider', target, 105))
+            self.assertFalse(items.card_allows(card, owner, target[:-1]+'0', 105))
+
     def test_two_accounts_racing_to_pick_up_one_card(self):
         from concurrent.futures import ThreadPoolExecutor
         door = 'apt-avenue-n-16'

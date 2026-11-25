@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "94f45177eae7d1a0",
+  "revision": "15a41b23204e97a0",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81103,7 +81103,7 @@
     "void-runner/remote-players.js": "5f56de7492cde8788e9d839a5126efaa76426330bc95200115b7afbbdad5fc65",
     "void-runner/road-taxi-rules.js": "78f664cd9459e6b88b9e5bb14f80bfc2abc4535f995d6674223d7e809cf61f37",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
-    "void-runner/road-taxi.js": "054d081e2decd57ed4247d5ec0582479ab37989679e8d471ee004cf5dbd9aeea",
+    "void-runner/road-taxi.js": "4e386484bda8d6b5297320510c2fd1183f88e71a46c904c6fce8251bed38e1b6",
     "void-runner/rook-cargo-gen.js": "5a1b3c8d0db9f57545e80be13e9d8d174c52a0819f5126b8de014905eb7c9500",
     "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",

@@ -65,6 +65,7 @@ jobs:
           node tests/blackout-tesana-browser.cjs
           node tests/skirmish-balance-browser.cjs
           node tests/npc-capability-browser.cjs
+          node tests/world-properties-browser.cjs
         env:
           BROWSER_CHANNEL: chromium
           STABILIZATION_SMOKE: '1'
