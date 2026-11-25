@@ -61,10 +61,10 @@
  function entries(){const g=S().givers||[],out=[];
   for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',made:!!x.made,group:x.made?'made':mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
   for(const look of Object.keys(root.VoidCrowd?.street||{}))out.push({id:'crowd:'+look,name:'Street figure '+look.replace(/^npc-/,''),kind:'crowd',group:'crowd',look});
-  {const C=root.VoidCrowd||{},seen=new Set([...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
-  for(const r of imports.filter(record=>!record.archived))out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
+  {const C=root.VoidCrowd||{},seen=new Set([...(C.prepared||[]).map(p=>p.asset),...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
+  for(const r of imports.filter(record=>!record.archived))out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:preparedModel(r)?'prepared':'import',rec:r});
   return out;}
- const GROUPS=[['made','Made by you (mission givers you created)'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models in this browser'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
+ const GROUPS=[['prepared','Ready to assign'],['made','Made by you (mission givers you created)'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models in this browser'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
  // ---------------------------------------------------------------- imported models (this browser only: IndexedDB)
  const DB='void-npc-imports',ST='models';
  function db(){return new Promise((ok,fail)=>{try{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore(ST,{keyPath:'id'});};r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);}catch(e){fail(e);}});}
@@ -73,7 +73,13 @@
  async function dbDel(id){const d=await db();await new Promise((ok,fail)=>{const t=d.transaction(ST,'readwrite');t.objectStore(ST).delete(id);t.oncomplete=ok;t.onerror=()=>fail(t.error);});}
  function preparedModel(rec){return root.VoidCrowd?.prepared?.find(p=>p.sha256===rec.library?.sha256);}
  async function loadImports(){const records=await dbAll(),ids=new Set(records.map(r=>r.id));
-  for(const p of root.VoidCrowd?.prepared||[]){if(ids.has(p.id))continue;
+  for(const p of root.VoidCrowd?.prepared||[]){if(ids.has(p.id)){
+    const r=records.find(record=>record.id===p.id);
+    if(p.previousSha256&&r.library?.sha256===p.previousSha256){
+     r.blob=null;r.bytes=p.bytes;r.library={...r.library,sha256:p.sha256};if(r.info)r.info={...r.info,bytes:p.bytes};
+    }
+    continue;
+   }
    records.push({id:p.id,name:p.name,sourceFileName:p.source,fileName:p.asset+'.vrpak',bytes:p.bytes,
     licence:{source:p.source,type:'Owner-supplied Meshy generation',noAI:false},
     library:{sha256:p.sha256,rigged:true,materials:p.materials,textures:p.textures,clips:p.clips},
@@ -716,7 +722,9 @@
   return pane;
  }
  function importDetail(main,rec,pv){
-  main.append(el('p','Local import draft · kept in this browser · '+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
+  const prepared=preparedModel(rec);
+  if(prepared)main.append(btn('Assign to world draft',()=>{startMake();Object.assign(ui.make,{model:prepared.asset,name:rec.name,step:1});draw();}));
+  main.append(el('p',(prepared?'NPC Library · Ready to assign · ':'Local import draft · kept in this browser · ')+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
   if(rec.companion){
    const p=rec.companion,summary=el('section','','me-check',{'data-npc-companion-profile':'1'});
    summary.append(el('h4','Imported companion profile'),el('p',p.about||'No personality description','me-small'),
