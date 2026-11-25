@@ -59345,7 +59345,7 @@
       "spawn"
     ]
   },
-  "revision": "6a125a58d1c6e516",
+  "revision": "90ed1193231bd3c7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -77590,7 +77590,7 @@
     },
     {
       "source": "void-runner/npc-escort-across.js",
-      "line": 79,
+      "line": 80,
       "text": "else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}",
       "kind": "source-reference"
     },
@@ -77638,7 +77638,7 @@
     },
     {
       "source": "void-runner/npc-escort.js",
-      "line": 223,
+      "line": 228,
       "text": "WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into the fight pit (ADULT_ROOMS),",
       "kind": "source-reference"
     },
@@ -80495,7 +80495,7 @@
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
     "void-runner/ncz-food-stands.js": "8376f76f0e961ddfd29e749c5c711c268e6991fff8d72b0b94a8bfc5e6e90710",
-    "void-runner/ncz-gate-transit.js": "1b02435e699b7ab3ca8042df47ac8ec5955f09548a7c1e31283a534e76eedb9f",
+    "void-runner/ncz-gate-transit.js": "03cb5f76638d05d3cf54392b2dc0dac8c8162be0f004682f5389a31caa65cdc0",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
     "void-runner/ncz-nightclub.js": "333b3963ce534b64b4eb29c348f3f75bca2b1c5eedda6d5db10702fe747e7eb4",
     "void-runner/ncz-nightlife.js": "cbdf405a66688c0f67da12e4fa3d246de3fbbd35449768875ad36af6a6874987",
@@ -80516,9 +80516,9 @@
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "36ebe6e71cbc415b31b6f4ba14e05300a5ac069d85f74608481ed9471896bf43",
-    "void-runner/npc-escort-across.js": "f48a2fbf8c66912ef533f5cf19363e3ca589f0873e2448fdfc6a2e5a702aaf3a",
+    "void-runner/npc-escort-across.js": "84f2e986ad922dd6a23820a53c09decf9a8829faaa70c18644f125ba6a40d925",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "3cb9c7ebf775c25e2d61639fbc196d2d367175d8f96c67671b0b9c5e6e23a83a",
+    "void-runner/npc-escort.js": "777b2182d9dd75c54ac98ed26154bcba465e6c91686e6e7a35fb0f281bd55ccc",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "3a77ae4ba8ef731094dadcf4143346af636d9814efcdd10962528aa61a35a4dd",

@@ -16,9 +16,12 @@
  'use strict';
  const STATES=['IDLE','ENTRY_DOOR_OPEN','ENTRY_DOOR_CLOSING','SECURED','SCAN','EXCHANGE','READY','EXIT_DOOR_OPEN','COMPLETE','RECOVERY'],SEAL_MS=9000,SCAN_MS=1500,CLEAR_MS=650;
  function create(d){
-  const Q=d.Q;let busy=false,coolUntil=0,phase='IDLE',armed=true,walkingIn=null,lastLane=null,lastSwapMs=null,entered=null;const history=[];
+  const Q=d.Q;let busy=false,coolUntil=0,phase='IDLE',armed=true,walkingIn=null,lastLane=null,lastSwapMs=null,entered=null;const history=[],deferred=[];
   const sleep=d.sleep||(ms=>new Promise(r=>setTimeout(r,ms))),now=d.now||(()=>Date.now()),speed=()=>d.reducedMotion?.()?0.4:1;
   const set=p=>{if(phase!==p){phase=p;history.push(p);if(history.length>40)history.shift();d.onState?.(p);}};
+  // Social arrivals are provisional until the scanner has cleared and the exit door has opened.
+  function deferExchange(lane,fn){if(!busy||phase!=='EXCHANGE'||lastLane!==lane||typeof fn!=='function')return false;deferred.push(fn);return true;}
+  function complete(){set('COMPLETE');for(const fn of deferred.splice(0)){try{fn();}catch(e){try{d.warn?.(e);}catch{}}}}
   const gates=()=>{try{return d.gates?.()||null;}catch{return null;}};
   const here=()=>{const l=d.location();return l&&l.id==='neochinatown'&&l.area==='street'?(Q.valid(l.quarter)||null):null;};
   // Wait for every door to report shut. `still`: the player (or cab) is still where they must be; if not, the checkpoint is called off.
@@ -68,14 +71,14 @@
     set('EXCHANGE');frozen=true;shown=true;
     const arrive=to.scene?d.sceneArrival(to.scene):{spawn:from.spawn,yaw:from.yaw};
     await exchange({lane:lane.key,to,spawn:arrive.spawn,yaw:arrive.yaw,exitDoor:lane.doors[exit].id});shown=false;
-    d.save?.();armed=false;set('COMPLETE');return true;
+    d.save?.();armed=false;complete();return true;
    }catch(error){
     set('RECOVERY');d.warn?.(error);
     if(from){try{await d.enterWalking(d.streetKey(),{silent:true,spawn:from.spawn,yaw:from.yaw,quarter:from.quarter});}catch(e){d.warn?.(e);}}
     try{let back=gates();for(let i=0;!back&&i<60;i++){await sleep(80);back=gates();}back?.scan(lane.key,false);back?.doors.secure(false);back?.doors.release(lane.doors[entry].id);}catch{}
     if(shown)await d.overlay.hide();armed=false;
     d.announce?.(frozen?'The checkpoint could not let you through. The door behind you is open.':'The checkpoint is not available right now.');return false;
-   }finally{busy=false;coolUntil=now()+1500;}
+   }finally{deferred.length=0;busy=false;coolUntil=now()+1500;}
   }
   /* A cab standing in a bay with its passenger. o: {lane (key), from (quarter), to {quarter|scene}, spawn, yaw (the rider's seat, or the far place's
      arrival), after(gates) (road-taxi.js puts the cab and the rider back), still()}. Resolves true when the cab is on the other side with its door ahead open. */
@@ -88,9 +91,9 @@
     set('SECURED');set('SCAN');g.scan(lane.key,true);await sleep(SCAN_MS*1.2*speed());
     set('EXCHANGE');shown=true;
     await exchange({lane:lane.key,to:o.to,spawn:o.spawn,yaw:o.yaw,exitDoor:o.to.scene?null:lane.doors[exit].id,hold:true,after:o.after});shown=false;
-    d.save?.();set('COMPLETE');return true;
+    d.save?.();complete();return true;
    }catch(error){set('RECOVERY');d.warn?.(error);if(shown)try{await d.overlay.hide();}catch{}return false;}
-   finally{busy=false;coolUntil=now()+1500;}
+   finally{deferred.length=0;busy=false;coolUntil=now()+1500;}
   }
   /* Coming back from a place beyond a gate (the Corporate District, the Temple). by: 'foot' (the player appears in the gate's foot lane) or 'cab' (in the bay,
      riding; o.after puts the cab there). The city-side door opens when the scan clears. */
@@ -101,11 +104,11 @@
    try{set('EXCHANGE');shown=true;
     const yaw=Q.yawInto(G.id,q);
     await exchange({lane:lane.key,to:{quarter:q},spawn:o.spawn||[lane.mid[0],1.7,lane.mid[1]],yaw:o.yaw??yaw,exitDoor:lane.doors[side].id,hold:o.by==='cab',after:o.after});shown=false;
-    d.save?.();armed=false;set('COMPLETE');return true;
+    d.save?.();armed=false;complete();return true;
    }catch(error){set('RECOVERY');d.warn?.(error);
     if(back?.key){try{await d.enterWalking(d.sceneKey(back.key),{silent:true,spawn:back.spawn,yaw:back.yaw});}catch(e){d.warn?.(e);}}
     if(shown)try{await d.overlay.hide();}catch{}d.announce?.('The gate is not available right now.');return false;}
-   finally{busy=false;coolUntil=now()+1500;}
+   finally{deferred.length=0;busy=false;coolUntil=now()+1500;}
   }
   // Every frame: standing in the middle of a foot lane starts the checkpoint by itself. After a pass (or a failure) the player must leave the lane first.
   function tick(){
@@ -120,7 +123,7 @@
    if(!armed||!Q.atCentre(lane,w))return false;
    return go();
   }
-  return {go,ride,arrive,tick,STATES,get busy(){return busy;},get state(){return phase;},get armed(){return armed;},get lane(){return lastLane;},get lastSwapMs(){return lastSwapMs;},get history(){return history.slice();}};
+  return {go,ride,arrive,tick,deferExchange,STATES,get busy(){return busy;},get state(){return phase;},get armed(){return armed;},get lane(){return lastLane;},get lastSwapMs(){return lastSwapMs;},get history(){return history.slice();}};
  }
  /* Which quarter an entry to the street lands in: the one asked for, else the one the spawn point stands in, else the one the save remembers (the Port when
     it remembers none: that is where the street has always put a player with no position). */
