@@ -59782,7 +59782,7 @@
       "spawn"
     ]
   },
-  "revision": "b3e1c3531a29b56b",
+  "revision": "a5ffd47dafc2f0b8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -78033,7 +78033,7 @@
     },
     {
       "source": "void-runner/npc-escort-across.js",
-      "line": 80,
+      "line": 81,
       "text": "else if(r.go==='refused'){stay();try{C.onEscort({npc:h.npc,key:P.key,step:P.step,kind:P.kind,event:'across',text:r.why||(who+' waits for you here.'),phase:h.phase,x:h.x,z:h.z});}catch{}}",
       "kind": "source-reference"
     },
@@ -80938,7 +80938,7 @@
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
     "void-runner/ncz-food-stands.js": "8376f76f0e961ddfd29e749c5c711c268e6991fff8d72b0b94a8bfc5e6e90710",
-    "void-runner/ncz-gate-transit.js": "03cb5f76638d05d3cf54392b2dc0dac8c8162be0f004682f5389a31caa65cdc0",
+    "void-runner/ncz-gate-transit.js": "1d14588bf28e78b8983afeab2ef0359a664a6c50431f2ace9bcd1ba19dbf0b8b",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
     "void-runner/ncz-nightclub.js": "333b3963ce534b64b4eb29c348f3f75bca2b1c5eedda6d5db10702fe747e7eb4",
     "void-runner/ncz-nightlife.js": "cbdf405a66688c0f67da12e4fa3d246de3fbbd35449768875ad36af6a6874987",
@@ -80959,7 +80959,7 @@
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "69f61462fea7535c3ff21a9a694ebbc416e2339e6c65f623707a3cdf1f9ea518",
-    "void-runner/npc-escort-across.js": "84f2e986ad922dd6a23820a53c09decf9a8829faaa70c18644f125ba6a40d925",
+    "void-runner/npc-escort-across.js": "9c616beffa326093171382a968259a3867c7b772e4295bcbf957044c31d03e4e",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "777b2182d9dd75c54ac98ed26154bcba465e6c91686e6e7a35fb0f281bd55ccc",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
@@ -80999,7 +80999,7 @@
     "void-runner/remote-players.js": "5f56de7492cde8788e9d839a5126efaa76426330bc95200115b7afbbdad5fc65",
     "void-runner/road-taxi-rules.js": "78f664cd9459e6b88b9e5bb14f80bfc2abc4535f995d6674223d7e809cf61f37",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
-    "void-runner/road-taxi.js": "45791a8afbcbd2b494f4cc40e51c183ca29d193fbaee00ecdb0c96583d580b5a",
+    "void-runner/road-taxi.js": "054d081e2decd57ed4247d5ec0582479ab37989679e8d471ee004cf5dbd9aeea",
     "void-runner/rook-cargo-gen.js": "5a1b3c8d0db9f57545e80be13e9d8d174c52a0819f5126b8de014905eb7c9500",
     "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",

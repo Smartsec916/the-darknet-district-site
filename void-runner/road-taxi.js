@@ -130,7 +130,7 @@
   if(ok){try{save();hud();}catch{}if(far)announce?.('You step out of the taxi. The ride back is included.');return;}
   // The gate could not take the cab: the fare comes back and the passenger steps out where the cab stands.
   const back=R.recover(state);try{save();hud();}catch{}
-  if(mode==='road-taxi'||mode==='preparing'){const j=world?.job;if(j){const d=R.doorPoints(j.cab).find(p=>!globalThis.VoidExplorer?.blocked?.(p.x,p.z,walkingLocation))||{x:j.cab.x,z:j.cab.z};walker.x=d.x;walker.z=d.z;R.release(world,j.cab);}walker.y=1.7;walker.pitch=0;mode='walking';}
+  if(mode==='road-taxi'||mode==='preparing'||mode==='walking'){const j=world?.job;if(j){const d=R.doorPoints(j.cab).find(p=>!globalThis.VoidExplorer?.blocked?.(p.x,p.z,walkingLocation))||{x:j.cab.x,z:j.cab.z};walker.x=d.x;walker.z=d.z;R.release(world,j.cab);}walker.y=1.7;walker.pitch=0;mode='walking';}
   try{gates()?.doors.secure(false);}catch{}
   announce?.('The checkpoint could not take the taxi.'+(back?' Your fare of '+back+' CR was returned.':''));
  }

@@ -85,3 +85,18 @@ test('nothing on screen speaks of loading: no words, no bar; the scan is a pictu
  // the Function Gate's guards are the existing silent robots, and no guard has a line
  assert.match(gsrc,/VoidCorporateActors/);assert.doesNotMatch(gsrc,/announce\(|speak\(|say\(/);
 });
+
+test('a failed cab arrival returns to the original bay and opens its entry shutter', async () => {
+ const lane = Q.lane('north:bay-n');
+ const W = world({quarter:'oldtown', at:lane.mid});
+ W.setMode('road-taxi');
+ const crossed = await W.ctl.ride({
+  lane:lane.key, from:'oldtown', to:{quarter:'avenue'}, spawn:[0,1.08,0], yaw:0,
+  after(){throw new Error('Cab could not resume in the destination');}
+ });
+ assert.equal(crossed,false);
+ assert.equal(W.loc.quarter,'oldtown');
+ assert.deepEqual([W.w.x,W.w.z],lane.mid);
+ assert.equal(W.gates().doors.secured,false);
+ assert.ok(W.log.includes('release '+lane.doors.lo.id));
+});
