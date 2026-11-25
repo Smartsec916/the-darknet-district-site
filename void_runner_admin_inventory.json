@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "36076d1a9cfc26f9",
+  "revision": "09df16cee495d80b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81037,7 +81037,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "4c02b522eea8c07ad59b7ada3aec22890c9cd4a70c307c5e4aef4f366f1af354",
+    "void-runner/ncz-backalleys.js": "63d21c5a2d8d9b5a2acb46313ea3b28eca19d7bfa333f4d7d6a60fdf42d44a97",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",

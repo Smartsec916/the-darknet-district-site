@@ -231,6 +231,8 @@
   // Baked fill on the stair concrete and its worn edges survives the low preset and night lighting.
   const stairConcrete=concrete.clone('back-stair-concrete');own.push(stairConcrete);
   stairConcrete.emissiveColor=new B.Color3(.42,.34,.26);
+  const stairLights=[];
+  const handrail=pbr('stair-handrail','#a3a4a1',{rough:.42,metal:.45});
   const stairEdge=pbr('stair-edge','#aa9981',{rough:.88,metal:.08});
   stairEdge.emissiveColor=new B.Color3(.35,.29,.21);
   const hazard=pbr('hazard','#ffffff',{rough:.7,metal:.1,alb:canvas('hazard',256,32,(g,w,h)=>{g.fillStyle='#14120c';g.fillRect(0,0,w,h);g.fillStyle='#b8901c';for(let x=-h;x<w;x+=36){g.beginPath();g.moveTo(x,h);g.lineTo(x+18,h);g.lineTo(x+18+h,0);g.lineTo(x+h,0);g.fill();}for(let k=0;k<300;k++){g.fillStyle='rgba(0,0,0,'+R()*.6+')';g.fillRect(R()*w,R()*h,2+R()*6,1+R()*3);}})});
@@ -321,15 +323,6 @@
   for(const u of UNDERGROUND_ENTRANCES.filter(u=>qs.includes(u.quarter))){const U=UNDER,d=u.down,t=u.across,L=U.STAIR+U.LAND,P=(a,o)=>[u.top[0]+d[0]*a+t[0]*o,u.top[2]+d[1]*a+t[1]*o],ry=d[0]!==0?Math.PI/2:0;
    const piece=(a0,a1,o0,o1,y0,y1,mat)=>{const [x,z]=P((a0+a1)/2,(o0+o1)/2),la=a1-a0,lo=o1-o0;return d[0]!==0?box(la,y1-y0,lo,x,(y0+y1)/2,z,mat):box(lo,y1-y0,la,x,(y0+y1)/2,z,mat);};
    const n=Math.round(U.DEPTH/.18),run=U.STAIR/n,B0=-U.DEPTH-.35;for(let i=0;i<n;i++){const top=-U.DEPTH*(i+1)/n;piece(i*run,(i+1)*run,-U.W/2,U.W/2,B0,top,stairConcrete);piece((i+1)*run-.045,(i+1)*run+.006,-U.W/2+.04,U.W/2-.04,top-.045,top+.008,stairEdge);}   // steps, a worn nosing on each
-   // Sample the falloff from the two wall fittings on each horizontal tread.
-   // The patches share the existing street light-pool batch across the flight.
-   for(let i=0;i<n;i++){
-    const a=(i+.5)*run,[x,z]=P(a,-U.W*.16);
-    const distance=Math.min(Math.abs(a-U.STAIR*.2),Math.abs(a-U.STAIR*.7));
-    const strength=.36+.54*Math.exp(-distance*distance/2);
-    const patch=pool('sodium',x,z,U.W*.9,run*.96,strength,true);
-    patch.rotation.y=ry;patch.position.y=-U.DEPTH*(i+1)/n+.014;
-   }
    piece(U.STAIR,L,-U.W/2,U.W/2,B0,-U.DEPTH,stairConcrete);   // the landing
    // Shielded wall fittings illuminate the full flight. The warm fill on the treads needs no dynamic lights.
    for(const a of [U.STAIR*.2,U.STAIR*.7]){
@@ -340,10 +333,10 @@
    }
    for(const s of [-1,1])piece(0,L+U.WALL,s<0?-U.W/2-U.WALL:U.W/2,s<0?-U.W/2:U.W/2+U.WALL,B0,.15,concrete);piece(L,L+U.WALL,-U.W/2,U.W/2,B0,.15,concrete);   // the walls, a kerb at street level
    // railings at street level: posts and two rails down both sides and across the far end
-   for(const s of [-1,1]){const o=s*(U.W/2+U.WALL/2);for(let a=.1;a<=L+.2;a+=1.2)piece(a-.025,a+.025,o-.025,o+.025,.15,U.RAIL,steel);piece(0,L+U.WALL,o-.025,o+.025,U.RAIL-.05,U.RAIL,steel);piece(0,L+U.WALL,o-.02,o+.02,.6,.64,steel);}
-   piece(L+U.WALL/2-.025,L+U.WALL/2+.025,-U.W/2-U.WALL,U.W/2+U.WALL,U.RAIL-.05,U.RAIL,steel);piece(L+U.WALL/2-.02,L+U.WALL/2+.02,-U.W/2-U.WALL,U.W/2+U.WALL,.6,.64,steel);
+   for(const s of [-1,1]){const o=s*(U.W/2+U.WALL/2);for(let a=.1;a<=L+.2;a+=1.2)piece(a-.025,a+.025,o-.025,o+.025,.15,U.RAIL,handrail);piece(0,L+U.WALL,o-.025,o+.025,U.RAIL-.05,U.RAIL,handrail);piece(0,L+U.WALL,o-.02,o+.02,.6,.64,handrail);}
+   piece(L+U.WALL/2-.025,L+U.WALL/2+.025,-U.W/2-U.WALL,U.W/2+U.WALL,U.RAIL-.05,U.RAIL,handrail);piece(L+U.WALL/2-.02,L+U.WALL/2+.02,-U.W/2-U.WALL,U.W/2+U.WALL,.6,.64,handrail);
    // a handrail down the stairs on one side
-   {const o=U.W/2-.08,[x0,z0]=P(0,o),[x1,z1]=P(U.STAIR,o),len=Math.hypot(U.STAIR,U.DEPTH),m=box(.05,.05,len,(x0+x1)/2,(-U.DEPTH)/2+.9,(z0+z1)/2,steel);m.rotation.y=Math.atan2(d[0],d[1]);m.rotation.x=Math.atan2(U.DEPTH,U.STAIR);}
+   {const o=U.W/2-.08,[x0,z0]=P(0,o),[x1,z1]=P(U.STAIR,o),len=Math.hypot(U.STAIR,U.DEPTH),m=box(.05,.05,len,(x0+x1)/2,(-U.DEPTH)/2+.9,(z0+z1)/2,handrail);m.rotation.y=Math.atan2(d[0],d[1]);m.rotation.x=Math.atan2(U.DEPTH,U.STAIR);}
    // the door at the bottom (closed): a heavy steel slab with braces in a black frame, on the end wall's inner face
    // the door slides open (into the side wall) when the player goes down into the tunnels, showing the checkpoint inside (door-views.js; ncz-underground-integration.js)
    const F=L-.02,leaf=[piece(F-.06,F,-.65,.65,-U.DEPTH,-U.DEPTH+2.25,rust)];piece(F-.09,F,-.78,-.66,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,.66,.78,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,-.78,.78,-U.DEPTH+2.25,-U.DEPTH+2.37,black);
@@ -355,11 +348,23 @@
     underDoors[u.id]={open(v=true){want=v?1:0;slide();},get t(){return k;}};}
    // the lamp over it: a caged housing, its dim sodium lens, a pool on the landing and a wash on the door; a sign scraped on the wall beside it
    piece(F-.3,F,-.18,.18,-U.DEPTH+2.55,-U.DEPTH+2.7,black);piece(F-.28,F-.04,-.14,.14,-U.DEPTH+2.52,-U.DEPTH+2.55,lens.sodium);{const [px,pz]=P(L-1,0),m=pool('sodium',px,pz,2.6,2.6,.8,true);m.position.y=-U.DEPTH+.02;const [wx,wz]=P(F,0);wash('sodium',wx,-U.DEPTH+1.5,wz,u.facing,2.4,2.6,.32);}
-   {const [lx,lz]=P(-.05,U.W/2+U.WALL/2);box(.16,.16,.16,lx,U.RAIL+.12,lz,black);box(.1,.03,.1,lx,U.RAIL+.04,lz,lens.sodium);}   // a small lamp on the top railing
+   // An overhead work light on the top railing throws a warm beam down both rails.
+   const post=U.W/2+U.WALL/2;
+   piece(-.10,0,post-.05,post+.05,U.RAIL,2.85,steel);
+   piece(-.10,0,-.04,post+.05,2.77,2.85,steel);
+   piece(-.20,.10,-.32,.32,2.65,2.78,black);
+   piece(-.17,.07,-.28,.28,2.63,2.66,lens.sodium);
+   const [lx,lz]=P(-.05,0);
+   const lamp=new B.SpotLight('stair-head-'+u.id,new B.Vector3(lx,2.62,lz),new B.Vector3(d[0],-.9,d[1]).normalize(),2.35,1.3,scene);
+   lamp.parent=parent;lamp.diffuse=new B.Color3(1,.79,.55);
+   lamp.intensity=65;lamp.range=10;lamp.renderPriority=5;
+   stairLights.push(lamp);own.push(lamp);
    if(!low){const [sx,sz]=P(U.STAIR+.4,-U.W/2+.02),m=B.MeshBuilder.CreatePlane('back-under-sign',{width:.55,height:.72,frontUVs:new B.Vector4(.75,.5,1,1)},scene);m.position.set(sx,-U.DEPTH+1.5,sz);m.rotation.y=Math.atan2(-t[0],-t[1]);put(m,poster);}
    made.underground=(made.underground||0)+1;}
   // ---- merge: one mesh per material ----
-  for(const [mat,list_] of groups){if(!list_.length)continue;const mm=list_.length>1?B.Mesh.MergeMeshes(list_,true,true,undefined,false,false):list_[0];if(!mm)continue;mm.name='back-'+mat.name;mm.material=mat;mm.parent=parent;mm.isPickable=false;mm.receiveShadows=false;if(mat===poolM)mm.alphaIndex=2;mm.freezeWorldMatrix();own.push(mm);made.meshes++;}
+  for(const [mat,list_] of groups){if(!list_.length)continue;const mm=list_.length>1?B.Mesh.MergeMeshes(list_,true,true,undefined,false,false):list_[0];if(!mm)continue;mm.name='back-'+mat.name;mm.material=mat;mm.parent=parent;mm.isPickable=false;mm.receiveShadows=false;
+   if(mat===handrail||mat===stairConcrete||mat===stairEdge)for(const lamp of stairLights)lamp.includedOnlyMeshes.push(mm);
+   if(mat===poolM)mm.alphaIndex=2;mm.freezeWorldMatrix();own.push(mm);made.meshes++;}
   for(const g of (scene.effectLayers||[]).filter(l=>l.addExcludedMesh&&/glow/i.test(l.getClassName?.()||'')))for(const o of own)if(o.getTotalVertices&&!/back-glow/.test(o.material?.name||''))g.addExcludedMesh(o);
   return {stats:()=>({...made}),underDoor:id=>underDoors[id]||null,dispose(){for(const o of own.reverse())try{o.dispose();}catch{}own.length=0;groups.clear();}};}
 
