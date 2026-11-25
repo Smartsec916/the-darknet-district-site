@@ -1,6 +1,12 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
+  "shippedMissionEntrances": [
+    "apt-avenue-n-30",
+    "biz-avenue-n-41",
+    "biz-corp-s-40",
+    "biz-main-w-166"
+  ],
   "missionEditor": {
     "givers": {
       "admin": {
@@ -59782,7 +59788,7 @@
       "spawn"
     ]
   },
-  "revision": "f74ba7e3a6a45ebc",
+  "revision": "d0de8fd26b4a7cf7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80766,7 +80772,7 @@
     "void-runner/anim-library.js": "b4879bd34b9014a5d73cd566c3fd72b15b81dfc628483b99667e6547aa455a45",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
-    "void-runner/apartment-integration.js": "001890888e841f35066c2a47256c8e54c046d4971ae4167493536eea1977335d",
+    "void-runner/apartment-integration.js": "c4516347f4e1f39ff0779eb9789a4805b0eb2213c10b2dfb90cee7f7f74c0617",
     "void-runner/apartments.js": "1e02c8b553cc7427fcb9fb2b1ed7d00e70d3f0288e0b0f5d8a2113a95e01d706",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
@@ -80782,7 +80788,7 @@
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "9f562a4da9b7d5d46e16a380f52b22f831beb6605912d0863139316daf56a141",
-    "void-runner/catalog-shop.js": "ec31e8758133ce1faf4b8e8e1d5f67589298c0ebd6b2f58720084960c1a519ae",
+    "void-runner/catalog-shop.js": "fea43c7d948f9a352be43e09446a6a3342e0f8fde3316a0de6ccac33ce78fdf3",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -80808,7 +80814,7 @@
     "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
     "void-runner/consumable-spec.js": "9ca4f5fc817475e1de6f63c1f220b69941d18ac673996f4ffb4dd978c196bc3d",
     "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
-    "void-runner/consumables.js": "7687806cc2285a6043aae8036a454d7d35802cdbb9d9be3f1fea869a7062f666",
+    "void-runner/consumables.js": "340e905abe77949fb232703a9bc2e428b6c5d6f4eff0aa31d0ab4fe4e70abf1e",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -80838,7 +80844,7 @@
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
-    "void-runner/district-map.js": "42a44b7beafd5e3db9ce96f7cd4b0b68beff60590eea58feb006b36bd34cfd7f",
+    "void-runner/district-map.js": "0c639324789551a796eb359b3f4b467f183c0d019a5b3d131508c40d0219be32",
     "void-runner/district-people.js": "8bbb7424c4ef8a1b8118875cb895a910b4d78c437f1bd69ffbcb2010a8ef40da",
     "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
@@ -80886,7 +80892,7 @@
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
-    "void-runner/item-catalog-editor.js": "9bb6bf37e2cb8101795991610e7ee47bc3a06985a526d702b1cd21d112abe876",
+    "void-runner/item-catalog-editor.js": "1960e0336f1c258faa7aea61f1efcfda612767ae62452a3fd73ac809e5890959",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
     "void-runner/live-content.js": "2406e3d21042dc9ad99395049cf84bf93f938b35a79f3a428969f71074d4cb08",
@@ -81064,7 +81070,7 @@
     "void-runner/zone-integration.js": "ef3729c94039128a20e150c53f117c43fe199aadb0dc0433d6dcfc2ac93760c1",
     "void-runner/zones.js": "d5b1201f90f4a4edbcab30e2408061df4ff8b331e7c40ead1e3c79c9bae3ccc5",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
-    "tools/admin-inventory.cjs": "685af14f4e20d69a0eaa0cdbc7aadd28f7a1dc685e0846c50bc2d9b8bb4002dd",
+    "tools/admin-inventory.cjs": "5d064adfeee08977c49778a6042a8f2e5c4721e27848fdcdf4c48ae90eef5946",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
     "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
     "void-runner/save-manifest.json": "b9f065b33262f83661385458906ddd77caa9ac5d665bae9153cc3413af27dca9"

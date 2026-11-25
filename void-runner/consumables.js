@@ -30,10 +30,10 @@
   if(!hasOnly(it,ITEM_KEYS))return [n+'unknown fields'];
   if(it.kind==='keycard'){
    const c=it.keycard,flags=['transferable','droppable','pickup','bearer'];
-   if(it.stack!==1||it.category!=='keycards'||it.consumable||!c||!hasOnly(c,['doors','notes','privateNotes','duration',...flags])||
+   if(it.stack!==1||it.category!=='keycards'||it.consumable||!c||!hasOnly(c,['doors','notes','privateNotes','discoverable','duration',...flags])||
     !Array.isArray(c.doors)||!c.doors.length||c.doors.length>64||new Set(c.doors).size!==c.doors.length||
     c.doors.some(d=>typeof d!=='string'||!d.length)||flags.some(k=>typeof c[k]!=='boolean')||
-    !plain(c.notes||'',600)||!plain(c.privateNotes||'',600)||!int(c.duration,0,315360000))out.push(n+'choose authorized doors and valid keycard settings');
+    (c.discoverable!==undefined&&typeof c.discoverable!=='boolean')||!plain(c.notes||'',600)||!plain(c.privateNotes||'',600)||!int(c.duration,0,315360000))out.push(n+'choose authorized doors and valid keycard settings');
   }else if(it.keycard!=null)out.push(n+'only keycards can carry door permissions');
   if(it.kind==='service'){
    const svc=it.service,steps=svc?.steps;

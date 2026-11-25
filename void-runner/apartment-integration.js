@@ -31,7 +31,7 @@
  /* Street doors IN USE for this player (the owner, 20 Nov 2026: "doors on the streets without anything placed on them shouldn't show the option to open it when walking by"):
     only these show their prompts (the door and its access point; apartments.js doorsInUse: a taken mission's apartment or location on it, from-step reached or not, a hack
     step aimed at it) or one a hack opened, or the Mission Editor's test apartment. Every other street door shows nothing: the door itself is still drawn, locked. */
- function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);for(const c of root.VoidConsumableGame?.data?.keycards||[])for(const id of c.doors)if(!id.includes('/'))u.add(id);return u;}
+ function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);for(const c of root.VoidConsumableGame?.data?.keycards||[])for(const id of c.doors||[])if(!id.includes('/'))u.add(id);return u;}
  let visit=null;   // {door (street door record), list (instances on it), inst (the one inside), slots}
  const here=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.apartment?walkingLocation:null;}catch{return null;}};
  // ---- the locations ----
@@ -128,7 +128,7 @@
   if(!uid||!shop)return false;
   try{
    const held=shop.data||await shop.refresh();
-   if(!held?.keycards?.some(c=>c.doors.includes(door)))return false;
+   if(!held?.keycards?.some(c=>c.discoverable===false||c.doors?.includes(door)))return false;
    const result=await shop.request('keycards/access',{door});
    return uid===root.VoidAccount?.user?.uid&&result.allowed===true;
   }catch{return false;}

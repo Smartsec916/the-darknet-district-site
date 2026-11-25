@@ -98,6 +98,8 @@ class ItemTests(unittest.TestCase):
     def test_player_housing_grants_only_its_doors_and_releases_the_physical_card(self):
         self.fund('owner', 1000)
         self.fund('second', 1000)
+        reserved = {'unit': 'residence/apt-avenue-n-30/0', 'player': 'owner', 'revision': 0}
+        self.assertEqual(self.post('developer/properties', reserved).status_code, 409)
         door = 'apt-avenue-n-16'
         unit = f'residence/{door}/0'
         self.assertEqual(self.post('developer/properties', {'unit': unit, 'player': 'owner', 'revision': 0}).status_code, 200)

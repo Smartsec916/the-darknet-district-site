@@ -1188,7 +1188,7 @@ def property_registry(db, uid):
     import void_runner_properties as properties
     items_admin(uid)
     if request.method == 'POST':
-        return jsonify(properties.assign(db, request.get_json(silent=True)))
+        return jsonify(properties.assign(db, request.get_json(silent=True), uid))
     return jsonify(properties.assignments(db))
 
 

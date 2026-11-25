@@ -72,10 +72,15 @@
    header.textContent=(card.icon||'')+' '+card.name;details.append(header);
    const line=value=>{const p=document.createElement('p');p.textContent=value;details.append(p);};
    line(card.description);
-   for(const id of card.doors){
+   const locations=new Set();
+   for(const id of card.doors||[]){
     const parts=id.split('/'),door=root.VoidApartments?.door(parts.length===1?id:parts[1]);
+    if(door)locations.add(door);
     if(door)line(door.name+' · '+door.quarter+(parts.length===3?' · Apartment '+root.VoidApartments.slotNumber(Number(parts[2]),door.style):' · Street entrance'));
    }
+   for(const door of locations)action(details,'Locate Address · '+door.name,()=>{
+    note.textContent=root.VoidDistrictMap?.locateAddress(door.id)?'Waypoint set for '+door.name+'.':'Open the NeoChinatown map to locate this entrance.';
+   });
    if(card.notes)line(card.notes);
    if(card.expires)line('Expires '+new Date(card.expires*1000).toLocaleString());
    if(card.transferable){

@@ -65,8 +65,13 @@
  const flags=()=>{try{return state?.story?.flags||null;}catch{return null;}};
  const me=()=>{try{if(typeof walker==='undefined'||!walker||(walkingLocation?.id!=='neochinatown'&&!walkingLocation?.mapSpace))return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
  const isDev=()=>{try{return !!root.VoidDevTools?.authorized;}catch{return false;}};
- const waypoint=()=>{const id=flags()?.[FLAG];return typeof id==='string'?data().pois.find(p=>p.id===id&&(isDev()||!p.dev))||null:null;};
- function setWaypoint(id){const f=flags();if(!f)return false;const p=id&&data().pois.find(x=>x.id===id);if(p)f[FLAG]=p.id;else delete f[FLAG];chipTick();if(host)paintInfo();draw();return true;}
+ function addressPoint(id){
+  if(typeof id!=='string'||!id.startsWith('address/')||spaceId()!=='neochinatown')return null;
+  const door=root.VoidApartments?.door(id.slice(8));
+  return door?{id,name:door.name,kind:'entrance',area:'street',x:door.x,z:door.z}:null;
+ }
+ const waypoint=()=>{const id=flags()?.[FLAG];return typeof id==='string'?data().pois.find(p=>p.id===id&&(isDev()||!p.dev))||addressPoint(id):null;};
+ function setWaypoint(id){const f=flags();if(!f)return false;const p=id&&(data().pois.find(x=>x.id===id)||addressPoint(id));if(p)f[FLAG]=p.id;else delete f[FLAG];chipTick();if(host)paintInfo();draw();return true;}
  const fit=()=>{const b=data().bounds,p=me();view={cx:p?p.x:(b.x0+b.x1)/2,cz:p?p.z:(b.z0+b.z1)/2,s:p?(p.area==='interior'?9:3.2):1.6};};
  const S=(x,z)=>[cv.width/2+(x-view.cx)*view.s,cv.height/2-(z-view.cz)*view.s];
  function draw(){
@@ -90,6 +95,7 @@
   if(fog){const c=fog.cell;g.fillStyle='rgba(3,8,13,.93)';for(let j=0;j<fog.h;j++)for(let i=0;i<fog.w;i++){if(fog.bits[j*fog.w+i])continue;const a=S(fog.bounds[0]+i*c,fog.bounds[2]+(j+1)*c),b=S(fog.bounds[0]+(i+1)*c,fog.bounds[2]+j*c);g.fillRect(Math.floor(a[0]),Math.floor(a[1]),Math.ceil(b[0]-a[0])+1,Math.ceil(b[1]-a[1])+1);}
    g.fillStyle='rgba(88,255,225,.5)';g.font='600 11px ui-monospace,Consolas,monospace';g.textAlign='left';g.fillText('EXPLORED '+Math.round(fog.fraction()*100)+'%',12,H-40);}
   const wp=waypoint(),shown=visible(m,layers,isDev()).filter(q=>fogOk(q,fog));
+  if(wp?.id.startsWith('address/'))shown.push(wp);
   g.font='600 11px ui-monospace,Consolas,monospace';g.textAlign='left';
   for(const q of shown){const [x,y]=S(q.x,q.z);if(x<-20||y<-20||x>W+20||y>H+20)continue;const c=COLOR[q.kind]||'#9fd0ff',sel=q===selected,target=q===wp;
    g.strokeStyle=c;g.fillStyle=sel||target?c:'rgba(3,8,13,.9)';g.lineWidth=sel?2.5:1.5;g.beginPath();g.moveTo(x,y-6);g.lineTo(x+6,y);g.lineTo(x,y+6);g.lineTo(x-6,y);g.closePath();g.fill();g.stroke();
@@ -180,6 +186,6 @@
   if(chip.hidden)chip.hidden=false;
  }
  setInterval(chipTick,250);
- Object.assign(api,{mount,refresh,setWaypoint});
+ Object.assign(api,{mount,refresh,setWaypoint,locateAddress(id){const target='address/'+id;return !!addressPoint(target)&&setWaypoint(target);}});
  Object.defineProperties(api,{waypoint:{get:()=>waypoint()},selected:{get:()=>selected},view:{get:()=>view&&{...view}},data:{get:()=>data()}});   // live values, read when asked
 })(typeof globalThis!=='undefined'?globalThis:this);

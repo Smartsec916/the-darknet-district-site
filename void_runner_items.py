@@ -126,12 +126,14 @@ def valid_card_door(target, doors=None):
 
 
 def keycard_problems(card):
-    if not _only(card, ['doors', 'notes', 'privateNotes', 'duration', *CARD_FLAGS]):
+    if not _only(card, ['doors', 'notes', 'privateNotes', 'discoverable', 'duration', *CARD_FLAGS]):
         return ['Invalid keycard configuration.']
     registry = inventory()['apartments']['doors']
     doors = card.get('doors')
     if not isinstance(doors, list) or not 1 <= len(doors) <= 64 or not all(valid_card_door(d, registry) for d in doors) or len(set(doors)) != len(doors):
         return ['Select distinct registered entrances or apartment doors for this keycard.']
+    if type(card.get('discoverable', True)) is not bool:
+        return ['Choose whether holders can locate this address.']
     if not all(type(card.get(k)) is bool for k in CARD_FLAGS):
         return ['Set the transfer, drop, pickup and bearer permissions.']
     if not all(_plain(card.get(k, ''), 600) for k in ('notes', 'privateNotes')):
@@ -153,7 +155,7 @@ def issue_card(item, owner, identity, now):
     return {
         'id': identity, 'template': item['id'], 'name': item['name'], 'icon': item.get('icon', ''),
         'description': item.get('description', ''), 'doors': list(rules['doors']),
-        'notes': rules.get('notes', ''), 'issuedTo': _tag(owner),
+        'notes': rules.get('notes', ''), 'discoverable': rules.get('discoverable', True), 'issuedTo': _tag(owner),
         'expires': int(now) + rules['duration'] if rules.get('duration') else 0,
         **{flag: rules[flag] for flag in CARD_FLAGS}
     }
@@ -733,7 +735,7 @@ def player_state(db, uid, now=None):
     p = _clean_player(_player_ref(db, uid).get().to_dict())
     active = _active_view(p, content, now)
     items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
-    return {'keycards': [{k:v for k,v in c.items() if k != 'issuedTo'} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
+    return {'keycards': [{k:v for k,v in c.items() if k != 'issuedTo' and (k != 'doors' or c.get('discoverable', True))} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
 
 
 def _nonce(payload):

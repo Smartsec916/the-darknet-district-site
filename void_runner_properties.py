@@ -30,7 +30,20 @@ def assignments(db):
     return {'revision': record.get('revision', 0), 'units': record.get('units', {})}
 
 
-def assign(db, body):
+def mission_entrances(content):
+    result = set(inventory().get('shippedMissionEntrances', []))
+    for tree in (content or {}).get('trees', []):
+        for mission in tree.get('missions', []):
+            for apartment in mission.get('apartments', []):
+                result.add(apartment.get('door'))
+            for objective in mission.get('objectives', []):
+                access = objective.get('ap', '')
+                if objective.get('kind') == 'hack' and isinstance(access, str) and access in inventory()['apartments']['doors']:
+                    result.add(access)
+    return result
+
+
+def assign(db, body, editor):
     from firebase_admin import firestore
     import void_runner_live_content as live
     import void_runner_items as items
@@ -69,7 +82,13 @@ def assign(db, body):
             state = live._state_ref(db).get(transaction=tx).to_dict() or {}
             version = state.get('live', 0)
             content = (live._version_ref(db, version).get(transaction=tx).to_dict() or {}).get('content') if version else {}
-            if unit in npc_units(content):
+            from void_runner_drafts import refs
+            _, draft_ref = refs(db, editor, 'mission-editor-workspace')
+            draft = draft_ref.get(transaction=tx).to_dict() or {}
+            bundle = (draft.get('document') or {}).get('data', {}).get('bundle', {})
+            if entrance in mission_entrances(content) or entrance in mission_entrances(bundle):
+                raise DraftError('This street entrance is reserved by a mission.', 409)
+            if unit in npc_units(content) or unit in npc_units(bundle):
                 raise DraftError('An NPC already resides in this unit.', 409)
             account = db.collection('vr_players').document(owner).get(transaction=tx).to_dict()
             if not account:

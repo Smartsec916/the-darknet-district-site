@@ -53,13 +53,13 @@
    const doors=A.doors(),current=doors.find(d=>d.id===s.cardBuilding)||doors[0];
    const units=current?A.propertyRecord(current).units:[];
    const targets=current?[[current.id,'Street entrance'],...units.map(u=>[u.id,'Apartment '+u.number])]:[];
-   const flag=(id,label)=>'<label><input type="checkbox" data-card-flag="'+id+'" '+(card[id]?'checked':'')+'> '+label+'</label>';
+   const flag=(id,label)=>'<label><input type="checkbox" data-card-flag="'+id+'" '+((card[id]??(id==='discoverable'))?'checked':'')+'> '+label+'</label>';
    return '<fieldset><legend>Keycard access</legend><label>Building <select data-card-building>'+options(doors.map(d=>[d.id,d.name]),current?.id)+'</select></label>'+
     targets.map(([id,label])=>'<label><input type="checkbox" data-card-door="'+esc(id)+'" '+(card.doors.includes(id)?'checked':'')+'> '+esc(label)+'</label>').join(' ')+
     '<p>'+card.doors.length+' authorized doors</p>'+
     '<label>Player-visible notes <textarea data-card-text="notes" maxlength="600">'+esc(card.notes)+'</textarea></label>'+
     '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
-    flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
+    flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
     '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details></fieldset>';
   }
   function serviceFields(it){
