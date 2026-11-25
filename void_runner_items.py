@@ -115,7 +115,7 @@ def valid_card_door(target, doors=None):
     if not isinstance(target, str):
         return False
     doors = inventory()['apartments']['doors'] if doors is None else doors
-    if target in doors:
+    if target in doors or target in inventory().get('interiorDoors', {}):
         return True
     parts = target.split('/')
     if len(parts) != 3 or parts[0] != 'residence' or not re.fullmatch(r'0|[1-9][0-9]?', parts[2]):

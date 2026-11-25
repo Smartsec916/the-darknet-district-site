@@ -66,6 +66,7 @@
    for(const [id,title] of [...choices].sort((a,b)=>a[1].localeCompare(b[1])))mission.add(new Option(title,id));
    filter();
   }
+  const interiorDoors=A.interiorDoors(registry.trees);
   const map=element('div'),detail=element('section'),summary=element('p');
   detail.setAttribute('aria-live','polite');
   panel.replaceChildren(field('Search entrances',search),field('Property type',type),field('Mission tree',tree),field('Mission',mission),field('Entrance',entrance),layers,summary,map,detail);
@@ -77,6 +78,10 @@
    for(const m of r.missions)detail.append(element('p',m.title+' · '+[...(registry.doorSources.get(d.id+'/'+m.id)||[])].join(', ')));
    if(!catalog)detail.append(element('p','Keycard catalog unavailable.'));
    if(cards.has(d.id))detail.append(element('p','Entrance keycards · '+[...cards.get(d.id)].join(', ')));
+   for(const inner of interiorDoors.values())if(inner.entrance===d.id){
+    const names=[...(cards.get(inner.id)||[])].join(', ');
+    detail.append(element('p',inner.location+' · '+inner.name+(names?' · Keycards: '+names:'')));
+   }
    for(const u of r.units){
     const labels=[...u.residents.map(x=>x.name),...u.players.map(x=>x.name),...u.reservations.map(x=>x.title)];
     const line=element('details'),title=element('summary','Apartment '+u.number+' — '+(labels.join(', ')||(r.missions.length?'Mission entrance':registry.complete?'Available':'Assignment unverified')));

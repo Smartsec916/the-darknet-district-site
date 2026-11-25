@@ -78,7 +78,7 @@
    for(const id of card.doors||[]){
     const parts=id.split('/'),door=root.VoidApartments?.door(parts.length===1?id:parts[1]);
     if(door)locations.add(door);
-    if(door)line(door.name+' · '+door.quarter+(parts.length===3?' · Apartment '+root.VoidApartments.slotNumber(Number(parts[2]),door.style):' · Street entrance'));
+    if(door)line(door.name+' · '+door.quarter+(parts[0]==='interior'?' · '+parts[3]+' · '+parts[4]:parts.length===3?' · Apartment '+root.VoidApartments.slotNumber(Number(parts[2]),door.style):' · Street entrance'));
    }
    for(const door of locations)action(details,'Locate Address · '+door.name,()=>{
     note.textContent=root.VoidDistrictMap?.locateAddress(door.id)?'Waypoint set for '+door.name+'.':'Open the NeoChinatown map to locate this entrance.';

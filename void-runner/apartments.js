@@ -240,6 +240,19 @@
   if(players.length)return 'player';
   return ['office','commercial'].includes(d.family)?'commercial':'available';
  }
+ function interiorDoors(trees){
+  const records=new Map(),modules=MOD();
+  if(!modules)return records;
+  for(const t of trees||[])for(const mission of t.missions||[])for(const loc of mission.apartments||[]){
+   if(!isLoc(loc)||!loc.door)continue;
+   for(const door of modules.analyse(loc).doors){
+    if(door.kind==='entry')continue;
+    const id=['interior',loc.door,mission.id,loc.id,door.id].join('/');
+    records.set(id,{id,entrance:loc.door,mission:mission.id,location:loc.id,door:door.id,name:door.a+' ↔ '+door.b});
+   }
+  }
+  return records;
+ }
  function propertyRecord(d,row,players=[]){
   const residential=!['office','commercial'].includes(d.family);
   const units=residential?geo(d.style).HALL.slots.map(({i})=>{
@@ -356,7 +369,7 @@
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
   HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
-  readAddressRegistry,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
+  readAddressRegistry,interiorDoors,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
  if(node){module.exports=api;return;}
  root.VoidApartments=Object.assign(root.VoidApartments||{},api);
 })(typeof globalThis!=='undefined'?globalThis:this);

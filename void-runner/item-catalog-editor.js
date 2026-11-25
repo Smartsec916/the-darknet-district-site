@@ -53,13 +53,14 @@
    const doors=A.doors(),current=doors.find(d=>d.id===s.cardBuilding)||doors[0];
    const units=current?A.propertyRecord(current).units:[];
    const targets=current?[[current.id,'Street entrance'],...units.map(u=>[u.id,'Apartment '+u.number])]:[];
+   for(const inner of A.interiorDoors(root.VoidMainStory?.trees?.()||[]).values())if(inner.entrance===current?.id)targets.push([inner.id,inner.location+' · '+inner.name]);
    const flag=(id,label)=>'<label><input type="checkbox" data-card-flag="'+id+'" '+((card[id]??(id==='discoverable'))?'checked':'')+'> '+label+'</label>';
    return '<fieldset><legend>Keycard access</legend><label>Building <select data-card-building>'+options(doors.map(d=>[d.id,d.name]),current?.id)+'</select></label>'+
     targets.map(([id,label])=>'<label><input type="checkbox" data-card-door="'+esc(id)+'" '+(card.doors.includes(id)?'checked':'')+'> '+esc(label)+'</label>').join(' ')+
     '<details data-card-map><summary>Select a building on the map</summary></details>'+
     '<details><summary>'+card.doors.length+' authorized doors</summary><ul>'+card.doors.map(target=>{
      const parts=target.split('/'),d=A.door(parts.length===1?target:parts[1]);
-     return '<li>'+esc(d?d.name+(parts.length===1?' · Street entrance':' · Apartment '+A.slotNumber(Number(parts[2]),d.style)):target)+'</li>';
+     return '<li>'+esc(d?d.name+(parts.length===1?' · Street entrance':parts[0]==='interior'?' · '+parts[3]+' · '+parts[4]:' · Apartment '+A.slotNumber(Number(parts[2]),d.style)):target)+'</li>';
     }).join('')+'</ul></details>'+
     '<label>Player-visible notes <textarea data-card-text="notes" maxlength="600">'+esc(card.notes)+'</textarea></label>'+
     '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
