@@ -4,7 +4,7 @@
  const F=root.VoidFoodStands;if(!F||typeof VoidInteractions==='undefined')return;
  let seated=null,lookPointer=null;
  function stand(){if(!seated||!walker)return;const b=seated.before;walker.x=b.x;walker.z=b.z;walker.y=b.y;walker.yaw=b.yaw;walker.pitch=b.pitch;seated=null;resumeWalking();}
- VoidInteractions.register('ncz-food-vendor',({item,resume})=>{const line=F.order[item.quarter];F.greet(item.quarter);if(line)announce(F.STANDS[item.quarter].name+': '+line);resume();});
+ VoidInteractions.register('ncz-food-vendor',({item,resume})=>{const line=F.order[item.quarter];F.greet(item.quarter);if(line)announce(F.STANDS[item.quarter].name+': '+line);resume();root.VoidCatalogShop?.open(item.id);});
  VoidInteractions.register('ncz-food-seat',({item})=>{
   const seat=F.seats(item.quarter).find(s=>s.seat===item.seat&&!s.occupied);if(!seat||!walker)return;
   seated={quarter:item.quarter,before:{x:walker.x,z:walker.z,y:walker.y,yaw:walker.yaw,pitch:walker.pitch}};

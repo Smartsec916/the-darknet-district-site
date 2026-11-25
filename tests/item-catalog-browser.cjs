@@ -16,16 +16,17 @@ const dir=path.resolve(__dirname,'..');
      if(path.endsWith('/publish')){if(body.expected!==state.state.version)throw Error('Live version conflict');state.state.version++;state.state.history.push({version:state.state.version});state.live={content:structuredClone(state.draft.content)};return {version:state.state.version};}throw Error(path);
     }};VoidItemCatalogEditor.mount(document.querySelector('main'),tools);
    });
+   const startingCount=await p.evaluate(()=>catalogFixture.live.content.items.length);
    await p.getByLabel('New item ID').fill('district-espresso');await p.getByRole('button',{name:'Create item',exact:true}).click();
    await p.getByLabel('Name',{exact:true}).fill('District Espresso');await p.getByLabel('Base price').fill('23');
    const kiosk=p.locator('[data-seller=kiosk-entrance]');await kiosk.locator('[data-assigned]').check();await kiosk.getByLabel('Vendor price').fill('18');
    await p.getByLabel('Base price').fill('31');await p.locator('[data-field=status]').selectOption('published');
    await p.getByRole('button',{name:'Save draft',exact:true}).click();await p.waitForFunction(()=>catalogFixture.draft.revision===1);
-   const result=await p.evaluate(()=>{const c=catalogFixture.draft.content;return [c.items.find(i=>i.id==='district-espresso').price,c.vendors.find(v=>v.id==='kiosk-entrance').entries.find(e=>e.item==='district-espresso').price,VoidConsumables.problems(c),catalogFixture.live.content.items.length];});assert.deepEqual(result,[31,18,[],2]);
+   const result=await p.evaluate(()=>{const c=catalogFixture.draft.content;return [c.items.find(i=>i.id==='district-espresso').price,c.vendors.find(v=>v.id==='kiosk-entrance').entries.find(e=>e.item==='district-espresso').price,VoidConsumables.problems(c),catalogFixture.live.content.items.length];});assert.deepEqual(result,[31,18,[],startingCount]);
    await p.getByRole('button',{name:'Publish draft',exact:true}).click();await p.waitForFunction(()=>catalogFixture.state.version===1);
    await p.getByLabel('Search',{exact:true}).fill('espresso');assert.equal(await p.locator('[data-picker] option').count(),2);
    await p.getByRole('button',{name:'Duplicate selected'}).click();await p.getByRole('button',{name:'Save draft',exact:true}).click();
-   assert.equal(await p.evaluate(()=>catalogFixture.draft.content.items.length),4);assert.deepEqual(errors,[]);
+   assert.equal(await p.evaluate(()=>catalogFixture.draft.content.items.length),startingCount+2);assert.deepEqual(errors,[]);
    console.log(name,'passed item creation, independent kiosk price, saved draft, publish, search and duplication');
   }finally{await b.close();}
  }

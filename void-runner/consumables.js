@@ -129,7 +129,14 @@
   for(const reg of S.vendorRegistry.filter(v=>initial[v.entity])){
    vendors.push({...reg,id:reg.entity,entries:initial[reg.entity].map(([it,price])=>({...newVendorEntry(it.id,price),restock:{mode:'interval',every:600,amount:2}}))});
   }
-  return {format:S.format,version:S.version,categories:clone(S.categories),items:[sprint,tint],vendors,presets:[]};}
+  const meal=newItem('street-supper','Street supper');
+  Object.assign(meal,{description:'A hot meal from a NeoChinatown counter. Restores 1% of maximum health per second for 10 seconds.',category:'food',icon:'♨',animation:'eat',price:12,stack:5,status:'published'});
+  meal.consumable.modifiers.push({stat:'healthRecovery',amount:.01,delay:0,duration:10});
+  for(const reg of S.vendorRegistry.filter(v=>v.entity.startsWith('food-stand-'))){
+   const menu=[meal,sprint].map(it=>({...newVendorEntry(it.id,it.price),stock:40,maxStock:40,restock:{mode:'interval',every:300,amount:4}}));
+   vendors.push({...reg,id:reg.entity,entries:menu});
+  }
+  return {format:S.format,version:S.version,categories:clone(S.categories),items:[sprint,tint,meal],vendors,presets:[]};}
  /* ---------- vendor listing math (the server runs the same rules on its own stock record) ---------- */
  function restocked(entry,rec,now){const base={remaining:entry.stock,at:now,base:entry.stock};let r=rec&&rec.base===entry.stock?{...rec}:base;
   if(entry.restock.mode==='interval'&&entry.restock.every>0&&r.remaining<entry.maxStock){const k=Math.floor(Math.max(0,now-r.at)/entry.restock.every);if(k>0){r.remaining=Math.min(entry.maxStock,r.remaining+k*entry.restock.amount);r.at+=k*entry.restock.every;}}

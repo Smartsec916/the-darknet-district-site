@@ -24,6 +24,12 @@
   const add=(i,area)=>{if(/^milked-/.test(i.id))return;   // Milked's places are named by milked.js (PLACES)
    const key=/^district-pod(-\d+)?$/.test(i.id)?'district-pod':i.id;if(seen.has(key))return;seen.add(key);const def=PLACE[key]||PLACE[i.action];
    pois.push({id:key,name:def?def[0]:title(i.label||i.id),kind:def?def[1]:'service',area,x:i.position[0],z:i.position[2]});};
+  const food=root.VoidFoodStands||(typeof module==='object'?require('./ncz-food-stands.js'):null);
+  for(const q of Object.keys(food?.STANDS||{})){
+   if(q==='port'&&root.VoidPort?.enabled)continue;
+   const i=food.prompt(q);
+   pois.push({id:i.id,name:food.STANDS[q].name,kind:'shop',area:'street',quarter:q,x:i.position[0],z:i.position[2]});seen.add(i.id);
+  }
   for(const i of street.interactions)add(i,'street');for(const i of interior.interactions)if(!streetIds.has(i.id))add(i,'interior');
   const v=N.toWorld(0,23),out=N.toWorld(0,18.6);   // the vestibule's middle and the alley just outside the outer door, from the District's own plan
   pois.push({id:'entrance',name:'Darknet District entrance',kind:'entrance',area:'street',x:out[0],z:out[1]},{id:'vestibule',name:'Security vestibule',kind:'entrance',area:'both',x:v[0],z:v[1]});

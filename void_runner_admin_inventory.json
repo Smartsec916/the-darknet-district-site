@@ -7108,6 +7108,36 @@
               142.02,
               -7.82,
               -7.58
+            ],
+            [
+              115.05000000000001,
+              117.25,
+              -26.73,
+              -22.970000000000002
+            ],
+            [
+              117.46000000000001,
+              117.94,
+              -26.44,
+              -25.960000000000004
+            ],
+            [
+              117.46000000000001,
+              117.94,
+              -25.54,
+              -25.060000000000002
+            ],
+            [
+              117.46000000000001,
+              117.94,
+              -24.64,
+              -24.160000000000004
+            ],
+            [
+              117.46000000000001,
+              117.94,
+              -23.74,
+              -23.26
             ]
           ],
           "posts": [
@@ -9010,6 +9040,36 @@
               68.42,
               -118.52000000000001,
               -118.28
+            ],
+            [
+              68.75,
+              70.94999999999999,
+              -105.88,
+              -102.12
+            ],
+            [
+              68.06,
+              68.53999999999999,
+              -102.89,
+              -102.41000000000001
+            ],
+            [
+              68.06,
+              68.53999999999999,
+              -103.78999999999999,
+              -103.31
+            ],
+            [
+              68.06,
+              68.53999999999999,
+              -104.69,
+              -104.21000000000001
+            ],
+            [
+              68.06,
+              68.53999999999999,
+              -105.58999999999999,
+              -105.11
             ]
           ],
           "posts": [
@@ -9905,6 +9965,36 @@
               68.42,
               -211.72,
               -211.48
+            ],
+            [
+              51.05,
+              53.25,
+              -160.38,
+              -156.62
+            ],
+            [
+              53.459999999999994,
+              53.94,
+              -160.09,
+              -159.60999999999999
+            ],
+            [
+              53.459999999999994,
+              53.94,
+              -159.19,
+              -158.70999999999998
+            ],
+            [
+              53.459999999999994,
+              53.94,
+              -158.29000000000002,
+              -157.81
+            ],
+            [
+              53.459999999999994,
+              53.94,
+              -157.39000000000001,
+              -156.91
             ]
           ],
           "posts": [
@@ -14119,6 +14209,36 @@
               108.125,
               -242.125,
               -239.875
+            ],
+            [
+              72.62,
+              76.38,
+              -246.13,
+              -243.93
+            ],
+            [
+              75.61,
+              76.08999999999999,
+              -243.72,
+              -243.23999999999998
+            ],
+            [
+              74.71000000000001,
+              75.19,
+              -243.72,
+              -243.23999999999998
+            ],
+            [
+              73.81,
+              74.28999999999999,
+              -243.72,
+              -243.23999999999998
+            ],
+            [
+              72.91000000000001,
+              73.39,
+              -243.72,
+              -243.23999999999998
             ]
           ],
           "posts": []
@@ -14314,6 +14434,36 @@
               40.875,
               -107.125,
               -106.125
+            ],
+            [
+              28.32,
+              32.08,
+              -88.25,
+              -86.05000000000001
+            ],
+            [
+              28.61,
+              29.089999999999996,
+              -88.94,
+              -88.46000000000001
+            ],
+            [
+              29.51,
+              29.99,
+              -88.94,
+              -88.46000000000001
+            ],
+            [
+              30.41,
+              30.889999999999997,
+              -88.94,
+              -88.46000000000001
+            ],
+            [
+              31.310000000000002,
+              31.79,
+              -88.94,
+              -88.46000000000001
             ]
           ],
           "posts": [
@@ -59886,7 +60036,7 @@
       "spawn"
     ]
   },
-  "revision": "c9307f29c60600cb",
+  "revision": "a8126ce73d3231ef",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -78353,13 +78503,13 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 300,
+      "line": 303,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 329,
+      "line": 332,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
       "kind": "source-reference"
     },
@@ -80889,7 +81039,7 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
     "void-runner/apartment-integration.js": "d233ef6b7bc55600694ca313d96f495c2551c289b245f576dfd8ae73db8d8e6f",
-    "void-runner/apartments.js": "d52f4742d9d511a0a7a5880fb14d61547dc520e8f64300564948d7103a607c1f",
+    "void-runner/apartments.js": "104ae2ba246fe6e17595977c50ea0395863335ce2af5b1efd1245c337319e887",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
@@ -80928,9 +81078,9 @@
     "void-runner/consumable-audio.js": "455264d71994edf623ea49940524c66f804b397d1dcf74be4031dd37c718e81e",
     "void-runner/consumable-gameplay.js": "ab42f97e3110b518dce64336a7125b14d0aaa0be45549ce5f9ef158c5e184ff0",
     "void-runner/consumable-renderer.js": "4880639e167bb803be6cc2af9f57bcc7fecb392fcb29040bd869010f82be28e0",
-    "void-runner/consumable-spec.js": "9ca4f5fc817475e1de6f63c1f220b69941d18ac673996f4ffb4dd978c196bc3d",
+    "void-runner/consumable-spec.js": "d6abe52fa4ff5330170452d57e3f786a5b37caad2a6d1e942d080f3592ca6401",
     "void-runner/consumable-studio.js": "d44db884d14b433dead317507eabb09337913c9572246a6b2f39dae60a67e3d5",
-    "void-runner/consumables.js": "58608afe90f3fbcdf9595d37ce2fe63ba6769a118f30777eab53a767ad19f928",
+    "void-runner/consumables.js": "5252c5d590a727fbeff426925a88413f375af9e8953363c6d2d228fa1283fe5b",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -80960,7 +81110,7 @@
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
-    "void-runner/district-map.js": "7d803c370dbe66a80ffc65b48a58a159fd46b7fd5ecd0758a5379a16720b0301",
+    "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
     "void-runner/district-people.js": "8bbb7424c4ef8a1b8118875cb895a910b4d78c437f1bd69ffbcb2010a8ef40da",
     "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
@@ -81058,8 +81208,8 @@
     "void-runner/ncz-backalleys.js": "63d21c5a2d8d9b5a2acb46313ea3b28eca19d7bfa333f4d7d6a60fdf42d44a97",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
-    "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
-    "void-runner/ncz-food-stands.js": "8376f76f0e961ddfd29e749c5c711c268e6991fff8d72b0b94a8bfc5e6e90710",
+    "void-runner/ncz-food-interactions.js": "5991011d6da0ad76f49edec181e26a0596080c3028d785c60dd65cbef1e479e5",
+    "void-runner/ncz-food-stands.js": "8fc0dde859347fde1ef224da33f236fe8493efdefa4dbd76ab3b3862ed2ad6f6",
     "void-runner/ncz-gate-transit.js": "1d14588bf28e78b8983afeab2ef0359a664a6c50431f2ace9bcd1ba19dbf0b8b",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
     "void-runner/ncz-nightclub.js": "333b3963ce534b64b4eb29c348f3f75bca2b1c5eedda6d5db10702fe747e7eb4",
@@ -81075,7 +81225,7 @@
     "void-runner/network.js": "5740953eccbbd9dd90568ebb040d3847bc02b0270c7f78c397c4239993395307",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
-    "void-runner/npc-areas.js": "d648d52f8eeca2576b55cae0344ef7d78c0cbab296624c1a6fdbb506936139e1",
+    "void-runner/npc-areas.js": "a1102366ca7373562b66be2634d27e67b3a02ca71e8d6805923352dc3222fdd2",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
     "void-runner/npc-behaviour.js": "da2a6aa446947446d3a8c57c4653f01ac82ea1c276452ffb56b8d1f9da9ada32",
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
@@ -81090,7 +81240,7 @@
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
     "void-runner/npc-made.js": "8a12f6ccab05b5f0b5b97ef0f8de3967417fda67420a681be757e1428125d496",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
-    "void-runner/npc-paths.js": "526a50a260e06fc817eabae24141a916a7e916aa81f5ae5e4fd766b52e7e1da1",
+    "void-runner/npc-paths.js": "496e3f744ce890e386121ac77ea1bbe970c1d43ec7041bc8d800b03cad51d96c",
     "void-runner/npc-preview.js": "010794e80d91b5473cd453fa8e43a818c09eabdb14af18bc7e975de8720192c2",
     "void-runner/npc-services.js": "72aa9d104d395c57e85eaa2668a089daf81fcade5f12f254ea37c13bfebd0912",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",

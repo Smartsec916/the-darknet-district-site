@@ -60,11 +60,58 @@ test('full food stand footprints clear destinations, checkpoint approaches, door
  const destinations=[...doors,...Q.STOPS.map(s=>['taxi '+s.id,...s.position]),['Port terminal',34.5,-103],['ship boarding',27,-98]];
  const solids=N.layout('all').solids;
  for(const q of surface){const r=footprint(F.STANDS[q]),near=[...solids,...Q.solids(q),...(q==='outskirts'?Containers.solids():[])];
-  for(const s of near){const b=solidRect(s),gap=rectGap(r,b);assert.ok(gap>=1.5,q+' stand is '+gap.toFixed(2)+' m from '+s.id);
-   if(s.id.startsWith('city-block-')||/^container-\d+$/.test(s.id))for(const x of b.slice(0,2))for(const z of b.slice(2))assert.ok(pointGap(r,x,z)>=3,q+' stand crowds a corner of '+s.id);}
+  for(const s of near){const b=solidRect(s),gap=rectGap(r,b);const host={port:'city-block-46',oldtown:'city-block-39',avenue:'city-block-73','far-south':'city-block-18',outskirts:'container-17'}[q];
+   assert.ok(gap>=(s.id===host?0:1.5),q+' stand is '+gap.toFixed(2)+' m from '+s.id);
+   if(s.id!==host&&(s.id.startsWith('city-block-')||/^container-\d+$/.test(s.id)))for(const x of b.slice(0,2))for(const z of b.slice(2))assert.ok(pointGap(r,x,z)>=3,q+' stand crowds a corner of '+s.id);}
   for(const g of Q.GATES)assert.ok(rectGap(r,g.rect)>=8,q+' stand crowds checkpoint '+g.id);
   for(const [id,x,z] of destinations)assert.ok(pointGap(r,x,z)>=6,q+' stand crowds '+id);
  }
  const r=footprint(F.STANDS.outskirts);
  for(const p of Outskirts.PEOPLE){const points=p.walks?[p,[p.to[0],p.to[1]]]:[p];for(const point of points){const x=Array.isArray(point)?point[0]:point.x,z=Array.isArray(point)?point[1]:point.z;assert.ok(pointGap(r,x,z)>=2.5,'Outskirts stand crowds '+p.id);}}
+});
+
+test('taxi bodies clear every counter, occupied seat and customer route through turns',()=>{
+ const taxi=require('../void-runner/road-taxi-rules.js');
+ const taxiRadius=Math.hypot(taxi.SPEC.length,taxi.SPEC.width)/2;
+ for(const q of surface){
+  const stand=F.STANDS[q],net=taxi.network(q);
+  if(q==='outskirts'){assert.equal(net.edges.length,0);continue;}
+  assert.ok(net.edges.length,q);
+  const points=F.solids(q).flatMap(box=>{
+   const [x,,z]=box.position,[w,,d]=box.size;
+   const nx=Math.ceil(w/.2),nz=Math.ceil(d/.2),out=[];
+   for(let i=0;i<=nx;i++)for(let j=0;j<=nz;j++)out.push({x:x+w*(i/nx-.5),z:z+d*(j/nz-.5),radius:.15});
+   return out;
+  });
+  for(let t=0;t<54;t+=.1){
+   const p=F.customerPose(q,t),[x,z]=F.world(stand,p.x,p.z);
+   points.push({x,z,radius:.45});
+  }
+  for(const point of points)for(const edge of net.edges){
+   const nearest=taxi.projectPath(edge.pts,point);
+   assert.ok(nearest.d>taxiRadius+point.radius,q+' taxi '+edge.id+' passes inside the dining area');
+  }
+ }
+});
+
+test('vendor menus and both maps resolve the physical counter in every surface quarter',()=>{
+ const C=require('../void-runner/consumables.js'),P=require('../void-runner/npc-paths.js');
+ const map=require('../void-runner/district-map.js').model(N),catalog=C.seed();
+ for(const q of surface){
+  const s=F.STANDS[q],vendor=F.prompt(q);
+  const pins=map.pois.filter(p=>p.id===vendor.id);
+  assert.equal(pins.length,1);assert.deepEqual([pins[0].x,pins[0].z],[vendor.position[0],vendor.position[2]]);
+  assert.ok(P.mapData(q).shops.some(shop=>shop.name===s.name&&shop.x===s.x&&shop.z===s.z));
+  const listed=C.listing(catalog,vendor.id,null,0);
+  assert.ok(listed.entries.some(e=>e.item==='street-supper'&&e.price===12));
+  assert.ok(listed.entries.some(e=>e.item==='sprint-tonic'&&e.price===40));
+ }
+});
+
+test('frontage furniture preserves the 99 existing street entrance records',()=>{
+ const doors=require('../void-runner/apartments.js').doors();
+ assert.equal(doors.length,99);
+ // Baseline on dcc5a3c5, including displayed numbers, exact positions and arrival directions.
+ assert.equal(require('node:crypto').createHash('sha256').update(JSON.stringify(doors)).digest('hex'),
+  'e18e53994d299deb065f0a06d2caf6c178b6c074b5993b954cb0f69ce6e1d0f3');
 });

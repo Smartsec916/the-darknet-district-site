@@ -8,7 +8,8 @@ test('every street on the map is a street of the layout, at the layout\'s own re
  assert.equal(m.streets.length,Object.keys(N.streets).length-placeholders.length);
 });
 test('every place on the map exists in the game, where the game has it',()=>{
- const all=new Map([...street.interactions,...interior.interactions].map(i=>[i.id,i]));
+ const quarters=require('../void-runner/ncz-quarters.js').IDS;
+ const all=new Map([...quarters.flatMap(q=>N.layout('street',q).interactions),...street.interactions,...interior.interactions].map(i=>[i.id,i]));
  for(const p of m.pois.filter(p=>!/^(entrance|vestibule|taxi-|gate-|dev-|milked-)/.test(p.id))){const i=all.get(p.id);assert(i,p.id+' is a real interaction');assert.deepEqual([p.x,p.z],[i.position[0],i.position[2]]);}
  assert.equal(m.pois.filter(p=>/pod/.test(p.id)).length,1,'ten pods are one place on the map');
  for(const t of m.pois.filter(p=>p.id.startsWith('taxi-'))){const z=N.taxiZones.find(z=>'taxi-'+z.id===t.id);assert.deepEqual([t.x,t.z],z.position);}

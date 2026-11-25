@@ -150,6 +150,11 @@ globalThis.VoidConsumableSpec = {
   {"entity": "vend-drinks", "name": "Vending machine: DRINKS", "kind": "vending", "location": "District vending alcove"},
   {"entity": "vend-dispensary", "name": "Vending machine: DISPENSARY", "kind": "vending", "location": "District vending alcove"},
   {"entity": "vend-neurohackers", "name": "Vending machine: NEUROHACKERS", "kind": "vending", "location": "District vending alcove"},
+  {"entity":"food-stand-port","name":"Docklight Noodles","kind":"counter","location":"NeoChinatown · Port"},
+  {"entity":"food-stand-oldtown","name":"Lantern Kitchen","kind":"counter","location":"NeoChinatown · Old Town"},
+  {"entity":"food-stand-avenue","name":"Jade Circuit Dumplings","kind":"counter","location":"NeoChinatown · The Avenue"},
+  {"entity":"food-stand-far-south","name":"Southline Broth","kind":"counter","location":"NeoChinatown · Far South"},
+  {"entity":"food-stand-outskirts","name":"Last Light Rice & Tea","kind":"counter","location":"NeoChinatown · Outskirts"},
   {"entity": "bar-menu", "name": "Bar counter menu", "kind": "counter", "location": "District bar"}
  ],
  "common": {
