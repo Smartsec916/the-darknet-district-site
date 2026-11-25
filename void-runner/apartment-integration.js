@@ -129,6 +129,22 @@
    }
   }
   let cardMaterial;
+  const npcChecks=new Map();
+  function checkNpcDoors(){
+   if(!root.VoidAccount?.user?.uid||typeof walkingLocation==='undefined'||walkingLocation?.quarter!==quarter)return;
+   for(const item of walkingLocation.interactions||[]){
+    const npc=item.character||item.npc,pos=item.position;
+    if(typeof npc!=='string'||!Array.isArray(pos)||item.hidden)continue;
+    const door=A.nearestDoor(pos[0],pos[2],2.5),state=door&&doorOf.get(door.id);
+    if(!state)continue;
+    const key=npc+'/'+door.id,previous=npcChecks.get(key);
+    if(previous&&previous.until>clock){if(previous.allowed)state.nearNpc=clock;continue;}
+    const check={allowed:false,until:clock+12};npcChecks.set(key,check);
+    root.VoidConsumableGame?.request('keycards/npc-access',{npc,door:door.id}).then(answer=>{
+     if(!disposed&&answer.allowed===true)check.allowed=true;
+    }).catch(()=>{});
+   }
+  }
   function updatePickups(p){
    const wl=typeof walkingLocation==='undefined'?null:walkingLocation;
    const uid=root.VoidAccount?.user?.uid;
@@ -146,7 +162,7 @@
    }).catch(()=>{}).finally(()=>{polling=false;});
   }
   function tick(dt){clock+=dt;const p=typeof walker!=='undefined'?walker:null;check-=dt;
-   if(check<=0){check=.5;updatePickups(p);const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)].filter(allowed));for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
+   if(check<=0){check=.5;updatePickups(p);checkNpcDoors();const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)].filter(allowed));for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
    for(const r of residents)try{resTick(r,dt);}catch{}
    for(const s of doors){const npc=clock-(s.nearNpc??-9)<1.6;if(npc)s.locked=false;let near=npc;if(p&&s.mine){const dx=s.door.x-p.x,dz=s.door.z-p.z;near=near||dx*dx+dz*dz<3.2+(s.door.reach||0)*2.6;}s.near(near);const t0=s.t;s.tick(dt);
     const state=s.t>.02?'open':s.mine?'mine':'locked';if(state!==s.shown){s.shown=state;show(s,state);}

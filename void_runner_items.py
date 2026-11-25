@@ -226,6 +226,40 @@ def grant_card(db, editor, body):
     return write(db.transaction())
 
 
+def drop_npc_card(db, npc, card_id, door, event):
+    """Move a real NPC-held card once for an authorized encounter event."""
+    from firebase_admin import firestore
+    if not isinstance(npc, str) or not re.fullmatch('[a-z][a-z0-9-]{0,79}', npc):
+        raise DraftError('Choose a registered NPC.')
+    if not isinstance(card_id, str) or not re.fullmatch('[a-f0-9]{64}', card_id):
+        raise DraftError('Choose a physical keycard.')
+    if not valid_card_door(door) or '/' in door:
+        raise DraftError('Choose a registered street entrance.')
+    if not isinstance(event, str) or not re.fullmatch('[A-Za-z0-9_-]{8,80}', event):
+        raise DraftError('The encounter needs a stable event reference.')
+    receipt = db.collection('vr_npc_card_events').document(_tag(npc + '/' + event))
+    holder = db.collection('vr_npc_keycards').document(npc)
+    command = {'card': card_id, 'door': door}
+
+    @firestore.transactional
+    def write(tx):
+        prior = receipt.get(transaction=tx).to_dict()
+        if prior:
+            if prior != command:
+                raise DraftError('This encounter reference was already used.', 409)
+            return {'duplicate': True}
+        bag = _clean_player(holder.get(transaction=tx).to_dict())
+        card = bag['cards'].get(card_id)
+        if not card or not card['droppable']:
+            raise DraftError('The NPC does not hold a droppable copy of this card.', 409)
+        remove_card(bag, card)
+        tx.create(db.collection('vr_keycard_drops').document(card_id), {'door': door, 'card': card})
+        tx.set(holder, bag)
+        tx.create(receipt, command)
+        return {'duplicate': False}
+    return write(db.transaction())
+
+
 def reward_mission(item):
     if item.get('kind') == 'keycard' and item.get('status') == 'published':
         return item.get('keycard', {}).get('rewardMission')
@@ -268,6 +302,14 @@ def claim_reward(db, uid, body):
 def card_allows(card, holder, target, now):
     return (target in card['doors'] and (not card['expires'] or card['expires'] > now)
             and (card['bearer'] or card['issuedTo'] == _tag(holder)))
+
+
+def npc_card_access(db, npc, target, now=None):
+    if not isinstance(npc, str) or not re.fullmatch('[a-z][a-z0-9-]{0,79}', npc) or not valid_card_door(target):
+        raise DraftError('Choose a registered door and a character ID.')
+    bag = db.collection('vr_npc_keycards').document(npc).get().to_dict() or {}
+    at = time.time() if now is None else now
+    return any(card_allows(c, 'npc/' + npc, target, at) for c in bag.get('cards', {}).values())
 
 
 def card_access(db, uid, target, now=None):
@@ -335,12 +377,7 @@ def move_card(db, uid, body):
                 if not card['droppable']:
                     raise DraftError('This card cannot be dropped.', 403)
                 tx.create(drop_ref, {'door': door, 'card': card})
-            del player['cards'][card_id]
-            remaining = sum(c['template'] == card['template'] for c in player['cards'].values())
-            if remaining:
-                player['owned'][card['template']] = remaining
-            else:
-                player['owned'].pop(card['template'], None)
+            remove_card(player, card)
         tx.set(ref, player)
         tx.create(receipt, command)
         return {'duplicate': False}
@@ -356,6 +393,15 @@ def dropped_cards(db, uid, door):
         if card['pickup'] and (card['transferable'] or card['issuedTo'] == _tag(uid)):
             result.append({k:card[k] for k in ('id', 'name', 'icon')})
     return result
+
+
+def remove_card(player, card):
+    del player['cards'][card['id']]
+    remaining = sum(c['template'] == card['template'] for c in player['cards'].values())
+    if remaining:
+        player['owned'][card['template']] = remaining
+    else:
+        player['owned'].pop(card['template'], None)
 
 
 def _receive_card(player, card):

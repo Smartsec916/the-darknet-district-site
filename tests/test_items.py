@@ -120,6 +120,20 @@ class ItemTests(unittest.TestCase):
         held_by_npc = self.db.data['vr_npc_keycards/iris']['cards'][issued.json['id']]
         self.assertTrue(items.card_allows(held_by_npc, 'npc/iris', unit, 0))
         self.assertTrue(self.post('developer/keycards/grant', npc_grant).json['duplicate'])
+        who = {'npc': 'iris', 'door': unit}
+        self.assertTrue(self.post('keycards/npc-access', who).json['allowed'])
+        self.assertFalse(self.post('keycards/npc-access', dict(who, door=unit[:-1]+'3')).json['allowed'])
+        self.assertFalse(self.post('keycards/npc-access', dict(who, npc='admin')).json['allowed'])
+        event = 'test-encounter-once'
+        self.assertFalse(items.drop_npc_card(self.db, 'iris', issued.json['id'], door, event)['duplicate'])
+        self.assertNotIn(issued.json['id'], self.db.data['vr_npc_keycards/iris']['cards'])
+        self.assertFalse(self.post('keycards/npc-access', who).json['allowed'])
+        collect = dict(pickup, card=issued.json['id'], nonce=self.nonce())
+        self.assertEqual(self.post('keycards/move', collect, 'outsider').status_code, 200)
+        self.assertTrue(items.drop_npc_card(self.db, 'iris', issued.json['id'], door, event)['duplicate'])
+        self.assertNotIn('vr_keycard_drops/' + issued.json['id'], self.db.data)
+        self.assertEqual(next(c for c in self.get('shop/state', 'outsider').json['keycards']
+                              if c['id'] == issued.json['id'])['notes'], 'Use the rear entrance.')
         self.assertNotIn('doors', mystery)
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])

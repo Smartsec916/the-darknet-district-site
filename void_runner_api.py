@@ -1205,6 +1205,15 @@ def claim_keycard_reward(db, uid):
     return jsonify(items_service.claim_reward(db, uid, request.get_json(silent=True)))
 
 
+@api.post('/keycards/npc-access')
+@signed_in
+def npc_keycard_access(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or set(body) != {'npc', 'door'}:
+        raise DraftError('Choose an NPC and a door.')
+    return jsonify(allowed=items_service.npc_card_access(db, body['npc'], body['door']))
+
+
 @api.post('/keycards/access')
 @signed_in
 def keycard_access(db, uid):
