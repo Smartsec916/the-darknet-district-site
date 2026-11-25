@@ -126,5 +126,5 @@
   function dispose(){scene.onBeforeCameraRenderObservable.remove(before);scene.onAfterCameraRenderObservable.remove(after);if(particles){particles.dispose(true);particles=null;}detach();}
   scene.onDisposeObservable.addOnce(dispose);return dispose;
  }
- const api={clamp,envelope,staminaAfter,recoveryRate,sample,uniforms,attach};if(typeof module!=='undefined')module.exports=api;else root.VoidConsumableRenderer=api;
+ const api={curveValue,clamp,envelope,staminaAfter,recoveryRate,sample,uniforms,attach};if(typeof module!=='undefined')module.exports=api;else root.VoidConsumableRenderer=api;
 })(globalThis);

@@ -86,7 +86,7 @@ const devMode=()=>{try{return localStorage.getItem(DEV_MODE_KEY)==='advanced'?'a
 const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values:{...VoidBalance.defaults},preset:'NORMAL',overlay:false,tab:'home',icon:devIcon,
  get mode(){return devMode();},
  setMode(m){m=m==='advanced'?'advanced':'basic';try{localStorage.setItem(DEV_MODE_KEY,m);localStorage.setItem('npc-editor-advanced',m==='advanced'?'1':'0');}catch{}devPanel.classList.toggle('dev-basic',m==='basic');this.render();},
- applyPending(){if(this.pending){VoidBalance.apply(this.pending);this.pending=null;}},
+ applyPending(){if(this.pending){VoidBalance.apply(this.pending);if(this.pendingProfiles)VoidBalance.profiles=this.pendingProfiles;this.pendingProfiles=null;this.pending=null;}},
  // The owner's developer account starts every session with 1,000 credits for trying purchases (the owner, 18 Nov 2026). Only after the server accepts the developer request; ordinary players are untouched. The cloud save allows any amount up to 100,000,000.
  testCredits(){if(!this.authorized||typeof state==='undefined'||!state||this.creditsSet)return;this.creditsSet=true;state.credits=1000;try{save();}catch{}try{hud();}catch{}},
  async identity(request,info){
@@ -117,7 +117,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   if(act==='update'){try{document.activeElement?.blur?.();}catch{}setTimeout(()=>{const T=globalThis.VoidDevTest;if(T?.active)T.exit();else location.reload();},50);return;}
   if(act==='signin'){this.barNote='Signing in…';this.bar();try{await globalThis.VoidAccount?.reconfirm?.();this.barNote='';if(this.expiredBar){this.barNote='Still not signed in. Try SIGN IN again; your editor stays open.';}}catch(e){this.barNote=(e&&e.message||'Sign-in failed.')+' Your editor stays open; try SIGN IN again.';}this.bar();}
  },
- receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;},
+ receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;this.pendingProfiles=data.profiles||{};},
  open(tab){if(!this.authorized)return;this.used=true;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
  // Start (the welcome screen with the big task cards) comes first; every other tool is one click away. Plain names; each with an icon.
@@ -170,7 +170,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
     }));
     return this.catalogScripts.get(src);
    };
-   (cinematic?['cinematic-project','cinematic-locations','cinematic-renderer','cinematic-editor']:sound?['sound-studio-editor']:['consumable-spec','consumables','consumable-curves','consumable-dashboard','consumable-studio','item-catalog-editor']).reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
+   (cinematic?['cinematic-project','cinematic-locations','cinematic-renderer','cinematic-editor']:sound?['sound-studio-editor']:['consumable-spec','consumables','consumable-curves','consumable-dashboard','consumable-studio','equipment-studio','item-catalog-editor']).reduce((work,name)=>work.then(()=>load(name)),Promise.resolve()).then(()=>{
     if(host.isConnected&&this.authorized&&this.uid===uid)(cinematic?VoidCinemaEditor:sound?VoidSoundEditor:VoidItemCatalogEditor).mount(host,this);
    }).catch(error=>{host.textContent=error.message;});
    return;
@@ -229,4 +229,4 @@ devPanel.addEventListener('click',async event=>{
  }catch(error){if(request===tools.request)devPanel.querySelector('#dev-status').textContent=error.message+(/sign in|401|403/i.test(error.message)?' Sign in again with the developer account, then try once more.':' Check the numbers (each box shows its allowed range) and your connection, then press the button again.');}
 });
 // A public read exposes numbers, never developer access or a write capability.
-VoidNetwork.request('balance').then(data=>{if(!VoidDevTools.authorized)VoidDevTools.pending=VoidBalance.validate(data.values);}).catch(()=>{});
+VoidNetwork.request('balance').then(data=>{if(!VoidDevTools.authorized){VoidDevTools.pending=VoidBalance.validate(data.values);VoidDevTools.pendingProfiles=data.profiles||{};}}).catch(()=>{});

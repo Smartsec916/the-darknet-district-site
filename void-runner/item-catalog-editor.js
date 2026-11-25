@@ -107,6 +107,7 @@
    if(!c){host.innerHTML='<h3>Items &amp; Vendors</h3><p role="status">'+esc(s.message||'Loading catalog…')+'</p>'+(!s.busy?button('reload','Reload catalog'):'');return;}
    const cats=c.categories.map(x=>[x.id,x.name]),list=filtered(c,s.filter).filter(i=>sectionOf(i.kind)===(s.section||'food')),where=it?sellers(c,it.id):[];
    host.innerHTML='<h3>Items</h3><nav aria-label="Item sections" class="cs-nav">'+Object.entries(tabs).map(([id,label])=>'<button data-item-section="'+id+'" aria-pressed="'+((s.section||'food')===id)+'">'+label+'</button>').join('')+'</nav><p role="status">'+esc(s.message||'Ready')+' · Live version '+s.version+' · Draft '+s.revision+'</p><fieldset '+(s.busy?'disabled':'')+'>'+
+    (s.section==='gear'?'<button type="button" data-combat-studio>Open Combat &amp; Equipment Studio</button>':'')+
     (npc?'<p>'+esc(npc.name)+' '+button('enable-npc',s.data.vendors.some(v=>v.entity==='npc-'+npc.id&&v.enabled!==false)?'Disable vendor':'Enable as vendor')+'</p>':'')+
     '<label>Search <input type="search" data-search value="'+esc(s.filter.search)+'"></label>'+'<details data-pane="filters"><summary>Library filters</summary>'+filter('category','Category',cats)+
     filter('vendor','Vendor',c.vendors.map(v=>[v.id,v.name]))+filter('vendorType','Vendor type',spec.vendorKinds)+filter('location','Location',[...new Set(c.vendors.map(v=>v.location))])+
@@ -207,6 +208,7 @@
    if(el.matches('[data-assigned]')||k==='mode')draw();else host.querySelector('[role=status]').textContent=s.message;
   };
   host.onclick=e=>{
+   if(e.target.closest('[data-combat-studio]')&&current()){root.VoidEquipmentStudio.open(tools,host);return;}
    const tab=e.target.closest('[data-item-section]');if(tab&&current()&&!s.busy){s.section=tab.dataset.itemSection;s.filter={};s.id=s.data.items.find(i=>sectionOf(i.kind)===s.section)?.id;draw();return;}
    const remove=e.target.closest('[data-drop-step]');if(remove&&item()?.service&&current()&&!s.busy){item().service.steps.splice(Number(remove.dataset.dropStep),1);mark();draw();return;}
    if(e.target.closest('[data-effects]')&&item()&&!s.busy&&current()){

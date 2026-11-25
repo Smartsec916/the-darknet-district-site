@@ -80,7 +80,7 @@ routeClear=function(){return expansionClear()&&(current.kind!=='salvage'||object
 const expansionHurt=hurt;
 hurt=function(amount){
   if(mode!=='play'||amount<=0||damageTime>0||driveTime>0)return;
-  shieldDelay=VoidFlightCraft.stats().shieldDelay;const absorbed=Math.min(shieldHP,amount);shieldHP-=absorbed;
+  const stats=VoidFlightCraft.stats();shieldDelay=stats.shieldDelay;const absorbed=VoidEquipmentProfiles.absorb(shieldHP,amount,VoidBalance.profiles[stats.shieldProfile]?.absorption);shieldHP-=absorbed;
   if(amount>absorbed){expansionHurt(amount-absorbed);VoidCombatEffects.pulse('hull');}else {damageTime=.25;tone(320,.1);VoidCombatEffects.pulse('shield');}
   updateEquipmentHud();
 };

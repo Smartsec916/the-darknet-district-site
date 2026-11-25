@@ -21,18 +21,18 @@ spawnEnemy=function(){cockpitSpawn();const e=enemies[enemies.length-1],b=flightB
 function moveRelative(o,v,dt){o.x-=v.x*dt;o.y-=v.y*dt;o.z-=v.z*dt;}
 function spawnAhead(distance,lateral=0,vertical=0){const b=flightBasis();return {x:b.f.x*distance+b.r.x*lateral+b.u.x*vertical,y:b.f.y*distance+b.r.y*lateral+b.u.y*vertical,z:b.f.z*distance+b.r.z*lateral+b.u.z*vertical};}
 const campaignEnemyHitConsequences=C.enemyHitConsequences(()=>state,()=>save());
-function hitEnemy(e,damage,consequences=campaignEnemyHitConsequences){
+function hitEnemy(e,damage,consequences=campaignEnemyHitConsequences,profile){
  if(globalThis.VoidFlightSkirmish?.active)consequences=null;
  if(!VoidStory.hostile(e))return;
  // Campaign tutorial marking historically precedes the generator damage block.
  consequences?.beforeDamage?.();
  if(!e.generator&&enemies.some(q=>q.generator&&!q.dead))return;
- const absorbed=Math.min(e.shield||0,damage);e.shield=(e.shield||0)-absorbed;e.armor-=damage-absorbed;
+ const {absorbed,hullDamage}=VoidEquipmentProfiles.damageLayers(e.shield||0,damage,profile);e.shield=(e.shield||0)-absorbed;e.armor-=hullDamage;
  VoidCombatEffects.explode(e,'impact');globalThis.VoidFlightFx?.impact(e,absorbed>0);globalThis.VoidFlightSfx&&globalThis.VoidAudio?.event(absorbed>0?'shieldHit':'hit',globalThis.VoidFlightCraft?.ship(),e,flightBasis());
  if(e.armor<=0){e.dead=true;resolved++;burst(e,e.boss?'#ff795f':'#ffbd69',e.boss?'large':'ship');consequences?.destroyed?.(e);}
 }
 function cockpitEquipment(dt){
- const stats=VoidFlightCraft.stats();shieldDelay=Math.max(0,shieldDelay-dt);driveCooldown=Math.max(0,driveCooldown-dt);driveTime=Math.max(0,driveTime-dt);if(!shieldDelay)shieldHP=Math.min(stats.shield,shieldHP+dt*stats.shieldRegen*(1+(globalThis.VoidConsumableGame?.modifier('shieldRecovery')||0)));if(VoidInput.down('boost'))activateDrive();
+ const stats=VoidFlightCraft.stats();shieldDelay=Math.max(0,shieldDelay-dt);driveCooldown=Math.max(0,driveCooldown-dt);driveTime=Math.max(0,driveTime-dt);if(!shieldDelay)shieldHP=VoidEquipmentProfiles.recharge(shieldHP,stats.shield,dt*stats.shieldRegen*(1+(globalThis.VoidConsumableGame?.modifier('shieldRecovery')||0)),VoidBalance.profiles[stats.shieldProfile]?.rechargeCurve);if(VoidInput.down('boost'))activateDrive();
  updateEquipmentHud();
 }
 function cockpitMission(dt,velocity){
@@ -76,9 +76,9 @@ update=function(dt){
   if(distance<3+e.size&&!e.colliding){hurt(VOID_BALANCE.collisionDamage*(e.heavy?25/12:1));e.colliding=true;}if(distance>12)e.colliding=false;
  }
  stepMissileCombat(dt,velocity);
- for(const shot of bullets){const from={x:shot.x,y:shot.y,z:shot.previousZ??shot.z};shot.life=(shot.life??2)-dt;if(shot.target&&!shot.target.dead){const d=FM.unit({x:shot.target.x-shot.x,y:shot.target.y-shot.y,z:shot.target.z-shot.z});shot.vx=d.x*VOID_BALANCE.laserProjectileSpeed;shot.vy=d.y*VOID_BALANCE.laserProjectileSpeed;shot.vz=d.z*VOID_BALANCE.laserProjectileSpeed;}shot.x+=(shot.vx||0)*dt;shot.y+=(shot.vy||0)*dt;shot.z+=(shot.vz??VOID_BALANCE.laserProjectileSpeed)*dt;moveRelative(shot,velocity,dt);
+ for(const shot of bullets){const from={x:shot.x,y:shot.y,z:shot.previousZ??shot.z};shot.life=(shot.life??2)-dt;shot.distance=(shot.distance||0)+VOID_BALANCE.laserProjectileSpeed*dt;if(shot.target&&!shot.target.dead){const d=FM.unit({x:shot.target.x-shot.x,y:shot.target.y-shot.y,z:shot.target.z-shot.z});shot.vx=d.x*VOID_BALANCE.laserProjectileSpeed;shot.vy=d.y*VOID_BALANCE.laserProjectileSpeed;shot.vz=d.z*VOID_BALANCE.laserProjectileSpeed;}shot.x+=(shot.vx||0)*dt;shot.y+=(shot.vy||0)*dt;shot.z+=(shot.vz??VOID_BALANCE.laserProjectileSpeed)*dt;moveRelative(shot,velocity,dt);
   if(globalThis.VoidFlightSkirmish?.blocksSegment(from,shot))shot.dead=true;
-  for(const e of enemies)if(!shot.dead&&VoidStory.hostile(e)&&!shot.hits?.has(e)&&FM.segmentHit(from,shot,e,e.size*2.1)){(shot.hits??=new Set()).add(e);shot.dead=!stats.piercing;hitEnemy(e,shot.damage);}shot.previousZ=undefined;
+  for(const e of enemies)if(!shot.dead&&VoidStory.hostile(e)&&!shot.hits?.has(e)&&FM.segmentHit(from,shot,e,e.size*2.1)){(shot.hits??=new Set()).add(e);shot.dead=!stats.piercing;const profile=VoidBalance.profiles[stats.piercing?'wraith':'pulse'];const scale=profile?.damageCurve?VoidEquipmentProfiles.sample(profile.damageCurve,shot.distance/VOID_BALANCE.laserRange):1;hitEnemy(e,shot.damage*scale,undefined,profile);}shot.previousZ=undefined;
  }
  for(const h of hostile){const from={x:h.x,y:h.y,z:h.z};h.x+=(h.vx||0)*dt;h.y+=(h.vy||0)*dt;h.z+=(h.vz??-VOID_BALANCE.enemyProjectileSpeed)*dt;moveRelative(h,velocity,dt);h.life=(h.life??5)-dt;if(globalThis.VoidFlightSkirmish?.blocksSegment(from,h)){h.dead=true;continue;}if(h.escort){if(FM.segmentHit(from,h,typeof escortShip!=='undefined'&&escortShip?escortShip:{x:0,y:5,z:25},4)){h.x=0;h.y=2.4;escortImpact(h);h.dead=true;}}else if(FM.segmentHit(from,h,{x:0,y:0,z:0},1.8)){hurt(h.damage);h.dead=true;}}
  enemies=enemies.filter(e=>!e.dead);bullets=bullets.filter(o=>!o.dead&&o.life>0);hostile=hostile.filter(o=>!o.dead&&o.life>0);

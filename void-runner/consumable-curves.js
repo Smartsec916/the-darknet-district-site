@@ -1,13 +1,16 @@
 /* Local controls for a single track. Coordinates are fractions of its duration and intensity. */
 (function(root){
  'use strict';
- function editor(track,update){
+ function editor(track,update,labels={}){
   const host=document.createElement('section');
   host.className='cs-curve';
   host.innerHTML='<label>Interpolation <select data-mode><option>linear</option><option>smooth</option><option>step</option></select></label> <label>Graph zoom <select data-zoom><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label><div class="cs-scroll"><svg viewBox="0 0 600 100" preserveAspectRatio="none" aria-label="Intensity curve"></svg></div><label>Point <select data-index></select></label> <label>Time (s) <input type="number" data-x step="any"></label> <label>Level (%) <input type="number" data-y min="0" max="100" step="any"></label><div><button data-insert>Add point</button><button data-remove>Remove point</button><button data-undo>Undo curve edit</button><button data-redo>Redo curve edit</button><button data-reset>Reset curve</button></div>';
   const q=s=>host.querySelector(s),svg=q('svg'),ns=svg.namespaceURI,undo=[],redo=[];
+  if(labels.x)q('[data-x]').parentElement.firstChild.textContent=labels.x+' ';
+  if(labels.y)q('[data-y]').parentElement.firstChild.textContent=labels.y+' ';
+  if(labels.name)svg.setAttribute('aria-label',labels.name);
   let index=0,drag=null;
-  const flat=()=>({mode:'linear',points:[[0,1],[1,1]]});
+  const flat=()=>({mode:'linear',points:labels.descending?[[0,1],[1,0]]:[[0,1],[1,1]]});
   const curve=()=>track.curve||flat();
   const snapshot=()=>JSON.stringify(track.curve||null);
   function remember(){undo.push(snapshot());if(undo.length>80)undo.shift();redo.length=0;}
