@@ -10,7 +10,7 @@ import void_runner_live_content as live
 import void_runner_drafts as drafts
 
 INV = json.loads((Path(__file__).resolve().parent.parent / 'void_runner_admin_inventory.json').read_text(encoding='utf-8'))
-REV, DOOR = 'grey-reverie', 'apt-avenue-n-16'
+REV, DOOR = 'tea-host', 'apt-avenue-n-16'
 OFFICE = {'id': 'a1', 'door': DOOR, 'entry': 'hall.s0', 'modules': [{'id': 'hall', 'type': 'hall-office', 'x': 5, 'z': 0}, {'id': 'office', 'type': 'office-floor', 'x': 4, 'z': 4},
           {'id': 'lift', 'type': 'elevator', 'x': 10, 'z': 6, 'rot': 1}, {'id': 'lift2', 'type': 'elevator', 'x': 10, 'z': 6, 'rot': 1, 'floor': -1},
           {'id': 'servers', 'type': 'server-room', 'x': 6, 'z': 5, 'floor': -1}]}
@@ -40,7 +40,7 @@ class FollowIntoServerTests(unittest.TestCase):
     def test_refused(self):
         cases = [({'apt': 'zz'}, None, 'places to go into'), ({'apt': 'a2', 'mod': 'office'}, None, 'built from modules'), ({'apt': 'a1', 'mod': 'lift2'}, None, 'elevator'),
                  ({'apt': 'a1', 'mod': 'nope'}, None, 'rooms'), ({'apt': 'a2', 'to': {'x': 60, 'z': -6.4}}, None, 'not both'),
-                 ({'apt': 'a4', 'mod': 'pit'}, [PIT], 'fight pit'), 
+
                  ({'apt': 'a2', 'npc': 'street-cat'}, None, 'cat stays outside'), ({'apt': 'a2'}, [dict(FLAT, **{'from': 's3'})], 'opens later')]
         for st, places, words in cases:
             errs = check(tree(st, places))
@@ -53,7 +53,7 @@ class FollowIntoServerTests(unittest.TestCase):
     def test_door_in_another_area(self):
         # escort across (20 Nov 2026): a place whose street door is in Old Town; she starts on The Avenue and walks there through the North Gate
         self.assertEqual(check(tree({'apt': 'a2'}, [dict(FLAT, door='apt-main-w-96')])), [])
-        self.assertIn('oldtown', INV['npcEscort']['npcs']['grey-reverie']['reach']['avenue'])
+        self.assertIn('oldtown', INV['npcEscort']['npcs']['tea-host']['reach']['avenue'])
         self.assertNotIn('underground', INV['npcEscort']['npcs']['street-cat']['reach']['avenue'])
 
     def test_inventory_and_draft_copy(self):

@@ -52,7 +52,7 @@ test('every recorded clip of Mission 003 matches its line exactly, with the spea
  assert.equal(L['fish-m003-zh'].text,ZH);assert.equal(L['fish-m003-zh'].speaker,'milked-fish');assert.equal(L['fish-m003-zh'].voiceId,'ggacvEjbmpoSuEinfFWs');
  assert.equal(L['fish-m003-en'].text,EN);assert.equal(L['fish-m003-en'].speaker,'milked-fish');assert.equal(L['fish-m003-en'].voiceId,'ggacvEjbmpoSuEinfFWs','the translation in Fish\'s OWN voice (the owner\'s standard)');assert.equal(L['translator-m003-fish-en'],undefined);
  const man=JSON.parse(fs.readFileSync(R('void-runner/assets/audio/voice/extra/manifest.json'),'utf8')),w={...man.translations['milked-fish'],...L['fish-m003-zh'].with};
- assert.equal(w.id,'fish-m003-en');assert.ok(w.offset>=.6&&w.offset<=.9,'the translation starts 0.6-0.9 s later');assert.ok(Math.abs(w.gain-.7)<.05,'the Mandarin at about 70%');
+ assert.equal(w.id,'fish-m003-en');assert.ok(w.offset>=.6&&w.offset<=.9,'the translation starts 0.6-0.9 s later');assert.ok(Math.abs(w.gain-.35)<.05,'the Mandarin at about 35%');
  // ONE setting per character (the owner may pick Fish's own voice speaking English): the voice, its live effect, the timing; the clip file is swappable in its own entry
  assert.deepEqual(Object.keys(man.translations),['milked-fish']);assert.equal(w.voiceId,'ggacvEjbmpoSuEinfFWs');assert.equal(w.effect,'device');assert.deepEqual(Object.keys(man.cast||{}).filter(k=>k!=='zen-zephyr'),[],'no separate translator voice (the only extra cast is Zen Zephyr\'s own live effect)');assert.equal(L['fish-m003-zh'].with.offset,undefined,'not repeated per line');
  assert.equal(L['fish-m003-en'].file,'extra/fish-m003-en.ogg');assert.ok(!fs.existsSync(R('void-runner/assets/audio/voice/extra/translator-m003-fish-en.ogg')));assert.match(fs.readFileSync(R('void-runner/voice-clips.js'),'utf8'),/translations\[line\.speaker\]/);
@@ -108,19 +108,19 @@ test('THE IN-GAME CLOCK: 12 in-game minutes a real minute of walking or flight; 
  for(const v of [{visible:false,mode:'walking'},{visible:true,mode:'menu'},{visible:true,mode:'pause'},{visible:true,mode:'dialogue'},{visible:true,mode:'walking',podCard:true},{visible:true,mode:'character-creator'},{visible:true,mode:'loading'},{visible:true,mode:'dock'}])assert.equal(GC.active(v),false,JSON.stringify(v));
  for(let i=0;i<600;i++)clock.add(s,1,false);assert.equal(f.gameMin,12,'paused: ten minutes in a menu changed nothing');
  clock.add(s,3600,true);assert.equal(f.gameMin,13,'a gap (offline, asleep) counts 5 real seconds at most: 1 in-game minute');assert.ok(Number.isSafeInteger(f.gameMin));
- // the follow-up: 6 in-game hours (about 30 minutes of play; the owner, 17 Nov 2026), one value in the mission data; it fires once
- const F=MS.FOLLOWUPS;assert.deepEqual(F.map(x=>[x.event,x.after,x.gameMinutes,x.from,x.status]),[['fish-followup-due',ID,360,'milked-fish','live']]);
+ // The follow-up is due after 10 in-game minutes, or 50 active real seconds.
+ const F=MS.FOLLOWUPS;assert.deepEqual(F.map(x=>[x.event,x.after,x.gameMinutes,x.from,x.status]),[['fish-followup-due',ID,10,'milked-fish','live']]);
  assert.deepEqual(GC.fire(s,F),[],'not before the mission is done');assert.equal(GC.status(s,F)[0].started,false);
- s.universe.missions[ID]={acquired:true,completed:true,objectives:{}};GC.stamp(s,ID);assert.equal(f['gc_'+ID],13);assert.equal(GC.status(s,F)[0].dueAt,GC.at(13+360).label);
- for(let i=0;i<29*60;i++)clock.add(s,1,true);assert.deepEqual(GC.fire(s,F),[]);assert.equal(GC.status(s,F)[0].remaining,12,'29 minutes of play: 12 in-game minutes to go');
+ s.universe.missions[ID]={acquired:true,completed:true,objectives:{}};GC.stamp(s,ID);assert.equal(f['gc_'+ID],13);assert.equal(GC.status(s,F)[0].dueAt,GC.at(13+10).label);
+ for(let i=0;i<9;i++)clock.add(s,5,true);assert.deepEqual(GC.fire(s,F),[]);assert.equal(GC.status(s,F)[0].remaining,1,'45 active seconds leave one in-game minute');
  for(let i=0;i<300;i++)clock.add(s,1,false);assert.deepEqual(GC.fire(s,F),[],'five minutes paused changed nothing');
- for(let i=0;i<60;i++)clock.add(s,1,true);const due=GC.fire(s,F);assert.equal(due.length,1);assert.equal(due[0].event,'fish-followup-due');assert.equal(f['ev_fish-followup-due'],true);
+ clock.add(s,5,true);const due=GC.fire(s,F);assert.equal(due.length,1);assert.equal(due[0].event,'fish-followup-due');assert.equal(f['ev_fish-followup-due'],true);
  assert.deepEqual(GC.fire(s,F),[],'never twice');for(let i=0;i<3600;i++)clock.add(s,1,true);assert.deepEqual(GC.fire(s,F),[]);assert.equal(GC.status(s,F)[0].fired,true);
  // persists: plain story flags (a reload, another computer through the cloud save)
  const back=C.restore(JSON.stringify(s));assert.equal(back.story.flags.gameMin,f.gameMin);assert.equal(GC.now(back).label,GC.now(s).label);assert.equal(back.story.flags['ev_fish-followup-due'],true);assert.deepEqual(GC.fire(back,F),[]);
  // a reload part-way keeps the in-game time already passed
- const t=C.startDistrictCampaign(C.fresh());t.universe.missions[ID]={acquired:true,completed:true,objectives:{}};const c1=GC.clock();for(let i=0;i<300;i++)c1.add(t,1,true);GC.stamp(t,ID);for(let i=0;i<1000;i++)c1.add(t,1,true);
- const u=C.restore(JSON.stringify(t)),c2=GC.clock();assert.equal(GC.since(u,ID),200);for(let i=0;i<799;i++)c2.add(u,1,true);assert.deepEqual(GC.fire(u,F),[]);c2.add(u,1,true);assert.equal(GC.fire(u,F).length,1);
+ const t=C.startDistrictCampaign(C.fresh());t.universe.missions[ID]={acquired:true,completed:true,objectives:{}};const c1=GC.clock();for(let i=0;i<300;i++)c1.add(t,1,true);GC.stamp(t,ID);for(let i=0;i<4;i++)c1.add(t,5,true);
+ const u=C.restore(JSON.stringify(t)),c2=GC.clock();assert.equal(GC.since(u,ID),4);for(let i=0;i<5;i++)c2.add(u,5,true);assert.deepEqual(GC.fire(u,F),[]);c2.add(u,5,true);assert.equal(GC.fire(u,F).length,1);
  // a mission completed before the stamp existed starts its wait the first time it is checked
  const v=C.startDistrictCampaign(C.fresh());v.story.flags.gameMin=1000;v.universe.missions[ID]={acquired:true,completed:true,objectives:{}};assert.equal(GC.since(v,ID),0);assert.equal(v.story.flags['gc_'+ID],1000);
  // the V1 photo metadata keeps the in-game time (device-gallery.js cleanMeta)
@@ -139,8 +139,16 @@ test('the reusable trigger "after in-game time": a mission started by Comms call
  // runs: nothing until 6 in-game hours after Mission 003; then the call arrives once
  MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[tree]},x.e);const s=after002(x);talk(x,s,'admin');ev(x,s,{type:'accept',mission:ID});place(x,s,'milked');talk(x,s,'milked-eva');talk(x,s,'milked-fish');
  assert.equal(s.universe.missions[ID].completed,true);assert.equal(Number.isSafeInteger(s.story.flags['gc_'+ID]),true,'stamped at completion');
- assert.equal(place(x,s,'milked').offered,false);s.story.flags.gameMin=(s.story.flags['gc_'+ID]||0)+359;assert.equal(place(x,s,'milked').offered,false);
- s.story.flags.gameMin++;const r=place(x,s,'milked');assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].from,'milked-fish');place(x,s,'milked');assert.ok(s.universe.missions['draft-fish-m1'].acquired,'the draft call came too (Mission 004, shipped since 20 Nov 2026, is due at the same moment)');assert.equal(place(x,s,'milked').offered,false,'once');
+ assert.equal(place(x,s,'milked').offered,false);
+ s.story.flags.gameMin=s.story.flags['gc_'+ID]+10;
+ assert.equal(place(x,s,'milked').mission,MS.M004.id,'the shipped Fish call has its own shorter delay');
+ assert.equal(s.universe.missions['draft-fish-m1'],undefined);
+ s.story.flags.gameMin=s.story.flags['gc_'+ID]+359;
+ assert.equal(place(x,s,'milked').offered,false);
+ s.story.flags.gameMin++;
+ const r=place(x,s,'milked');assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].from,'milked-fish');
+ assert.equal(r.mission,'draft-fish-m1','the independent six-hour call retains its own threshold');
+ assert.equal(place(x,s,'milked').offered,false,'once');
 });
 
 test('the Milked staff-only door, the guide route to Eva and Fish, and the place target',()=>{

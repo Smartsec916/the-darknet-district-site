@@ -4,3 +4,4 @@ firebase-admin>=6.9,<8
 stripe>=12,<15
 openai>=1.0,<3
 gunicorn>=23,<24
+mutagen>=1.47,<2

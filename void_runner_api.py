@@ -1,4 +1,5 @@
 """Account-bound saves and Stripe fulfillment. No secrets or ownership in the browser."""
+import re
 import hashlib
 import os
 import time
@@ -1079,3 +1080,207 @@ def voice_clip_public(clip_hash):
     response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     response.headers['ETag'] = '"' + clip_hash + '"'
     return response
+
+# Consumables Studio and Items & Vendors (Developer Tools > Studios; void_runner_items.py). Admin-only edit and publish (VOID_ADMIN_UIDS, like every developer route);
+# players read the live catalog and buy and use items here. Price, stock, carrying limits, cooldowns and every effect amount are the server's own.
+import void_runner_freight as freight
+
+
+@api.get('/rook/freight')
+@signed_in
+def rook_freight_state(db, uid):
+    ref = player_ref(db, uid)
+    ledger = ref.collection('freight').document('desk').get().to_dict() or {}
+    return jsonify(active=ledger.get('active'), lastPaid=ledger.get('lastPaid'))
+
+
+@api.post('/rook/freight/<action>')
+@signed_in
+def rook_freight(db, uid, action):
+    if action not in ('offer', 'accept', 'deliver', 'collect'):
+        raise ApiError('Unknown freight operation.', 404)
+    live = live_content.public(db) if live_content.enabled() else {}
+    config = (live.get('content') or {}).get('rookFreight', freight.DEFAULT)
+    try:
+        return jsonify(freight.transact(db, player_ref(db, uid), action, request.get_json(silent=True), config))
+    except freight.FreightError as exc:
+        raise ApiError(str(exc), 409) from exc
+
+
+import void_runner_items as items_service
+
+
+def items_admin(uid):
+    if not balance_admin(uid):
+        raise DraftError('Administrator access is not authorized.', 403)
+
+
+@api.get('/items/catalog')
+def items_catalog():
+    if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
+        return jsonify(version=0, content=items_service.SEED)
+    db, _, _ = services()
+    return jsonify(items_service.live(db))
+
+
+@api.get('/developer/items')
+@signed_in
+def items_developer(db, uid):
+    items_admin(uid)
+    return jsonify(draft=items_service.draft_get(db, uid), state=items_service.summary(db), live=items_service.live(db), spec={'vendorRegistry': items_service.SPEC['vendorRegistry']})
+
+
+@api.post('/developer/items/draft')
+@signed_in
+def items_draft_save(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.draft_save(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/items/publish')
+@signed_in
+def items_publish(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.publish(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/items/rollback')
+@signed_in
+def items_rollback(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.rollback(db, uid, request.get_json(silent=True)))
+
+
+@api.get('/developer/items/versions/<int:version>')
+@signed_in
+def items_version(db, uid, version):
+    items_admin(uid)
+    return jsonify(items_service.load_version(db, version))
+
+
+@api.get('/shop/vendor/<vendor>')
+@signed_in
+def shop_vendor(db, uid, vendor):
+    return jsonify(items_service.vendor_listing(db, vendor, uid=uid))
+
+
+@api.get('/shop/state')
+@signed_in
+def shop_state(db, uid):
+    return jsonify(items_service.player_state(db, uid))
+
+
+@api.post('/shop/purchase')
+@signed_in
+def shop_purchase(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise DraftError('A JSON object is required.')
+    return jsonify(items_service.purchase(db, uid, body))
+
+
+@api.post('/shop/service/finish')
+@signed_in
+def shop_service_finish(db, uid):
+    return jsonify(items_service.finish_service(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/shop/use')
+@signed_in
+def shop_use(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise DraftError('A JSON object is required.')
+    return jsonify(items_service.use_item(db, uid, body))
+
+# Sound projects are private drafts until a developer publishes the library.
+import void_runner_audio_studio as sound_studio
+
+
+@api.get('/studio/audio')
+def public_sound_project():
+    if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
+        return jsonify(version=0, content=sound_studio.EMPTY)
+    db, _, _ = services()
+    return jsonify(sound_studio.live(db))
+
+
+@api.get('/developer/studio/audio')
+@signed_in
+def private_sound_project(db, uid):
+    items_admin(uid)
+    return jsonify(draft=sound_studio.draft(db, uid), live=sound_studio.live(db))
+
+
+@api.post('/developer/studio/audio/<action>')
+@signed_in
+def change_sound_project(db, uid, action):
+    items_admin(uid)
+    if action == 'upload':
+        if request.content_length is not None and request.content_length > sound_studio.MAX:
+            raise DraftError('Audio files must be at most 20 MiB.', 413)
+        return jsonify(sound_studio.upload(db, request.stream.read(sound_studio.MAX + 1)))
+    if action == 'validate':
+        data = request.get_json(silent=True)
+        return jsonify(content=sound_studio.checked(data.get('content') if isinstance(data, dict) else None))
+    if action not in ('draft', 'publish'):
+        raise DraftError('Unknown sound operation.', 404)
+    return jsonify(sound_studio.save(db, uid, request.get_json(silent=True), publish=action == 'publish'))
+
+
+@api.get('/studio/audio/media/<recording>')
+def public_sound_media(recording):
+    db, _, _ = services()
+    return sound_studio.media(db, recording)
+
+
+@api.get('/developer/studio/audio/media/<recording>')
+@signed_in
+def private_sound_media(db, uid, recording):
+    items_admin(uid)
+    return sound_studio.media(db, recording, private=True)
+
+
+@api.route('/developer/studio/cinematics', methods=['GET', 'POST'])
+@signed_in
+def cinematic_projects(db, uid):
+    """Owner-private portable edit lists. Rendering and recording run in the browser."""
+    items_admin(uid)
+    ref = db.collection('vr_cinematic_projects').document(sound_studio.digest(uid.encode()))
+    if request.method == 'GET':
+        return jsonify(ref.get().to_dict() or {'revision': 0, 'projects': {}})
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or type(data.get('revision')) is not int:
+        raise DraftError('A project revision is required.', 422)
+    projects = data.get('projects')
+    if not isinstance(projects, dict) or len(projects) > 50 or len(json.dumps(projects)) > 600000:
+        raise DraftError('A library can contain up to 50 projects and 600 KB of edits.', 422)
+    for key, project in projects.items():
+        if not re.fullmatch(r'[a-zA-Z0-9-]{1,64}', key) or not isinstance(project, dict):
+            raise DraftError('Invalid cinematic project.', 422)
+        if set(project)-{'feed','hour'} != {'name','place','actor','resolution','aspect','fps','clips'} or not isinstance(project['name'], str) or not project['name'].strip() or len(project['name']) > 140:
+            raise DraftError('Choose a valid project name and settings.', 422)
+        if project['resolution'] not in (720,1080,1440,2160) or project['aspect'] not in ('16:9','9:16','1:1') or project['fps'] not in (30,60):
+            raise DraftError('Unsupported recording settings.', 422)
+        if type(project.get('hour', 21)) is not int or not 0 <= project.get('hour', 21) <= 23 or ('feed' in project and (project['place'] != 'Blackrock camera feed' or not isinstance(project['feed'],str) or not re.fullmatch(r'[-a-zA-Z0-9_:/]{1,140}',project['feed']))):
+            raise DraftError('Invalid lighting hour or mission feed.',422)
+        clips = project['clips']
+        if not isinstance(clips,list) or len(clips)>240:
+            raise DraftError('Choose up to 240 timeline clips.',422)
+        for clip in clips:
+            if not isinstance(clip,dict) or not sound_studio.number(clip.get('start'),0,600) or not sound_studio.number(clip.get('duration'),.05,600) or clip['start']+clip['duration']>600:
+                raise DraftError('Invalid timeline range.',422)
+            if 'src' in clip and clip['src'] and (not isinstance(clip['src'],str) or not (sound_studio.HASH.fullmatch(clip['src']) or clip['src'] in sound_studio.packaged_recordings())):
+                raise DraftError('Choose a game recording.',422)
+    from firebase_admin import firestore
+
+    @firestore.transactional
+    def commit(tx):
+        old = ref.get(transaction=tx).to_dict() or {}
+        if old.get('revision',0) != data['revision']:
+            raise DraftError('This library changed in another window. Reopen before saving.',409)
+        new = {'revision':data['revision']+1,'projects':projects}
+        tx.set(ref,new)
+        return new['revision']
+
+    return jsonify(revision=commit(db.transaction()))

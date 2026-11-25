@@ -32,7 +32,7 @@ test('Fish, Mission 004: each English call line has its English clip, linked fro
  const en=[...MS.FISH_CALL,...step(MS.M004,'report').say.map(l=>l.text)];assert.equal(en.length,10);
  assert.deepEqual(MS.M004.start.text.split('\n'),MS.FISH_CALL,'the call text stays the owner\'s English');
  en.forEach((text,i)=>{const n=i+1,E=X.lines['fish-m004-en-'+n],Z=X.lines['fish-m004-zh-'+n];
-  assert.ok(E&&Z,'pair '+n);assert.equal(E.speaker,'milked-fish');assert.equal(Z.speaker,'milked-fish');assert.equal(E.text,text);
+  assert.ok(E&&Z,'pair '+n);const mix={...X.translations[Z.speaker],...Z.with};assert.equal(mix.gain,.35);assert.equal(mix.offset,.75);assert.equal(E.speaker,'milked-fish');assert.equal(Z.speaker,'milked-fish');assert.equal(E.text,text);
   assert.match(Z.text,/[一-鿿]/,'Mandarin '+n);assert.deepEqual(Z.with,{id:'fish-m004-en-'+n});assert.equal(E.voiceId,'ggacvEjbmpoSuEinfFWs');assert.equal(Z.voiceId,'ggacvEjbmpoSuEinfFWs');
   for(const e of [E,Z])assert.ok(fs.statSync(R('void-runner/assets/audio/voice/'+e.file)).size<150000);});
  assert.ok(X.translations['milked-fish'].offset>0,'the translator\'s offset setting is the per-speaker one');

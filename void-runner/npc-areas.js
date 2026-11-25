@@ -139,7 +139,7 @@
    if(TP&&TP.STREETS)sceneArea('temple','Zen Zephyr Temple','temple',280,0,TP.STREETS,[...TP.PROPS.map(p=>({rect:p[1],name:p[0]})),...TP.PARAPET.map(r=>({rect:r,name:'the parapet'}))]);}
   // Places beyond the city (never used): reasons for a spot there
   const OUT=[R([-120,-60,-40,15],{why:RULE.corporate,rule:true,name:'the Corporate District'}),R([-60,2,-20,-5],{why:'That is beyond the Function Gate (the way to the Corporate District: never used for her).',rule:true}),R([152,200,-20,-5],{why:'That is beyond the East Gate (the way to the Temple: never used for her).',rule:true})];
-  const res={list:A,by:new Map(A.map(a=>[a.id,a])),out:OUT};if(U&&!uOk)return res;return CACHE=res;}   // (the underground is added once modules.js has loaded)
+  const res={list:A,by:new Map(A.map(a=>[a.id,a])),out:OUT};if((U&&!uOk)||!res.by.has('corporate')||!res.by.has('temple'))return res;return CACHE=res;}   // (the underground is added once modules.js has loaded)
  const IDS=['avenue','oldtown','far-south','outskirts','port','district','milked','underground','corporate','temple'];
  const SCENE_SHIFT={corporate:{x:0,z:220},temple:{x:280,z:0}};
  const inR=(r,x,z,m=0)=>x>r.x0-m&&x<r.x1+m&&z>r.z0-m&&z<r.z1+m,inO=(o,x,z,m)=>x>o[0]-m&&x<o[1]+m&&z>o[2]-m&&z<o[3]+m,size=r=>(r.x1-r.x0)*(r.z1-r.z0);
@@ -185,7 +185,7 @@
  /* Which areas are built in a scene: the street (one quarter, or every street area when quarter is null) or the District interior. */
  function here(scene,quarter){return list().filter(a=>scene==='interior'||scene==='milked'||scene==='corporate'||scene==='temple'?a.scene===scene:a.scene==='street'&&(!quarter||a.quarter===quarter)).map(a=>a.id);}
  /* Where draft play enters for an area: {walk:'sacramento', quarter}, {walk:'darknet-district'}, or the separate scene id. */
- function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:a.scene==='milked'?{walk:'sacramento',quarter:'far-south'}:a.scene==='corporate'||a.scene==='temple'?{walk:a.scene}:{walk:'sacramento',quarter:a.quarter};}
+ function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:['milked','corporate','temple'].includes(a.scene)?{walk:a.scene}:{walk:'sacramento',quarter:a.quarter};}
  function toLocal(scene,p){const s=SCENE_SHIFT[scene];if(!s||!p||!num(p.x)||!num(p.z))return p;return {...p,x:p.x-s.x,z:p.z-s.z};}
  const r1=v=>Math.round(v*10)/10,slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
  /* Named places in every area (for the ChatGPT prompt and the editor): shopfronts (places.js SHOPFRONTS: the spot on the pavement in front), and landmarks. [{id, name, area, x, z}]

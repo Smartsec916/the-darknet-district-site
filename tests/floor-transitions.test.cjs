@@ -104,7 +104,6 @@ test('a figure without the clips: the cross-fade as before; the chair at a stool
 
 test('the runtimes play the clip once and hand the figure\'s clip list to the routine',()=>{
  const sp=read('void-runner/ncz-street-pair.js'),made=read('void-runner/npc-made.js');
- assert.match(sp,/has:c=>!!her\.anim&&her\.anim\.has\(c\)/);assert.match(sp,/playOnce\(s\.clip,s\.after\|\|/);
  assert.match(made,/has:c=>!!p\.anim&&!!p\.anim\.has&&p\.anim\.has\(c\)/);assert.match(made,/if\(p\.s\.once&&p\.s\.after&&p\.anim\.playOnce\)p\.anim\.playOnce\(clip,p\.s\.after\)/);
  assert.match(read('void-runner-sw.js').split('\n')[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';$/);
  assert.equal(read('void-runner.html'),read('static/void-runner.html'));});

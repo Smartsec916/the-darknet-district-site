@@ -7,7 +7,7 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.filter(s=>!/^back-/.test(s.id)).length,85+61+52,'(20 Nov 2026: +52 city blocks, cut round the back alleys; their furniture is counted below) '+'85 original solids (the District\'s 82 and the shop\'s stock-cage partition, plus two city blocks (30 became 32 on 16 Nov 2026: Far South\'s street replaced the Main Street South and Container Settlement placeholders, and Milked\'s old side street and alley closed, and The Outskirts\' ground opened, so the blocks are cut differently)) + Milked\'s 61 (walls, furniture, its five doors, and the city blocks that its footprint, side street and service alley open)');assert.equal(all.interactions.length,27+2,'27 original interactions (Admin’s ordnance counter added 19 Nov 2026) + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,all.solids.length);
+ assert.equal(all.solids.filter(s=>!/^back-/.test(s.id)).length,85+61+52+3,'Three District kiosk solids. '+'(20 Nov 2026: +52 city blocks, cut round the back alleys; their furniture is counted below) '+'85 original solids (the District\'s 82 and the shop\'s stock-cage partition, plus two city blocks (30 became 32 on 16 Nov 2026: Far South\'s street replaced the Main Street South and Container Settlement placeholders, and Milked\'s old side street and alley closed, and The Outskirts\' ground opened, so the blocks are cut differently)) + Milked\'s 61 (walls, furniture, its five doors, and the city blocks that its footprint, side street and service alley open)');assert.equal(all.interactions.length,27+2+6+1,'Six shop interactions. '+'27 original interactions (Admin’s ordnance counter added 19 Nov 2026) + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,all.solids.length);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
  assert.equal(street.area,'street');assert.equal(street.solids.filter(s=>!/^back-/.test(s.id)).length,37+61+52);assert.equal(street.solids.filter(s=>/^back-/.test(s.id)).length,require('../void-runner/ncz-backalleys.js').solids().length,'the back alleys\' furniture (ncz-backalleys.js) is solid in the street');
@@ -17,7 +17,7 @@ test('the street environment is the outdoors plus the entrance, and nothing of t
  assert.deepEqual(street.spawn,all.spawn);assert.equal(street.yaw,all.yaw);assert.equal(street.name,all.name);
 });
 test('the interior environment is exactly the District and terrace part of the original layout',()=>{
- assert.equal(interior.area,'interior');assert.equal(interior.solids.length,54);assert.equal(interior.interactions.length,26);   // +1 Admin's ordnance counter (19 Nov 2026), +1 SHOP HERE
+ assert.equal(interior.area,'interior');assert.equal(interior.solids.length,57);assert.equal(interior.interactions.length,33);   // +1 Admin's ordnance counter (19 Nov 2026), +1 SHOP HERE
  assert.equal(interior.interactions.filter(i=>i.action==='district-pod').length,10,'every pod has a hatch interaction');
  const original=all.solids.filter(s=>['district','terrace'].includes(at(s)));
  assert.deepEqual(interior.solids,original,'solids are identical, in the same order');
@@ -70,7 +70,7 @@ test('in the street area the inner door can never open, whatever the flags',()=>
 });
 test('the build is split into gated sections, the entrance is built in every area, and the original random sequence is kept',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8');
- assert(src.includes("function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null})"));
+ assert(src.includes("function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null,kiosks=configuredKiosks()})"));
  for(const needle of ['function buildStreet()','function buildEntrance()','function buildInterior()','function buildStreetDetail()','const wantStreet=area!==\'interior\',wantInterior=area!==\'street\'','const SEAMS=low?'])assert(src.includes(needle),needle);
  assert(src.indexOf('function buildEntrance()')<src.indexOf('function buildInterior()'),'the entrance comes before the interior');
  assert(/else if\(!wantStreet\)seed=SEAMS\[0\]/.test(src)&&/if\(!wantInterior\)\{seed=SEAMS\[1\]/.test(src),'each separate build resumes the combined build\'s random sequence');

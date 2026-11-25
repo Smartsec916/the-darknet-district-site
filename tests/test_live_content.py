@@ -94,6 +94,23 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual([h['action'] for h in state['history']], ['publish', 'publish', 'rollback', 'rollback'])
         self.assertTrue(all(k.startswith(('vr_live_content_state/', 'vr_live_content_versions/')) for k in self.db.data))
 
+    def test_dax_routine_publish_and_clear_without_a_mission(self):
+        stay = {'mode': 'stay', 'x': 125.3, 'z': -96.4, 'yaw': 0, 'actions': ['shadow']}
+        route = {'mode': 'path', 'points': [
+            {'x': 125.3, 'z': -96.4, 'action': 'shadow', 'seconds': 3},
+            {'x': 125.3, 'z': -99.9, 'action': 'walk-on', 'seconds': 0},
+        ]}
+        schedule = dict(stay, schedule=[dict(route, **{'from': '08:00', 'to': '09:00'})])
+        invalid = [dict(stay, x=100, z=-6.4), dict(stay, anims=['npc-rin/unknown-clip'])]
+        for plan in invalid:
+            refused = self.post('live-content/publish', {'expected': 0, 'content': content(npcs={'dax': plan})})
+            self.assertEqual(refused.status_code, 422, refused.json)
+        for revision, plan in enumerate([stay, dict(stay, anims=['npc-rin/laugh']), route, schedule, None]):
+            npcs = {} if plan is None else {'dax': plan}
+            saved = self.post('live-content/publish', {'expected': revision, 'content': content(npcs=npcs)})
+            self.assertEqual(saved.status_code, 200, saved.json)
+            self.assertEqual(self.get('live-content', token=None).json['content'].get('npcs', {}), npcs)
+
     def test_publish_one_interaction_leaves_existing_missions_and_other_npcs_unchanged(self):
         original = content()
         self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': original}).status_code, 200)
@@ -429,9 +446,9 @@ class MissionRemovalSaveTests(unittest.TestCase):
         bad['trees'][1]['missions'][0]['start']['when']['mission'] = 'nowhere'
         self.assertTrue(live.check(bad))
         # "when walked near" (18 Nov 2026): who (a person with a TALK prompt; Reverie and Lace are givers) and how far (1..30 m, default 5)
-        near = {'id': 'draft-near', 'name': 'Near', 'missions': [{'id': 'draft-near-m1', 'number': 42, 'title': 'Walk by', 'type': 'side', 'giver': 'grey-reverie',
-                'start': {'how': 'notification', 'channel': 'notify', 'from': 'grey-reverie', 'text': 'x', 'when': {'kind': 'near', 'npc': 'grey-reverie', 'distance': 5}},
-                'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'ethereal-lace'}]}]}
+        near = {'id': 'draft-near', 'name': 'Near', 'missions': [{'id': 'draft-near-m1', 'number': 42, 'title': 'Walk by', 'type': 'side', 'giver': 'tea-host',
+                'start': {'how': 'notification', 'channel': 'notify', 'from': 'tea-host', 'text': 'x', 'when': {'kind': 'near', 'npc': 'tea-host', 'distance': 5}},
+                'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'street-cat'}]}]}
         good = copy.deepcopy(content)
         good['trees'].append(near)
         self.assertEqual(live.check(good), [])

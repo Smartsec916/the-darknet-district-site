@@ -116,3 +116,18 @@ test('places, multiplayer and the build wiring',()=>{
  const html=fs.readFileSync(path.join(ROOT,'void-runner.html'),'utf8'),i0=html.indexOf('ncz-underground.js'),i1=html.indexOf('ncz-underground-integration.js');
  assert.ok(i0>html.indexOf('ncz-backalleys.js')&&i0<html.indexOf('npc-areas.js')&&i0<html.indexOf('ncz-quarters.js'),'loaded before the areas and the quarters');assert.ok(i1>html.indexOf('ncz-backalleys-integration.js')&&i1<html.indexOf('ncz-gate-transit.js'));
  assert.match(fs.readFileSync(path.join(ROOT,'void-runner-sw.js'),'utf8').split('\n')[3],/^const BUILD='\d{4}-\d\d-\d\d-[a-z0-9-]+';$/,'a dated build (bumped by every later change)');});
+
+test('Nomi and Se7en have separate walkable standing targets behind the tea room; Tao is excluded',()=>{
+ const spots=U.spots(),duo=['nomi','se7en'].map(name=>spots.find(s=>s.id==='under-sleeping-room/'+name));
+ assert.ok(duo.every(Boolean),'both scene anchors exist');
+ for(const p of duo){
+  assert.equal(p.place,'under-sleeping-room');
+  assert.equal(U.placeAt(p.x,p.z),'under-sleeping-room');
+ }
+ assert.ok(Math.hypot(duo[0].x-duo[1].x,duo[0].z-duo[1].z)>1.5,'distinct positions');
+ assert.equal(spots.some(s=>s.id==='under-sleeping-room/tao'),false);
+ const flophouse=M.TYPES.flophouse;
+ const locals=flophouse.spots.filter(s=>s[0]==='nomi'||s[0]==='se7en');
+ for(const [,x,z] of locals)for(const [xmin,xmax,zmin,zmax] of flophouse.furn)
+  assert.ok(!(x>=xmin&&x<=xmax&&z>=zmin&&z<=zmax),'anchor is outside a cot');
+});

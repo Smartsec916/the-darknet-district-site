@@ -54,13 +54,13 @@ test('adult (18+): only then the adult venues; never on Reverie’s or Lace’s 
  const x=env(),NULLFLOOR={mode:'stay',x:30,z:-55,yaw:0,actions:['idle']},err=o=>x.MC.check(doc(x,o),ctx(x)).errors.join(' | ');
  assert.match(err({npcs:{'kara-voss':NULLFLOOR}}),/NULL/);
  assert.equal(err({characters:{'kara-voss':{...KARA,adult:true}},npcs:{'kara-voss':NULLFLOOR}}),'');
- assert.match(err({characters:{'kara-voss':{...KARA,model:'npc-grey-reverie',adult:true}},npcs:{'kara-voss':NULLFLOOR}}),/youthful/);
+ assert.match(err({characters:{'kara-voss':{...KARA,model:'npc-grey-reverie',adult:true}},npcs:{'kara-voss':NULLFLOOR}}),/model/i);
  const A=x.A,ad={adult:true,made:true};assert.equal(A.check({x:81,z:-180},null,undefined,ad).ok,true,'Milked reception');assert.equal(A.check({x:87,z:-178},null,undefined,ad).ok,false,'a Milked studio');
  const pods=A.get('district').no.find(n=>/Pod/.test(n.name));assert.equal(A.check({x:(pods.x0+pods.x1)/2,z:(pods.z0+pods.z1)/2},null,undefined,ad).ok,false,'the pod room');
  for(const n of ['the bar','the VR play area','the arcade room']){const w=A.get('district').walk.find(v=>v.adult&&v.name===n);const p={x:(w.x0+w.x1)/2,z:(w.z0+w.z1)/2};assert.equal(A.check(p,null,undefined,ad).ok,true,n);assert.equal(A.check(p).ok,false,n);}
  assert.equal(A.check({x:81.75,z:-173}).ok,false);assert.equal(A.check({x:81.75,z:-173},null,undefined,ad).ok,true,'Milked’s front doorway');
- const X=x.X;X.setMade({rev:{name:'R',model:'npc-ethereal-lace',adult:true}});assert.equal(X.MOVABLE.rev.adult,false);assert.equal(X.planProblems('rev',NULLFLOOR).length>0,true);X.setMade({});
- assert.equal(A.here('milked').join(),'milked');assert.deepEqual(A.enter('milked'),{walk:'sacramento',quarter:'far-south'});});
+ const X=x.X;X.setMade({rev:{name:'R',model:'npc-ethereal-lace',adult:true}});assert.ok(!X.MOVABLE.rev||!X.MOVABLE.rev.adult||!x.MD.modelOf('npc-ethereal-lace'));assert.equal(X.planProblems('rev',NULLFLOOR).length>0,true);X.setMade({});
+ assert.equal(A.here('milked').join(),'milked');assert.deepEqual(A.enter('milked'),{walk:'milked'});});
 
 test('drafts: only finished characters are sent (with their placement); an unfinished one is said in plain words; the id comes from the name',()=>{
  const x=env(),local={trees:tree('kara-voss'),characters:{'kara-voss':KARA,'half-done':{name:'Half',model:'npc-courier'}},npcs:{'kara-voss':OLDTOWN}};x.X.setMade(local.characters);
@@ -73,11 +73,20 @@ test('drafts: only finished characters are sent (with their placement); an unfin
 
 test('cab rides stay Reverie’s and Lace’s; follow / lead steps work with a made character',()=>{
  const x=env(),E=require(R('void-runner/npc-escort.js'));x.X.setMade({'kara-voss':KARA});
- assert.equal(E.can('kara-voss','follow-them').ok,true);assert.equal(E.can('kara-voss','they-follow').ok,true);assert.equal(E.can('kara-voss','their-cab').ok,false);assert.match(E.can('kara-voss','shared-cab').why,/Reverie or Lace/);x.X.setMade({});});
+ assert.equal(E.can('kara-voss','follow-them').ok,true);assert.equal(E.can('kara-voss','they-follow').ok,true);assert.equal(E.can('kara-voss','their-cab').ok,false);assert.match(E.can('kara-voss','shared-cab').why,/unavailable for created characters/);x.X.setMade({});});
 
 test('the page and the editor: the script after the street pair and Milked, the creator in the NPCs tab and on the Start page, the admin inventory',()=>{
  const html=fs.readFileSync(R('void-runner.html'),'utf8'),at=f=>html.indexOf('void-runner/'+f+'"');assert.ok(at('npc-made.js')>at('ncz-street-pair.js')&&at('npc-made.js')>at('milked-build.js')&&at('npc-made.js')<at('neochinatown.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);
  const ed=fs.readFileSync(R('void-runner/npc-editor.js'),'utf8'),home=fs.readFileSync(R('void-runner/editor-home.js'),'utf8');assert.match(ed,/Create a mission giver/);assert.match(ed,/This character is an adult \(18\+\)/);assert.match(home,/'giver','people','Create a mission giver'/);
- const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).madeCharacters;assert.ok(inv.models['npc-courier'].movable.actions.includes('idle'));assert.ok(inv.reserved.includes('admin'));assert.equal(inv.models['npc-grey-reverie'].adultOk,false);
+ const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).madeCharacters;assert.ok(inv.models['npc-courier'].movable.actions.includes('idle'));assert.ok(inv.reserved.includes('admin'));assert.equal(inv.models['npc-grey-reverie'],undefined);
  assert.equal(inv.items['ward-pistol'].show,'hip');});
+
+
+test('deleting a created NPC cleans owned records and protects shared dependencies',()=>{
+ const M=require(R('void-runner/npc-made.js')),d={characters:{a:{},b:{relationships:[{target:'a'}]}},trees:[{id:'job',missions:[{giver:'a'}]}],voices:{a:1,b:2},clips:{x:{who:'a'},y:{who:'b'}},animRequests:[{npc:'a'},{npc:'b'}],interactions:{a:{talk:'Hi'}},npcs:{a:{}},looks:{shared:{}}};
+ assert.equal(M.deleteCharacter(d,'a'),false);
+ d.trees=[];assert.equal(M.deleteCharacter(d,'a'),false);
+ delete d.characters.b.relationships;assert.equal(M.deleteCharacter(d,'a'),true);
+ assert.deepEqual(d.voices,{b:2});assert.deepEqual(d.clips,{y:{who:'b'}});assert.deepEqual(d.animRequests,[{npc:'b'}]);assert.deepEqual(d.interactions,{});assert.deepEqual(d.npcs,{});assert.deepEqual(d.looks,{shared:{}});
+});

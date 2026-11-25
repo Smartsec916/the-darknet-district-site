@@ -25,7 +25,6 @@ test('capabilities are detected from the file: multi-part figures, one-piece Mes
  const dr=X.capabilities('district-resident',glb('district-resident'),d);assert.equal(dr.gear.base,'female');assert.equal(dr.hair.ok,true);assert.deepEqual(dr.hair.native,['district_resident.braid01']);
  assert.equal(X.capabilities('district-smuggler',glb('district-smuggler'),d).gear.base,'male');assert.deepEqual(X.capabilities('district-smuggler',glb('district-smuggler'),d).hair.hats,['district_smuggler.fedora_cocked']);
  for(const a of ['npc-office-f','npc-casual-m','npc-admin','npc-zen-zephyr']){const c=X.capabilities(a,glb(a),d);assert.equal(c.whole,true,a);assert.deepEqual(c.colours.map(x=>x.key),['*'],a);assert.ok(!c.groups.some(g=>g.hideable),a);assert.equal(c.gear.ok,false,a);}
- const rev=X.capabilities('npc-grey-reverie',glb('npc-grey-reverie'),d);assert.equal(rev.street,true);assert.match(rev.gear.why,/ordinary street clothing/);
  const comp=X.capabilities('vr-companion-f',glb('vr-companion-f'),d);assert.equal(comp.licensed,true);assert.equal(comp.gear.ok,false);assert.equal(comp.hair.ok,false);assert.match(comp.gear.why,/licensed/);
  assert.deepEqual(comp.groups.filter(g=>g.hideable).map(g=>g.names[0]),['vr_companion_f.long01']);   // her suit and shoes stay
  // sample metadata (a file the game does not have)
@@ -48,7 +47,6 @@ test('a look is checked: parts, colours, pieces, licensed and street rules, the 
  bad('vr-companion-f',one({gear:['gear-visor']}),/licensed/,true);bad('vr-companion-f',one({hair:'bob01'}),/licensed/,true);bad('vr-companion-f',one({gear:['gear-visor']}),/licensed/);
  assert.deepEqual(X.problems({'vr-companion-f':one({hide:['vr_companion_f.long01'],colour:{'vr_companion_f.female_elegantsuit01':{hue:30}}})},{inventory:I}),[]);
  bad('vr-companion-f',one({hide:['vr_companion_f.female_elegantsuit01']}),/cannot be hidden/);
- bad('npc-grey-reverie',one({gear:['gear-visor']}),/ordinary street clothing/,true);assert.deepEqual(X.problems({'npc-grey-reverie':one({colour:{'*':{tint:'#8c1f2b'}}})},{inventory:I}),[]);
  bad('npc-office-f',{looks:[],use:'look-9'},/does not exist/);bad('npc-office-f',{looks:[],use:'mix'},/mix needs/);bad('npc-office-f',one({name:'<b>x</b>'}),/plain name/);
  bad('npc-office-f',{looks:[{id:'a',name:'A'},{id:'a',name:'B'}]},/repeated id/);bad('npc-office-f',{looks:Array.from({length:9},(_,i)=>({id:'l'+i,name:'L'}))},/at most 8/);bad('npc-office-f',one({script:'x'}),/unknown fields/);
  bad('no-such-model',one({}),/not a model the editor knows/);assert.deepEqual(X.problems([]),['Looks have an unknown shape.']);});

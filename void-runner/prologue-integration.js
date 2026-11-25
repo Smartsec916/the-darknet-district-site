@@ -120,7 +120,7 @@ function pistolHandlingAction(action,personal=state.progression.personal,consequ
  if(action==='draw'&&personal.weapon){groundState.drawn=!groundState.drawn;consequences?.drawChanged?.(groundState.drawn);}
  if(action==='aim'){groundState.aim=!groundState.aim;if(groundState.drawn&&groundState.aim)consequences?.aimed?.();}
 }
-function groundAction(action){if(mode!=='walking')return;
+function groundAction(action){if(mode!=='walking'||globalThis.VoidInputState?.current.ui||globalThis.VoidInputState?.current.movement===false)return;
  if(action==='crouch'){if(walkingKeys.has('KeyC'))walkingKeys.delete('KeyC');else walkingKeys.add('KeyC');}
  if(action==='sprint'){if(walkingKeys.has('ShiftLeft'))walkingKeys.delete('ShiftLeft');else walkingKeys.add('ShiftLeft');}
  if(action==='inventory')return personalInventory();
@@ -130,7 +130,7 @@ function groundAction(action){if(mode!=='walking')return;
  if(action==='fire')pistolAction(action);
 }
 groundControls.addEventListener('click',e=>groundAction(e.target.dataset.ground));
-addEventListener('keydown',e=>{if(mode!=='walking'||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const a={KeyI:'inventory',Digit1:'draw',KeyH:'draw',KeyR:'reload',Space:'jump'}[e.code];if(a){e.preventDefault();groundAction(a);}});
+addEventListener('keydown',e=>{if(mode!=='walking'||VoidInputState.current.shortcuts!=='game'||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const a={KeyI:'inventory',Digit1:'draw',KeyH:'draw',KeyR:'reload',Space:'jump'}[e.code];if(a){e.preventDefault();groundAction(a);}});
 function groundPointerButton(e){if(mode!=='walking')return;if(e.button===2){groundState.aim=false;groundAction('aim');}else if(e.button===0&&groundState.drawn)groundAction('fire');}
 // Mouse pointerdown only fires for the first pressed button; mousedown also fires while right-click aim is held.
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')groundPointerButton(e);});
@@ -151,7 +151,14 @@ VoidInteractions.register('district-iris',()=>districtLine('Iris',state.story.fl
 VoidInteractions.register('district-shop',()=>{shop();screen.querySelector('.shop-heading,.actions')?.insertAdjacentHTML('beforeend',button('RETURN TO THE DISTRICT','walk-resume',true));});
 VoidInteractions.register('district-bar',()=>districtLine('Bartender','Filtered air is free, the drinks are not. Pilots talk too much in here, so listen.'));
 VoidInteractions.register('district-vr',()=>districtLine('Arcade attendant','Every rig is booked tonight. Come back later.'));
-VoidInteractions.register('district-vending',()=>{announce('The machine hums and drops a can of Drink Oil. It tastes like a warm battery.');resumeWalking();});
+VoidInteractions.register('district-vending',()=>{
+ if(globalThis.VoidCatalogShop&&typeof walker!=='undefined'){
+  const machines=walkingLocation.interactions.filter(i=>i.vendor?.startsWith('vend-'));
+  const distance=i=>Math.hypot(i.position[0]-walker.x,i.position[2]-walker.z);
+  machines.sort((a,b)=>distance(a)-distance(b));
+  if(machines.length){VoidCatalogShop.open(machines[0].vendor);return;}
+ }
+ announce('The machine hums and drops a can of Drink Oil. It tastes like a warm battery.');resumeWalking();});
 VoidInteractions.register('district-pod',({item}={})=>{if(typeof enterSleepingPod==='function')enterSleepingPod(item?.podIndex||1);});
 // Meridian's living area has the same pods (meridian-interior.js): rest and save.
 VoidInteractions.register('meridian-pod',()=>{save();announce('You rest in a sleep pod. Progress saved.');resumeWalking();});

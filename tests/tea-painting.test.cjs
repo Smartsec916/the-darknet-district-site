@@ -11,7 +11,7 @@ test('the tea room builds the owner\'s painting: his file, facing the room, on t
  const [,px,py,pz,pw,ph]=/const px=([\d.]+),py=([\d.]+),pz=([\d.]+),pw=([\d.]+),ph=([\d.]+);plane\(pm,pw,ph,\[px,py,pz\],0\)/.exec(src).map(Number);
  const t=M.TYPES['tea-under'],sink=t.furn.find(f=>f[5]==='sink'),part=t.furn.find(f=>f[5]==='partition');
  assert.ok(pz>2.85&&pz<2.9,'on the north wall (z 2.9), its front (-z, rotation 0) toward the room');assert.ok(Math.abs(pw/ph-768/1024)<.01,'the picture\'s own 3:4 proportions (not stretched)');
- assert.ok(px+pw/2<2.9&&px-pw/2>part[1]+.05,'between the end of the partition and the east wall');assert.ok(px>sink[0]-.1&&px<sink[1],'above the sink');assert.ok(py-ph/2>sink[4]+.2,'clear above the sink');
+ assert.ok(px+pw/2<2.9&&px-pw/2>part[1]+.05,'between the end of the partition and the east wall');assert.equal(px,1.91,'the owner moved it 0.45 m to the viewer\'s left (from 2.36), 23 Nov 2026');assert.ok(px+pw/2+.035<sink[1],'its frame ends inside the nook');assert.ok(px-pw/2-.035>part[1]+.3,'clear of the partition\'s end');assert.ok(py-ph/2>sink[4]+.2,'clear above the sink');
  assert.match(src,/box2\(dw,x0,x1,y0,y1,pz-\.004,2\.9\)/,'the frame runs from the wall to just in front of the picture');assert.match(src,/picture-lamp/);
  const j=fs.readFileSync(R(FILE));assert.equal(j.readUInt16BE(0),0xffd8,'a JPEG');});
 

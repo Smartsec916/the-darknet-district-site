@@ -63,7 +63,23 @@ test('the motor whir only while moving, very quiet, pitch follows the speed',()=
 test('the feed wires it in: aim keys pass the block only to the camera, the mouse is captured, the sounds use the effects channel, the HUD shows pan / tilt',()=>{
  const f=read('void-runner/camera-feed.js');
  assert.match(f,/AIM_KEYS=\{ArrowLeft:\[-1,0\],KeyA:\[-1,0\],ArrowRight:\[1,0\],KeyD:\[1,0\],ArrowUp:\[0,1\],KeyW:\[0,1\],ArrowDown:\[0,-1\],KeyS:\[0,-1\]\}/);
- assert.match(f,/const keyBlock=e=>\{if\(!F\)return;e\.preventDefault\(\);e\.stopImmediatePropagation\(\);/,'every key is still kept from the game');
+ const root={VoidInputState:{current:{camera:true}}}, F={keys:new Set(),push:{pan:2,tilt:3},wacc:1};
+ const handlers=f.slice(f.indexOf('const AIM_KEYS='),f.indexOf('const zoomNow='))+
+   f.slice(f.indexOf('const clearKeys='),f.indexOf('function dateLine()'));
+ const {keyBlock,clearKeys}=require('node:vm').runInNewContext(handlers+';({keyBlock,clearKeys})',{F,root});
+ function send(code,type='keydown',modifiers={}){
+   let prevented=false,stopped=false;
+   keyBlock({code,type,...modifiers,preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});
+   assert.equal(prevented,stopped);
+   return stopped;
+ }
+ assert.ok(send('KeyW'));assert.ok(F.keys.has('KeyW'));assert.ok(send('KeyW','keyup'));assert.equal(F.keys.size,0);
+ assert.ok(send('KeyL'),'game shortcuts are blocked in the feed');assert.equal(F.keys.size,0);
+ assert.equal(send('Tab','keydown',{altKey:true}),false);assert.equal(send('KeyA','keydown',{metaKey:true}),false);
+ send('ArrowUp');clearKeys();assert.equal(F.keys.size,0);assert.deepEqual(F.push,{pan:0,tilt:0});assert.equal(F.wacc,0);
+ root.VoidInputState.current.camera=false;assert.equal(send('KeyW'),false);assert.equal(F.keys.size,0);
+ assert.match(f,/addEventListener\('void-input-clear',clearKeys\)/);assert.match(f,/removeEventListener\('void-input-clear',clearKeys\)/);
+ assert.match(f,/VoidInputState\.capture\(document\.getElementById\('space'\)\)/);
  assert.match(f,/for\(const t of MOUSE_EV\)addEventListener\(t,onMouse,\{capture:true\}\)/);assert.match(f,/for\(const t of MOUSE_EV\)removeEventListener\(t,onMouse,\{capture:true\}\)/);
  assert.match(f,/VoidAudio\?\.bus\?\.\('effects'\)/);assert.doesNotMatch(f,/new Audio\(|\.mp3|\.ogg|\.wav/,'no sound files');
  assert.match(f,/MOUSE · AIM &nbsp; WHEEL · ZOOM &nbsp; RECORDING STOPS BY ITSELF/);assert.match(f,/data-cf="aim"/);

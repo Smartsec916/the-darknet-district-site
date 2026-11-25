@@ -3,7 +3,7 @@
    four lines, recorded) with ACCEPT / NOT NOW → Mission Log "Corporate Connections", tracked, the yellow arrow out of the District toward Milked → Far South's side street:
    the arrow leads to Milked's front doors → in through the front vestibule (the real checkpoint and loading card) → "Travel to Milked" done, the arrow now leads to Eva →
    Eva (the PROPOSED drafts, the player's lines, her two recorded lines) → she turns toward the staff door, the STAFF ONLY door opens for this player → the arrow leads to Fish
-   through the staff door → Fish: the player's line, her Mandarin line at about 70% with the V1's English translation in her own voice starting about 0.75 s later (both clips' start times are
+   through the staff door → Fish: the player's line, her Mandarin line at about 35% with the V1's English translation in her own voice starting about 0.75 s later (both clips' start times are
    checked), the line shown with "V1 TRANSLATION" under it → Fish added to the contacts and followed on Social (banner) → the mission is complete, no reward → active play
    the V1 shows the in-game time; in-game time is advanced (the page's own clock ticker, faked time: stopped in a menu and a conversation) and Fish's follow-up becomes
    due once after 6 in-game hours (a stub: no call is delivered).
@@ -118,7 +118,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.waitForFunction(()=>speech&&speech.index===1,null,{timeout:60000});
    await page.waitForFunction(b=>VoidVoiceClips.played.length>b&&VoidVoiceClips.played.at(-1).secondary,before,{timeout:60000});
    const rec=await page.evaluate(()=>VoidVoiceClips.played.at(-1));log(JSON.stringify(rec));
-   assert.equal(rec.primary.speaker,'milked-fish');assert.ok(Math.abs(rec.primary.gain-.7)<.01,'Mandarin at about 70%');assert.equal(rec.secondary.speaker,'milked-fish','the English in Fish\'s own voice');assert.equal(rec.secondary.id,'extra:fish-m003-en');assert.equal(rec.secondary.gain,1);assert.equal(rec.secondary.effect,'device');
+   assert.equal(rec.primary.speaker,'milked-fish');assert.ok(Math.abs(rec.primary.gain-.35)<.01,'Mandarin at about 35%');assert.equal(rec.secondary.speaker,'milked-fish','the English in Fish\'s own voice');assert.equal(rec.secondary.id,'extra:fish-m003-en');assert.equal(rec.secondary.gain,1);assert.equal(rec.secondary.effect,'device');
    const off=rec.secondary.at-rec.primary.at;assert.ok(off>=.6&&off<=.9,'the translation starts 0.6-0.9 s after the Mandarin: '+off);assert.ok(rec.secondary.at<rec.primary.at+rec.primary.duration,'they overlap: both stay audible');
    await page.waitForTimeout(1600);
    const tr=await page.evaluate(()=>{const e=document.querySelector('[data-v1-translation]');return e?e.textContent:null;});assert.ok(tr&&tr.startsWith('V1 TRANSLATION')&&tr.includes(EN),'the English under the Mandarin, labelled: '+tr);
@@ -133,7 +133,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    assert.equal(await page.evaluate(()=>VoidDistrictPeople.isFollowing(state.story.flags,'n:milked-fish')),true,'and followed on Social');
    assert.equal((await S()).credits,s.credits,'no reward');
 
-   // ---- the V1 shows the in-game time; the follow-up waits 6 in-game hours (in-game time runs only while walking or flying); fires once (a stub: nothing is delivered)
+   // ---- the V1 shows the in-game time; the follow-up waits 10 in-game minutes and fires once
    await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen);await page.waitForTimeout(1500);
    const v1=await page.evaluate(()=>({shown:document.querySelector('[data-pd-clock]')?.textContent||'',now:VoidClock.now(state).label}));assert.match(v1.shown,/^\d\d:\d\d · DAY \d+$/,'the V1 shows the in-game time: '+v1.shown);assert.equal(v1.shown,v1.now);
    await shot('v1-clock');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);await page.waitForFunction(()=>mode==='walking');
@@ -141,9 +141,10 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
     L.clockTick(t);const st0=L.gameClock().followups[0];mode='menu';for(let i=0;i<200;i++)L.clockTick(t+=5000);const inMenu=L.gameClock().followups[0].elapsed;mode='dialogue';for(let i=0;i<50;i++)L.clockTick(t+=5000);const inTalk=L.gameClock().followups[0].elapsed;mode='walking';
     for(let i=0;i<st0.remaining-1;i++)L.clockTick(t+=5000);const mid=L.gameClock().followups[0];for(let i=0;i<2;i++)L.clockTick(t+=5000);const end=L.gameClock().followups[0];for(let i=0;i<50;i++)L.clockTick(t+=5000);
     return {st0,inMenu,inTalk,mid,end,events:out.slice(),flag:state.story.flags['ev_fish-followup-due'],now:L.gameClock().now.label};});
-   log(JSON.stringify(fired));assert.equal(fired.st0.gameMinutes,360,'6 in-game hours');assert.equal(fired.inMenu,fired.st0.elapsed,'the clock stops in a menu');assert.equal(fired.inTalk,fired.st0.elapsed,'and in a conversation');
+   log(JSON.stringify(fired));assert.equal(fired.st0.gameMinutes,10,'10 in-game minutes');assert.equal(fired.inMenu,fired.st0.elapsed,'the clock stops in a menu');assert.equal(fired.inTalk,fired.st0.elapsed,'and in a conversation');
    assert.equal(fired.mid.due,false);assert.equal(fired.end.fired,true);assert.deepEqual(fired.events,['fish-followup-due'],'fires once');assert.equal(fired.flag,true);assert.equal(fired.end.dueAt,fired.st0.dueAt);
-   assert.equal(await page.evaluate(()=>document.querySelector('#pd-notify')?.textContent.includes('Fish')&&!/call/i.test(document.querySelector('#pd-notify').textContent)),true,'no call is delivered (stub)');
+   await page.waitForFunction(()=>VoidLiveContent.inbox('comms').some(x=>x.id==='m004-a-promising-investment/start'),null,{timeout:10000});
+   assert.equal(await page.evaluate(()=>VoidLiveContent.inbox('comms').filter(x=>x.id==='m004-a-promising-investment/start').length),1,'Mission 004 rings once');
    assert.deepEqual(errors.filter(e=>!/ResizeObserver|AbortError|The play\(\) request/.test(e)),[],'no page errors');
    log(W+' done');await ctx.close();}
  }finally{await browser.close();srv?.close();}

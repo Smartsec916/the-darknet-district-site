@@ -210,10 +210,11 @@ screen.addEventListener('change', async e => {
 let walkRetry=null;document.addEventListener('click',e=>{if(e.target.closest?.('button')?.dataset.action!=='walk-retry'||!walkRetry)return;const r=walkRetry;walkRetry=null;enterWalking(r.id,r.options);});
 // options: silent (no preparation panel; the caller shows its own transition), spawn [x,y,z] and yaw (appear here instead of at the location's spawn).
 async function enterWalking(id, options = {}) {
-  const def = VoidExplorationData.locations[id];
+  let def = VoidExplorationData.locations[id];
   if (!def) return;
   if (id !== 'hangar' && def.kind!=='workshop' && !VoidExplorationData.solAvailable(state)) return;
   if (VoidGraphics.busy) return;
+  if(id==='darknet-district'&&globalThis.VoidNeoChinatown?.withKiosks){def=VoidNeoChinatown.withKiosks(def);VoidExplorationData.locations[id]=def;}
   VoidGraphics.busy = true;
   const token = ++preparationGeneration;
   if (options.silent) { mode = 'preparing'; clearInput(); flightUI(false); } else preparationPanel('Preparing <em>' + escapeText(def.name) + '.</em>', false);
@@ -273,6 +274,7 @@ newJourney = function() {
 };
 
 function interactWalking() {
+  if (globalThis.VoidTeaDuo?.standPlayer?.()) return;
   if (mode !== 'walking' || !walkTarget) return;
   const item = walkTarget;
   walkingKeys.clear();
@@ -340,7 +342,10 @@ walkingUI.addEventListener('pointerdown', e => {
 });
 for (const event of ['pointerup', 'pointercancel']) walkingUI.addEventListener(event, e => walkingKeys.delete(e.target.dataset.walk));
 addEventListener('keydown', e => {
-  if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  const policy=VoidInputState.current;
+  if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return;
+  if (policy.shortcuts==='none'||(policy.shortcuts==='interface'&&!(policy.movement&&['KeyW','KeyA','KeyS','KeyD'].includes(e.code)))) return;
+  if (e.repeat&&!walkingKeys.has(e.code)) return;
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyC', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
     e.preventDefault();
     walkingKeys.add(e.code);
@@ -356,19 +361,17 @@ document.addEventListener('visibilitychange', () => {
     walkingKeys.clear();
   }
 });
-canvas.addEventListener('click', () => {
-  if (mode === 'walking' && globalThis.VoidControls?.deviceClass!=='touch-first') canvas.requestPointerLock?.()?.catch?.(() => {});
-});
+addEventListener('void-input-clear',()=>{lookPointer=null;});
 let lookPointer = null;
 canvas.addEventListener('pointerdown', e => {
-  if (mode === 'walking') lookPointer = {
+  if (mode === 'walking' && VoidInputState.current.camera) lookPointer = {
     x: e.clientX,
     y: e.clientY
   };
 });
 canvas.addEventListener('pointerup', () => lookPointer = null);
 canvas.addEventListener('pointermove', e => {
-  if (mode !== 'walking' || !walker) return;
+  if (mode !== 'walking' || !walker || !VoidInputState.current.camera) return;
   const locked = document.pointerLockElement === canvas;
   if (!locked && !lookPointer) return;
   const dx = locked ? e.movementX : e.clientX - lookPointer.x,
@@ -419,13 +422,15 @@ update = function(dt) {
       crouch: walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft')||walkingKeys.has('ControlRight')||VoidInput.virtual.has('crouch'),
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
-    VoidExplorer.step(walker, moving, dt, walkingLocation);
-    if (!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
-    walkTarget = VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
+    if(!VoidInputState.current.movement){moving.x=0;moving.z=0;moving.run=false;moving.crouch=false;}
+    const seated=globalThis.VoidTeaDuo?.playerStep?.(walker,moving,dt);
+    if(!seated)VoidExplorer.step(walker, moving, dt, walkingLocation);
+    if (!seated&&!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
+    walkTarget = seated?null:VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
     $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
-    $('walking-interact').textContent = walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
-    $('walking-interact').disabled = !walkTarget;
+    $('walking-interact').textContent = seated?'['+(globalThis.VoidControls?.label('interact')||'E')+'] STAND UP':walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
+    $('walking-interact').disabled = !seated&&!walkTarget;
     lastStepSound -= dt;
     if ((moving.x || moving.z) && lastStepSound <= 0) {
       if (!globalThis.VoidAmbience?.ownStep?.(moving.run)) VoidAudio.tone(moving.run ? 88 : 95, .06, 'triangle', moving.run ? .017 : .009);   // your own steps are louder when you run

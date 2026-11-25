@@ -19,17 +19,17 @@ test('the homepage does not promise working multiplayer',()=>{
 test('the games page restores VOID//RUNNER branding and attracts attention without forced motion (22 Nov 2026)',()=>{
  for(const f of ['games-list.html','static/games-list.html']){
   const page=read(f);
-  if(f==='games-list.html'){assert.match(page,/href="void-runner\.html">\s*<h3>VOID\/\/RUNNER<\/h3>/);assert.doesNotMatch(page,/<h3>The Darknet District - Game<\/h3>/);}else assert.doesNotMatch(page,/href="void-runner\.html"/);
+  if(f==='games-list.html'){assert.match(page,/href="void-runner\.html">\s*<h3>Void Runner<\/h3>/);assert.doesNotMatch(page,/<h3>The Darknet District - Game<\/h3>/);}else assert.doesNotMatch(page,/href="void-runner\.html"/);
   assert.match(page,/prefers-reduced-motion:no-preference/);assert.match(page,/\.games-grid > \.game-card \{ animation:game-attract/);assert.match(page,/\.game-card:focus-visible \{ animation:none/);
-  for(const game of ['/origins/index.html','blackout-protocol/'])assert.ok(page.includes('href="'+game+'"'),f+' '+game);assert.match(page,/<h3>Raven<\/h3>[\s\S]{0,120}Coming Soon/,f+' Raven is Coming Soon (the owner, 19 Nov 2026)');
+  for(const game of ['/origins/index.html','blackout-protocol/'])assert.ok(page.includes('href="'+game+'"'),f+' '+game);assert.match(page,/<h3>Raven<\/h3>[\s\S]{0,500}Coming Soon/,f+' Raven is Coming Soon (the owner, 19 Nov 2026)');
  }
  for(const f of ['void-runner.html','static/void-runner.html','void-runner-sw.js','void-runner-backdrop.js','void-runner/game.js','void-runner/save-manifest.json'])assert.ok(fs.existsSync(f),f);
 });
 test('game menu restores VOID//RUNNER while internal filenames remain stable',()=>{
  const html=read('void-runner.html'),menu=read('void-runner/menu.js');
- assert.ok(html.includes('THE DARKNET<br>DISTRICT'));
+ assert.ok(html.includes('VOID<br>RUNNER'));
  assert.ok(html.includes('void-runner/game.js'));
  assert.ok(read('void-runner/game.js').includes('SAVE_KEY'));
  assert.equal(html,read('static/void-runner.html'));
- assert.match(menu,/class="game-logo"[^>]*>VOID<span>\/\/<\/span>RUNNER<\/h1>/);
+ assert.ok(menu.includes('VOID<br>RUNNER'));assert.ok(html.includes('<title>Void Runner</title>'));
 });

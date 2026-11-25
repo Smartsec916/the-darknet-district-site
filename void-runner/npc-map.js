@@ -16,11 +16,13 @@
   let o={height:230,zoom:null,center:null,...opts};
   const first=()=>{const p=(o.markers||[]).find(m=>m.drag)||(o.route||[])[0]||(o.markers||[])[0];return p&&AR()?AR().areaOf(p):null;};
   if(!o.area)o.area=o.lock||first()||'avenue';
+  // Dax currently has an interior-only runtime; do not offer unsupported city map choices.
+  if(o.npc==='dax')o.area='district';
   if(typeof o.center==='number'){const m=(o.markers||[]).find(q=>q.drag)||(o.route||[])[0];o.center={x:o.center,z:m?m.z:null};}if(!o.zoom)o.zoom=o.area==='avenue'?'pair':'all';
   let data=X().mapData(o.area,o.npc);
   const wrap=document.createElement('div');wrap.className='npcmap';wrap.dataset.npcMap='1';
   const bar=document.createElement('div');bar.className='npcmap-bar';
-  const areaSel=document.createElement('select');areaSel.setAttribute('aria-label','Which area the map shows');areaSel.dataset.npcMapArea='1';for(const a of data.areas)areaSel.append(new Option(a.name,a.id));areaSel.value=data.area;
+  const areaSel=document.createElement('select');areaSel.setAttribute('aria-label','Which area the map shows');areaSel.dataset.npcMapArea='1';for(const a of data.areas.filter(a=>o.npc!=='dax'||a.id==='district'))areaSel.append(new Option(a.name,a.id));areaSel.value=data.area;
   const zoomSel=document.createElement('select');zoomSel.setAttribute('aria-label','Map zoom');
   const pan=document.createElement('input');pan.type='range';pan.step='1';pan.setAttribute('aria-label','Move the map east or west');
   const panZ=document.createElement('input');panZ.type='range';panZ.step='1';panZ.setAttribute('aria-label','Move the map north or south');

@@ -116,12 +116,14 @@ def room_record_ok(room):
 
 
 def follow_record_ok(follow, places=None):
-    if (not _keys(follow, ['role', 'invite', 'accept', 'decline', 'arrive', 'cancel', 'maxWait', 'place'])
+    if (not _keys(follow, ['role', 'invite', 'accept', 'decline', 'arrive', 'cancel', 'maxWait', 'place', 'districtTravel'])
             or follow.get('role') not in ('lead', 'follow') or not interaction_pool_ok(follow.get('invite'))
             or not _plain(follow.get('accept'), 60) or not _plain(follow.get('decline'), 60)
             or follow.get('accept') == follow.get('decline')):
         return False
     if 'arrive' in follow and not interaction_pool_ok(follow['arrive']) or 'cancel' in follow and not interaction_pool_ok(follow['cancel']):
+        return False
+    if 'districtTravel' in follow and type(follow['districtTravel']) is not bool:
         return False
     if type(follow.get('maxWait')) is not int or not 5 <= follow['maxWait'] <= 120:
         return False
@@ -205,8 +207,12 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'interactions', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'interactions', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
+    if 'rookFreight' in content:
+        import void_runner_freight as freight
+        missions = _json('void-runner/save-manifest.json')['storyMissions']
+        errors.extend(freight.config_errors(content['rookFreight'], missions))
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
         inv = inv or _json('void_runner_admin_inventory.json')
@@ -570,7 +576,7 @@ def forbidden_spot_problems(npcs, trees=None, inv=None, adults=()):
             plan_spots(b)
     adult_spots = []
     for k, p in (npcs or {}).items() if isinstance(npcs, dict) else []:
-        if k in adults:
+        if k in adults or _movable(inv).get(k, {}).get('adult'):
             n0 = len(spots)
             plan_spots(p)
             adult_spots.extend(spots[n0:])
@@ -593,8 +599,10 @@ def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')), made=bool(mv.get('made')))
+    ok, area, _k, why = area_check(p, inv, adult=bool(mv.get('adult')), made=bool(mv.get('made')))
     out = [] if ok else [why]
+    if ok and mv.get('areas') and area not in mv['areas']:
+        out.append('This NPC cannot be placed in that area.')
     if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
     return out
@@ -1513,7 +1521,7 @@ def escort_problems(o, inv, area='avenue', m=None):
     kind, npc = o.get('kind'), o.get('npc')
     who = (esc.get('npcs') or {}).get(npc)
     if not who or not _movable(inv).get(npc):
-        return ['only someone who can walk with the player (Reverie, Lace, the street cat) can do this step.']
+        return ['only someone who can walk with the player can do this step.']
     out = []
     allowed = (esc.get('fields') or {}).get(kind) or []
     for f in ESCORT_FIELDS:
@@ -1592,8 +1600,8 @@ def _ledge_at(mv, p, pose='chair'):
 def wait_at_problems(giver, w, inv):
     if w is None:
         return []
-    if not _movable(inv).get(giver):
-        return ['"Giver waits at" works only for a giver the editor can move (Reverie or Lace).']
+    if not _movable(inv).get(giver) or _movable(inv)[giver].get('placementOnly'):
+        return ['"Giver waits at" works only for a giver the editor can move.']
     if not _keys(w, ['x', 'z', 'yaw']):
         return ['"Giver waits at" has unknown fields.']
     return spot_problems(giver, w, inv)
@@ -1615,7 +1623,7 @@ def npc_problems(npcs, inv):
             out.append(w + 'unknown kind of placement.')
             continue
         anims = p.get('anims')
-        if anims is not None and (not isinstance(anims, list) or len(anims) > 8 or any(a not in (mv.get('anims') or []) for a in anims)):
+        if anims is not None and (not isinstance(anims, list) or any(not isinstance(a, str) for a in anims) or len(set(anims)) != len(anims) or not set(anims).issubset(mv.get('anims') or [])):
             out.append(w + 'an added animation is not allowed for this NPC.')
         ok = set(mv.get('actions') or []) | set(a for a in (anims if isinstance(anims, list) else []) if isinstance(a, str))
         rest = {k: v for k, v in p.items() if k != 'schedule'}
@@ -1793,7 +1801,9 @@ def schedule_problems(npc, sched, mv, inv, ok, limits=None, tier=1, base=None):
         if b.get('cross') not in (None, True):
             out.append(bw + '“Walk through the gates” is on or left off.')
         if b.get('cross') is True:
-            if not (isinstance(tier, int) and tier >= 2):
+            if mv.get('placementOnly'):
+                out.append(bw + 'Dax stays in the District.')
+            elif not (isinstance(tier, int) and tier >= 2):
                 out.append(bw + 'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.')
             elif b['mode'] == 'original':
                 out.append(bw + 'walking through the gates needs a spot in the area she is going to.')
@@ -1974,7 +1984,7 @@ def import_package_problems(pkg, inv=None):
     tri, size = m.get('triangles'), m.get('bytes')
     if type(tri) is not int or tri < 0:
         out.append('The package does not say how many triangles the model has.')
-    elif tri > cap.get('maxTriangles', 50000):
+    elif tri > cap.get('maxTriangles', 50000) and pkg.get('allowOverTriangleLimit') is not True:
         out.append('This model has %d triangles; the limit is %d.' % (tri, cap.get('maxTriangles', 50000)))
     if type(size) is not int or size < 0:
         out.append('The package does not say how big the file is.')
@@ -2809,7 +2819,13 @@ def summary(db):
     state = _state_ref(db).get().to_dict() or {}
     numbers = {str(k): v for k, v in shipped_numbers().items()}
     numbers.update(state.get('numbers') or {})
-    return {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    result = {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    if state.get('live'):
+        record = _version_ref(db, state['live']).get().to_dict() or {}
+        cfg = (record.get('content') or {}).get('rookFreight')
+        if cfg:
+            result['rookFreight'] = cfg
+    return result
 
 
 def public(db, now=None):
@@ -2918,7 +2934,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight')):
         raise DraftError('There is nothing to publish.', 422)
     missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
     if missing:
@@ -3566,9 +3582,12 @@ def with_made(chars, inv):
         v = md.get('adult') if adult and md.get('adult') else md
         name = c.get('name') if isinstance(c.get('name'), str) and c.get('name').strip() else cid
         mv = v.get('movable') or {}
+        animations = list(mv.get('anims') or [])
+        for index in mv.get('animationLists') or []:
+            animations.extend(mc['animationLists'][index])
         # (20 Nov 2026) made characters sit too: on the Avenue's ledges and the tunnels' alcove seats (the same list as everyone's, npc-paths.js inventory)
         seat_src = next((m for m in (inv.get('npcPaths') or {}).get('movable', {}).values() if isinstance(m, dict) and m.get('ledges')), {})
-        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
+        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': animations, 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
         me['givers'][cid] = {'name': name, 'canTalk': True, 'players': True, 'draft': True, 'group': 'district'}
         if v.get('gestures'):
             me['gestures'][cid] = {'look': c.get('model'), 'clips': v['gestures']}

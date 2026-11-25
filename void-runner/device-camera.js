@@ -141,7 +141,7 @@
  const flags=()=>{try{return (typeof state!=='undefined'&&state)?.story?.flags||null;}catch{return null;}};
  let target=null,toastTimer=0;
  function onKey(e){
-  if(!active||e.code!=='KeyF'||e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;e.preventDefault();e.stopImmediatePropagation();
+  if(!active||!root.VoidInputState.current.camera||e.code!=='KeyF'||e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;e.preventDefault();e.stopImmediatePropagation();
   const P=root.VoidDistrictPeople,fl=flags();if(!target||!P||!fl||target.key.startsWith('subject:'))return;
   const who=target.key.startsWith('npc:')?{kind:'npc',id:target.key.slice(4)}:{kind:'player',id:target.key.slice(7),name:target.name};
   const was=P.readFollowing(fl).length,now=P.toggleFollow(fl,who),changed=P.readFollowing(fl).length!==was;try{if(typeof save==='function')save();}catch{}
@@ -196,13 +196,13 @@
   if(serial!==had)try{if(typeof save==='function')save();}catch{}return D.deviceId(serial,(device||D.restore(fl)).model)||'';}
  root.VoidDeviceId={now:()=>{try{return deviceIdNow();}catch{return '';}}};
  function onShot(e){
-  if(!active||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();
+  if(!active||!root.VoidInputState.current.camera||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();
   if(e.target!==cv&&e.target?.id!=='space'&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo (the game's own overlay canvas, #space, is the view)
-  if(root.VoidControls?.deviceClass!=='touch-first'&&!document.pointerLockElement&&cv?.requestPointerLock)try{cv.requestPointerLock()?.catch?.(()=>{});}catch{}
+
   e.preventDefault();e.stopImmediatePropagation();shoot();
  }
  function onWheel(e){
-  if(!active)return;e.preventDefault();e.stopImmediatePropagation();wheelAcc+=e.deltaY;const now=performance.now();
+  if(!active||!root.VoidInputState.current.camera)return;e.preventDefault();e.stopImmediatePropagation();wheelAcc+=e.deltaY;const now=performance.now();
   if(Math.abs(wheelAcc)>=40&&now-lastStep>110){zi=pure.stepZoom(steps,zi,wheelAcc<0?1:-1);wheelAcc=0;lastStep=now;lastHud=0;}
  }
  function start(dev){
@@ -210,7 +210,7 @@
   device=dev||D.restore({});const def=D.DEVICES[device.model]||D.DEVICES.v1;if(!def.camera?.enabled)return false;
   if(!el)build();el.dataset.device=def.id;steps=pure.zoomSteps(device);zi=0;started=performance.now();lastHud=0;baseFov=null;wheelAcc=0;
   el.hidden=false;active=true;document.body.classList.add('pd-camera-on');observer=sc.onBeforeRenderObservable.add(tick);addEventListener('wheel',onWheel,{passive:false,capture:true});addEventListener('keydown',onKey,{capture:true});addEventListener('mousedown',onShot,{capture:true});
-  try{const cv=sc.getEngine().getRenderingCanvas();cv?.focus?.();if(root.VoidControls?.deviceClass!=='touch-first')cv?.requestPointerLock?.()?.catch?.(()=>{});}catch{}
+  document.getElementById('space')?.focus({preventScroll:true});
   return true;
  }
  function stop(){

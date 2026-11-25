@@ -13,18 +13,57 @@
  // A person inside Milked (Mission 003: Eva at reception, Fish in her office) while the player is out on the street or in the other part of the building: the goal is their
  // interaction point (milked.js, world metres); the route through the front doors, the vestibule, the door beside the desk and the STAFF ONLY door is guide-route.js's.
  function milkedPerson(g){try{if(!g||!g.interaction||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown')return null;
-  const it=(root.VoidMilked?.INTERACTIONS||[]).find(i=>i.id===g.interaction);return it?{position:it.position.slice(),route:true,label:it.label||g.label||''}:null;}catch{return null;}}
+  const it=(root.VoidMilked?.INTERACTIONS||[]).find(i=>i.id===g.interaction);return it?{position:it.position.slice(),route:true,quarter:'far-south',label:it.label||g.label||''}:null;}catch{return null;}}
  // An apartment / location step (Go into, Use something in, Hack the access point; apartments.js, modules.js), QA 19 Nov 2026: these steps had no arrow at all.
  // On the street: the street door (or the street door's access point). In the hallway: the apartment's door (or its access point), or the exit when it is another
  // building's hallway. In the apartment or location: the thing to use or the access point; in another part of a location: the elevator button for its floor or the
  // door that leads there; in the wrong one: the way out. The route between rooms of a location is guide-route.js's (modular).
- function aptGoal(g){try{const x=g&&g.apt;if(!x||typeof walkingLocation==='undefined'||!walkingLocation||(walkingLocation.id!=='neochinatown'&&walkingLocation.id!=='corporate'))return null;   // corporate: Mission 009's maintenance door and the facility behind it (Awakening QA 20 Nov 2026: no arrow there)
+ function sceneExit(targetScene,label){
+  const wl=walkingLocation;if(!wl||wl.apartment||targetScene===wl.id||targetScene==='neochinatown'&&wl.id==='milked')return null;
+  if(wl.id==='corporate'||wl.id==='temple'){
+   const it=wl.interactions.find(i=>i.action===(wl.id==='corporate'?'corp-gate':'temple-walk'));
+   return it?{position:it.position.slice(),route:true,label}:null;
+  }
+  const Q=root.VoidQuarters,far=Q?.FAR?.find(f=>f.scene===targetScene);
+  const lane=far&&Q.LANES.find(l=>l.gate===far.gate&&l.kind==='foot');
+  if(!lane)return null;
+  const ends=Q.gate(far.gate).ends,side=ends.lo.scene===targetScene?'lo':'hi';
+  const a=lane.doors[side],b=lane.doors[side==='lo'?'hi':'lo'];
+  return {position:[(a.x+b.x)/2,1.7,(a.z+b.z)/2],route:true,quarter:far.from,label};
+ }
+ // Use the same room connections as escorted NPCs, including real cab-to-cab transfers.
+ const roomGraphs=new WeakMap();
+ function modularLeg(wl,target,here){
+  const A=root.VoidApartments,E=root.VoidNPCEscort,M=root.VoidModules;
+  const inst=A.open?.()?.find(i=>i.key===wl.inst),from=A.insideMod?.()||wl.modId;
+  if(!inst?.loc||!from||!E)return undefined;
+  const loc=inst.loc;
+  let cached=roomGraphs.get(loc);if(!cached){const rooms=E.roomGraph(loc),analysis=M.analyse(loc);cached={rooms,analysis,doors:new Map(analysis.doors.map(d=>[d.id,d]))};roomGraphs.set(loc,cached);}
+  const g=cached.rooms;
+  const dest=target||g.entry;if(!dest)return null;
+  const locked=e=>{const door=cached.doors.get(e.id);return door&&M.lockedNow(inst,cached.analysis,door);};
+  const path=E.roomPath({...g,edges:g.edges.filter(e=>!locked(e))},from,dest)||E.roomPath(g,from,dest);
+  if(!path)return null;
+  for(const {edge,room} of path){
+   if(locked(edge)){
+    const refs=edge.id.split('|').map(r=>inst.id+'/'+r);
+    return here(i=>i.action==='apt-ap'&&refs.includes(i.ap));
+   }
+   if(edge.kind==='portal')return here(i=>i.action==='mod-portal'&&i.door===edge.id);
+   if(edge.kind==='lift'){
+    const floor=cached.analysis.byId[room]?.p?.floor;
+    return here(i=>i.action==='mod-elev'&&i.floor===floor&&i.mod===(edge.a===room?edge.b:edge.a));
+   }
+  }
+  return target?undefined:here(i=>i.action==='mod-exit');
+ }
+ function aptGoal(g){try{const x=g&&g.apt;if(!x||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'&&walkingLocation.id!=='corporate'&&walkingLocation.id!=='temple'&&!walkingLocation.apartment)return null;   // corporate: Mission 009's maintenance door and the facility behind it (Awakening QA 20 Nov 2026: no arrow there)
   const A=root.VoidApartments,M=root.VoidModules,wl=walkingLocation;if(!A)return null;
   const ap=x.ap?A.apOf(x.ap):null,aid=x.a||(ap&&ap.apt)||null,mis=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===x.m),rec=mis&&(mis.apartments||[]).find(a=>a&&a.id===aid);
   // a lift's buttons: the goal is the middle of the cab (Awakening QA 20 Nov 2026: the arrow faded with the player in the cab's doorway, where the wall hides the buttons' E prompt)
   const cabOf=p=>{const c=((wl.cluster||{}).mods||[]).filter(m=>m&&m.type==='elevator'&&Number.isFinite(m.cx)).sort((a,b)=>Math.hypot(a.cx-p[0],a.cz-p[2])-Math.hypot(b.cx-p[0],b.cz-p[2]))[0];return c&&Math.hypot(c.cx-p[0],c.cz-p[2])<3?[c.cx,1.7,c.cz]:p;};
   const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.action==='mod-elev'?cabOf(i.position.slice()):i.position.slice(),route:true,label:g.label||i.label||''}:null;};
-  const front=id=>{const d=A.door(id);return d&&d.front?{position:[d.front[0],1.7,d.front[1]],route:true,label:g.label||''}:null;};
+  const front=id=>{const d=A.door(id),exit=d&&sceneExit(d.scene||'neochinatown',g.label);if(exit)return exit;return d&&d.front?{position:[d.front[0],1.7,d.front[1]],route:true,quarter:d.quarter,label:g.label||''}:null;};
   const door=ap&&ap.door?ap.door:rec&&rec.door;
   // on a fire escape's landing beside this apartment's window (ncz-backalleys.js; night QA 20 Nov 2026: the arrow pointed round the block to the street door): the window
   if(!wl.apartment&&door&&!(ap&&ap.door)){const fe=root.VoidBackAlleys?.live?.();if(fe&&fe.phase==='perch'&&fe.door===door){const w=here(i=>i.action==='fe-window'&&i.door===door);if(w)return w;}}
@@ -34,7 +73,7 @@
   if(x.kind==='apt-leave'){const w=wayOut();if(w)return w;}
   // the way out of a location: its exit, a door that leads elsewhere, or (on a floor with neither: underground, upstairs; night QA 20 Nov 2026, there was no arrow at all)
   // the stairs / elevator to the floor its street door is on
-  if(wl.modular){const up=()=>{let f=0;try{const cm=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===wl.apt?.mission),cr=cm&&(cm.apartments||[]).find(a=>a&&a.id===wl.apt?.id),ca=cr&&M&&M.analyse?M.analyse(cr):null,em=cr&&String(cr.entry||'').split('.')[0];if(ca&&ca.byId[em]&&ca.byId[em].p)f=ca.byId[em].p.floor||0;}catch{}
+  if(wl.modular){const leg=modularLeg(wl,mine?(x.mod||(ap&&ap.mod)):null,here);if(leg!==undefined&&(!mine||x.mod||ap?.mod))return leg;const up=()=>{let f=0;try{const cm=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===wl.apt?.mission),cr=cm&&(cm.apartments||[]).find(a=>a&&a.id===wl.apt?.id),ca=cr&&M&&M.analyse?M.analyse(cr):null,em=cr&&String(cr.entry||'').split('.')[0];if(ca&&ca.byId[em]&&ca.byId[em].p)f=ca.byId[em].p.floor||0;}catch{}
     return here(i=>i.action==='mod-elev'&&i.floor===f)||here(i=>i.action==='mod-elev');};
    const out=()=>here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal')||up();if(!mine)return out();
    const mod=x.mod||(ap&&ap.mod)||null,cl=wl.cluster||{},inCl=!mod||(cl.mods||[]).some(m=>m.id===mod);
@@ -60,7 +99,7 @@
  // Inside an apartment or a location while the step is out on the street (a talk, a follow, a place; night QA 20 Nov 2026: a mission's location can be entered before
  // its step, and inside there was no arrow at all): the way out.
  function wayOut(){try{const wl=walkingLocation;if(!wl||!wl.apartment)return null;const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:i.label||''}:null;};
-  if(wl.modular){const e=here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(e)return e;const g=aptGoal({apt:{m:wl.apt&&wl.apt.mission,a:'\u0000none'},label:''});return g||here(i=>i.action==='mod-elev');}
+  if(wl.modular){const leg=modularLeg(wl,null,here);if(leg!==undefined)return leg;const e=here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(e)return e;const g=aptGoal({apt:{m:wl.apt&&wl.apt.mission,a:'\u0000none'},label:''});return g||here(i=>i.action==='mod-elev');}
   return wl.part==='hall'?here(i=>i.action==='apt-hall-exit'):here(i=>i.action==='apt-exit');}catch{return null;}}
  /* A FOLLOW / LEAD / CAB STEP (20 Nov 2026, escort across: npc-escort-across.js): the person in another area than the player (left behind at a gate, at the stairs, or
     still in the tunnels): her position, the route through the gates, the stairs and the District's door is guide-route.js's. With the player, on a "They follow you" step
@@ -74,14 +113,31 @@
   if(st.kind==='they-follow'&&P.final&&Math.hypot(her.x-walker.x,her.z-walker.z)<=Math.max(10,(P.set&&P.set.wait)||8))return {position:[P.final.x,1.7,P.final.z],route:true,label:g.label||''};
   return null;}catch{return null;}}
  root.missionEscortGoal=escortGoal;
+ let portBoard=null;
  function missionPlaceRoute(g){
-  try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!(g&&g.apt)){const wo=wayOut();if(wo)return wo;}if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
-   const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
-   if(node&&node.scene&&!node.whole&&node.scene!==wl.id)return null;
-   const pt=(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;
+  try{const ag=aptGoal(g);if(ag)return ag;
+   if(!g?.apt&&(g?.place||g?.target||g?.interaction||g?.made)){const wo=wayOut();if(wo)return wo;}
+   if(g?.interaction==='board'){
+    if(!['neochinatown','milked','temple','corporate'].includes(walkingLocation?.id))return null;
+    portBoard??=root.VoidNeoChinatown.layout('street','port').interactions.find(i=>i.id==='board');
+    if(!portBoard||portBoard.when&&!root.VoidStory.matches(state,portBoard.when))return null;
+    return sceneExit('neochinatown',g.label)||{position:portBoard.position.slice(),quarter:'port',route:true,label:g.label};
+   }
+   const mp=milkedPerson(g);if(mp)return mp;const md=madePerson(g);if(md)return md;
+   if(g?.interaction&&['temple','corporate'].includes(walkingLocation?.id)&&(root.VoidMilked?.INTERACTIONS?.some(i=>i.id===g.interaction)||(typeof districtInteraction==='function'&&districtInteraction(g.interaction))))return sceneExit('neochinatown',g.label);
+   if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
+   const wl=walkingLocation;
+   const active=g.target&&LC()?.step?.(),mission=active&&LC().env.trees.flatMap(t=>t.missions||[]).find(m=>m.id===active.mission);
+   const actor=mission?.cast?.find(c=>c.id===g.target);
+   const node=P()?.node(g.place||actor?.place);
+   if(node&&node.scene&&node.scene!==wl.id){const exit=sceneExit(node.scene,g.label);if(exit)return exit;if(!node.whole)return null;}
+   const localActor=actor&&Number.isFinite(actor.x)&&Number.isFinite(actor.z);
+   // A subject with the same ID can appear in different missions (Juno at NULL and at the pit).
+   const live=g.target&&root.VoidPhotoSubjects?.get?.(g.target)?.node;
+   const pt=(localActor&&(!live||node?.enter?.quarter&&wl.quarter!==node.enter.quarter)?[actor.x,1.7,actor.z]:null)||(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;
    // The goal itself (a person's live position, or the place's point). The way there (out of a room, through the District's vestibule, NULL's entry, a gate lane)
    // is guide-route.js's, for every mission (17 Nov 2026, arrow smoothing: this used to return the vestibule's middle as the goal, and the arrow turned round past it).
-   return {position:pt,route:true,label:g.label||''};}catch{return null;}}
+   return {position:pt,route:true,quarter:node?.enter?.quarter,label:g.label||''};}catch{return null;}}
  root.missionPlaceRoute=missionPlaceRoute;
 
  // ---- the marker over the person to photograph ----

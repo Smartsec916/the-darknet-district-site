@@ -40,7 +40,7 @@
     licensed model), its jacket darkened by a look (npc-looks.js colour, skin kept). His post and actions: npc-paths.js MOVABLE['tea-host'].home; the roster entry and
     TALK prompt: mission-givers.js FACTS (action ACTION). Placeholder name; no lines. */
  const BUILTIN={'tea-host':{name:'Tea Room Host',model:'npc-cook-old',look:{colour:{'*':{tint:'#30343a',sat:.55,bright:.62}}}}};
- const YOUNG=['npc-grey-reverie','npc-ethereal-lace','npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
+ const YOUNG=['npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
  const adultAllowed=asset=>!YOUNG.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
  const LIMIT={characters:12,name:40,role:80,items:6};
@@ -79,7 +79,8 @@
  const GROUPS={street:'Street people',named:'Named characters’ models',older:'Older figures (off-world places)',licensed:'Licensed models (recolour and hide only, never any AI tool)'};
  const modelOf=a=>models().find(m=>m.asset===a)||null;
  /* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */
- function fileOf(asset){const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
+ function teaResident(asset){const duo=node?req('./tea-duo.js'):root.VoidTeaDuo;return Object.values(duo?.PEOPLE||{}).find(p=>p.model===asset);}
+ function fileOf(asset){const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
  /* Every item a giver can carry: personal gear, a hacking device when the game has one, ship modules and ship gear. show: how it is seen on them, or null (data only). */
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');
@@ -142,11 +143,34 @@
  /* For the admin inventory (the server's copy): every model with what a made character on it may do (npc-paths.js / npc-gestures.js / npc-escort.js, worked out once per model). */
  function inventory(){const X=NPX(),out={limits:LIMIT,devices:Object.keys(DEVICES),items:Object.fromEntries(items().map(i=>[i.id,{name:i.name,show:i.show}])),ships:ships().map(s=>s.id),models:{}};
   const NG=req('./npc-gestures.js'),E=req('./npc-escort.js'),before=X.madeNow();
+  // Store each donor's identical clip list once across the model inventory.
+  out.animationLists=[];const listIndices=new Map();
+  function motionLists(ids){
+   const groups=new Map();for(const id of ids){const key=id.includes('/')?id.split('/')[0]:id.split('-')[0];if(!groups.has(key))groups.set(key,[]);groups.get(key).push(id);}
+   return [...groups.values()].map(list=>{const key=JSON.stringify(list);if(!listIndices.has(key)){listIndices.set(key,out.animationLists.length);out.animationLists.push(list);}return listIndices.get(key);});
+  }
   const K='made-model-check',one=(m,adult)=>{X.setMade({[K]:{name:'Made',model:m.asset,...(adult?{adult:true}:{})}});const mv=X.inventory().movable[K];
-   return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
+   return {movable:mv?{actions:mv.actions,animationLists:motionLists(mv.anims),pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
- const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ function deletionReferences(draft,id){
+  const uses=value=>value===id||!!value&&typeof value==='object'&&Object.values(value).some(uses);
+  const refs=(draft.trees||[]).filter(uses).map(tree=>tree.name||tree.id);
+  for(const [other,record] of Object.entries(draft.interactions||{}))
+   if(other!==id&&record.advanced?.group?.members?.includes(id))refs.push('interaction with '+other);
+  for(const [other,record] of Object.entries(draft.characters||{}))
+   if(other!==id&&record.relationships?.some(r=>r.target===id))refs.push('relationship with '+(record.name||other));
+  for(const [mission,record] of Object.entries(draft.missions||{}))if(uses(record))refs.push(mission);
+  return refs;
+ }
+ function deleteCharacter(draft,id){
+  if(!Object.hasOwn(draft.characters||{},id)||deletionReferences(draft,id).length)return false;
+  for(const key of ['characters','npcs','voices','names','interactions'])if(draft[key])delete draft[key][id];
+  if(draft.animRequests)draft.animRequests=draft.animRequests.filter(r=>r.npc!==id);
+  for(const [key,clip] of Object.entries(draft.clips||{}))if(clip?.who===id)delete draft.clips[key];
+  return true;
+ }
+ const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
@@ -214,7 +238,7 @@
    if(rr.ev)tellE(rr.ev,{ride:e.st.ride||null});
    if(e.st.ride==='in-cab'){p.seat=e.cab&&root.VoidRoadTaxiRules?.companionSeat?root.VoidRoadTaxiRules.companionSeat(e.cab):null;if(p.seat){e.st.x=p.seat.x;e.st.z=p.seat.z;e.st.yaw=p.seat.yaw;}p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return 'sit';}
    p.seat=null;if(e.st.ride==='to-cab'){p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return e.st.clip||'walk';}
-   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
+   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,social:!!P.social,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
    if(P.social){const others=[...people.values()].filter(o=>o!==p&&o.node?.isEnabled?.()).map(o=>({x:o.s.x,z:o.s.z}));if(mp)others.push(mp);const n=root.VoidAdvancedInteractions?.separate?.({x:p.s.x,z:p.s.z},others,.85);if(n&&Ar&&!Ar.leg({x:p.s.x,z:p.s.z},n,{passing:true,adult:!!p.c.adult,made:true}).length){p.s.x=e.st.x=n.x;p.s.z=e.st.z=n.z;}}
    if(ev)tellE(ev);return e.st.clip||'idle';}

@@ -1,42 +1,6 @@
-/* The Avenue's street pair (the owner, 18 Nov 2026: "Put Reverie and Lace in the streets rotated every 12 hours", and a cat "which seeks these two out on the street
-   and seeks attention from them"). Two named residents made from the owner's own Meshy generations take turns on the north pavement of The Avenue, by the
-   LAUNDRY and REPAIR shopfronts (a plain daytime stretch: well away from Milked, NULL and the clubs). Both are ordinary street residents: casual, everyday clips only.
-   - REVERIE (internal id grey-reverie, Meshy title "Grey Reverie"; placeholder name): oversized grey hoodie, dark ankle socks, chunky platform loafers. Until
-     18 Nov 2026 a static figure sculpted sitting hugging her knees; now a standing A-pose model of her (Meshy image-to-image from a render of the original, then
-     image-to-3d, remesh and auto-rig) with the full street library below. Her favourite seat is the ledge against the LAUNDRY wall (ledge-reverie).
-   - LACE (internal id ethereal-lace, Meshy title "Ethereal Lace"; placeholder name): white tiered lace mini dress, frilled ankle socks, a ribbon.
-   - THE LIBRARY (the owner, 18 Nov 2026: "a wider range of animations"; CLIPS below, the same for both): idles (a weight shift, a stretch), looking about and
-     watching, walk and a short run, sitting down, sitting and standing up again (transition clips), two casual dances (a groove and a happy bop: nothing
-     sensual; BANNED lists what must never be added), talking and gesturing (to the cat), a shrug, a wave from the seat, and the V1 (npc-device.js poses:
-     reading while walking, scrolling while stopped or seated, a selfie, a photo of the cat).
-   - THE ROUTINE (routineStep, pure): walk the stretch; now and then run a short way; stop for an idle, a look about, a glance at the V1 or a selfie; when the cat
-     is close, talk to it, photograph it or dance a little; sit on a ledge (Reverie mostly on hers) through the sit-down clip, then stand up through the
-     stand-up clip and walk on. Clips cross-fade over about 0.4 s.
-   - THE SHIFT is real time on one clock for everyone (UTC): hours 0-11 Reverie, 12-23 Lace. For the first `arrive` seconds of each shift nobody is out yet (one
-     has gone, the other is on her way). The game clock (game-clock.js) was not used: it is per player and only runs while playing, so players would disagree.
-   - THE CAT (npc-street-cat, the owner's Meshy cat; a small rig of ten bones added in Blender, no Meshy credits) trots to whichever of them is out: it circles
-     and rubs round her legs when she stops, follows at her heel when she walks, and sits beside her while she sits. With neither out it potters about by the
-     LAUNDRY door. Now and then it goes to a player who comes close, sits looking up for a few seconds, and goes back.
-   MISSION GIVERS (the owner, 18 Nov 2026: Reverie and Lace as givers in the Mission Editor): whoever is out has a TALK TO prompt that follows her (an interaction
-   in walkingLocation.interactions, id street-pair-<id>, action 'street-pair', its position moved with her figure every frame; added to the list four times a second,
-   and only while she is out, on the street, within showRadius). Talking to her: a mission the Mission Editor gives her is offered (live-content.js wraps every
-   interaction); otherwise her one neutral GREETING line (text only, no voice; a placeholder). While the player talks to her she stops (or stays seated) and turns to
-   them. A mission given by one of them is offered only while she is out (mission-givers.js onDuty; mission-content.js). Ordinary street residents: nothing flirtatious.
-   THE STREET CLOCK has one source, streetTime() below. Draft play (Mission Editor; the owner, 19 Nov 2026: "If I test with REVERIE or LACE make it the time they are
-   actually there") never forces her out: the throwaway session runs on a SIMULATED street clock inside her shift (testClock / simulate), so the pair, the cat, Studio 1
-   at Milked, the editor's shift notes and mission availability all agree. Never saved; it ends with the session. Names are placeholders awaiting the owner. Pure planning (the shift, the routine, the cat's choice of whom to go to) runs in Node: tests/ncz-street-pair.test.cjs.
-   The figures run in the browser, started by neochinatown.js with every street quarter and with the District interior (the owner, 19 Nov 2026: "Let me place REVERIE or LACE
-   anywhere"): her usual routine is on The Avenue; a placement, a time block or a waiting mission in another area (npc-areas.js) puts her THERE instead, from the start of
-   her shift or of that block (she appears at its spot: no walk across town). Only the area the player is in loads and moves her (and the cat, which follows its own plan or
-   whichever of them is out, wherever she is). Multiplayer: the street is not shared, but the
-   shift is the same for everyone. */
+/* Shared humanoid movement and seating helpers, and the Avenue street cat runtime. */
 (function(root){
  'use strict';
- const PAIR=[
-  {id:'grey-reverie',name:'Reverie',title:'Grey Reverie',asset:'npc-grey-reverie',kind:'walker',hours:[0,12],favourite:'ledge-reverie',placeholder:true},
-  {id:'ethereal-lace',name:'Lace',title:'Ethereal Lace',asset:'npc-ethereal-lace',kind:'walker',hours:[12,24],favourite:null,placeholder:true}];
- // What she says when there is no mission for the player (neutral placeholders: no lore, no voice). The interaction: TALK_ACTION, id talkId(p.id).
- const GREETING={'grey-reverie':['Hey.'],'ethereal-lace':['Hi.']},TALK_ACTION='street-pair',talkId=id=>'street-pair-'+id;
  /* THE CAT AS AN NPC AND GIVER (the owner, 18 Nov 2026: "add the cat as an npc and giver"): id CAT_ID; out whenever the street is (it lives there, day and night). A PET THE
     CAT prompt follows it (action CAT_ACTION); a Mission Editor mission it gives is offered first (live-content.js), else CAT_REACTION (text only, no voice, no lore). While
     the player pets it, it comes to them and sits looking up (its own procedural pose: the cat has no clips). The NPCs tab can give it a plan (CAT_ACTS: npc-paths.js). */
@@ -76,38 +40,17 @@
   // dances, runs or holds a V1 pose. Their Meshy rigs have no eye bones and the eyes are painted into the face texture, so there is no separate eye tracking.
   look:{radius:4.5,cone:70*Math.PI/180,yaw:35*Math.PI/180,pitch:15*Math.PI/180,blend:.4,neck:.35},
   cat:{trot:1.45,walk:.55,turn:4,playerRadius:3.5,playerFor:[4,7],playerCool:[40,70],playerChance:.5,circleR:.42,circleFor:[4,7],sitBy:.55,heel:.6,homeWander:2.2}};
- const hourOf=ms=>new Date(ms).getUTCHours();
- // Who is on shift at a moment (ms since the epoch, UTC): hours 0-11 Reverie, 12-23 Lace.
- function onShift(ms){const h=hourOf(ms);return PAIR.find(p=>h>=p.hours[0]&&h<p.hours[1])||PAIR[0];}
- // The start of the shift a moment falls in, and the next change (ms).
- function shiftStart(ms){const d=new Date(ms);return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours()<12?0:12);}
- const nextChange=ms=>shiftStart(ms)+12*3600e3;
- // Who is actually out on the street: the one on shift, except in the first `arrive` seconds of a shift (nobody yet).
- function onStreet(ms,cfg=config){return ms-shiftStart(ms)<cfg.arrive*1000?null:onShift(ms);}
- /* THE STREET CLOCK: every reader of "what time is it on the street" asks streetTime(realMs) (milked.js Studio 1, mission-givers.js onDuty/shiftText, start() below).
-    It is the real time, unless a throwaway test session set a simulated one: simulate(ms) makes the street read ms now and run on from there; simulate(null) ends it.
-    Test sessions only (Mission Editor draft play, dev-test.js): it lives in this page, is never saved or sent, and leaving the session reloads the page. */
  let skew=null;
  const streetTime=(ms=Date.now())=>skew===null?ms:ms+skew,simulated=()=>skew!==null;
  function simulate(ms,real=Date.now()){skew=Number.isFinite(ms)?ms-real:null;return simulated();}
  const pad2=n=>String(n).padStart(2,'0'),utcLabel=ms=>{const d=new Date(ms);return pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes());};
- // TEST: the hour (UTC) a test runs at for each of them, and how long her shift must still run to keep the real time instead (so it cannot end mid-test).
- const TEST={hour:{'grey-reverie':3,'ethereal-lace':15},keep:30*60e3};
- /* The moment a test involving `id` runs at: the real time when she is out now (not in the handover) with at least TEST.keep before her shift ends; else today's TEST.hour. */
- function shiftMoment(id,real=Date.now(),cfg=config){const p=PAIR.find(x=>x.id===id);if(!p)return null;const w=onStreet(real,cfg);if(w&&w.id===id&&nextChange(real)-real>=TEST.keep)return {ms:real,kept:true};
-  const d=new Date(real),h=TEST.hour[id]??p.hours[0]+3;return {ms:Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),h),kept:false};}
- /* testClock(ids, realMs): for the characters a test involves (in the order used), the street time to test at, or null when neither of them is involved.
-    Both involved: the first one's shift, with a notice that the other is not out then. */
- function testClock(ids,real=Date.now(),cfg=config){const seen=[...new Set((ids||[]).filter(Boolean))].map(id=>PAIR.find(p=>p.id===id)).filter(Boolean);if(!seen.length)return null;
-  const p=seen[0],m=shiftMoment(p.id,real,cfg),t=utcLabel(m.ms),others=seen.slice(1).map(q=>q.name);
-  return {id:p.id,name:p.name,ms:m.ms,kept:m.kept,time:t,others,note:'Testing at '+t+' UTC'+(m.kept?' (the real time)':'')+', '+p.name+"'s shift."+(others.length?' '+others.join(' and ')+(others.length>1?" aren't":" isn't")+' out then.':'')};}
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
  /* Whom the cat goes to. her: {x, z, sitting, moving} of the one who is out, or null; player: {x, z} or null; cat: {x, z}; clock: seconds; until: the time
     before which the cat will not go to a player again (its cool-down); rnd(): a fresh chance each time a player comes into range (pass 0 to always go).
     Returns {kind: 'player' | 'her' | 'home', x, z}. */
- function catTarget({her=null,player=null,cat=null,clock=0,until=0,chance=0},cfg=config.cat){
+ function catTarget({player=null,cat=null,clock=0,until=0,chance=0},cfg=config.cat){
   if(player&&cat&&clock>=until&&dist(player,cat)<cfg.playerRadius&&chance<cfg.playerChance)return {kind:'player',x:player.x,z:player.z};
-  if(her)return {kind:'her',x:her.x,z:her.z,sitting:!!her.sitting,moving:!!her.moving};
+
   return {kind:'home',x:CAT_HOME.x,z:CAT_HOME.z};}
  /* The routine, one step. s: {who, mode, x, z, dir, left, step, yaw, clip, once, device}. ctx: {cat: {x, z} or null, player: {x, z} or null}.
     Returns the same object, changed: `clip` the clip to play (`once`: a transition played once), `device` an npc-device.js pose to hold or null, `face` a point
@@ -115,7 +58,7 @@
     walk -> (a turn: pause) | run | stop (idle, look, V1, selfie; with the cat near: talk to it, photograph it, dance) | to-step -> settle -> sit-down -> sit
     -> stand-up -> step-off -> walk */
  const between=(r,[a,b])=>a+r()*(b-a),pick=(r,l)=>l[Math.min(l.length-1,Math.floor(r()*l.length))];
- function routineStart(p=PAIR[1],rnd=Math.random,cfg=config){const x=between(rnd,[STRETCH.x0+3,STRETCH.x1-3]);return {who:p.id,favourite:p.favourite||null,mode:'walk',x,z:STRETCH.z,dir:rnd()<.5?1:-1,left:between(rnd,cfg.walk),step:null,yaw:0,clip:'walk',once:false,device:null,face:null,sub:null};}
+ function routineStart(p={},rnd=Math.random,cfg=config){const x=between(rnd,[STRETCH.x0+3,STRETCH.x1-3]);return {who:p.id,favourite:p.favourite||null,mode:'walk',x,z:STRETCH.z,dir:rnd()<.5?1:-1,left:between(rnd,cfg.walk),step:null,yaw:0,clip:'walk',once:false,device:null,face:null,sub:null};}
  // the sit clip puts the hips 0.35 m behind the figure's origin (its feet) and 0.65 m up: so she stands that far in front of the ledge's middle
  const seatOf=st=>st.z-.36,frontOf=st=>seatOf(st)-.05;   // the figure's origin while seated (hips over the ledge's middle), and where she stands to sit down
  /* SEATS THAT FACE ANY WAY (20 Nov 2026: the underground alcoves' benches and crates, ncz-underground.js SEATS {id, x, z (the seat's middle), yaw (the way a sitter faces)}).
@@ -287,8 +230,8 @@
  // When the glance is allowed: not while she dances, runs, or holds a V1 pose (npc-device.js turns the head itself then).
  const canLook=s=>!!s&&s.mode!=='run'&&s.sub!=='dance'&&!s.device;
  // Older names (the first version had only Lace walking).
- const laceStart=(rnd=Math.random,cfg=config)=>routineStart(PAIR[1],rnd,cfg),laceStep=routineStep;
- const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,POSES,POSE_CLIP,POSE_NAME,FLOOR_BACK,FLOOR_MOVE,RAISED,floorClip,floorFx,floorStart,floorRest,posesOf,standOf,floorPose,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
+
+ const api={ACT,PLAN_MODES:PLAN,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,catTarget,routineStart,routineStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,POSES,POSE_CLIP,POSE_NAME,FLOOR_BACK,FLOOR_MOVE,RAISED,floorClip,floorFx,floorStart,floorRest,posesOf,standOf,floorPose,lookAt,canLook,streetTime,simulated,simulate,utcLabel,CAT_ID,CAT_ACTION,CAT_REACTION};
  if(typeof module==='object'&&module.exports){module.exports=api;return;}
 
  /* start({B, scene, parent, quality, player, now}) -> {tick(dt), stats(), dispose()}. The figures and the cat appear when their files have loaded. */
@@ -297,7 +240,6 @@
   // who is out: the shift on the street clock (a draft test runs it at a time she is out: simulate above). A mission's follow / lead / cab step with the one who is out
   // never brings her out off-shift (the step starts only while she is out: live-content.js plans()); if her shift ends during the step she finishes it, then leaves.
   // (fix 19 Nov 2026) the same for her mission while it runs (live-content.js plans() why:'mission': she holds a spot between its steps), so she is not gone between its steps
-  const out=()=>{const o=onStreet(now(),cfg);if(her&&(!o||o.id!==her.p.id)){const P=planOf(her.p.id);if(P&&(P.mode==='escort'||P.why==='mission'))return her.p;}return o;};
   const assets=root.VoidAssets,owned=[];let disposed=false,clock=0,asked=-1;
   // which areas this scene has (npc-areas.js): one street quarter, every street area (the whole city), or the District interior; where each of them is now
   const AR=root.VoidNPCAreas,HERE=new Set(AR?AR.here(where.scene||'street',where.quarter||null):['avenue']),AVENUE=HERE.has('avenue');
@@ -305,8 +247,7 @@
   const shift=AR&&AR.SCENE_SHIFT&&AR.SCENE_SHIFT[where.scene]||null,finite=p=>!!(p&&Number.isFinite(+p.x)&&Number.isFinite(+p.z)),world=p=>shift&&finite(p)?{...p,x:+p.x+shift.x,z:+p.z+shift.z}:p,localOf=p=>shift&&finite(p)?{...p,x:+p.x-shift.x,z:+p.z-shift.z}:p;
   const localPlan=P=>{if(!shift||!P)return P;if(P.mode==='stay')return localOf(P);if(P.mode==='path')return {...P,points:(P.points||[]).map(localOf)};if(P.mode==='escort')return {...P,to:localOf(P.to),from:localOf(P.from),resume:localOf(P.resume),final:localOf(P.final)};return P;};
   const areaOfPlan=P=>{if(!P)return 'avenue';if(P.area)return P.area;const q=P.mode==='path'?P.points&&P.points[0]:P,id=AR&&AR.areaOf(world(q));return id||(shift?null:'avenue');};
-  const herArea=id=>areaOfPlan(planOf(id));
-  function catArea(){const P=planOf(CAT_ID);if(P)return areaOfPlan(P);const w=out();return w?herArea(w.id):'avenue';}
+  function catArea(){return areaOfPlan(planOf(CAT_ID));}
   // the ground under a spot (pavement slabs stand about 0.18 m up): the area data, else the last known height
   const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=AR?AR.groundY(world({x,z})):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:(shift?0:PAVE);};   // on the stairs down to the tunnels (20 Nov 2026): the steps' height
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
@@ -321,22 +262,7 @@
   // ---- loading: only the one who is out, and the cat ----
   const src=a=>'assets/models/crowd/'+a+'.glb',has=a=>!!assets?.container?.('crowd:'+a);
   const dbg={asks:0,fails:[],nan:{her:0,cat:0,look:0}};   // nan: times a bad number was caught and reset (should stay 0)
-  function ask(){if(clock<asked||!assets?.load)return;asked=clock+20;dbg.asks++;const who=out(),want=[...(HERE.has(catArea())?[CAT]:[]),...(who&&HERE.has(herArea(who.id))?[who.asset]:[])];for(const a of want)if(!has(a))Promise.resolve(assets.load('crowd:'+a,{src:src(a),background:true},scene)).catch(e=>{if(dbg.fails.length<6)dbg.fails.push(a+': '+(e?.message||e));});}
-  // ---- the woman who is out ----
-  let her=null;   // {p (PAIR entry), node, anim, s (her routine), clip}
-  function leave(){if(!her)return;her.anim?.dispose?.();her.node?.dispose?.();her=null;}
-  function arrive(p){const node=assets?.instance?.('crowd:'+p.asset,parent);if(!node)return;node.metadata={...node.metadata,character:p.id,streetPair:p.id,displayName:p.name};
-   for(const m of node.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
-   her={p,node,anim:null,s:routineStart(p,rnd,cfg),clip:null,key:null,y:PAVE};lit(node);
-   {const P=planOf(p.id),t=appearAt(P);if(t){her.s.x=t.x;her.s.z=t.z;her.key=P.key;if(P.mode==='stay'&&Number.isFinite(P.yaw))her.s.yaw=P.yaw;}her.y=yAt(her.s.x,her.s.z,PAVE);}   // the editor's plan: she is already at its spot when she comes out
-   // animations added in the editor (Developer Tools > NPCs > Add animation; the shared library, anim-library.js; only clips allowed for her)
-   {const an=root.VoidStreetPair?.animsFor?.(p.id)||[];if(an.length&&root.VoidNPCPaths?.applyAnims)root.VoidNPCPaths.applyAnims(node,p.asset,an).catch(()=>{});}
-   her.anim=root.VoidCrowd?.animate?.(node,p.asset,'walk')||null;her.clip='walk';node.position.set(her.s.x,her.y,her.s.z);
-   for(const g of node.metadata?.animationGroups||[])g.blendingSpeed=cfg.blend;   // a slower cross-fade than the crowd's (about 0.4 s)
-   // her V1 (npc-device.js): its own scheduler gives the walking glances; the routine forces a scroll, a selfie or a photo of the cat when she stops
-   try{root.VoidNPCDevice?.enlist?.(node,{kind:'walker',state:()=>({moving:her?.s?.mode==='walk'||her?.s?.mode==='run',can:her?.s?.mode==='walk'||her?.s?.mode==='sit'&&!floorPose(her.s)}),
-    force:()=>her?.node===node?her.s.device:null,target:()=>cat&&her?.s?.device==='photo'?new B.Vector3(cat.x,PAVE+.15,cat.z):null});}catch{}}
-  // the editor's plan for her (live-content.js sets VoidStreetPair.planFor: a mission's "Giver waits at" while it waits for her, else Developer Tools > NPCs)
+  function ask(){if(clock<asked||!assets?.load)return;asked=clock+20;dbg.asks++;const want=HERE.has(catArea())?[CAT]:[];for(const a of want)if(!has(a))Promise.resolve(assets.load('crowd:'+a,{src:src(a),background:true},scene)).catch(e=>{if(dbg.fails.length<6)dbg.fails.push(a+': '+(e?.message||e));});}
   const scenePlan=P=>{const Q=localPlan(P);if(!Q||!Q.depart)return Q;if(HERE.has(Q.area)){const a=Q.arrive;if(a&&Number.isFinite(+a.x)&&Q.mode==='stay')return {...Q,mode:'path',points:[{x:+a.x,z:+a.z,action:'walk-on',seconds:1},{x:Q.x,z:Q.z,action:(Q.actions&&Q.actions[0])||'idle',seconds:8}],key:(Q.key||'')+':in'};return Q;}
    if(!HERE.has(Q.depart.area))return Q;const d=Q.depart;return {...Q,area:d.area,mode:'stay',x:d.x,z:d.z,yaw:0,actions:['idle','look'],key:(Q.key||'')+':walk'};};
   const planRaw=id=>{try{return scenePlan(root.VoidStreetPair?.planFor?.(id)||null);}catch{return null;}};
@@ -357,51 +283,18 @@
   // where she appears: as planSpot, and for a follow / lead / cab step where it had got to (a reload) or where she stood when it started (P.from, live-content.js;
   // fix 19 Nov 2026: she appeared at her routine's spot on The Avenue, outside the quarter the step happens in)
   const appearAt=P=>{if(!P)return null;const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null;return P.mode==='escort'?ok(P.resume)||ok(P.from):planSpot(P);};
-  const SITTING=new Set(['sit','settle','sit-down','stand-up','floor-turn','floor-out','floor-down','floor-up']),MOVING=new Set(['walk','run','to-step','step-off','floor-in','chair-in']);
-  function herNow(){if(!her?.node)return null;const n=her.node.position;return {x:n.x,z:n.z,sitting:SITTING.has(her.s.mode),moving:MOVING.has(her.s.mode)};}
-  // ---- her TALK TO prompt: one interaction per woman, made once; its position follows her figure (mutated in place: no allocation per frame) ----
-  const talkItems=Object.fromEntries(PAIR.map(p=>[p.id,{id:talkId(p.id),action:TALK_ACTION,character:p.id,label:'TALK TO '+p.name.toUpperCase(),position:[0,1.6,0],range:2.2,talk:true}]));
   let talkScan=0;
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null;
   const catItem={id:'street-cat',action:CAT_ACTION,character:CAT_ID,label:'PET THE CAT',position:[0,.45,0],range:1.8,talk:true};
   function talkSync(dt,shown){const L=wl();if(!L||!Array.isArray(L.interactions))return;
-   if(her&&shown){const p=her.node.getAbsolutePosition(),it=talkItems[her.p.id];it.position[0]=p.x;it.position[2]=p.z;}
    if(cat){catItem.position[0]=cat.x;catItem.position[2]=cat.z;}
    if((talkScan-=dt)>0)return;talkScan=.25;
    const street=L.id==='neochinatown'&&L.area!=='milked';
-   for(const p of PAIR){const it=talkItems[p.id],want=street&&shown&&her?.p.id===p.id,k=L.interactions.indexOf(it);if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    {const want=street&&!!cat&&cat.node.isEnabled(),k=L.interactions.indexOf(catItem);if(want&&k<0)L.interactions.push(catItem);else if(!want&&k>=0)L.interactions.splice(k,1);}}
-  function talkOff(){const L=wl();if(!L||!Array.isArray(L.interactions))return;for(const it of [...PAIR.map(p=>talkItems[p.id]),catItem]){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}}
+  function talkOff(){const L=wl();if(!L||!Array.isArray(L.interactions))return;for(const it of [catItem]){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}}
   // Is the player petting the cat (a conversation opened from its prompt)? It comes to them and sits looking up meanwhile.
   let petSeen=false,petting=false;function petNow(){if(!convo()){petSeen=false;petting=false;return false;}if(!petSeen){petSeen=true;petting=typeof walkTarget!=='undefined'&&walkTarget===catItem;}return petting;}
-  // Is the player talking to her? A conversation is open (in the District it floats over walking: VoidConversationUI.isOpen; else the dialogue mode) and it was opened
-  // from her prompt (her prompt was the one selected when it opened; latched until it closes, so walking about during it changes nothing)
-  const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;
-  // (fix 19 Nov 2026) or the conversation has her lines: walkTarget is picked again every frame while a conversation floats over walking, so a first frame that had
-  // already lost her prompt (she was walking away) let a follow step that her line had just started walk her off while she was still talking
-  const speaks=id=>{try{return typeof speech!=='undefined'&&!!speech&&Array.isArray(speech.lines)&&speech.lines.some(l=>l&&l.who===id);}catch{return false;}};
-  function chatting(){if(!convo()){chatSeen=false;chatHer=null;return false;}if(!chatSeen){chatSeen=true;chatHer=her&&((typeof walkTarget!=='undefined'&&walkTarget===talkItems[her.p.id])||speaks(her.p.id))?her.p.id:null;}return !!her&&chatHer===her.p.id;}
-  const HOLD=new Set(['walk','run','pause','stop','to-step','plan-go','plan-do','esc']),SEATED=new Set(['sit','sit-down','settle','floor-in','floor-turn']);
-  function hold(s,me){if(SEATED.has(s.mode)){if(s.mode==='sit'){s.left=Math.max(s.left,2);if(s.sub==='wave')s.sub=null;}return;}
-   if(!HOLD.has(s.mode))return;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left,1.2);
-   if(me){if(!s.face)s.face={x:me.x,z:me.z};else{s.face.x=me.x;s.face.z=me.z;}}}
-  /* Is she in this scene? Out on her shift, and her plan (or her usual routine, on The Avenue) is in an area this scene has. A plan that moves her to another area, or a
-     new spot she could not walk to in a straight line (across a road, through a wall), takes her away and puts her at the new spot (never a walk across town). */
-  function tickHer(dt,c){{const w=out(),R=w?planRaw(w.id):null;if(R&&R.indoors)rejoin[w.id]=true;}   // inside a place with the player (npc-escort-indoors.js): when she is back on the street, never in front of the player
-   if(her){const n=her.node.position;holdCheck(her.p.id,{x:n.x,y:n.y,z:n.z,key:her.key,plan:her.plan,enabled:her.node.isEnabled()},c,t=>{if(!AR)return false;const here=world({x:n.x,z:n.z}),to=world(t);if(!to||!Number.isFinite(+to.x))return AR.areaOf(here)!=='avenue'||(!shift&&n.z<-8.2);const from=AR.nearest(here,null,1.2)||here;return !!AR.leg(from,to).length;});}
-   const w0=out(),want=w0&&HERE.has(herArea(w0.id))?w0:null;if(her&&(!want||want.id!==her.p.id))leave();
-   if(her){const P=planOf(her.p.id),k=P?P.key:null;if(k!==her.key){const n=her.node.position,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'&&P.resume&&Number.isFinite(P.resume.x)?P.resume:null);
-     const here=world({x:n.x,z:n.z}),from=AR&&(AR.nearest(here,null,1.2)||here),jump=P?!!(AR&&t&&AR.leg(from,world(t)).length):!!(AR&&(AR.areaOf(here)!=='avenue'||(!shift&&n.z<-8.2)));her.key=k;if(jump){leave();}}}
-   if(!her&&want&&has(want.asset)){const t=planSpot(planOf(want.id));if(!(rejoin[want.id]&&t&&inView(t.x,null,t.z,c))){delete rejoin[want.id];arrive(want);}}if(!her)return;her.plan=planOf(her.p.id);
-   const n=her.node,d=c?Math.hypot(c.x-n.position.x,c.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
-   const me=player(),talking=chatting(),ctx={cat:cat&&!talking?{x:cat.x,z:cat.z}:null,player:me?{x:me.x,z:me.z}:null,plan:planOf(her.p.id),has:c=>!!her.anim&&her.anim.has(c)};
-   if(ctx.plan&&ctx.plan.mode==='escort'){if(!talking&&Number.isFinite(her.s.x+her.s.z)){const r=escTick('her',her.p.id,ctx.plan,her.s,dt,false);her.s.mode='esc';her.s.sub=null;her.s.device=null;her.s.face=null;her.s.once=false;her.s.zo=0;her.cz=0;
-     const at=r.seat||her.s;if(!r.seat)her.y+=(yAt(at.x,at.z,her.y)-her.y)*Math.min(1,dt*8);n.position.set(at.x,r.seat?r.seat.y:her.y,at.z);n.rotation.y=r.seat?r.seat.yaw:her.s.yaw;her.anim?.setActive?.(!far&&d<animRadius);if(her.anim&&r.clip!==her.clip){her.clip=r.clip;her.anim.play(r.clip);}return;}
-    ctx.plan=null;}   // talked to during the step: she stops and turns to the player (the ordinary hold), then the step goes on
-   if(!Number.isFinite(her.s.x+her.s.z+her.s.yaw+(her.s.zo||0))){dbg.nan.her++;her.s=routineStart(her.p,rnd,cfg);}
-   if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way
-   const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);her.y+=(yAt(s.x,s.z,her.y)-her.y)*Math.min(1,dt*8);{const o=seatOffset(s,(s.zo||0)+her.cz);n.position.set(s.x+o.x,her.y+(s.lift||0),s.z+o.z);}n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
-   if(her.anim&&s.clip!==her.clip){her.clip=s.clip;if(s.once&&her.anim.playOnce)her.anim.playOnce(s.clip,s.after||(s.clip===CLIPS.sitDown?CLIPS.sit:'idle'));else her.anim.play(s.clip);}}
+  const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');
   // ---- a mission's follow / lead / cab step (npc-escort.js; the plan comes from live-content.js plans(): {key, mode:'escort', kind, npc, to, set, stop, resume}) ----
   /* One step for her or the cat: the pure rules move `body` ({x, z, yaw}); here only the frustum test, the cab (road-taxi.js) and getting in and out. Only the local
      player (walker) is followed or led: other players never move this player's NPC. Returns {clip, speed, seat: {x, y, z, yaw} while she sits in the cab}. */
@@ -417,7 +310,7 @@
     if(r&&r.ride==='in-cab')e.st.ride='in-cab';if(r&&E.CAB.has(P.kind)&&r.phase==='in-cab')e.st.phase='in-cab';}
    const st=e.st,me=player(),meP=me&&Number.isFinite(me.x+me.z)?{x:me.x,z:me.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi',job=taxiJob();
    if(walking&&meP)E.trailPush(e.trail,meP);
-   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job:E.CAB.has(P.kind)?job:null,crossing:taxiCrossing()};
+   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,noDone:!!P.via,social:!!P.social,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job:E.CAB.has(P.kind)?job:null,crossing:taxiCrossing()};
    if(P.kind==='their-cab'||P.kind==='shared-cab')inp.me=meP;
    // a follow / lead step's taxi (20 Nov 2026): she rides along in the player's cab (the cat does not: it waits); the walking rules wait while the ride has her
    let rv=null;if(!E.CAB.has(P.kind)&&E.rideAlong){const rr=E.rideAlong(st,{me:meP,job,riding,dt,set:P.set,crossing:inp.crossing,can:!isCat});rv=rr.ev;if(rv==='ride-out'||rv==='ride-left'){e.trail.pts.length=0;e.trail.shifted=0;}if(rr.busy){if(job&&st.ride==='in-cab')e.cab=job.cab;}}
@@ -429,7 +322,7 @@
     const R=root.VoidRoadTaxiRules,c=e.cab;st.out=false;st.rideOut=false;if(c&&R){const ds=R.doorPoints(c),blocked=p=>{try{return !!root.VoidExplorer?.blocked?.(p.x,p.z,typeof walkingLocation!=='undefined'?walkingLocation:null);}catch{return false;}};
      const pick=ds.filter(p=>!blocked(p)).sort((a,b)=>(meP?Math.hypot(b.x-meP.x,b.z-meP.z)-Math.hypot(a.x-meP.x,a.z-meP.z):0))[0]||ds[2];if(pick){st.x=pick.x;st.z=pick.z;st.yaw=c.yaw||0;}}e.cab=null;}
    body.x=st.x;body.z=st.z;body.yaw=st.yaw;
-   if(P.social){const others=[];if(meP)others.push(meP);if(who==='her'&&cat)others.push(cat);else if(who==='cat'&&her?.s)others.push(her.s);const n=root.VoidAdvancedInteractions?.separate?.({x:body.x,z:body.z},others,.85);if(n&&AR&&!AR.leg(world({x:body.x,z:body.z}),world(n),{passing:true}).length){body.x=st.x=n.x;body.z=st.z=n.z;}}
+   if(P.social){const others=[];if(meP)others.push(meP);const n=root.VoidAdvancedInteractions?.separate?.({x:body.x,z:body.z},others,.85);if(n&&AR&&!AR.leg(world({x:body.x,z:body.z}),world(n),{passing:true}).length){body.x=st.x=n.x;body.z=st.z=n.z;}}
    if(ev)tell(npc,P,ev,e);if(rv&&rv!==ev)tell(npc,P,rv,e,{ride:st.ride||null});
    return {clip:seat?'sit':st.clip||'idle',speed:st.speed||0,seat};}
   // ---- the cat ----
@@ -438,7 +331,7 @@
   function catArrive(){const node=assets?.instance?.('crowd:'+CAT,parent);if(!node)return;node.metadata={...node.metadata,streetCat:true};const bones={};
    for(const t of node.getDescendants(false)){const b=BONES.find(k=>t.name===k||t.name.endsWith('-'+k));if(b&&!bones[b]){if(!t.rotationQuaternion)t.rotationQuaternion=B.Quaternion.FromEulerVector(t.rotation);bones[b]={t,rest:t.rotationQuaternion.clone()};}}
    for(const m of node.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
-   const P=planOf(CAT_ID),t=appearAt(P),h=herNow(),at=t?{x:t.x,z:t.z}:h?{x:h.x+.6,z:h.z-.3}:{x:CAT_HOME.x,z:CAT_HOME.z};   // where it appears: its plan's spot, beside her, or by the LAUNDRY door
+   const P=planOf(CAT_ID),t=appearAt(P),at=t||CAT_HOME;   // where it appears: its plan's spot, beside her, or by the LAUNDRY door
    cat={node,bones,x:at.x,z:at.z,yaw:Math.PI,gait:0,sit:0,mode:'home',until:0,lap:0,ang:0,circleLeft:0,playerLeft:0,wander:null,wanderLeft:0,rubbed:false,lastNear:false,tail:0,y:yAt(at.x,at.z,PAVE),key:P?P.key:null};node.position.set(cat.x,cat.y,cat.z);lit(node);}
   const Q=(b,ax,a)=>B.Quaternion.RotationAxis(ax,a);
   function pose(c,dt,speed){const b=c.bones,X=B.Axis.X,Z=B.Axis.Z,s=c.sit,st=Math.min(1,speed/1.2),sw=Math.sin(c.gait),sw2=Math.sin(c.gait+Math.PI);
@@ -473,71 +366,33 @@
    const area=catArea();if(!HERE.has(area)){catLeave();return;}
    if(cat){const P=planOf(CAT_ID),k=P?P.key:null;if(k!==cat.key){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(AR&&t&&AR.leg(world({x:cat.x,z:cat.z}),world(t)).length)catLeave();else if(cat)cat.key=k;}}
    // away from the Avenue with no plan of its own it comes out beside her, once she is here
-   if(!cat){const t=planSpot(planOf(CAT_ID));if(has(CAT)&&(area==='avenue'||planOf(CAT_ID)||herNow())&&!(rejoin[CAT_ID]&&t&&inView(t.x,null,t.z,c0))){delete rejoin[CAT_ID];catArrive();}if(!cat)return;}cat.plan=planOf(CAT_ID);const c=cat,n=c.node;if(!Number.isFinite(c.x+c.z+c.yaw+c.sit+c.gait)){dbg.nan.cat++;Object.assign(c,{x:CAT_HOME.x,z:CAT_HOME.z,yaw:Math.PI,sit:0,gait:0,ang:0,mode:'home'});}
+   if(!cat){const t=planSpot(planOf(CAT_ID));if(has(CAT)&&(area==='avenue'||planOf(CAT_ID))&&!(rejoin[CAT_ID]&&t&&inView(t.x,null,t.z,c0))){delete rejoin[CAT_ID];catArrive();}if(!cat)return;}cat.plan=planOf(CAT_ID);const c=cat,n=c.node;if(!Number.isFinite(c.x+c.z+c.yaw+c.sit+c.gait)){dbg.nan.cat++;Object.assign(c,{x:CAT_HOME.x,z:CAT_HOME.z,yaw:Math.PI,sit:0,gait:0,ang:0,mode:'home'});}
    const far=c0?Math.hypot(c0.x-c.x,c0.z-c.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;if(n.isEnabled()===far)n.setEnabled(!far);if(far&&planOf(CAT_ID)?.mode!=='escort')return;   // far away: still, unless a mission step has it following the player
-   const me=player(),h=herNow(),meP=me?{x:me.x,z:me.z}:null,near=!!meP&&dist(meP,c)<cfg.cat.playerRadius;
+   const me=player(),meP=me?{x:me.x,z:me.z}:null,near=!!meP&&dist(meP,c)<cfg.cat.playerRadius;
    let chance=1;if(near&&!c.lastNear)chance=rnd();c.lastNear=near;
    if(meP&&petNow()&&c.mode!=='player'){c.mode='player';c.playerLeft=4;}else if(c.mode==='player'&&petting)c.playerLeft=Math.max(c.playerLeft,2);   // petted: it comes and sits looking up
    const P=planOf(CAT_ID);if(P&&c.mode!=='player')c.mode='plan';else if(!P&&c.mode==='plan'){c.mode='home';c.planKey=null;c.pact=null;}
-   if(c.mode!=='player'&&c.mode!=='plan'){const t=catTarget({her:h,player:meP,cat:c,clock,until:c.until,chance},cfg.cat);
-    if(t.kind==='home'&&area!=='avenue'){c.mode='wait';}else if(t.kind==='player'){c.mode='player';c.playerLeft=between(rnd,cfg.cat.playerFor);}else if(t.kind==='her'&&c.mode!=='her'){c.mode='her';c.circleLeft=between(rnd,cfg.cat.circleFor);c.rubbed=false;}else if(t.kind==='home')c.mode='home';}
+   if(c.mode!=='player'&&c.mode!=='plan'){const t=catTarget({player:meP,cat:c,clock,until:c.until,chance},cfg.cat);
+    if(t.kind==='home'&&area!=='avenue'){c.mode='wait';}else if(t.kind==='player'){c.mode='player';c.playerLeft=between(rnd,cfg.cat.playerFor);}else if(t.kind==='home')c.mode='home';}
    let speed=0,sit=0;c.rub=false;
    if(c.mode==='plan'&&P&&P.mode==='escort'){const x0=c.x,z0=c.z,r=escTick('cat',CAT_ID,P,c,dt,true),mv=Math.hypot(c.x-x0,c.z-z0);c.gait+=mv/(r.speed>1?.3:.22)*Math.PI*2;speed=dt>0?mv/dt:0;sit=r.speed>0||speed>.05?0:1;c.look=0;}   // a mission's follow / lead step: at its own pace; it sits while it waits
    else if(c.mode==='plan'&&P){const r=catPlan(c,P,dt);speed=r.speed;sit=r.sit;}
    else if(c.mode==='player'){if(!meP){c.mode='home';}else{const d=dist(meP,c);c.look=0;
      if(d>.75){speed=catGo(c,meP.x,meP.z,dt,d>1.6);}else{const want=Math.atan2(meP.x-c.x,meP.z-c.z);c.yaw+=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw))*Math.min(1,dt*3);sit=1;c.playerLeft-=dt;}
      if(c.playerLeft<=0||d>cfg.cat.playerRadius*2.5){c.mode='home';c.until=clock+between(rnd,cfg.cat.playerCool);}}}
-   else if(c.mode==='her'&&h){const d=dist(h,c);
-    if(h.sitting){// beside her, a little toward the road (she sits against the wall)
-     const side=c.x<h.x?-1:1,tx=h.x+side*cfg.cat.sitBy,tz=Math.min(WALL-.2,h.z-.2),dd=Math.hypot(tx-c.x,tz-c.z);
-     if(!c.rubbed&&d<1.2){// a pass close in front of her knees first, rubbing
-      c.ang=(c.ang||Math.atan2(c.x-h.x,c.z-h.z))+dt*1.3;const r=.38,ax=h.x+Math.sin(c.ang)*r,az=Math.min(WALL-.2,h.z-.15+Math.cos(c.ang)*r*.6);speed=catGo(c,ax,az,dt,false);c.rub=true;c.circleLeft-=dt;if(c.circleLeft<=0)c.rubbed=true;}
-     else if(dd>.06){speed=catGo(c,tx,tz,dt,dd>1.6);}
-     else{const want=Math.atan2(h.x-c.x,h.z-c.z)+side*.9;c.yaw+=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw))*Math.min(1,dt*2);sit=1;}}
-    else if(h.moving){// at her heel, on the road side (a run leaves it trotting behind)
-     c.rubbed=false;c.circleLeft=between(rnd,cfg.cat.circleFor);const yaw=her?.s?.yaw??0,tx=h.x-Math.sin(yaw)*cfg.cat.heel,tz=Math.min(WALL-.2,h.z-.32);const dd=Math.hypot(tx-c.x,tz-c.z);speed=dd>.08?catGo(c,tx,tz,dt,dd>.9):0;}
-    else{// she has stopped: round her legs, rubbing, then sit by her feet (a little further off while she dances)
-     const dancing=her?.s?.sub==='dance',r0=dancing?.8:cfg.cat.circleR;
-     if(d>.9+(dancing?.4:0)&&!c.rubbed){speed=catGo(c,h.x,h.z-.4-(dancing?.4:0),dt,true);}
-     else if(c.circleLeft>0&&!dancing){c.ang=(c.ang||Math.atan2(c.x-h.x,c.z-h.z))+dt*1.6;speed=catGo(c,h.x+Math.sin(c.ang)*r0,Math.min(WALL-.2,h.z+Math.cos(c.ang)*r0),dt,false);c.rub=true;c.circleLeft-=dt;if(c.circleLeft<=0)c.rubbed=true;}
-     else{const tx=h.x+(dancing?.85:.45),tz=h.z-(dancing?.55:.25),dd=Math.hypot(tx-c.x,tz-c.z);if(dd>.06)speed=catGo(c,tx,tz,dt,false);else sit=1;}}
-    const want=Math.atan2(h.x-c.x,h.z-c.z);c.look=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw));}
    else if(c.mode==='wait'){sit=1;c.look=Math.sin(clock*.35)*.5;}   // in another area with her not here yet: it sits where it is
    else{// home: a short wander by the LAUNDRY door, then sits a while
     c.wanderLeft-=dt;if(!c.wander||c.wanderLeft<=0){c.wander={x:CAT_HOME.x+(rnd()-.5)*2*cfg.cat.homeWander,z:AVENUE?Math.min(WALL-.25,CAT_HOME.z-rnd()*.8):CAT_HOME.z-rnd()*.8};c.wanderLeft=6+rnd()*10;}
     const dd=Math.hypot(c.wander.x-c.x,c.wander.z-c.z);if(dd>.06&&c.wanderLeft>4)speed=catGo(c,c.wander.x,c.wander.z,dt,false);else sit=c.wanderLeft<4?1:0;c.look=Math.sin(clock*.35)*.5;}
    sitTo(c,sit,dt);n.position.x=c.x;n.position.z=c.z;n.rotation.y=c.yaw;if(c0&&Math.hypot(c0.x-c.x,c0.z-c.z)>animRadius)return;pose(c,dt,speed);}
-  // ---- the glance (head and neck toward the nearest player in front of her), applied after the clip each frame and taken off before the next ----
-  const lk={w:0,yaw:0,pitch:0,applied:new Map(),bones:null,node:null,eyes:[],scan:0},qT=new B.Quaternion(),MI=new B.Matrix(),ID=B.Quaternion.Identity();
-  function lookBones(node){const out={};for(const t of node.getDescendants(false))for(const n of ['Neck','Head'])if(!out[n]&&/mixamorig:/.test(t.name)&&t.name.endsWith(':'+n)){if(!t.rotationQuaternion)t.rotationQuaternion=B.Quaternion.FromEulerVector(t.rotation);out[n]=t;}return out.Head&&out.Neck?out:null;}
-  function lookUndo(){for(const [b,q] of lk.applied){if(b.isDisposed?.())continue;q.conjugateToRef(qT);qT.multiplyToRef(b.rotationQuaternion,qT);b.rotationQuaternion.copyFrom(qT);}lk.applied.clear();}
-  function lookEyes(){const c=scene.activeCamera;lk.eyes.length=0;if(c)lk.eyes.push(c.globalPosition);
-   if((lk.scan-=1)<=0){lk.scan=30;lk.remote=scene.transformNodes.filter(n=>/^remote-player:/.test(n.name)&&!n.isDisposed());}   // other players (cheap: a scan twice a second)
-   for(const n of lk.remote||[]){if(n.isDisposed()||!n.isEnabled())continue;const p=n.getAbsolutePosition();lk.eyes.push({x:p.x,y:p.y+1.6,z:p.z});}}
-  function lookApply(dt){if(!her?.node||!her.node.isEnabled()){lk.w=0;return;}if(lk.node!==her.node){lk.node=her.node;lk.bones=lookBones(her.node);lk.w=0;}if(!lk.bones)return;
-   const head=lk.bones.Head;head.computeWorldMatrix(true);const hp=head.getAbsolutePosition(),n=her.node.position;lookEyes();
-   if(!Number.isFinite(hp.x+hp.y+hp.z)){dbg.nan.look++;lk.w=0;return;}
-   let t=canLook(her.s)?lookAt({x:n.x,z:n.z,yaw:her.node.rotation.y},hp,lk.eyes,cfg.look):null;
-   if(t&&her.plan&&her.plan.tier>=2&&her.plan.awareness&&root.VoidNPCAwareness){const area=her.plan.area,obs=AR&&area&&AR.get(area)?AR.get(area).obstacles:[];const ok=lk.eyes.some(e=>{const s=root.VoidNPCAwareness.notice({x:n.x,z:n.z,yaw:her.node.rotation.y,tier:her.plan.tier,awareness:her.plan.awareness},{x:e.x,z:e.z,kind:'walk'},obs);return s.seen||s.heard;});if(!ok)t=null;}
-   const k=Math.min(1,dt/cfg.look.blend);lk.w=Math.max(0,Math.min(1,lk.w+(t?k:-k)));if(t){lk.yaw+=(t.yaw-lk.yaw)*Math.min(1,dt*6);lk.pitch+=(t.pitch-lk.pitch)*Math.min(1,dt*6);}
-   if(!Number.isFinite(lk.yaw+lk.pitch)){dbg.nan.look++;lk.yaw=lk.pitch=0;lk.w=0;}lk.debug={on:!!t,w:+lk.w.toFixed(2),yaw:+(lk.yaw*180/Math.PI).toFixed(1),pitch:+(lk.pitch*180/Math.PI).toFixed(1)};if(lk.w<.005)return;
-   // turn the head's forward (+Z of a Mixamo head) toward body yaw + yaw, pitch: the neck takes its share, the head the rest
-   const yw=her.node.rotation.y+lk.yaw*lk.w,pt=lk.pitch*lk.w,want=new B.Vector3(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));let done=0;
-   for(const [name,share] of [['Neck',cfg.look.neck],['Head',1]]){const b=lk.bones[name];if(!b?.parent)continue;const frac=(share-done)/(1-done);done=share;
-    head.computeWorldMatrix(true);const fw=B.Vector3.TransformNormal(B.Axis.Z,head.getWorldMatrix()).normalize();b.parent.computeWorldMatrix(true);b.parent.getWorldMatrix().invertToRef(MI);
-    const fp=B.Vector3.TransformNormal(fw,MI).normalize(),wp=B.Vector3.TransformNormal(want,MI).normalize(),Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(fp,wp,Q);const d=B.Quaternion.Slerp(ID,Q,frac);if(!Number.isFinite(d.x+d.y+d.z+d.w)){dbg.nan.look++;continue;}
-    d.multiplyToRef(b.rotationQuaternion,qT);b.rotationQuaternion.copyFrom(qT);b.computeWorldMatrix(true);const prev=lk.applied.get(b);lk.applied.set(b,prev?d.multiply(prev):d);}}
-  let lookClock=performance.now();
-  const lookBefore=scene.onBeforeAnimationsObservable.add(()=>{try{lookUndo();}catch{lk.applied.clear();}});
-  const lookAfter=scene.onAfterAnimationsObservable.add(()=>{const t=performance.now(),dt=Math.min(.1,(t-lookClock)/1000);lookClock=t;try{lookApply(dt);}catch(e){lk.bones=null;}});
   // A small warm light from the shop windows on whoever is out and the cat (Medium and up; it lights only them: the pavement is untouched). Low: none.
   const lamp=quality==='low'?null:new B.PointLight('street-pair-lamp',new B.Vector3(SEAT.x,PAVE+1.92,WALL-1.05),scene);if(lamp){lamp.parent=parent;lamp.diffuse=B.Color3.FromHexString('#ffd2a8');lamp.specular=B.Color3.FromHexString('#ffb48a').scale(.4);lamp.intensity=16;lamp.range=7;lamp.includedOnlyMeshes=[];owned.push(lamp);}
   function lit(n){if(!lamp||!n)return;for(const m of n.getChildMeshes(false))if(!lamp.includedOnlyMeshes.includes(m))lamp.includedOnlyMeshes.push(m);lamp.includedOnlyMeshes=lamp.includedOnlyMeshes;}
-  function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,raw=(h?h.z:c?c.z:SEAT.z)-1.05,z=AVENUE?Math.min(WALL-1.05,raw):raw;lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
-  function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&(mode==='walking'||mode==='road-taxi'))ask();const c=cam();tickHer(dt,c);talkSync(dt,!!her&&her.node.isEnabled());tickCat(dt,c);lampTo();}
-  const self={tick,stats:()=>({held:Object.keys(held),pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,here:[...HERE],herArea:out()?herArea(out().id):null,catArea:catArea(),talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{area:herArea(her.p.id),id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z,yaw:her.node.rotation.y}:null,cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null,escort:Object.fromEntries(Object.entries(escorts).map(([w,e])=>[w,{key:e.key,npc:w==='cat'?CAT_ID:her?.p?.id||null,phase:e.st.phase,ride:e.st.ride||null,x:+e.st.x.toFixed(2),z:+e.st.z.toFixed(2),yaw:+(e.st.yaw||0).toFixed(2),trail:e.trail.pts.length,here:w==='cat'?!!cat:!!her}]))}),
-   get her(){return her;},get cat(){return cat;},catItem,setClock(fn){now=fn||clockFn;asked=-1;},talkItems,
-   dispose(){disposed=true;talkOff();catLeave();scene.onBeforeAnimationsObservable.remove(lookBefore);scene.onAfterAnimationsObservable.remove(lookAfter);lookUndo();leave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();if(root.VoidStreetPair&&root.VoidStreetPair.live===liveFn)root.VoidStreetPair.live=null;}};
+  function lampTo(){if(!lamp)return;const x=cat?.x??SEAT.x,raw=(cat?.z??SEAT.z)-1.05,z=AVENUE?Math.min(WALL-1.05,raw):raw;lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
+  function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&(mode==='walking'||mode==='road-taxi'))ask();const c=cam();talkSync(dt);tickCat(dt,c);lampTo();}
+  const self={tick,stats:()=>({held:Object.keys(held),pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:null,onStreet:null,here:[...HERE],catArea:catArea(),cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,escort:Object.fromEntries(Object.entries(escorts).map(([w,e])=>[w,{key:e.key,npc:CAT_ID,phase:e.st.phase,ride:e.st.ride||null,x:+e.st.x.toFixed(2),z:+e.st.z.toFixed(2),yaw:+(e.st.yaw||0).toFixed(2),trail:e.trail.pts.length,here:!!cat}]))}),
+   get cat(){return cat;},catItem,setClock(fn){now=fn||clockFn;asked=-1;},
+   dispose(){disposed=true;talkOff();catLeave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();if(root.VoidStreetPair&&root.VoidStreetPair.live===liveFn)root.VoidStreetPair.live=null;}};
   // the editor's map shows where she is now (Developer Tools)
   const liveFn=()=>self.stats();if(root.VoidStreetPair)root.VoidStreetPair.live=liveFn;return self;
  }
@@ -546,8 +401,8 @@
  root.VoidStreetPair={...api,start,watchScene};watchScene('corporate',root.VoidCorporate);watchScene('temple',root.VoidTemple);
  // TALK TO REVERIE / LACE with no mission waiting: her greeting (live-content.js offers a Mission Editor mission first). Name cards for the dialogue window.
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);
-  const chars=root.VoidStoryContent?.characters;if(chars)for(const p of PAIR)if(!chars[p.id])chars[p.id]={id:p.id,name:p.name,role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['street'],biography:'',relationshipDefault:0};
+  const chars=root.VoidStoryContent?.characters;
   if(chars&&!chars[CAT_ID])chars[CAT_ID]={id:CAT_ID,name:'Street cat',role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['street'],biography:'',relationshipDefault:0};
   VoidInteractions.register(CAT_ACTION,()=>{talk('',CAT_REACTION.map(text=>({who:CAT_ID,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});
-  VoidInteractions.register(TALK_ACTION,({item}={})=>{const p=PAIR.find(x=>x.id===item?.character)||PAIR[0];talk('',(GREETING[p.id]||['Hi.']).map(text=>({who:p.id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);
+ },300);
 })(typeof globalThis!=='undefined'?globalThis:this);

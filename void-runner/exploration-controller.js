@@ -42,10 +42,18 @@
   function step(player,input,dt,location){
     dt=Math.max(0,Math.min(.1,dt));const length=Math.max(1,Math.hypot(input.x,input.z));let speed=input.crouch?config.crouch:input.run?config.sprint:config.walk;
     try{const m=root.VoidDevStudios?.moveMul?.(typeof state!=='undefined'?state?.story?.flags?.shopEffect:null,Date.now()/1000);if(m>1)speed*=m;}catch{}
+    const effects=root.VoidConsumableGame;
+    const regen=effects?.modifier('staminaRegen')||0,drain=effects?.modifier('staminaDrain')||0;
+    if(regen||drain){
+      const running=input.run&&!input.crouch&&(input.x||input.z);
+      player.stamina=Math.max(0,Math.min(1,(player.stamina??1)+dt*(running?-.08*(1+drain):.14*(1+regen))));
+      if(running)speed=config.walk+(speed-config.walk)*Math.min(1,player.stamina*4);
+    }else if(player.stamina!=null)delete player.stamina;
+    speed*=1+(root.VoidConsumableGame?.modifier(input.run?'runSpeed':'walkSpeed')||0);
     const tx=(Math.cos(player.yaw)*input.x+Math.sin(player.yaw)*input.z)/length*speed,tz=(-Math.sin(player.yaw)*input.x+Math.cos(player.yaw)*input.z)/length*speed;
     const approach=(a,b,d)=>a+Math.sign(b-a)*Math.min(Math.abs(b-a),d),steps=Math.max(1,Math.ceil(dt/.008));
     if(player.jumpRequested){if(!(player.height>0)){player.vy=config.jump;player.height=.001;}player.jumpRequested=false;}
-    for(let i=0;i<steps;i++){const t=dt/steps,acc=(length>1||input.x||input.z?config.acceleration:config.braking)*t;
+    for(let i=0;i<steps;i++){const t=dt/steps,acc=(length>1||input.x||input.z?config.acceleration:config.braking)*(1+(root.VoidConsumableGame?.modifier('movementControl')||0))*t;
       const ax=tx-(player.vx||0),az=tz-(player.vz||0),delta=Math.hypot(ax,az),gain=delta?Math.min(1,acc/delta):0;
       player.vx=(player.vx||0)+ax*gain;player.vz=(player.vz||0)+az*gain;
       // a blocked move is still taken when it leads out of a solid the player already overlaps (depth(): never further in)
@@ -68,6 +76,7 @@
   }
   function select(player, location, allowed = () => true) {
     let object = null, objectDistance = Infinity, person = null, personScore = null;
+    const reach=1+(root.VoidConsumableGame?.modifier('perception')||0);
     const fx = Math.sin(player.yaw), fz = Math.cos(player.yaw);
     for (const item of location.interactions) { if (item.hidden) continue;   // a prompt switched off for now (a street door no mission of the player's uses: apartment-integration.js)
       const dx = item.position[0] - player.x,
@@ -75,11 +84,11 @@
         distance = Math.hypot(dx, dz), talk = isTalk(item);
       const facing = distance > .5 ? (dx * fx + dz * fz) / distance : 1;
       if (talk) {
-        if (distance > item.range * TALK.reach || facing < TALK.cos || !allowed(item)) continue;
+        if (distance > item.range * reach * TALK.reach || facing < TALK.cos || !allowed(item)) continue;
         if (person && (facing < personScore.facing - .02 || (Math.abs(facing - personScore.facing) <= .02 && distance >= personScore.distance))) continue;
         if (visible(player, location, item, dx, dz, distance)) { person = item; personScore = {facing, distance}; }
       } else {
-        if (distance > item.range || distance > objectDistance || !allowed(item)) continue;
+        if (distance > item.range * reach || distance > objectDistance || !allowed(item)) continue;
         if (facing < TALK.objectCos) continue;
         if (visible(player, location, item, dx, dz, distance)) { object = item; objectDistance = distance; }
       }

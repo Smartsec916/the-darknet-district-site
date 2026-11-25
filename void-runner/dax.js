@@ -1,96 +1,138 @@
-/* Dax (the owner, 15 Nov 2026): a bounty hunter and mercenary who lives in The Darknet District on her own terms. There is only one of her.
-   STAGE 1 (this file): she is IN the District with a life of her own. She moves between the bar, the store, the VR area, the arcade, the vending machines and the
-   pods end of the hall, stays a while at each, watches, looks about, uses her V3 // Shadow (its camera is in her left eye, which glows green while she does), and at
-   times leaves the District altogether and comes back later. She has a profile in the Players list and the Social app like anyone else.
-   NOT in stage 1 (each needs the owner's decisions; see docs/development/DAX.md): talking to her (her voice and words), her memory of players and how she comes to
-   trust or hunt them, her life outside the District's interior, her social posts, other outfits, the NPC editor.
-   How her day works: there is no server for her and none is needed. Where she is at any moment is worked out from the clock alone (schedule(), below), the same on
-   every player's machine, so two players standing together see her in the same place, and nothing is computed or drawn while nobody is near: when a player
-   walks in, she is simply where the clock says she is.
-   Her model is a purchased, licensed one (docs/VOID_RUNNER_ASSET_LICENSES.md). It is NOT in this repository: the live site gets it from the private asset
-   repository at publishing time. On a machine without the file she does not appear, and the console says so once; no other figure stands in for her.
-   Pure rules (places, routes, the schedule) run in Node (tests/dax.test.cjs). */
+/* Dax's licensed District actor. Its only movement source is the published NPC
+   editor plan, or an isolated developer draft. Other clients use the same UTC
+   clock and content, with a stationary hallway default when the plan is clear. */
 (function(root){
  'use strict';
- const MODEL='npc-dax',FILE='assets/models/crowd/npc-dax.vrpak',SPEED=1.3,HOUR=3600;   /* FILE is relative to void-runner/, like every model path */
- // Her left eye in her own model file (x, y, how far forward, radius), for the V3 light (street-gear.js eye()).
- const EYE=[.0294,1.5846,.0844,.0129];
- /* Places she goes, in District plan metres (the numbers the District's rooms use). `at` is where she stands, `face` what she looks toward, `door` the point on the
-    hallway's centre line (x = 0) level with the way in. clips: what she does there, most likely first. device: how likely she is to be on her V3 there. */
- const SPOTS={
-  bar:{label:'The bar and oxygen lounge',at:[7,36.4],face:[7,38.5],door:33.5,via:[[3.4,33.5],[7,34.6]],clips:['idle','look','watch'],device:.35,stay:[70,150]},
-  store:{label:'The Darknet District store',at:[11,45.7],face:[11,48],door:45.6,via:[[3.4,45.6]],clips:['look','idle','watch'],device:.2,stay:[45,100]},
-  vr:{label:'VR play area',at:[-6.4,33.6],face:[-9.5,36],door:34,via:[[-3.4,34]],clips:['watch','idle'],device:.3,stay:[50,120]},
-  arcade:{label:'The arcade',at:[-5.6,62],face:[-9,62],door:62,via:[[-3.4,62]],clips:['watch','look','idle'],device:.25,stay:[50,110]},
-  vending:{label:'The vending machines',at:[-3.7,49.6],face:[-6,49.6],door:49.6,via:[],clips:['look','idle'],device:.45,stay:[30,60]},
-  pods:{label:'The sleeping pods',at:[2.2,72.6],face:[0,70],door:71.5,via:[],clips:['idle','look'],device:.7,stay:[60,130]},
-  hall:{label:'The hallway',at:[1.6,54.5],face:[-2,54.5],door:54.5,via:[],clips:['look','idle','glance-back'],device:.55,stay:[35,80]}
- };
- const ORDER=Object.keys(SPOTS),EXIT=[0,28.8],AWAY={label:'NeoChinatown',stay:[240,520]};
- // A repeatable 0..1 from numbers (the hour and a counter): her day is the same for everyone.
- function rnd(a,b){let h=(Math.imul(a|0,374761393)+Math.imul(b|0,668265263))|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;}
- const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
- /* The way on foot from one place to another: out to the hallway's centre line, along it, and in. Places are spot names or 'away' (the way out to the street).
-    Returns the points to walk through, starting where she stands and ending where she will stand. */
- function route(from,to){
-  const leg=name=>name==='away'?{at:EXIT,door:EXIT[1],via:[]}:SPOTS[name],a=leg(from),b=leg(to),p=[a.at.slice()];
-  for(const v of a.via.slice().reverse())p.push(v.slice());
-  p.push([0,a.door]);if(Math.abs(a.door-b.door)>.05)p.push([0,b.door]);
-  for(const v of b.via)p.push(v.slice());
-  p.push(b.at.slice());
-  return p.filter((q,i)=>i===0||dist(q,p[i-1])>.05);}
- const length=p=>p.reduce((s,q,i)=>i?s+dist(q,p[i-1]):0,0);
- // The point `d` metres along a path, and the direction of travel there.
- function along(p,d){for(let i=1;i<p.length;i++){const L=dist(p[i],p[i-1]);if(d<=L||i===p.length-1){const k=L?Math.min(1,d/L):1;return {x:p[i-1][0]+(p[i][0]-p[i-1][0])*k,z:p[i-1][1]+(p[i][1]-p[i-1][1])*k,dx:p[i][0]-p[i-1][0],dz:p[i][1]-p[i-1][1]};}d-=L;}return {x:p[0][0],z:p[0][1],dx:0,dz:1};}
- /* One hour of her life (hour = a whole number: the hour since 1970): a list of steps {kind:'walk'|'stay'|'away', from, to|spot, start, end (seconds into the hour), clip, device}.
-    Each hour begins where the hour before ended, so her day joins up. About one stretch in five is spent away from the District. */
- function endOf(hour){const n=ORDER.length;return rnd(hour,9001)<.22?'away':ORDER[Math.floor(rnd(hour,9002)*n)];}
- function day(hour){
-  const steps=[],last=endOf(hour);let here=endOf(hour-1),t=0,i=0;
-  const pick=()=>{for(let k=0;k<8;k++){const r=rnd(hour,100+i*7+k),s=r<.2?'away':ORDER[Math.floor(rnd(hour,200+i*7+k)*ORDER.length)];if(s!==here)return s;}return here==='hall'?'bar':'hall';};
-  const stayAt=(end)=>{const sp=SPOTS[here];steps.push(here==='away'?{kind:'away',spot:'away',start:t,end}:{kind:'stay',spot:here,start:t,end,clip:sp.clips[rnd(hour,400+i)<.55?0:1+Math.floor(rnd(hour,500+i)*(sp.clips.length-1))]||'idle',device:rnd(hour,600+i)<sp.device});};
-  while(i<200){
-   // the last five minutes of the hour take her to where the next hour begins, and she stays there until it does
-   if(t>=HOUR-300&&here===last){stayAt(HOUR+1);break;}
-   if(t<HOUR-300){const span=(here==='away'?AWAY:SPOTS[here]).stay,stay=span[0]+rnd(hour,300+i)*(span[1]-span[0]);stayAt(t+stay);t+=stay;}
-   i++;const next=t>=HOUR-300?last:pick();if(next===here)continue;
-   const path=route(here,next),time=length(path)/SPEED;steps.push({kind:'walk',from:here,to:next,start:t,end:t+time,path});t+=time;here=next;
-  }
-  return steps;}
- const cache=new Map();
- const dayOf=hour=>{let d=cache.get(hour);if(!d){d=day(hour);cache.set(hour,d);if(cache.size>4)cache.delete(cache.keys().next().value);}return d;};
- /* Where she is and what she is doing at a moment (seconds since 1970): {inside, x, z (plan metres), yaw (plan: 0 = toward +z, a quarter turn = +x), clip, device,
-    spot (where she is, or is going), place (words for her profile)}. Away from the District: inside false and no position. */
- function schedule(seconds){
-  const hour=Math.floor(seconds/HOUR),t=seconds-hour*HOUR,steps=dayOf(hour),s=steps.find(q=>t>=q.start&&t<q.end)||steps[steps.length-1];
-  if(s.kind==='away')return {inside:false,spot:'away',place:AWAY.label,clip:null,device:false};
-  if(s.kind==='stay'){const p=SPOTS[s.spot];return {inside:true,x:p.at[0],z:p.at[1],yaw:Math.atan2(p.face[0]-p.at[0],p.face[1]-p.at[1]),clip:s.clip,device:s.device,spot:s.spot,place:p.label};}
-  const a=along(s.path,(t-s.start)*SPEED),gone=s.to==='away'&&dist([a.x,a.z],EXIT)<.3||s.from==='away'&&dist([a.x,a.z],EXIT)<.05;
-  return {inside:!gone,x:a.x,z:a.z,yaw:Math.atan2(a.dx,a.dz),clip:'walk',device:false,spot:s.to,place:s.to==='away'?'Leaving the District':SPOTS[s.to].label+' (on her way)'};}
- const pure={MODEL,FILE,SPOTS,EXIT,EYE,SPEED,route,length,along,day,schedule};
- if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
+ const MODEL='npc-dax',FILE='assets/models/crowd/npc-dax.vrpak';
+ const EYE=[.0294,1.5846,.0844,.0129]; // The V3 // Shadow camera in her left eye.
+ function interest(save,settings,minutes){
+  const flags=save?.story?.flags;
+  if(!flags||!settings||!Number.isFinite(minutes))return null;
+  const reputation=save.progression?.reputation?.civilian||0,missions=save.universe?.missions||{};
+  const eligible=limit=>Number.isFinite(limit)&&limit>=0&&minutes>=limit;
+  if(!flags.daxBountyContact&&eligible(settings.daxBountyPlayMinutes)&&reputation<=settings.daxBountyCivilianReputation&&
+    (missions['illegal-run']?.completed||save.contract?.legal===false))return 'bounty';
+  if(!flags.daxRecruitContact&&eligible(settings.daxRecruitPlayMinutes)&&reputation>=settings.daxRecruitCivilianReputation&&
+    (missions['legal-run']?.completed||save.contract?.legal===true))return 'recruit';
+  return null;
+ }
+ const pure={MODEL,FILE,EYE,interest};
+ if(typeof module==='object'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
-
  let fig=null,loading=null,missing=false,told=false,shownClip=null,eyeOn=false,sceneRef=null,observer=null;
- const now=()=>Date.now()/1000+(root.VoidDax?.offset||0);
+ let encounter=null,seenVisit=false,nextLook=0,geometry=null,nextLoad=0;
+ let clockOffset=0,previousPlan,readRoutine=null;
+ const now=()=>Date.now()/1000+(root.VoidLiveContent?.draft&&root.VoidDevTest?.active?clockOffset:0);
+ function previewAt(minute){
+  const time=Date.now()/1000;
+  clockOffset=Number.isFinite(minute)?Math.floor(time/86400)*86400+minute*60-time:0;
+ }
+
  const interior=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='interior'&&typeof mode!=='undefined'&&['walking','dialogue','mission-log','pod-waking'].includes(mode);}catch{return false;}};
- function drop(){if(observer&&sceneRef)try{sceneRef.onBeforeRenderObservable.remove(observer);}catch{}observer=null;if(fig){try{fig.ctrl?.dispose?.();fig.node.dispose();}catch{}}fig=null;shownClip=null;eyeOn=false;sceneRef=null;}
+ function drop(){updateTalk(null);encounter=null;seenVisit=false;geometry=null;nextLook=0;if(observer&&sceneRef)try{sceneRef.onBeforeRenderObservable.remove(observer);}catch{}observer=null;if(fig){try{fig.ctrl?.dispose?.();fig.node.dispose();}catch{}}fig=null;shownClip=null;eyeOn=false;sceneRef=null;}
  async function ensure(scene){
-  if(missing||loading||fig)return;const A=root.VoidAssets,C=root.VoidCrowd;if(!A||!C)return;
-  loading=(async()=>{try{if(!A.container('crowd:'+MODEL))await A.load('crowd:'+MODEL,{src:FILE,background:true},scene);}catch(e){missing=true;if(!told){told=true;console.info('[VOID//RUNNER] Dax is not on this machine: her licensed model (void-runner/'+FILE+') is published with the live site only. Nobody stands in for her.');}return;}
+  if(missing||loading||fig||Date.now()<nextLoad)return;const A=root.VoidAssets,C=root.VoidCrowd;if(!A||!C)return;
+  loading=(async()=>{try{if(!A.container('crowd:'+MODEL))await A.load('crowd:'+MODEL,{src:FILE,background:true},scene);}catch(e){if(scene.isDisposed||root.VoidBabylon?.scene!==scene)return;
+    if(!/HTTP (404|410)\b/.test(String(e))){nextLoad=Date.now()+15000;return;}missing=true;if(!told){told=true;console.info('[VOID//RUNNER] Dax is not on this machine: her licensed model (void-runner/'+FILE+') is published with the live site only. Nobody stands in for her.');}return;}
    if(scene.isDisposed||!interior()||root.VoidBabylon?.scene!==scene)return;
    const parent=new root.BABYLON.TransformNode('npc-dax',scene),made=A.instance('crowd:'+MODEL,parent);if(!made){parent.dispose();return;}
    parent.metadata={character:'dax',npc:true};made.metadata={...made.metadata,character:'dax',crowd:MODEL};
    fig={node:parent,made,ctrl:C.animate(made,MODEL,'idle')};sceneRef=scene;observer=scene.onBeforeRenderObservable.add(step);})().finally(()=>{loading=null;});}
+ function transition(a,b){
+  const N=root.VoidNeoChinatown,E=root.VoidNPCEscort;
+  const world=p=>{const [x,z]=N.toWorld(p.x,p.z);return {x,z};};
+  const start=world(a),end=world(b),solids=N.layout('interior').solids.filter(s=>s.position[1]-s.size[1]/2<1.6&&s.position[1]+s.size[1]/2>.1);
+  const path=E.gridRoute(start,end,solids,{grid:.25,radius:.25});
+  if(!path?.length||Math.hypot(path.at(-1).x-end.x,path.at(-1).z-end.z)>.02)return null;
+  const {x,z}=N.door;
+  return path.map(p=>({x:x-p.x,z:z+20-p.z}));
+ }
+ function editorState(){
+  const R=root.VoidDaxEditorRoutine,X=root.VoidNPCPaths,N=root.VoidNeoChinatown;
+  const raw=root.VoidLiveContent?.env?.npcPlans?.dax||null;
+  if(!X||!N)return R.DEFAULT;
+  if(!readRoutine||previousPlan!==raw){previousPlan=raw;readRoutine=R.timeline(raw,X,N.door,transition);}
+  return readRoutine(now());
+ }
+ function surroundings(){
+  if(!geometry){
+   const solids=(walkingLocation.solids||[]).filter(s=>s.position&&s.size&&!s.open&&s.position[1]-s.size[1]/2<1.6&&s.position[1]+s.size[1]/2>.1);
+   geometry={solids,rects:solids.map(s=>[s.position[0]-s.size[0]/2,s.position[0]+s.size[0]/2,s.position[2]-s.size[2]/2,s.position[2]+s.size[2]/2])};
+  }
+  return geometry;
+ }
+ const talkItem={id:'district-dax',character:'dax',action:'district-dax',label:'TALK TO DAX',position:[0,1.6,0],range:2.2,talk:true};
+ let items=null;
+ function updateTalk(list,p){
+  if(items!==list){
+   const i=items?.indexOf(talkItem)??-1;if(i>=0)items.splice(i,1);
+   items=list;if(list&&!list.includes(talkItem))list.push(talkItem);
+  }
+  if(p){talkItem.position[0]=p.x;talkItem.position[2]=p.z;}
+ }
+ root.VoidInteractions?.register('district-dax',()=>{announce('Dax acknowledges you with a nod.');});
+ function contact(kind){
+  const flags=state.story.flags;
+  const key=kind==='bounty'?'daxBountyContact':'daxRecruitContact';
+  flags[key]=true;
+  // An authored meeting uses the Mission Editor's ordinary offer, costs, and accept/deny rules.
+  const live=root.VoidLiveContent,mc=root.VoidMissionContent;
+  if(live?.treesOn()&&mc?.treeWants(state,live.env,['dax'])){
+   root.VoidInteractions?.handlers.get(talkItem.action)?.({item:talkItem});
+  }
+  try{announce(kind==='bounty'?'Dax checks your record on her V3.':'Dax signals you about a job.');if(!root.VoidDevTest?.active)save();}catch{}
+ }
+ function encounterPose(home){
+  if(typeof walker==='undefined'||!walker||typeof state==='undefined'||!interior())return null;
+  const time=performance.now(),p=fig.node.position,dist=Math.hypot(walker.x-p.x,walker.z-p.z);
+  if(time>=nextLook&&mode==='walking'&&!document.hidden){
+   nextLook=time+500;
+   const awareness=root.VoidLiveContent?.env?.npcPlans?.dax?.awareness;
+   const seen=root.VoidNPCAwareness?.notice({x:p.x,z:p.z,yaw:fig.node.rotation.y,tier:3,awareness},walker,surroundings().rects).seen;
+   if(seen&&!seenVisit&&state.story?.flags){
+    seenVisit=true;const flags=state.story.flags;
+    flags.daxEncounters=Math.min(1000000,(Number(flags.daxEncounters)||0)+1);
+    if(flags.daxEncounters>1){flags.daxRecognized=true;announce('Dax gives you a nod of recognition.');}
+   }
+   if(seen&&!encounter){
+    const C=root.VoidClock;
+    const settings=(typeof VoidDevTools!=='undefined'&&VoidDevTools.pending)||root.VoidBalance?.values;
+    const kind=interest(state,settings,C.realMinutes(C.minutes(state)));
+    if(kind)encounter={kind,returning:false,route:[],last:time,planAt:0};
+   }
+   if(encounter&&!encounter.returning&&(!seen&&dist>4||state.story?.flags?.podWakePending))encounter.returning=true;
+  }
+  const e=encounter;if(!e)return null;
+  const dt=Math.min(.25,(time-e.last)/1000);e.last=time;
+  if(mode!=='walking'||document.hidden)return {clip:'watch',yaw:fig.node.rotation.y,device:e.kind==='bounty'};
+  if(!e.returning&&dist<=1.8&&!root.VoidNPCAwareness.blocked(p,walker,surroundings().rects)){
+   contact(e.kind);e.returning=true;e.planAt=time+1800;e.route=[];
+  }
+  const target=e.returning?home:walker;
+  if(e.returning&&Math.hypot(home.x-p.x,home.z-p.z)<.12){encounter=null;return null;}
+  if(time>=e.planAt){
+   e.planAt=time+900;
+   e.route=root.VoidNPCEscort.gridRoute(p,target,surroundings().solids,{grid:.25,radius:.25})||[];
+  }
+  const leg=e.route[0];
+  if(!leg)return {clip:'watch',yaw:Math.atan2(walker.x-p.x,walker.z-p.z),device:e.kind==='bounty'};
+  const dx=leg.x-p.x,dz=leg.z-p.z,length=Math.hypot(dx,dz),k=length?Math.min(1,dt*1.3/length):1;
+  p.x+=k*dx;p.z+=k*dz;if(k===1)e.route.shift();
+  return {clip:'walk',yaw:Math.atan2(dx,dz),device:false};
+ }
  function step(){
-  if(!fig||fig.node.isDisposed()){drop();return;}const N=root.VoidNeoChinatown,s=schedule(now());
+  if(!fig||fig.node.isDisposed()){drop();return;}const N=root.VoidNeoChinatown,s=editorState();
   fig.node.setEnabled(!!s.inside);if(!s.inside)return;
-  const w=N.toWorld(s.x,s.z),f=N.toWorld(s.x+Math.sin(s.yaw),s.z+Math.cos(s.yaw));fig.node.position.set(w[0],0,w[1]);
+  const w=N.toWorld(s.x,s.z),f=N.toWorld(s.x+Math.sin(s.yaw),s.z+Math.cos(s.yaw));if(!fig.placed){fig.node.position.set(w[0],0,w[1]);fig.placed=true;}
+  const pose=encounterPose({x:w[0],z:w[1]});
+  if(!pose)fig.node.position.set(w[0],0,w[1]);
+  updateTalk(interior()?walkingLocation.interactions:null,fig.node.position);
   // turn smoothly toward where the schedule faces her
-  const want=Math.atan2(f[0]-w[0],f[1]-w[1]);let d=want-fig.node.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));fig.node.rotation.y+=d*Math.min(1,.12);
-  if(s.clip!==shownClip){shownClip=s.clip;try{fig.ctrl.play(s.clip);}catch{}}
-  if(s.device!==eyeOn){eyeOn=s.device;root.VoidStreetGear?.eye?.(fig.node,eyeOn,EYE);}}
- setInterval(()=>{const scene=root.VoidBabylon?.scene;if(fig&&(fig.node.isDisposed()||scene!==sceneRef||!interior()&&typeof mode!=='undefined'&&mode==='menu')){drop();}
+  const want=pose?.yaw??Math.atan2(f[0]-w[0],f[1]-w[1]);let d=want-fig.node.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));fig.node.rotation.y+=d*Math.min(1,.12);
+  const clip=pose?.clip||s.clip,device=pose?.device??s.device;
+  if(clip!==shownClip){shownClip=clip;try{fig.ctrl.play(clip);}catch{}}
+  if(device!==eyeOn){eyeOn=device;root.VoidStreetGear?.eye?.(fig.node,eyeOn,EYE);}}
+ setInterval(()=>{const scene=root.VoidBabylon?.scene;if(fig&&(fig.node.isDisposed()||scene!==sceneRef||typeof walkingLocation!=='undefined'&&(walkingLocation?.id!=='neochinatown'||walkingLocation?.area!=='interior'))){drop();}
   if(!fig&&scene&&interior())ensure(scene);},1000);
- root.VoidDax={...pure,offset:0,get shown(){return !!fig&&fig.node.isEnabled();},get available(){return !missing;},get where(){return schedule(now());}};
+ root.VoidDax={...pure,previewAt,get encounter(){return encounter?.kind||null;},get shown(){return !!fig&&fig.node.isEnabled();},get available(){return !missing;},get where(){return editorState();}};
 })(typeof globalThis!=='undefined'?globalThis:this);
