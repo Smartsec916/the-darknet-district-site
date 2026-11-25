@@ -120,16 +120,20 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   const seat=j&&!j.released?VoidRoadTaxiRules.companionSeat(j.cab):null;
   return {quarter:walkingLocation?.quarter,mode,gate:VoidGateTransit.state,rideOutcome:globalThis.socialTaxiProbe?.outcome||null,busy:VoidGateTransit.busy,crossing:T.crossing,active:T.active,phase:j&&!j.released?j.cab.phase:null,area:p?.area,session:p?.step,leg:policy?.leg,carry:c,actor:a||null,seatDistance:seat&&a?.esc?Math.hypot(a.esc.x-seat.x,a.esc.z-seat.z):null,credits:state.credits,trip:state.story.flags.roadTaxiTrip||null};
  },socialId);
- async function taxiUntil(test,label,advancePickup=false){
+ async function taxiUntil(test,label,advancePickup=false,advanceOccupied=false){
   const deadline=Date.now()+240000;let previous='';
   for(;;){
-   // Once a passenger boards, the renderer must advance the cab and its rider together.
-   if(advancePickup)await page.evaluate(()=>{
-    const world=VoidRoadTaxi.world,cab=world?.job?.cab;
-    if(!cab||cab.phase!=='to-pickup')return;
-    for(let i=0;i<25&&cab.phase==='to-pickup'&&cab.pathLen-cab.s>14;i++)
-     VoidRoadTaxiRules.stepWorld(world,.1,{x:walker.x,z:walker.z,riding:false});
-   });
+   if(advancePickup||advanceOccupied)await page.evaluate(({pickup,occupied})=>{
+    const taxi=VoidRoadTaxi,world=taxi.world,cab=world?.job?.cab,made=VoidBabylon.district?.made;
+    if(!cab||taxi.crossing||VoidGateTransit.busy)return;
+    const phase=pickup?'to-pickup':'to-dest';
+    if(occupied&&(!made||mode!=='road-taxi'))return;
+    // Each traffic step has a matching actor step, including through corners.
+    for(let i=0;i<25&&cab.phase===phase&&cab.pathLen-cab.s>3;i++){
+     VoidRoadTaxiRules.stepWorld(world,.1,{x:walker.x,z:walker.z,riding:occupied});
+     if(occupied)made.tick(.1);
+    }
+   },{pickup:advancePickup,occupied:advanceOccupied});
    const s=await taxiSnapshot();
    const key=JSON.stringify([s.mode,s.quarter,s.gate,s.crossing,s.phase,s.session,s.actor?.esc?.ride,s.rideOutcome?.ok]);
    if(key!==previous){previous=key;console.log('SOCIAL TAXI PROGRESS',label,JSON.stringify(s));}
@@ -168,7 +172,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   try{
    await page.evaluate(()=>VoidRoadTaxi.board());
    assert.equal(await page.evaluate(()=>mode),'road-taxi','player boarded the actual taxi');
-   end=await taxiUntil(s=>!s.crossing&&!s.busy&&(fail?s.rideOutcome?.ok===false&&s.rideOutcome.phase==='RECOVERY'&&s.quarter==='oldtown'&&s.mode==='walking':s.rideOutcome?.ok===true&&s.rideOutcome.phase==='COMPLETE'&&s.quarter==='avenue'&&s.mode==='road-taxi'),'taxi checkpoint '+(fail?'recovery':'clearance'));
+   end=await taxiUntil(s=>!s.crossing&&!s.busy&&(fail?s.rideOutcome?.ok===false&&s.rideOutcome.phase==='RECOVERY'&&s.quarter==='oldtown'&&s.mode==='walking':s.rideOutcome?.ok===true&&s.rideOutcome.phase==='COMPLETE'&&s.quarter==='avenue'&&s.mode==='road-taxi'),'taxi checkpoint '+(fail?'recovery':'clearance'),false,true);
   }finally{records=await page.evaluate(()=>{const p=globalThis.socialTaxiProbe;enterWalking=p.original;VoidGateTransit.ride=p.ride;delete globalThis.socialTaxiProbe;return p.records;});console.log('SOCIAL TAXI EXCHANGE TRACE',JSON.stringify(records));}
   result.socialTaxi.push({fail,origin,seated,records,end});console.log('SOCIAL TAXI TRANSACTION',JSON.stringify(result.socialTaxi.at(-1)));
   assert.deepEqual(records.map(x=>x.point),['before','loaded'],'one actual bay exchange');
@@ -185,7 +189,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
    await taxiUntil(s=>s.actor?.enabled&&s.actor.esc?.key===origin.session&&!s.actor.esc.ride&&s.area===area,'actual NPC recovers on the source pavement',false);
   }else{
    await taxiUntil(s=>s.actor?.esc?.key===origin.session&&s.actor.esc.ride==='in-cab'&&s.seatDistance<=1,'actual NPC seated after clearance',false);
-   await taxiUntil(s=>s.phase==='arrived','taxi reaches actual destination');
+   await taxiUntil(s=>s.phase==='arrived','taxi reaches actual destination',false,true);
    await page.evaluate(()=>VoidRoadTaxi.exit());
    await taxiUntil(s=>s.mode==='walking'&&s.actor?.enabled&&s.actor.esc?.key===origin.session&&!s.actor.esc.ride&&s.area===area,'actual NPC exits taxi with player',false);
    assert.equal(await page.evaluate(()=>state.story.flags.roadTaxiTrip||null),null,'successful trip closes fare record');
