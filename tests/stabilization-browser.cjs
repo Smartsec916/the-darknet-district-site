@@ -118,13 +118,16 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  const taxiSnapshot=()=>page.evaluate(id=>{
   const T=VoidRoadTaxi,j=T.world?.job,p=VoidLiveContent.plans()[id],a=VoidMadeNPCs.live?.()?.people.find(x=>x.id===id),c=VoidLiveContent.carried(id),policy=VoidLiveContent.socialTravelPolicy(id,p?.step);
   const seat=j&&!j.released?VoidRoadTaxiRules.companionSeat(j.cab):null;
-  return {quarter:walkingLocation?.quarter,mode,gate:VoidGateTransit.state,busy:VoidGateTransit.busy,crossing:T.crossing,active:T.active,phase:j&&!j.released?j.cab.phase:null,area:p?.area,session:p?.step,leg:policy?.leg,carry:c,actor:a||null,seatDistance:seat&&a?.esc?Math.hypot(a.esc.x-seat.x,a.esc.z-seat.z):null,credits:state.credits,trip:state.story.flags.roadTaxiTrip||null};
+  return {quarter:walkingLocation?.quarter,mode,gate:VoidGateTransit.state,rideOutcome:globalThis.socialTaxiProbe?.outcome||null,busy:VoidGateTransit.busy,crossing:T.crossing,active:T.active,phase:j&&!j.released?j.cab.phase:null,area:p?.area,session:p?.step,leg:policy?.leg,carry:c,actor:a||null,seatDistance:seat&&a?.esc?Math.hypot(a.esc.x-seat.x,a.esc.z-seat.z):null,credits:state.credits,trip:state.story.flags.roadTaxiTrip||null};
  },socialId);
  async function taxiUntil(test,label,advance=true){
-  const deadline=Date.now()+120000;
+  const deadline=Date.now()+120000;let previous='';
   for(;;){
    if(advance)await page.evaluate(()=>{const T=VoidRoadTaxi,w=T.world,j=w?.job,c=j&&!j.released?j.cab:null;if(!c||T.crossing||VoidGateTransit.busy)return;for(let i=0;i<25&&['to-pickup','to-dest'].includes(c.phase)&&c.pathLen-c.s>14;i++)VoidRoadTaxiRules.stepWorld(w,.1,{x:walker.x,z:walker.z,riding:mode==='road-taxi'});});
-   const s=await taxiSnapshot();if(test(s))return s;
+   const s=await taxiSnapshot();
+   const key=JSON.stringify([s.mode,s.quarter,s.gate,s.crossing,s.phase,s.session,s.actor?.esc?.ride,s.rideOutcome?.ok]);
+   if(key!==previous){previous=key;console.log('SOCIAL TAXI PROGRESS',label,JSON.stringify(s));}
+   if(test(s))return s;
    assert(Date.now()<deadline,label+' timed out: '+JSON.stringify(s));await page.waitForTimeout(350);
   }
  }
@@ -138,9 +141,15 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   console.log('SOCIAL TAXI SEATED',JSON.stringify(seated));
   // Record the real scene exchange without changing its arrival callbacks.
   await page.evaluate(({id,fail})=>{
-   const original=enterWalking,records=[];
-   globalThis.socialTaxiProbe={original,records};
+   const original=enterWalking,ride=VoidGateTransit.ride,records=[];
+   const probe=globalThis.socialTaxiProbe={original,ride,records,outcome:null};
    const snap=()=>{const p=VoidLiveContent.plans()[id],a=VoidMadeNPCs.live?.()?.people.find(x=>x.id===id);return {phase:VoidGateTransit.state,quarter:walkingLocation?.quarter,carry:VoidLiveContent.carried(id),session:p?.step,leg:VoidLiveContent.socialTravelPolicy(id,p?.step)?.leg,ride:a?.esc?.ride||null};};
+   // Capture the controller's own result before its walking tick resets RECOVERY to IDLE.
+   VoidGateTransit.ride=async function(o){
+    console.log('SOCIAL TAXI RIDE START',JSON.stringify({lane:o.lane,from:o.from,to:o.to,...snap()}));
+    try{const ok=await ride.apply(this,arguments);probe.outcome={ok,...snap(),history:VoidGateTransit.history.slice(-15)};console.log('SOCIAL TAXI RIDE END',JSON.stringify(probe.outcome));return ok;}
+    catch(e){console.log('SOCIAL TAXI RIDE ERROR',String(e));throw e;}
+   };
    enterWalking=async function(key,opts){
     const bay=opts?.gateLane&&VoidQuarters.lane(opts.gateLane)?.kind==='bay'&&VoidGateTransit.state==='EXCHANGE';
     if(bay)records.push({point:'before',...snap()});
@@ -153,8 +162,8 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   try{
    await page.evaluate(()=>VoidRoadTaxi.board());
    assert.equal(await page.evaluate(()=>mode),'road-taxi','player boarded the actual taxi');
-   end=await taxiUntil(s=>!s.crossing&&!s.busy&&(fail?s.gate==='RECOVERY'&&s.quarter==='oldtown'&&s.mode==='walking':s.gate==='COMPLETE'&&s.quarter==='avenue'&&s.mode==='road-taxi'),'taxi checkpoint '+(fail?'recovery':'clearance'));
-  }finally{records=await page.evaluate(()=>{const p=globalThis.socialTaxiProbe;enterWalking=p.original;delete globalThis.socialTaxiProbe;return p.records;});}
+   end=await taxiUntil(s=>!s.crossing&&!s.busy&&(fail?s.rideOutcome?.ok===false&&s.rideOutcome.phase==='RECOVERY'&&s.quarter==='oldtown'&&s.mode==='walking':s.rideOutcome?.ok===true&&s.rideOutcome.phase==='COMPLETE'&&s.quarter==='avenue'&&s.mode==='road-taxi'),'taxi checkpoint '+(fail?'recovery':'clearance'));
+  }finally{records=await page.evaluate(()=>{const p=globalThis.socialTaxiProbe;enterWalking=p.original;VoidGateTransit.ride=p.ride;delete globalThis.socialTaxiProbe;return p.records;});console.log('SOCIAL TAXI EXCHANGE TRACE',JSON.stringify(records));}
   result.socialTaxi.push({fail,origin,seated,records,end});console.log('SOCIAL TAXI TRANSACTION',JSON.stringify(result.socialTaxi.at(-1)));
   assert.deepEqual(records.map(x=>x.point),['before','loaded'],'one actual bay exchange');
   assert.equal(records[0].ride,'in-cab','actual actor remains seated at exchange');
