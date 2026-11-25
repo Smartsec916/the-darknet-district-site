@@ -31,6 +31,23 @@ const EDITED='TEST LINE: Admin introduces the District (test text).';
    if(p==='developer/live-content/check')return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,errors:[],warnings:[]})});
    return r.fulfill({status:503,contentType:'application/json',body:'{"error":"offline test"}'});});
   await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
+  if(!process.env.ONLY||process.env.ONLY==='jump'){
+   await page.evaluate(()=>VoidDevTools.identity(async()=>({values:VoidBalance.defaults,revision:1,preset:'NORMAL'})));
+   await page.evaluate(()=>VoidDevTools.open('test'));
+   const stages=page.locator('#dev-test-stage');
+   const ids=await page.evaluate(()=>VoidLiveContent.env.trees.flatMap(t=>t.missions.map(m=>'mission:'+m.id)));
+   assert(ids.length>0);
+   assert.deepEqual(await stages.locator('option[value^="mission:"]').evaluateAll(opts=>opts.map(o=>o.value)),ids);
+   const saved=await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1'));
+   await stages.selectOption(ids.at(-1));
+   await page.locator('[data-dev="test-start"]').click();
+   await page.waitForFunction(()=>VoidDevTest.active&&mode==='walking',null,{timeout:90000});
+   assert.equal(await page.evaluate(()=>save()),false);
+   assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),saved);
+   console.log('Playable mission jumps verified:',ids.length);
+   await page.reload();await page.waitForFunction(()=>VoidStartup.started);
+   if(process.env.ONLY==='jump')return;
+  }
   if(!process.env.ONLY){
   // A real save of a District campaign, written the way the game writes it, then one reload so the game has read it back.
   await page.evaluate(m=>{const s=C.startDistrictCampaign(C.fresh());s.credits=4321;s.story.flags.realSaveMarker=true;localStorage.setItem('void-runner-campaign-v1',JSON.stringify({...s,savedAt:1700000000000}));},null);

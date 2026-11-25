@@ -1125,28 +1125,29 @@
   givers:new Map(givers.map(g=>[g.id,g])),places:G().placeIds(),subjects:new Set(G().photoSubjects(givers).map(g=>g.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id)),numbers:serverNumbers()};}
  /* A throwaway District campaign for a new tree's mission: the beginner campaign is marked done (so it does not compete for Admin and Iris), the tree's earlier missions are
     done, and, when starting from a step, this mission is taken and its earlier steps done. Where: next to the giver (or the NPC or place of the step). */
- function treeState(mid,stepId){
+ function treeState(mid,stepId,live=false){
   const M=root.VoidMissions,C=root.C||root.VoidCampaign,U=root.VoidUniverse,env=root.VoidLiveContent.env,s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.appearanceOffered=true;s.universe.trackedMission=null;
+  const lookup=live?id=>env.givers.find(g=>g.id===id):giver;
   const t=(env.trees||[]).find(x=>x.missions.some(y=>y.id===mid));if(!t)throw new Error('This mission is not in the draft that was applied.');
   const i=t.missions.findIndex(y=>y.id===mid),m=t.missions[i];
   // a tree that another tree starts: the links to it have fired
   for(const x of env.trees)for(const p of x.missions)for(const u of p.unlocks||[])if(u.kind==='tree'&&u.id===t.id)s.story.flags[MC().linkFlag(t.id)]=true;
   const done=(p,ids)=>{for(const u of p.unlocks||[])if(ids.includes(u.when||'complete'))MC().unlockNow(s,u,env,C);};
   for(const p of t.missions.slice(0,i)){M.acquire(s,p.id);for(const o of M.definitions[p.id].objectives)M.complete(s,p.id,o.id,C);s.story.flags[MC().treeFlag(p.id)]=true;done(p,[...M.definitions[p.id].objectives.map(o=>o.id),'complete']);}
-  let where=(giver(m.giver)||{}).enter;const notes=[];
+  let where=(lookup(m.giver)||{}).enter;const notes=[];
   // A mission that starts when the player leaves the Sleeping Pod: draft play starts in the pod (EXIT POD starts it).
   const w=m.start&&m.start.how==='notification'&&!stepId?m.start.when||{}:null;
   if(w&&w.kind==='pod-exit'){s.story.flags.podWakePending=true;where={walk:'darknet-district'};}
   else if(w&&(w.kind==='place'||w.kind==='leave')&&w.place)where=PLACE_ENTER(w.place)||where;
-  else if(w&&w.kind==='near'&&(w.npc||m.giver)){where=(giver(w.npc||m.giver)||{}).enter||where;notes.push('Walk up to '+((giver(w.npc||m.giver)||{}).name||'them')+' (within '+VoidUnits.fmtDist(G().nearMetres(w.distance),{miles:false})+') to start it.');}
+  else if(w&&w.kind==='near'&&(w.npc||m.giver)){where=(lookup(w.npc||m.giver)||{}).enter||where;notes.push('Walk up to '+((lookup(w.npc||m.giver)||{}).name||'them')+' (within '+VoidUnits.fmtDist(G().nearMetres(w.distance),{miles:false})+') to start it.');}
   else if(w&&w.kind==='flag'&&w.flag){s.story.flags[w.flag]=w.value===undefined?true:w.value;notes.push('Draft play sets the story flag '+w.flag+' so it starts.');}
   else if(w&&w.kind==='after-mission'&&w.mission){M.acquire(s,w.mission);for(const o of ((M.definitions[w.mission]||{}).objectives||[]))M.complete(s,w.mission,o.id,C);if(s.universe.missions[w.mission])s.universe.missions[w.mission].completed=true;notes.push('Draft play marks the mission it follows as done.');}
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
-   where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.kind==='photo'?PLACE_ENTER((giver(o.npc)||{}).place)||where:o.kind==='send-photo'?where:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;
+   where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.kind==='photo'?PLACE_ENTER((lookup(o.npc)||{}).place)||where:o.kind==='send-photo'?where:o.npc?(lookup(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;
    if(o.kind==='send-photo')notes.push('Sending needs a photo taken during this mission: play from the photo step to take one.');}
   // Reverie, Lace and the cat may be placed in any area (npc-areas.js): draft play of a mission she gives starts where she waits for it, else where her placement puts her
-  {const AR=root.VoidNPCAreas,X=root.VoidNPCPaths,id=m.giver;if(AR&&X&&X.MOVABLE[id]&&where&&where.walk==='sacramento'&&where.quarter==='avenue'){const np=(draftContent().npcs||{})[id],t=m.waitAt||(np&&np.mode==='stay'?np:np&&np.mode==='path'?np.points[0]:null),a=t&&AR.areaOf(t);
-   if(a&&a!=='avenue'){where=AR.enter(a);notes.push('Draft play starts in '+AR.get(a).name+', where '+((giver(id)||{}).name||id)+' is placed.');}}}
+  {const AR=root.VoidNPCAreas,X=root.VoidNPCPaths,id=m.giver;if(AR&&X&&X.MOVABLE[id]&&where&&where.walk==='sacramento'&&where.quarter==='avenue'){const np=((live?env.npcPlans:draftContent().npcs)||{})[id],t=m.waitAt||(np&&np.mode==='stay'?np:np&&np.mode==='path'?np.points[0]:null),a=t&&AR.areaOf(t);
+   if(a&&a!=='avenue'){where=AR.enter(a);notes.push('Draft play starts in '+AR.get(a).name+', where '+((lookup(id)||{}).name||id)+' is placed.');}}}
   // Reverie and Lace take turns on one UTC street clock: the test runs at a time the first one it uses is really out (a simulated street clock; throwaway session only)
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
   M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
@@ -1267,5 +1268,5 @@
   async publishInteraction(id,value){if(!server.live?.enabled)throw Error('Publishing is unavailable.');const expected=server.live.version||0;if(value?.clips?.length)await VI().upload(call,value.clips);const rec=await call('developer/live-content/publish',{expected,interaction:{npc:id,value}});await refreshServer();return rec;},
   addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
- root.VoidMissionEditor={shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,playStart,refreshServer,get status(){return status;},get server(){return server;}};
+ root.VoidMissionEditor={liveTreeState:id=>treeState(id,null,true),enterTree,shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,playStart,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);

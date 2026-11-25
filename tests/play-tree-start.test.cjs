@@ -16,7 +16,7 @@ test('PLAY FROM THE START OF THIS TREE: on the tree header and beside every PLAY
  assert.match(s,/btn\('PLAY FROM THE START OF THIS TREE',\(\)=>playStart\(raw\.id\)/);
  assert.match(s,/function playStart\(treeId\)\{fresh\(\);[^]*?return play\('tree:'\+f\.id,null,\{tree:raw\}\);\}/);
  // treeState with no step: a brand-new campaign, missions before the first one: none
- const ts=s.slice(s.indexOf(' function treeState(mid,stepId){'));assert.match(ts,/s=C\.startDistrictCampaign\(C\.fresh\(\)\)/);
+ const ts=s.slice(s.indexOf(' function treeState('));assert.match(ts,/s=C\.startDistrictCampaign\(C\.fresh\(\)\)/);
  // every draft session forgets what the running game kept in memory
  assert.match(s,/root\.VoidLiveContent\?\.resetRun\?\.\(\);root\.VoidApartments\?\.resetRun\?\.\(\);/);
  assert.match(src('live-content.js'),/function resetRun\(\)\{for\(const o of \[animRun,timerLeft,promptAt,needAt,nearD\]\)/);assert.match(src('apartment-integration.js'),/resetRun\(\)\{preview=null;for\(const x of \[screenOff,screenSet,lightOff,lightSet\]\)x\.clear\(\);\}/);
