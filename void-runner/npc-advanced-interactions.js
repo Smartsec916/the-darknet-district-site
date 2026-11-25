@@ -95,7 +95,7 @@ function separate(self,others,radius=0.8){
  if(!self||!Number.isFinite(self.x+self.z))return null;
  let x=self.x,z=self.z;
  for(const o of others||[]){if(!o||!Number.isFinite(o.x+o.z)||o===self)continue;let dx=x-o.x,dz=z-o.z,d=Math.hypot(dx,dz);
-  if(d>=radius)continue;if(d<1e-4){dx=radius;dz=0;d=1e-4;}const k=(radius-d)/d;x+=dx*k;z+=dz*k;}
+  if(d>=radius)continue;if(d===0){x+=radius;continue;}const k=(radius-d)/d;x+=dx*k;z+=dz*k;}
  return {x,z};
 }
 // Invitation only. Movement after acceptance is the existing escort follow/lead, which already routes around obstacles.

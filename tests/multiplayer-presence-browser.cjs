@@ -12,6 +12,12 @@ const WHO={'tok-a':{uid:'uid-a',anonymous:false,model:'district-resident',handle
  async function player(tok){
   const ctx=await browser.newContext({viewport:{width:1280,height:720},reducedMotion:'reduce',serviceWorkers:'block'}),page=await ctx.newPage();page.setDefaultTimeout(240000);
   page.on('pageerror',e=>errors.push(e.message));await page.route('https://**/*',r=>r.abort());await page.route('**/api/**',r=>r.fulfill({status:503,body:'{}'}));
+  // The guest fixture has a reachable identity service that reports a signed-out user.
+  if(!tok)await page.route('**/firebase-auth.js',route=>route.fulfill({contentType:'text/javascript',body:`
+   export const auth={currentUser:null};
+   export function onAuthStateChanged(auth,callback){queueMicrotask(()=>callback(null));return ()=>{};}
+   export async function getRedirectResult(){return null;}
+  `}));
   await page.addInitScript(t=>{localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:'low'}));if(t)localStorage.setItem('tdd-dev-mp-token',t);},tok);
   await page.goto(`${base}/void-runner.html?multiplayer=1&hub=ws://127.0.0.1:${hub.port}`);await page.waitForFunction(()=>window.VoidStartup?.started);
   assert(!(await page.content()).includes('EARLIER CAMPAIGN'),'the main menu no longer offers the earlier-campaign download');
@@ -22,6 +28,9 @@ const WHO={'tok-a':{uid:'uid-a',anonymous:false,model:'district-resident',handle
  const d=p=>p.page.evaluate(()=>({...VoidRemotePlayers.diagnostics,mode,chip:document.getElementById('mp-chip')?.textContent||'',peers:VoidRemotePlayers.peers.map(x=>({name:x.name,drawn:x.drawn,x:x.x,z:x.z}))}));
  const until=async(p,fn,what)=>{try{await p.page.waitForFunction(f=>eval('('+f+')')({...VoidRemotePlayers.diagnostics,mode,chip:document.getElementById('mp-chip')?.textContent||''}),fn.toString(),{timeout:90000,polling:250});}catch(e){console.error('FAILED:',what,JSON.stringify(await d(p)));throw e;}};
  try{
+  // A visitor who is not signed in is told plainly that this is solo play, and is not connected.
+  const g=await player(null);await until(g,v=>/PLAYING SOLO · SIGN IN/.test(v.chip)&&v.status!=='in','a visitor without an account is told it is solo play');
+  assert.equal(hub.hub.peers.size,0,'the guest stays offline');await g.ctx.close();
   // 1. Both players lie in their pods and never leave: they must still be online together.
   const a=await player('tok-a'),b=await player('tok-b');
   await until(a,v=>v.mode==='pod-waking'&&v.status==='in'&&v.players===1&&v.rendered===1,'A, in the pod, sees B');
@@ -37,9 +46,6 @@ const WHO={'tok-a':{uid:'uid-a',anonymous:false,model:'district-resident',handle
   await b.page.evaluate(()=>openGameMenu());await b.page.waitForFunction(()=>mode==='menu');await b.page.waitForTimeout(2500);
   assert.equal((await d(b)).status,'in','still online with the menu open');assert.equal((await d(a)).players,1,'A still sees B while B has a menu open');
   await b.page.evaluate(()=>resumeWalking());
-  // 3. A visitor who is not signed in is told plainly that this is solo play, and is not connected.
-  const g=await player(null);await until(g,v=>/PLAYING SOLO · SIGN IN/.test(v.chip)&&v.status!=='in','a visitor without an account is told it is solo play');
-  assert.equal(hub.hub.peers.size,2,'the hub holds exactly the two signed-in players');await g.ctx.close();
   // 4. The same account in a second window takes over; the first window is told, and nobody is duplicated.
   const b2=await player('tok-b');await until(b2,v=>v.status==='in'&&v.players===1,'the second window of B is online');
   await until(b,v=>/ANOTHER WINDOW/.test(v.chip),'the first window of B is told it was replaced');
