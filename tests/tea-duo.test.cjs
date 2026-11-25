@@ -228,3 +228,25 @@ test('they are never still: quiet movements, real clips, episodes of getting up 
   const ob=U.obstacles().filter(o=>o[0]<=Math.max(home.x,sp.x)+.3&&o[1]>=Math.min(home.x,sp.x)-.3&&o[2]<=Math.max(home.z,sp.z)+.3&&o[3]>=Math.min(home.z,sp.z)-.3&&/cot|locker|curtain/.test(o[4]||'')&&false);assert.equal(ob.length,0);}
  assert.ok(T.LONG_QUIET[0]>=20000&&T.LONG_QUIET[1]<=120000);for(const k of T.STAND_CLIPS.concat(T.SEAT_CLIPS))assert.ok(typeof k==='string');
 });
+
+test('gaze follows a guest or speaker in both axes and relaxes outside the seated field of view',()=>{
+ const high=T.gazeGoal(.7,.55,1.4),low=T.gazeGoal(-.7,-.55,1.4);
+ assert.ok(high.yaw>20&&high.pitch>15);
+ assert.deepEqual(low,{yaw:-high.yaw,pitch:-high.pitch});
+ const aligned=T.gazeGoal(.7,.55,1.4,high.yaw,high.pitch);
+ assert.ok(Math.hypot(aligned.yaw,aligned.pitch)<1e-6,'account for the authored head angle');
+ for(const [x,y,z] of [[0,1,0],[0,0,-2],[1,1,8],[NaN,0,1]]){
+  const goal=T.gazeGoal(x,y,z);assert.equal(Math.hypot(goal.yaw,goal.pitch),0);
+ }
+ assert.ok(Math.abs(T.gazeGoal(1,0,6.5).yaw)<Math.abs(T.gazeGoal(1,0,4).yaw));
+});
+test('head turns ease toward a new target without snapping or advancing on pause',()=>{
+ const target=42;
+ for(const fps of [20,60,120]){
+  let angle=0;
+  for(let i=0;i<fps;i++){const next=T.gazeStep(angle,target,1/fps);assert.ok(next>=angle&&next-angle<=85/fps+1e-9);angle=next;}
+  assert.ok(angle>40&&angle<target);
+  assert.equal(T.gazeStep(angle,0,0),angle);
+  assert.ok(angle-T.gazeStep(angle,-target,1/60)<=85/60+1e-9);
+ }
+});
