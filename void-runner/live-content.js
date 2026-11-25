@@ -326,7 +326,13 @@
  function socialCabPose(id,key,here){
   try{const job=root.VoidRoadTaxi?.world?.job;if(!job||job.released||!job.cab)return false;
    const p=root.VoidMadeNPCs?.live?.()?.people?.find(q=>q.id===id),e=p?.esc;
-   if(e?.key!==key||e.ride!=='in-cab')return false;
+   if(e?.key!==key)return false;
+   // A boarding follower leaves the pedestrian grid on its short approach to a side door.
+   if(e.ride==='to-cab'&&job.cab.phase==='waiting'){
+    const doors=root.VoidRoadTaxiRules?.doorPoints?.(job.cab)||[];
+    return doors.slice(0,2).some(d=>Math.hypot(here.x-d.x,here.z-d.z)<=6);
+   }
+   if(e.ride!=='in-cab')return false;
    const seat=root.VoidRoadTaxiRules?.companionSeat?.(job.cab);
    return !!(seat&&Number.isFinite(seat.x)&&Number.isFinite(seat.z)&&Math.hypot(here.x-seat.x,here.z-seat.z)<=4);
   }catch{return false;}
