@@ -32,6 +32,7 @@ const dir=path.resolve(__dirname,'..');
    await card.getByText('Undo curve edit',{exact:true}).click();assert.equal(await card.getByLabel('Level (%)').inputValue(),'100');
    await card.getByText('Redo curve edit',{exact:true}).click();assert.equal(await card.getByLabel('Level (%)').inputValue(),'40');
    await card.getByLabel('Interpolation').selectOption('smooth');await p.locator('.cs-bar').press('ArrowRight');
+   await p.locator('[data-presetname]').fill('Fixture curve');await p.locator('[data-savepreset]').click();
    await p.locator('[data-apply]').click();
    await p.getByRole('button',{name:'Save draft',exact:true}).click();await p.waitForFunction(()=>catalogFixture.draft.revision===1);
    const modifier=await p.evaluate(()=>catalogFixture.draft.content.items.find(it=>it.id==='district-espresso').consumable.modifiers[0]);
@@ -41,6 +42,11 @@ const dir=path.resolve(__dirname,'..');
    await p.getByLabel('Search',{exact:true}).fill('espresso');assert.equal(await p.locator('[data-picker] option').count(),2);
    await p.getByRole('button',{name:'Duplicate selected'}).click();await p.getByRole('button',{name:'Save draft',exact:true}).click();
    assert.equal(await p.evaluate(()=>catalogFixture.draft.content.items.length),startingCount+2);assert.deepEqual(errors,[]);
+   const downloadPromise=p.waitForEvent('download');await p.locator('[data-catalog=export]').click();const download=await downloadPromise;
+   const stream=await download.createReadStream(),parts=[];for await(const part of stream)parts.push(part);
+   const bytes=Buffer.concat(parts),json=JSON.parse(bytes);assert.deepEqual(json.presets[0].modifiers[0].curve,modifier.curve);
+   await p.locator('[data-import]').setInputFiles({name:'roundtrip.json',mimeType:'application/json',buffer:bytes});
+   await p.getByRole('button',{name:'Save draft',exact:true}).click();assert.deepEqual(await p.evaluate(()=>catalogFixture.draft.content),json);
    console.log(name,'passed item creation, independent kiosk price, saved draft, publish, search and duplication');
   }finally{await b.close();}
  }
