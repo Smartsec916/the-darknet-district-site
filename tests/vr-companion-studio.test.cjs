@@ -63,3 +63,12 @@ test('mobile theme defaults to dark, toggles, persists and does not depend on au
 test('template categories only expose existing clips and keyframes are sorted, replaceable, and rig-specific',()=>{
  assert.deepEqual(studio.templateClips(['idle','slow-dance','wave','slow-dance'],'Dancing'),['slow-dance']);assert.deepEqual(studio.templateClips(['idle'],'Combat'),[]);const joints=[{joint:'Arm',rotation:[0,0,0,1]}];assert.throws(()=>studio.addPoseFrame([],1,joints));let f=studio.addPoseFrame([],0,joints);f=studio.addPoseFrame(f,2,joints);f=studio.addPoseFrame(f,1,joints);assert.deepEqual(f.map(x=>x.time),[0,1,2]);f=studio.addPoseFrame(f,1,[{joint:'Arm',rotation:[0,1,0,0]}]);assert.equal(f.length,3);assert.throws(()=>studio.addPoseFrame(f,3,[{joint:'Leg',rotation:[0,0,0,1]}]));
 });
+
+test('authored interaction choices and nested responses survive companion transfer',async()=>{
+ const interactionTree=[{prompt:'Join me',reply:'I will.',action:'sit',children:[{prompt:'Show me',reply:'',action:'clip:wave',children:[]}]}];
+ const data=studio.profile({interactionTree});
+ const {meta}=await studio.unpackTransfer(studio.packTransfer(data,[]));
+ assert.deepEqual(studio.profile(meta).interactionTree,interactionTree);
+ assert.deepEqual(studio.presetProfile('friendly',data,true).interactionTree,interactionTree);
+ assert.throws(()=>studio.profile({interactionTree:[{...interactionTree[0],prompt:'<b>'}]}));
+});

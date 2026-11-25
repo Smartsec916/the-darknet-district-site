@@ -303,17 +303,34 @@
    function reseat(){if(c.youSeat)api.sit({...c.youSeat,text:'You settle back in.'});c.youSeat=null;}
    function joinSofa(){reseat();walkTo(...S.sofa.from,()=>{sitOnSofa();c.withYou=true;remark('sit');},true);}
    // ---- Conversation and things to do together, from the choice menu ----
+   let nextChoices=null;
+   function customChoice(n){
+    const run=()=>{
+     nextChoices=n.children?.length?n.children:null;
+     if(n.action==='sit')return sitTogether();
+     if(n.action==='dance')return dance(true);
+     if(n.action==='follow')return followMe();
+     if(n.action==='stay')return stayHere();
+     if(n.action?.startsWith('clip:'))return perform([n.action.slice(5)]);
+     if(nextChoices)return menu();
+     after();
+    };
+    if(n.reply)say(self,n.reply,run);else run();
+   }
    function menu(){const far=Math.hypot(walker.x-node.position.x,walker.z-node.position.z)>2.8&&!c.sitting,never=['Never mind',()=>{resumeWalking();idle();},'Leave'];
     const atHome=Math.hypot(node.position.x-home[0],node.position.z-home[1])<.4;
     const commands=[...(c.mode!=='follow'?[['Follow me',followMe,'Together']]:[]),...(c.mode!=='stay'?[['Stay here',stayHere,'Together']]:[]),...(c.mode!=='free'||!atHome?[['Go back to your spot',goBack,'Together']]:[])];
-    const together=[['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop':'Dance together',()=>dance(),'Together']];
+    const custom=nextChoices||who.interactionTree||[];const nested=!!nextChoices;nextChoices=null;
+    const authored=custom.map(n=>[escapeText(n.prompt),()=>customChoice(n),'Interactions']);
+    if(nested){ask2(self,'',[...authored,never]);return;}
+    const together=[...(who.interactionTree?[]:[['Sit together',()=>sitTogether(),'Together']]),[c.dancing?'Stop':'Dance together',()=>dance(),'Together']];
     // Motion-capture moves from the shared library (anim-library.js), offered only to a companion whose figure took them.
     const lib=self.library||[],offer=(label,ids)=>ids.some(i=>lib.includes(i))?[[label,()=>perform(ids),'Together']]:[],moves=c.dancing?[]:[...offer('Dance for me',['ac-sensual-dance-3','ac-sensual-movement-1']),...offer('Strike a pose',['ac-stand-curve-2','ac-stand-curve-3']),...offer('Relax on the floor',['ac-ground-pose-2','ac-ground-pose-3','ac-ground-pose-4'])];
     const localMoves=(self.localMotions||[]).map(id=>[String(globalThis.VoidVRCompanionStudio?.motionName(id)||'Imported motion').replace(/[<>&]/g,''),()=>perform([id]),'Imported animations']);
     const opts=far?[['Come over here',comeHere,'Together'],...together,...commands,never]:
      [...(talks?[['Chat',chat,'Talk'],['Compliment them',compliment,'Talk'],['Flirt',flirt,'Talk']]:[]),...together,...moves,...(has('recline')&&!others(self).some(o=>o.c.reclining)?[['Lie back together',()=>recline(),'Together']]:[]),
       ['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...localMoves,...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];
-    const opening=c.greeted?C.pick(L.chat,mem,'menu'):C.pick(L.greet,mem,'greet');c.greeted=true;ask2(self,far?C.pick(L.approach,mem,'menu-far'):opening,opts);}
+    const opening=c.greeted?C.pick(L.chat,mem,'menu'):C.pick(L.greet,mem,'greet');c.greeted=true;ask2(self,far?C.pick(L.approach,mem,'menu-far'):opening,[...authored,...opts]);}
    const after=()=>{resumeWalking();idle();};
    function comeHere(){resumeWalking();c.mode=c.mode==='stay'?'free':c.mode;remark('comeHere');approach(()=>gesture('greet'));}
    function chat(){say(self,C.pick(L.chat,mem,'chat'),after);gesture(Math.random()<.4?'laugh':'idleAlt');}
@@ -321,7 +338,7 @@
    function flirt(){c.affection++;say(self,C.pick(L.flirt,mem,'flirt'),after);gesture('flirt');}
    function sitTogether(){c.dancing=false;resumeWalking();c.withYou=true;walkTo(...S.sofa.from,sitOnSofa,true);api.sit({...(party2?pairSeat:seats.sofa),text:C.pick(L.sit,mem,'sit')||'You sit down together.'});}
    /* One of the library's moves, held until the player chooses Stop (it uses the dancing state, so everything that ends a dance ends it too). */
-   function perform(ids){const have=ids.filter(i=>(self.library||[]).includes(i));if(!have.length)return dance();stand(true);c.danceClip=have[Math.floor(Math.random()*have.length)];c.dancing=true;anim.play(c.danceClip);resumeWalking();}
+   function perform(ids){const have=ids.filter(i=>has(i)||(self.library||[]).includes(i)||(self.localMotions||[]).includes(i));if(!have.length){resumeWalking();return;}stand(true);c.danceClip=have[Math.floor(Math.random()*have.length)];c.dancing=true;anim.play(c.danceClip);resumeWalking();}
    function dance(asked){if(c.dancing&&!asked){c.dancing=false;idle();resumeWalking();return;}stand(true);
     c.danceClip=Math.random()<(.25+cfg.flirtatiousness*.2)&&has(clip('playfulDance'))?clip('playfulDance'):clip('dance');c.dancing=true;
     {const slow=['ac-sensual-dance-3','ac-sensual-movement-1'].filter(i=>(self.library||[]).includes(i));if(slow.length&&Math.random()<.45)c.danceClip=slow[Math.floor(Math.random()*slow.length)];}   // sometimes one of the motion-capture dances
