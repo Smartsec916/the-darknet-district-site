@@ -726,6 +726,27 @@
   const prepared=preparedModel(rec);
   if(prepared)main.append(btn('Assign to world draft',()=>{startMake();Object.assign(ui.make,{model:prepared.asset,name:rec.name,step:1});draw();}));
   main.append(el('p',(prepared?'NPC Library · Ready to assign · ':'Local import draft · kept in this browser · ')+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
+  if(prepared?.profileFile&&!rec.companion){
+   const feedback=el('span','','me-small',{role:'status'});
+   const load=btn('Load personality and recordings',async()=>{
+    load.disabled=true;
+    try{
+     await ensureCompanionImporter();
+     const response=await fetch(prepared.profileFile);
+     if(!response.ok)throw Error('Could not load the prepared profile.');
+     const bytes=await root.VoidAssets.open(await response.arrayBuffer());
+     const {meta,parts}=await root.VoidVRCompanionStudio.unpackTransfer(new Blob([bytes]));
+     const profile=root.VoidVRCompanionStudio.profile(meta);
+     const voices=parts.filter(part=>part.meta.kind==='voice').map(part=>({record:part.meta.record,blob:part.blob}));
+     const recorded=new Set(voices.map(v=>v.record.text));
+     rec.companion={...meta,...profile,voices,recordedLineCount:recorded.size,
+      missingVoiceLines:Object.values(profile.dialogue).flat().filter(line=>!recorded.has(line)),
+      animationNames:prepared.clips,motions:[]};
+     draw();
+    }catch(err){feedback.textContent=err.message;load.disabled=false;}
+   });
+   main.append(load,feedback);
+  }
   if(rec.companion){
    const p=rec.companion,summary=el('section','','me-check',{'data-npc-companion-profile':'1'});
    summary.append(el('h4','Imported companion profile'),el('p',p.about||'No personality description','me-small'),
