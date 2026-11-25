@@ -1,7 +1,7 @@
 /* HOTEL HEADSHOTS: deterministic rules shared by the browser and Node tests. */
 (function(root){
  'use strict';
- const SIZE=31,TILE=2.4,MAX_AMMO=48;
+ const SIZE=31,TILE=2.4;
  const DIFFICULTIES={casual:{speed:.78,theft:140,count:.8},standard:{speed:1,theft:220,count:1},checkout:{speed:1.18,theft:320,count:1.25}};
  const THEMES=[
   {name:'Reception',subtitle:'WELCOME. YOUR WALLET IS EXPECTED.',wall:'#202630',carpet:'#272033',accent:'#ff4ca8',count:10},
@@ -12,7 +12,7 @@
  ];
  function level(index){
   const grid=Array.from({length:SIZE},(_,z)=>Array.from({length:SIZE},(_,x)=>x===0||z===0||x===SIZE-1||z===SIZE-1?'#':'.'));
-  const doors=[],props=[],refills=[[11,3],[18,15],[23,27]],spawns=[],roomLabels=[],rooms=[],obstacles=[];
+  const doors=[],props=[],spawns=[],roomLabels=[],rooms=[],obstacles=[];
   const wall=(x1,z1,x2,z2)=>{for(let z=z1;z<=z2;z++)for(let x=x1;x<=x2;x++)grid[z][x]='#';};
   const door=(x,z,label)=>{grid[z][x]='D';doors.push({x,z,label,open:false});};
   const prop=(kind,x,z,extra={})=>{props.push({kind,x,z,...extra});if(['desk','couch','bed','bar','tub','dining-table','buffet','mini-fridge','room-desk'].includes(kind))grid[z][x]='F';};
@@ -73,7 +73,7 @@
   for(const x of [4,9,21,26])art(world(x),world(6)-1.26,0,'lobby');
   for(const x of [4,17,22])art(world(x),world(30)-1.26,0,'pool');
   art(world(28),world(30)-1.26,0,'stairs');
-  return {index,theme:THEMES[index],grid,doors,props,refills,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,stairways,exits,start:[12,2],stairs:[28,28],down:[28,25],landing:[28,26.5],reception:[12,4],receptionNPC:[11.65,4.65]};
+  return {index,theme:THEMES[index],grid,doors,props,spawns,roomLabels,rooms,pool,dining,obstacles,artworks,stairways,exits,start:[12,2],stairs:[28,28],down:[28,25],landing:[28,26.5],reception:[12,4],receptionNPC:[11.65,4.65]};
  }
  function inside(bounds,p){const x=cell(p.x),z=cell(p.z);return x>=bounds[0]&&x<=bounds[2]&&z>=bounds[1]&&z<=bounds[3];}
  function residents(map,count){return Array.from({length:count},(_,i)=>{const room=map.rooms[i%map.rooms.length];let role,point;
@@ -90,16 +90,16 @@
   if(!prev.has(end))return [];const route=[];for(let k=end;k!==start;k=prev.get(k))route.unshift({x:world(k%SIZE),z:world(Math.floor(k/SIZE))});return route;
  }
  function sight(map,a,b){const dist=Math.hypot(b.x-a.x,b.z-a.z),steps=Math.ceil(dist/.3);for(let i=1;i<steps;i++){const f=i/steps;if(blocked(map,cell(a.x+(b.x-a.x)*f),cell(a.z+(b.z-a.z)*f)))return false;}return true;}
- // Foam leaves the nozzle with a little pressure variation, then falls under gravity.
- function foamVelocity(direction,pressure=.5){const speed=34*(.92+.16*Math.max(0,Math.min(1,pressure)));return {x:direction.x*speed,y:direction.y*speed,z:direction.z*speed};}
- function foamStep(velocity,dt){const delta={x:velocity.x*dt,y:velocity.y*dt-4.9*dt*dt,z:velocity.z*dt};velocity.y-=9.8*dt;return delta;}
- function newRun(difficulty='standard'){return {difficulty:DIFFICULTIES[difficulty]?difficulty:'standard',floor:0,money:10250,ammo:MAX_AMMO,repelled:0,paid:false,topReached:false,raid:false,caught:false,ended:false,won:false,time:0};}
+ // Each load leaves the nozzle with a little pressure variation, then falls under gravity.
+ function loadVelocity(direction,pressure=.5){const speed=34*(.92+.16*Math.max(0,Math.min(1,pressure)));return {x:direction.x*speed,y:direction.y*speed,z:direction.z*speed};}
+ function loadStep(velocity,dt){const delta={x:velocity.x*dt,y:velocity.y*dt-4.9*dt*dt,z:velocity.z*dt};velocity.y-=9.8*dt;return delta;}
+ function newRun(difficulty='standard'){return {difficulty:DIFFICULTIES[difficulty]?difficulty:'standard',floor:0,money:10250,repelled:0,paid:false,topReached:false,raid:false,caught:false,ended:false,won:false,time:0};}
  function pay(run){if(run.paid||run.ended)return false;run.money=10000;run.paid=true;return true;}
  function steal(run){if(!run.paid||run.ended)return 0;const amount=Math.min(run.money,DIFFICULTIES[run.difficulty].theft+run.floor*45);run.money-=amount;if(!run.money)run.ended=true;return amount;}
  function hit(npc,part){if(npc.retreat)return 0;const damage=part==='head'?100:part==='arm'?15:50;npc.resistance=Math.max(0,npc.resistance-damage);if(npc.resistance===0)npc.retreat=true;return damage;}
  function advance(run,direction){if(!run.paid||run.ended)return false;if(direction<0){run.floor=Math.max(0,run.floor-1);return true;}if(run.floor===4)return false;run.floor++;if(run.floor===4){run.topReached=true;run.raid=true;}return true;}
 
  function leaderboard(entries,result){return [...(Array.isArray(entries)?entries:[]).filter(e=>e&&Number.isFinite(e.money)&&e.money>=0&&e.money<=10000&&Object.hasOwn(DIFFICULTIES,e.difficulty)).slice(0,20),...((result?.won||(result?.caught&&result?.topReached))?[{money:result.money,difficulty:result.difficulty,time:Math.round(result.time),date:new Date().toISOString().slice(0,10)}]:[])].sort((a,b)=>b.money-a.money||a.time-b.time).slice(0,10);}
- const api={SIZE,TILE,MAX_AMMO,DIFFICULTIES,THEMES,level,inside,residents,cell,world,blocked,fits,path,sight,foamVelocity,foamStep,newRun,pay,steal,hit,advance,leaderboard};
+ const api={SIZE,TILE,DIFFICULTIES,THEMES,level,inside,residents,cell,world,blocked,fits,path,sight,loadVelocity,loadStep,newRun,pay,steal,hit,advance,leaderboard};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.HotelRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

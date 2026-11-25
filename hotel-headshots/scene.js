@@ -8,7 +8,7 @@
   const hemi=new B.HemisphericLight('ambient',V(.1,1,.2),scene);hemi.intensity=.85;hemi.groundColor=B.Color3.FromHexString('#41463d');
   const sun=new B.DirectionalLight('window light',V(-.4,-1,.3),scene);sun.position=V(24,12,12);sun.intensity=1.15;sun.diffuse=B.Color3.FromHexString('#fff0d1');
   const shadow=settings.shadows?new B.ShadowGenerator(1024,sun):null;if(shadow){shadow.usePercentageCloserFiltering=true;shadow.filteringQuality=B.ShadowGenerator.QUALITY_LOW;shadow.bias=.002;shadow.normalBias=.03;}
-  const materials={},statics=[],doors=[],objects=[],curtains=[],refills=[],mirrors=[];
+  const materials={},statics=[],doors=[],objects=[],curtains=[],mirrors=[];
   function mat(name,color,rough=.7,metal=0){if(materials[name])return materials[name];const m=new B.PBRMaterial(name,scene);m.albedoColor=B.Color3.FromHexString(color);m.roughness=rough;m.metallic=metal;m.environmentIntensity=.5;materials[name]=m;return m;}
   const gold=mat('scuffed steel','#65717b',.62,.65),wood=mat('battered laminate','#242630',.86),stone=mat('stained composite','#657477',.55,.1),dark=mat('painted metal','#10151e',.55,.3),cloth=mat('upholstery',map.theme.carpet,.94),white=mat('linen','#9da9ab',.9),leaf=mat('leaves','#294c3b',.8),glass=mat('bottle glass','#2d7767',.18,.25);
   const wallpaper=mat('wallpaper',map.theme.wall,.92),carpet=mat('carpet',map.theme.carpet,1),ceiling=mat('ceiling','#282a31',.95);
@@ -106,7 +106,6 @@
   if(map.dining){sign('NIGHT BITES / NOODLES + COFFEE',[57.6,2.45,13.15],5,.65);const light=new B.PointLight('food area practical',V(55.2,2.8,8),scene);light.diffuse=new B.Color3(1,.77,.53);light.intensity=2;light.range=16;box('food pendant',[55.2,3.1,8],[1.4,.16,.35],dark);box('food diffuser',[55.2,3,8],[1.3,.04,.25],white);}
   // Pleated curtains sway on contact; small objects can be knocked over.
   for(const zc of [8,14])for(const xc of [1,19]){const x=R.world(xc),z=R.world(zc),n=new B.TransformNode('curtain',scene);n.position=V(x,3.2,z);for(let i=0;i<9;i++){const m=box('pleated velvet',[0,-1.25,(i-4)*.17],[.13+Math.sin(i)*.04,2.5,.19],cloth,n,true);m.metadata={curtain:n};}curtains.push({node:n,sway:0});cylinder('curtain finial',[x,3.3,z],.12,.22,gold);}
-  for(const [gx,gz] of map.refills){const x=R.world(gx),z=R.world(gz);const n=new B.TransformNode('refill',scene);n.position=V(x,0,z);cylinder('foam tank',[0,.65,0],1.25,.55,white,n,true);box('refill case',[0,.35,.2],[.9,.7,.6],dark,n,true);sign('E · FREE FOAM',[x,1.6,z-.35],1.9,.45);refills.push({x,z});}
   for(const [text,x,z] of map.roomLabels)sign(text,[R.world(x),3.1,R.world(z)],3,.45);
   // Original botanical paintings share one atlas and real wood frames across the hotel.
   const frameWood=mat('walnut picture frames','#82512f',.78),frameEdge=mat('dark walnut inset','#42291c',.86);
@@ -146,7 +145,7 @@
   const windows=HotelWindows.build(scene,camera,map);
   const characters=HotelCharacters.prepare(scene,shadow);
   const person=characters.person;
-  function weapon(){const n=new B.TransformNode('foam blaster',scene);n.parent=camera;n.position=V(0,-.21,.28);n.scaling=V(.62,.72,.72);const tan=mat('blaster tan','#b89a72',.65,.04);const barrel=cylinder('foam pressure barrel',[0,0,.1],.47,.17,tan,n,true);barrel.rotation.x=Math.PI/2;const nozzle=cylinder('tan nozzle',[0,0,.37],.1,.1,tan,n,true);nozzle.rotation.x=Math.PI/2;box('tan grip',[0,-.12,-.07],[.12,.24,.13],tan,n,true);const grip=new B.TransformNode('blaster pump grip',scene);grip.parent=n;grip.position=V(0,.025,.16);sphere('rounded grip body',[0,-.075,.025],[.24,.16,.16],tan,grip,true);for(const y of [-.015,-.075,-.135])sphere('rounded grip ridge',[-.012,y,-.055],[.235,.065,.105],tan,grip,true);const thumb=sphere('grip side bolster',[.095,-.07,.035],[.085,.17,.13],tan,grip,true);thumb.rotation.z=-.25;n.metadata={pumpGrip:grip};for(const m of n.getChildMeshes()){m.isPickable=false;m.renderingGroupId=1;}return n;}
+  function weapon(){const n=new B.TransformNode('load blaster',scene);n.parent=camera;n.position=V(0,-.21,.28);n.scaling=V(.62,.72,.72);const tan=mat('blaster tan','#b89a72',.65,.04);const barrel=cylinder('load pressure barrel',[0,0,.1],.47,.17,tan,n,true);barrel.rotation.x=Math.PI/2;const nozzle=cylinder('tan nozzle',[0,0,.37],.1,.1,tan,n,true);nozzle.rotation.x=Math.PI/2;box('tan grip',[0,-.12,-.07],[.12,.24,.13],tan,n,true);const grip=new B.TransformNode('blaster pump grip',scene);grip.parent=n;grip.position=V(0,.025,.16);sphere('rounded grip body',[0,-.075,.025],[.24,.16,.16],tan,grip,true);for(const y of [-.015,-.075,-.135])sphere('rounded grip ridge',[-.012,y,-.055],[.235,.065,.105],tan,grip,true);const thumb=sphere('grip side bolster',[.095,-.07,.035],[.085,.17,.13],tan,grip,true);thumb.rotation.z=-.25;n.metadata={pumpGrip:grip};for(const m of n.getChildMeshes()){m.isPickable=false;m.renderingGroupId=1;}return n;}
   const policeTracer=mat('police tracer','#ffca66',.5);policeTracer.emissiveColor=new B.Color3(1,.65,.2);
   function officer(id){
    const node=new B.TransformNode('police officer '+id,scene),uniform=mat('police navy','#182737',.9),armor=mat('police armor','#303b43',.72),skin=mat('officer skin','#a37e60',.9),visor=mat('police visor','#536b78',.3,.3);
@@ -160,7 +159,7 @@
    for(const mesh of node.getChildMeshes())shadow?.addShadowCaster(mesh);
    return {node,animate(time,firing){legs[0].rotation.x=Math.sin(time)*.38;legs[1].rotation.x=-Math.sin(time)*.38;torso.rotation.z=Math.sin(time)*.015;flash.setEnabled(firing);}};
   }
-  return {scene,camera,shadow,windows,artworkMeshes,person,officer,policeTracer,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,refills,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
+  return {scene,camera,shadow,windows,artworkMeshes,person,officer,policeTracer,weapon,ready:characters.ready,readyState:false,doors,objects,curtains,sign,ground,update(dt){windows.update(dt);for(const d of doors){d.angle+=(Number(d.data.open)*1.5-d.angle)*Math.min(1,dt*7);d.hinge.rotation.y=d.base+d.angle;d.mesh.isPickable=!d.data.open;}for(const o of objects)if(o.fall){o.fall=Math.min(1.7,o.fall+dt*4);o.node.rotation.z=o.fall;o.node.position.y=o.base-.08*Math.sin(o.fall);}for(const c of curtains){c.sway=Math.max(0,c.sway-dt);c.node.rotation.x=Math.sin(performance.now()*.016)*c.sway*.14;}}};
  }
  root.HotelScene={build};
 })(globalThis);
