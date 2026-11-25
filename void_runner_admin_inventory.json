@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "30a5a66921f30b87",
+  "revision": "09df16cee495d80b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79583,13 +79583,13 @@
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 549,
+      "line": 550,
       "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms,hardEnd:now+MAX_LINE-250};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 579,
+      "line": 580,
       "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};",
       "kind": "source-reference"
     },
@@ -80986,7 +80986,7 @@
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "ff140346e56ce4d0d43aa0baf45551daf7e49204ffdd58aea907b0bfa5fe241a",
+    "void-runner/input-state.js": "79f89975a1d155b07e83f5d0b4a608f387153966285f54a61de7ce1c735f30a5",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
@@ -81023,7 +81023,7 @@
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
     "void-runner/mission-trees.js": "2baba4dedd1e25f5eb502812a97f8d03324c1d83a3615571bca537ae73f266d8",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "ec7d7f4df27ae5572f886ed2cb63da8dd33afdbe0cad60020bdaebb76891a68e",
+    "void-runner/module-build.js": "a77ce029aceb9b3a70c3a9f9059c599864a5ab0963c7410bcc513a1697610c38",
     "void-runner/module-editor.js": "be5789fdec950e6c04f769ea8303cc8594ccfe0a053866cfaaf643936028df43",
     "void-runner/module-integration.js": "0100e004d16e983a56b43bad3c1dab50414163210043fcc8f22b621b0c2c3ef8",
     "void-runner/modules.js": "baac3cc82c2f01a78418e588c7ec1210a99d392cc759c4bc710b6af49e240c3f",
@@ -81037,7 +81037,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "3a2e038547e5191a3de2a9cff1e76d247c85e32b806c6e7341ec403c5b6fce34",
+    "void-runner/ncz-backalleys.js": "63d21c5a2d8d9b5a2acb46313ea3b28eca19d7bfa333f4d7d6a60fdf42d44a97",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "4ff09dd574ba38896c1f15076e8987c4ca13fbaff2d5a0919a9a4867f57ce542",
@@ -81129,7 +81129,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "efcadb0198f8be07f37bbe7928e0af28950e24a43612fd9fee7569ba368cb167",
+    "void-runner/tea-duo.js": "974f73e9bf49f284d8d65af0242dc227afdc1f8551d12dad48dccd53aa87b029",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
@@ -81142,7 +81142,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "a02fcaaa7f99752cd8312d922684a36d3a1867ea87018163ef491614b93e86f1",
+    "void-runner/voice-clips.js": "a2fc5106599175d02bd4d19878db57af671c60bbd5f8b6715a683834e08067bf",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
