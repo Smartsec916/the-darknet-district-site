@@ -29,7 +29,7 @@ async function ready(page) {
     });
     await offline(page);
     await ready(page);
-    await page.getByRole('button', { name: 'LOCAL PLAY · RANKINGS OFFLINE' }).waitFor();
+    await page.getByRole('button', { name: 'LOCAL PLAY Â· RANKINGS OFFLINE' }).waitFor();
     await page.locator('#district-account-toggle').click();
     assert.match(await page.locator('#district-account-panel').innerText(), /no ranked score was submitted/i);
     await page.locator('#district-account-panel header button').click();
@@ -149,25 +149,24 @@ async function ready(page) {
       localStorage.setItem('blackout_protocol_save_v1', JSON.stringify({...window.__BP.save(), unlocked: 4}));
       localStorage.setItem('blackout-test-uid', 'uidA');
     });
+    // The guest UI mounts before the asynchronous account save switch completes.
     await signed.reload();
-    await signed.waitForFunction(() => Boolean(window.__BP));
-    // Wait for the page to finish switching to account A (slow runners read the guest save for a moment), then check it did not inherit the guest's progress.
-    await signed.waitForFunction(() => window.__BP.save().unlocked === 1, null, { timeout: 30000 }).catch(() => {});
+    await signed.waitForFunction(value => window.__BP?.save().unlocked === value, 1);
     assert.equal(await signed.evaluate(() => window.__BP.save().unlocked), 1, 'account A does not inherit guest progress');
     await signed.evaluate(() => {
       localStorage.setItem('blackout_protocol_save_v1_uid_uidA', JSON.stringify({...window.__BP.save(), unlocked: 3}));
       localStorage.setItem('blackout-test-uid', 'uidB');
     });
     await signed.reload();
-    await signed.waitForFunction(() => Boolean(window.__BP));
+    await signed.waitForFunction(value => window.__BP?.save().unlocked === value, 1);
     assert.equal(await signed.evaluate(() => window.__BP.save().unlocked), 1, 'account B does not inherit account A progress');
     await signed.evaluate(() => localStorage.setItem('blackout-test-uid', 'uidA'));
     await signed.reload();
-    await signed.waitForFunction(() => Boolean(window.__BP));
+    await signed.waitForFunction(value => window.__BP?.save().unlocked === value, 3);
     assert.equal(await signed.evaluate(() => window.__BP.save().unlocked), 3, 'account A progress returns');
     await signed.evaluate(() => localStorage.removeItem('blackout-test-uid'));
     await signed.reload();
-    await signed.waitForFunction(() => Boolean(window.__BP));
+    await signed.waitForFunction(value => window.__BP?.save().unlocked === value, 4);
     assert.equal(await signed.evaluate(() => window.__BP.save().unlocked), 4, 'original guest progress returns');
     await signed.close();
 
