@@ -266,7 +266,7 @@
    missions:row?.missions||[],apartments:row?.apartments||[],residents:row?.residents||[]};
  }
  // Shared read-only address lookup. Neither editor needs to initialize the other.
- async function readAddressRegistry({shipped=[],cached={},readLive,readDraft,readLocal,companions={}}={}){
+ async function readAddressRegistry({shipped=[],cached={},readLive,readDraft,readLocal,readProperties,companions={}}={}){
   const trees=[...shipped,...(cached.trees||[])],characters={...(cached.characters||{})};let complete=true;
   const missionSources=new Map(),doorSources=new Map();
   const record=(items,source)=>{for(const tree of items)for(const m of tree.missions||[]){
@@ -283,7 +283,17 @@
   try{const live=await readLive();if(!live||live.degraded)complete=false;add(live?.content,'Published');}catch{complete=false;}
   if(readDraft)try{const rec=await readDraft();add(rec?.document?.data?.bundle,'Draft');}catch(e){if(e?.status!==404)complete=false;}
   if(readLocal)try{const d=readLocal();if(d&&d.version!==1)throw Error('Unrecognized draft');add(d,'Local draft');}catch{complete=false;}
-  Object.assign(characters,companions);return {rows:addressRegistry(trees,characters),complete,missionSources,doorSources,trees};
+  Object.assign(characters,companions);
+  const rows=addressRegistry(trees,characters);
+  if(readProperties)try{
+   const assignments=await readProperties();
+   for(const [unit,player] of Object.entries(assignments.units)){
+    const [,door,slot]=unit.split('/');
+    if(!rows.has(door))rows.set(door,{door,missions:[],apartments:[],residents:[]});
+    const row=rows.get(door);(row.players||=[]).push({slot:Number(slot),name:player.name});
+   }
+  }catch{complete=false;}
+  return {rows,complete,missionSources,doorSources,trees};
  }
 
  // ---------------------------------------------------------------- mission data: checks and the instances open now

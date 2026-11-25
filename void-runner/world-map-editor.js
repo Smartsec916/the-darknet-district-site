@@ -9,9 +9,34 @@
    const finite=points.filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1]));
    if(finite.length)paths.push({area,label:name,points:finite});
   }
-  for(const c of m.cast||[])append(c.place,c.name||c.id,c.route?.length?c.route:[[c.x,c.z]]);
+  const A=root.VoidNPCAreas,P=root.VoidPlaces;
+  function area(place,x,z){
+   const entry=P?.node(place)?.enter;
+   return entry?.quarter||(entry?.walk==='darknet-district'?'district':null)||
+    (A.list().some(a=>a.id===place)?place:A.areaOf({x,z}));
+  }
+  function markPlace(id,label){
+   const point=id&&P?.target(id);
+   if(Array.isArray(point))append(area(id,point[0],point[2]),label,[[point[0],point[2]]]);
+  }
+  function markNpc(id,label){
+   if(!id||(m.cast||[]).some(c=>c.id===id))return;
+   const home=root.VoidNPCPaths?.homeOf?.(id);
+   if(home){append(area(null,home.x,home.z),label,[[home.x,home.z]]);return;}
+   const giver=root.VoidLiveContent?.env?.givers?.find(g=>g.id===id);
+   if(!giver)return;
+   if(giver.place){markPlace(giver.place,label);return;}
+   if(!giver.layout||!['darknet-district','sacramento'].includes(giver.enter?.walk))return;
+   const inside=giver.enter.walk==='darknet-district';
+   const scene=root.VoidNeoChinatown?.layout(inside?'interior':'street',giver.enter.quarter);
+   const pos=scene?.interactions?.find(i=>i.id===giver.layout||i.action===giver.layout)?.position;
+   if(pos)append(inside?'district':area(giver.enter.quarter,pos[0],pos[2]),label,[[pos[0],pos[2]]]);
+  }
+  for(const c of m.cast||[])append(area(c.place,c.x,c.z),c.name||c.id,c.route?.length?c.route:[[c.x,c.z]]);
+  if(!m.waitAt)markNpc(m.giver,m.giver);
   if(m.waitAt)append(root.VoidNPCAreas.areaOf(m.waitAt)||m.location,m.giver,[[m.waitAt.x,m.waitAt.z]]);
   for(const o of m.objectives||[]){
+   markPlace(o.place,o.label);if(o.npc)markNpc(o.npc,o.label);
    const p=o.to;if(p&&Number.isFinite(p.x))append(root.VoidNPCAreas.areaOf(p)||m.location,o.label,[[p.x,p.z]]);
   }
   return paths;
@@ -128,6 +153,7 @@
     jump.onclick=async()=>{await M.shared.ensure();M.shared.jumpTo(d.front[0],d.front[1],null,d.name);};detail.append(jump);
    }
   }
+  const paths=new Map(missions().map(m=>[m,missionPaths(m)]));
   let view;
   function filter(){
    view?.dispose();
@@ -141,7 +167,7 @@
    entrance.replaceChildren(...options.map(d=>new Option(root.VoidModuleEditor.doorTitle(d),d.id)));
    if(options.some(d=>d.id===selected))entrance.value=selected;
    summary.textContent=options.length+' entrances'+(registry.complete?'':' · Some assignments could not be loaded.');
-   const routes=layer['Mission routes'].checked?selectedMissions.flatMap(missionPaths):[];
+   const routes=layer['Mission routes'].checked?selectedMissions.flatMap(m=>paths.get(m)||[]):[];
    view=options.length||routes.length?root.VoidModuleEditor.doorMap(entrance,{key:'world-properties',allAreas:true,rows:registry.rows,players,
     entrances:layer.Entrances.checked,geometry:layer.Geometry.checked,routes}):null;
    map.replaceChildren(...(view?[view]:[]));show();

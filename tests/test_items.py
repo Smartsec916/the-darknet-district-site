@@ -138,6 +138,28 @@ class ItemTests(unittest.TestCase):
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
 
+    def test_two_accounts_racing_to_pick_up_one_card(self):
+        from concurrent.futures import ThreadPoolExecutor
+        door = 'apt-avenue-n-16'
+        card_id = 'e'*64
+        self.db.data['vr_keycard_drops/'+card_id] = {'door':door,'card':{
+            'id':card_id,'template':'test-card','name':'Test card','icon':'K','doors':[door],
+            'issuedTo':items._tag('owner'),'pickup':True,'transferable':True,'bearer':True,'expires':0}}
+        barrier = threading.Barrier(2)
+        def collect(uid):
+            barrier.wait(timeout=5)
+            try:
+                items.move_card(self.db, uid, {'card':card_id,'action':'pickup','door':door,'nonce':'pickup-'+uid+'-123'})
+                return True
+            except items.DraftError as error:
+                self.assertIn('unavailable', str(error))
+                return False
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(collect, ['owner','outsider']))
+        self.assertEqual(sorted(results), [False,True])
+        self.assertEqual(sum(card_id in (items._player_ref(self.db,u).get().to_dict() or {}).get('cards',{})
+                             for u in ['owner','outsider']),1)
+
     def test_draft_interior_keycard_needs_a_published_door_before_release(self):
         import void_runner_live_content as world
         c = catalog()

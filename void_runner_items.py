@@ -980,7 +980,9 @@ def purchase(db, uid, payload, now=None):
         if r['remaining'] < qty:
             raise DraftError('Sold out.' if r['remaining'] <= 0 else 'Only %d left.' % r['remaining'], 409, {'code': 'stock', 'stock': r['remaining']})
         have = p['owned'].get(item['id'], 0)
-        if have + qty > item['stack']:
+        if item['kind'] == 'keycard' and qty != 1:
+            raise DraftError('Buy one individual keycard at a time.')
+        if item['kind'] != 'keycard' and have + qty > item['stack']:
             raise DraftError('You cannot carry more than %d of these.' % item['stack'], 409, {'code': 'carry', 'owned': have})
         if balance < cost:
             raise DraftError('Not enough saved credits.', 402, {'code': 'credits', 'cost': cost})

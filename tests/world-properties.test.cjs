@@ -33,3 +33,11 @@ test('moving a mission entrance in a draft keeps each reservation source on the 
  assert.deepEqual([...result.doorSources.get(oldDoor.id+'/mission')],['Published']);
  assert.deepEqual([...result.doorSources.get(newDoor.id+'/mission')],['Local draft']);
 });
+
+test('companion address checks include player occupants without exposing account IDs',async()=>{
+ const door=A.doors()[0];
+ const result=await A.readAddressRegistry({readLive:async()=>({content:{}}),
+  readProperties:async()=>({units:{[A.residenceKey(door.id,1)]:{owner:'private-id',name:'Resident'}}})});
+ assert.equal(result.complete,true);
+ assert.deepEqual(result.rows.get(door.id).players,[{name:'Resident',slot:1}]);
+});
