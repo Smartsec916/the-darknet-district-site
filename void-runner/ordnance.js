@@ -24,8 +24,8 @@
  function select(s,type){if(!TYPES[type]||!s?.progression)return false;s.progression.missileType=type;return true;}
  function set(s,type,value){const v=Math.max(0,Math.min(capacity(s,type),Math.floor(value)||0));if(type==='m2')s.progression.m2=v;else s.progression.missiles=v;return v;}
  /* One type's flight values, scaled by the hull's missile multiplier (ships.js missile.damage). */
- function spec(type,balance=B(),ship=null){const t=TYPES[type]||TYPES.m1,k=t.keys,mul=ship?.missile?.damage||1;
-  return {type:t.id,damage:balance[k.damage]*mul,turn:balance[k.turn],speed:balance[k.speed],blast:balance[k.blast],fuse:balance[k.blast]*.6,seeker:SEEKER,lead:true,lifetime:balance.missileLifetime,range:balance.missileRange};}
+ function spec(type,balance=B(),ship=null,profiles=typeof module!=='undefined'?require('./balance.js').profiles:root.VoidBalance?.profiles){const t=TYPES[type]||TYPES.m1,k=t.keys,mul=ship?.missile?.damage||1;
+  return {...profiles?.[t.id],type:t.id,damage:balance[k.damage]*mul,turn:balance[k.turn],speed:balance[k.speed],blast:balance[k.blast],fuse:balance[k.blast]*.6,seeker:SEEKER,lead:true,lifetime:balance.missileLifetime,range:balance.missileRange};}
  const price=(type,balance=B())=>Math.max(0,Math.round(balance[(TYPES[type]||TYPES.m1).keys.price]||0));
  /* The flight's missile state (flight-runtime-integration.js missileSource): both racks, the selected type's rounds as missilesLoaded. */
  function rack(s,ship=shipOf(s)){const c=counts(s),type=c[selected(s)]>0||c.m1+c.m2===0?selected(s):(c.m1?'m1':'m2');

@@ -57,7 +57,7 @@ function fireMissile(consequences=campaignMissileFireConsequences){
  combatLog('launch',{type,guided:!!missile.target,target:missile.target?.className||null});
  // Preserve trial isolation and persist before cooldown, lock reset, audio and HUD.
  if(!devMissileTrial)consequences?.fired?.(missileState.missilesLoaded,type);
- missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',ship,missile,flightBasis());globalThis.VoidFlightFx?.launch(missile);updateMissileHud();
+ missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event(missile.launchSound||'missile',ship,missile,flightBasis());globalThis.VoidFlightFx?.launch(missile);updateMissileHud();
 }
 canvas.addEventListener('contextmenu',event=>{if(mode==='play')event.preventDefault();});
 canvas.addEventListener('pointerdown',event=>{if(mode==='play'&&VoidInputState.current.movement&&event.button===2){event.preventDefault();fireMissile();}});
@@ -72,10 +72,10 @@ function stepMissileCombat(dt,velocity){
  globalThis.VoidFlightSfx?.lockTone(!VoidMissiles.ready(missileState)||missileCooldown>0?'off':missileLock.progress>=1?'locked':missileLock.target?'seeking':'off',missileLock.progress);
  stepEnemyMissiles(dt,velocity);
  for(const m of missiles){const from={x:m.x,y:m.y,z:m.z},wasLost=m.lost;
-  VoidMissiles.step(m,dt,velocity,missileBalance(),enemies,(e,damage,direct)=>{if(direct)combatLog('hit',{type:m.type||'m1',target:e.className,damage:Math.round(damage*10)/10,age:Math.round(m.age*100)/100});hitEnemy(e,damage);});
+  VoidMissiles.step(m,dt,velocity,missileBalance(),enemies,(e,damage,direct)=>{if(direct)combatLog('hit',{type:m.type||'m1',target:e.className,damage:Math.round(damage*10)/10,age:Math.round(m.age*100)/100});hitEnemy(e,damage,undefined,VoidBalance.profiles[m.type]);});
   if(!wasLost&&m.lost)combatLog('lost',{type:m.type||'m1',target:m.target?.className||null,age:Math.round(m.age*100)/100});
   if(!m.dead&&globalThis.VoidFlightSkirmish?.blocksSegment(from,m,1)){m.dead=true;m.detonated={x:m.x,y:m.y,z:m.z,hit:false};}
-  if(m.dead&&m.detonated){const big=m.type==='m2';VoidCombatEffects.explode(m.detonated,big?'large':'missile');VoidAudio.event('explosion',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)),m.detonated,flightBasis());if(!m.detonated.hit)combatLog('miss',{type:m.type||'m1',lost:!!m.lost,age:Math.round(m.age*100)/100});}
+  if(m.dead&&m.detonated){const big=m.type==='m2';VoidCombatEffects.explode(m.detonated,m.impactStyle||(big?'large':'missile'));VoidAudio.event(m.impactSound||'explosion',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)),m.detonated,flightBasis());if(!m.detonated.hit)combatLog('miss',{type:m.type||'m1',lost:!!m.lost,age:Math.round(m.age*100)/100});}
   // exhaust trail: a puff every 25 ms where the motor was (moves with the world like everything else in flight)
   if(!m.dead){m.puff=(m.puff||0)-dt;if(m.puff<=0){m.puff=.025;missileTrail.push({x:m.x-m.direction.x*.6,y:m.y-m.direction.y*.6,z:m.z-m.direction.z*.6,age:0,life:m.type==='m2'?2.4:1.8,size:m.type==='m2'?1.3:.95,heavy:m.type==='m2'});}}}
  for(const p of missileTrail){p.age+=dt;p.x-=velocity.x*dt;p.y-=velocity.y*dt;p.z-=velocity.z*dt;}

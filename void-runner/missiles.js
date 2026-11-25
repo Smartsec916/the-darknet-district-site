@@ -14,7 +14,7 @@
   if(!ready(s)||cooldown>0||(guided&&(lock.progress<1||!lock.target))||lock.target?.dead||((lock.target?.relationship||lock.target?.allegiance)&&(lock.target.relationship||lock.target.allegiance)!=='hostile')||(lock.target&&Math.hypot(lock.target.x,lock.target.y,lock.target.z)>balance.missileRange))return null;
   s.missilesLoaded--;const g=o.origin||{right:1.4,up:.6,forward:0},at=k=>basis.r[k]*g.right+basis.u[k]*g.up+basis.f[k]*(g.forward||0);
   const m={x:at('x'),y:at('y'),z:at('z'),direction:{...basis.f},target:guided?lock.target:null,life:o.lifetime??balance.missileLifetime,distance:0,damage:o.damage??balance.missileDamage,age:0};
-  for(const k of ['type','turn','speed','blast','fuse','seeker','range','lead'])if(o[k]!=null)m[k]=o[k];return m;
+  for(const k of ['type','turn','speed','blast','fuse','seeker','range','lead','splashCurve','impactStyle','launchSound','impactSound'])if(o[k]!=null)m[k]=o[k];return m;
  }
  /* Guidance with a turn-rate limit (m.turn rad/s) and a seeker cone (m.seeker): a target that turns outside the cone is lost and the round flies on (a miss).
     m.fuse: proximity fuse distance; m.blast: blast radius, ships inside it take falloff damage. m.detonated is set where it went off (for the explosion). */
@@ -30,7 +30,7 @@
   const hostile=e=>!e.dead&&(!(e.relationship||e.allegiance)||(e.relationship||e.allegiance)==='hostile');
   for(const e of enemies)if(hostile(e)&&M.segmentHit(from,m,e,Math.max(e.size*2.1,e===m.target&&!m.lost?m.fuse||0:0))){
    m.dead=true;m.detonated={x:m.x,y:m.y,z:m.z,hit:true};hit(e,m.damage,true);
-   if(m.blast>0)for(const o of enemies)if(o!==e&&hostile(o)){const d=Math.hypot(o.x-m.x,o.y-m.y,o.z-m.z);if(d<m.blast+o.size)hit(o,m.damage*.5*Math.max(0,1-d/(m.blast+o.size)),false);}
+   if(m.blast>0)for(const o of enemies)if(o!==e&&hostile(o)){const d=Math.hypot(o.x-m.x,o.y-m.y,o.z-m.z);if(d<m.blast+o.size)hit(o,m.damage*(typeof module!=='undefined'?require('./equipment-profiles.js'):root.VoidEquipmentProfiles).splash(d/(m.blast+o.size),m.splashCurve),false);}
    break;}
   if(!m.dead&&(m.life<=0||m.distance>=(m.range??balance.missileRange))){m.dead=true;m.detonated={x:m.x,y:m.y,z:m.z,hit:false};}
  }

@@ -10,6 +10,6 @@
   return result;
  }
  function preset(name){const v={...defaults};if(name==='EASY'){v.enemyHull*=.75;v.enemyLaserDamage*=.6;v.enemyFireRate*=.75;v.enemyAccuracy=.75;}else if(name==='HARD'){v.enemyHull*=1.5;v.enemyLaserDamage*=1.4;v.enemyFireRate*=1.25;}else if(name!=='NORMAL')throw Error('Unknown preset.');return v;}
- const api={spec,defaults,values,validate,preset,apply(input){Object.assign(values,validate(input));}};
+ const api={profiles:{},spec,defaults,values,validate,preset,apply(input){Object.assign(values,validate(input));}};
  if(typeof module!=='undefined')module.exports=api;else {root.VoidBalance=api;root.VOID_BALANCE=values;}
 })(globalThis);

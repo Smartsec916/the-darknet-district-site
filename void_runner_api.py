@@ -19,6 +19,10 @@ BALANCE_SPEC = json.loads((Path(__file__).parent / 'void-runner' / 'balance-data
 BALANCE_DEFAULTS = {key: field['value'] for key, field in BALANCE_SPEC.items()}
 
 
+EQUIPMENT_FIELDS = json.loads((Path(__file__).parent / 'void-runner' / 'equipment-profiles.js')
+                             .read_text(encoding='utf-8').split('globalThis.VoidEquipmentFields = ', 1)[1].split(';', 1)[0])
+
+
 def balance_admin(uid):
     return uid in {entry.strip() for entry in os.getenv('VOID_ADMIN_UIDS', '').split(',') if entry.strip()}
 
@@ -33,9 +37,32 @@ def clean_balance(value):
     return dict(value)
 
 
+def clean_equipment_profiles(profiles):
+    from void_runner_items import valid_curve
+    if not isinstance(profiles, dict):
+        raise ApiError('Expected equipment profiles.')
+    fields = EQUIPMENT_FIELDS
+    choices = {'impactStyle': ('missile', 'large', 'impact'), 'launchSound': ('missile', 'laser'),
+               'impactSound': ('explosion', 'hit', 'shieldHit')}
+    limits = {'absorption': 1, 'capacity': 200, 'recharge': 60, 'cost': 4, 'heat': 4, 'shieldScale': 4, 'hullScale': 4}
+    for item, options in profiles.items():
+        if item not in fields or not isinstance(options, dict) or not set(options) <= set(fields[item]):
+            raise ApiError('Unknown equipment profile setting.')
+        for key, value in options.items():
+            if key.endswith('Curve'):
+                valid = valid_curve(value)
+            elif key in limits:
+                valid = type(value) in (int, float) and 0 <= value <= limits[key]
+            else:
+                valid = value in choices[key]
+            if not valid:
+                raise ApiError('Invalid equipment setting: ' + key)
+    return profiles
+
+
 def balance_record(db):
     saved = db.collection('vr_config').document('combat').get().to_dict() or {}
-    return {'values': {**BALANCE_DEFAULTS, **saved.get('values', {})}, 'revision': saved.get('revision', 0), 'preset': saved.get('preset', 'NORMAL')}
+    return {'profiles': saved.get('profiles', {}), 'values': {**BALANCE_DEFAULTS, **saved.get('values', {})}, 'revision': saved.get('revision', 0), 'preset': saved.get('preset', 'NORMAL')}
 
 
 class ApiError(Exception):
@@ -288,7 +315,8 @@ def public_balance():
     if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
         return jsonify(values=BALANCE_DEFAULTS)
     db, _, _ = services()
-    return jsonify(values=balance_record(db)['values'])
+    record = balance_record(db)
+    return jsonify(values=record['values'], profiles=record['profiles'])
 
 
 @api.get('/developer/content')
@@ -354,6 +382,7 @@ def developer_balance(db, uid):
     if not isinstance(payload, dict) or type(payload.get('revision')) is not int:
         raise ApiError('A balance revision is required.')
     values = clean_balance(payload.get('values'))
+    profiles = clean_equipment_profiles(payload['profiles']) if 'profiles' in payload else None
     preset = payload.get('preset')
     if preset not in ['EASY', 'NORMAL', 'HARD', 'CUSTOM']:
         raise ApiError('Invalid balance preset.')
@@ -366,11 +395,12 @@ def developer_balance(db, uid):
         revision = prior.get('revision', 0)
         if payload['revision'] != revision:
             raise ApiError('Balance changed on another device. Reload current values first.', 409)
-        transaction.set(ref, {'values': values, 'preset': preset, 'revision': revision + 1,
+        saved_profiles = prior.get('profiles', {}) if profiles is None else profiles
+        transaction.set(ref, {'profiles': saved_profiles, 'values': values, 'preset': preset, 'revision': revision + 1,
                               'updatedAt': int(time.time()), 'updatedBy': uid})
-        return revision + 1
-    revision = commit(db.transaction())
-    return jsonify(values=values, preset=preset, revision=revision)
+        return revision + 1, saved_profiles
+    revision, saved_profiles = commit(db.transaction())
+    return jsonify(values=values, profiles=saved_profiles, preset=preset, revision=revision)
 
 
 CAMPAIGN_EPOCH = 1  # keep in step with campaignEpoch in void-runner/campaign.js

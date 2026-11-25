@@ -157,6 +157,6 @@
   return {vendor:{id:v.id,name:v.name,kind:v.kind,location:v.location,entity:v.entity},entries:v.entries.filter(e=>e.available&&items.get(e.item)&&items.get(e.item).status==='published').map(e=>{const it=items.get(e.item),r=restocked(e,stock&&stock[e.item],now);return {item:it.id,name:it.name,description:it.description,icon:it.icon,category:it.category,rarity:it.rarity,price:e.price,stock:r.remaining,maxStock:e.maxStock};})};}
  /* the effect/modifier definition a player's use of an item runs (published items only; unknown ids give null) */
  function use(catalog,itemId){const it=catalog.items.find(i=>i.id===itemId);if(!it||!it.consumable||it.status==='draft')return null;return {id:it.id,name:it.name,cooldown:it.cooldown||0,animation:it.animation||'none',...(it.consumable.onUseHealth?{onUseHealth:it.consumable.onUseHealth}:{}),...(it.consumable.onUseStamina?{onUseStamina:it.consumable.onUseStamina}:{}),...(it.loopSound?{loopSound:it.loopSound}:{}),...(it.expireSound?{expireSound:it.expireSound}:{}),effects:clone(it.consumable.effects||[]),modifiers:clone(it.consumable.modifiers||[])};}
- const api={problems,itemProblems,effectProblems,modifierProblems,entryProblems,newEffect,newItem,newVendorEntry,defaultParams,seed,restocked,listing,use,clone,ID};
+ const api={validCurve,problems,itemProblems,effectProblems,modifierProblems,entryProblems,newEffect,newItem,newVendorEntry,defaultParams,seed,restocked,listing,use,clone,ID};
  if(node)module.exports=api;else root.VoidConsumables=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

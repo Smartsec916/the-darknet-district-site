@@ -126,6 +126,20 @@ class ApiTests(unittest.TestCase):
             with patch.dict(os.environ, {'VOID_ADMIN_UIDS': ''}):
                 self.assertEqual(method('/api/void-runner/developer/balance',headers=self.header).status_code,403)
         self.assertNotIn('vr_config/combat',self.db.data)
+    def test_equipment_profiles_round_trip_and_legacy_balance_writer(self):
+        route = '/api/void-runner/developer/balance'
+        with patch.dict(os.environ, {'VOID_ADMIN_UIDS': 'pilot', 'VOID_ACCOUNTS_ENABLED': 'true'}):
+            values = self.client.get(route, headers=self.header).json['values']
+            saved = {'aegis': {'rechargeCurve': {'mode': 'smooth', 'points': [[0, .4], [1, 1]]}}}
+            payload = {'values': values, 'revision': 0, 'profiles': saved, 'preset': 'CUSTOM'}
+            self.assertEqual(self.client.post(route, headers=self.header, json=payload).json['profiles'], saved)
+            payload['revision'] = 1
+            for bad in [{'aegis': {'absorption': True}}, {'pulse': {'impactSound': 'laser'}}, {'m2': {'splashCurve': []}}]:
+                self.assertEqual(self.client.post(route, headers=self.header, json={**payload, 'profiles': bad}).status_code, 400)
+            del payload['profiles']
+            self.assertEqual(self.client.post(route, headers=self.header, json=payload).json['profiles'], saved)
+            self.assertEqual(self.client.get('/api/void-runner/balance').json['profiles'], saved)
+
     def test_admin_balance_validation_conflict_and_isolation(self):
         with patch.dict(os.environ, {'VOID_ADMIN_UIDS': 'other, pilot'}):
             original=self.client.get('/api/void-runner/developer/balance',headers=self.header).json

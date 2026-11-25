@@ -29,7 +29,7 @@ function run(implementation, options = {}) {
     module, require(id) { return id === './progression.js' ? progression : id === './story.js' ? story : require(path.join(root,id)); }
   });
   context = vm.createContext({
-    C:module.exports, state, enemies, resolved:0,
+    VoidEquipmentProfiles:require('../void-runner/equipment-profiles.js'), C:module.exports, state, enemies, resolved:0,
     VoidProgression:progression, VoidStory:story,
     VoidCombatEffects:{explode(e,kind){record('effect:'+kind);}},
     burst(e,color,kind){record('burst:'+color+':'+kind);},

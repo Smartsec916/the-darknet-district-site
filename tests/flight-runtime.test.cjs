@@ -7,7 +7,7 @@ function harness(ship='starter',options={}){
  state.upgrades={guns:1,armor:1,engines:1,shields:1};
  state.progression.equipment.owned.push('capacitor','shield');state.progression.equipment.installed[state.activeShip]={power:'capacitor',shield:'shield'};
  let c;const owner={status:'PREPARING'},saves=[];
- c=vm.createContext({VoidFlightSession:{active:owner},VoidFlightRuntime:R,VoidShips:Ships,P,VoidContent:Content,VOID_BALANCE:B.defaults||B,
+ c=vm.createContext({VoidEquipmentProfiles:require('../void-runner/equipment-profiles.js'),VoidBalance:require('../void-runner/balance.js'),VoidFlightSession:{active:owner},VoidFlightRuntime:R,VoidShips:Ships,P,VoidContent:Content,VOID_BALANCE:B.defaults||B,
   state,ownedGear:ship==='ship3'?['spectre']:[],trialGear:null,devMissileTrial:false,VoidDevTools:{authorized:false},mode:'play',view:'flight',
   save:()=>saves.push(copy(state)),hud(){},hangar(){},market(){},updateEquipmentHud(){},tone(){},panel(){},button(){},shipCard(){},clearInput(){},flightUI(){},VoidCombatEffects:{pulse(){}}});
  c.C={...C,stats:s=>C.stats(s,c.ownedGear)};
