@@ -10,14 +10,24 @@
   ['illegal-run','Carrying wafers to Rusthaven'],['open','Open work: free travel, Admin and the factions'],
   ['district-ship','NeoChinatown · new District campaign with a TEST SHIP and travel unlocked (beginner campaign, no missions)']];
  const places=()=>Object.entries(VoidUniverse.locations).map(([id,l])=>[id,C.stations[id]?.name||l.name||id,VoidUniverse.systems[l.system]?.name||l.system]);
- let choice={location:'meridian',stage:'open',kit:true};
+ let choice={location:'meridian',stage:null,kit:true};
 
+ function liveTrees(){
+  return (globalThis.VoidLiveContent?.env?.trees||[]).filter(tree=>tree.missions?.length);
+ }
+ function missionOptions(){
+  return liveTrees().map(tree=>'<optgroup label="'+escapeText(tree.name||tree.id)+'">'+tree.missions.map(m=>{
+   const value='mission:'+m.id;
+   return '<option value="'+escapeText(value)+'"'+(choice.stage===value?' selected':'')+'>'+escapeText(m.title||m.id)+'</option>';
+  }).join('')+'</optgroup>').join('');
+ }
  function render(){
+  choice.stage??=liveTrees()[0]?.missions[0]?'mission:'+liveTrees()[0].missions[0].id:'open';
   const byName=places().sort((a,b)=>a[2].localeCompare(b[2])||a[1].localeCompare(b[1]));
   return '<p class="dev-note">Start a throwaway test session at any place and story stage. While it runs, <b>nothing is saved</b>: not to this browser and not to the cloud. <b>EXIT TEST</b> (top of the screen) reloads the game with your real save exactly as it was.</p>'
    +'<div class="dev-test-grid">'
-   +'<label>Place<select id="dev-test-location">'+byName.map(([id,name,sys])=>'<option value="'+id+'"'+(id===choice.location?' selected':'')+'>'+escapeText(name+' · '+sys)+'</option>').join('')+'</select></label>'
-   +'<label>Story stage<select id="dev-test-stage">'+stages.map(([id,name])=>'<option value="'+id+'"'+(id===choice.stage?' selected':'')+'>'+escapeText(name)+'</option>').join('')+'</select></label>'
+   +'<label>Place for story presets<select id="dev-test-location">'+byName.map(([id,name,sys])=>'<option value="'+id+'"'+(id===choice.location?' selected':'')+'>'+escapeText(name+' · '+sys)+'</option>').join('')+'</select></label>'
+   +'<label>Story stage<select id="dev-test-stage">'+missionOptions()+'<optgroup label="Campaign presets">'+stages.map(([id,name])=>'<option value="'+id+'"'+(id===choice.stage?' selected':'')+'>'+escapeText(name)+'</option>').join('')+'</optgroup></select></label>'
    +'<label><span>Test kit</span><span><input id="dev-test-kit" type="checkbox"'+(choice.kit?' checked':'')+'> 10,000 credits, Ward pistol, missile launcher, every place discovered</span></label>'
    +'</div><div class="dev-actions"><button data-dev="test-start">START TEST SESSION</button>'+(active?'<button data-dev="test-exit">EXIT TEST</button>':'')+'</div>'
    +'<h3 class="dev-group">Street life</h3><p class="dev-note">Two people argue a few steps in front of you; the people round about stop and most of them film it on their V1 (monks and V3 // Shadow carriers do not). Walking in NeoChinatown only.</p><div class="dev-actions"><button data-dev="test-argument">STAGE A STREET ARGUMENT HERE</button></div><p id="dev-status" role="status"></p>';
@@ -39,6 +49,27 @@
  }
  async function start(panel){
   read(panel);const status=panel.querySelector('#dev-status');
+  if(choice.stage.startsWith('mission:')){
+   const id=choice.stage.slice(8),mission=liveTrees().flatMap(tree=>tree.missions).find(m=>m.id===id);
+   if(!mission){status.textContent='This mission is no longer available. Reopen Test & Jump To.';return;}
+   try{
+    await VoidDevTools.loadEditor();
+    const editor=globalThis.VoidMissionEditor;
+    let target;
+    const result=await session({banner:'TEST MISSION · '+mission.title,build:()=>{
+     target=editor.liveTreeState(id);
+     const s=target.state;
+     if(choice.kit){
+      s.credits=10000;s.progression.personal.weapon='ward-pistol';s.missileUnlocked=true;
+      if(!s.creditGear.includes('launcher'))s.creditGear.push('launcher');
+      s.universe.discoveredLocations=[...new Set([...s.universe.discoveredLocations,...Object.keys(VoidUniverse.locations)])];
+     }
+     return s;
+    },enter:()=>editor.enterTree(target.where),message:()=>mission.title+' · '+target.notes.join(' ')});
+    if(result?.error)status.textContent=result.error;
+   }catch(error){status.textContent='Could not start this mission. '+error.message;}
+   return;
+  }
   // Re-check with the server before handing out a test campaign.
   try{await VoidDevTools.request('developer/balance');}catch(e){status.textContent='Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.';return;}
   if(!VoidDevTools.authorized)return;
