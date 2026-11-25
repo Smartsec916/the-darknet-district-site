@@ -94,6 +94,19 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual([h['action'] for h in state['history']], ['publish', 'publish', 'rollback', 'rollback'])
         self.assertTrue(all(k.startswith(('vr_live_content_state/', 'vr_live_content_versions/')) for k in self.db.data))
 
+    def test_imported_npc_publish(self):
+        previous = content()
+        self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': previous}).status_code, 200)
+        npc = 'imp-00000000-0000-4000-8000-000000000001'
+        edit = {'id': npc, 'character': {'name': 'Guest', 'model': 'npc-rin'},
+                'placement': {'mode': 'stay', 'x': 100, 'z': -6.4, 'yaw': 0, 'actions': ['idle']}, 'clips': []}
+        payload = {'expected': 1, 'importedNpc': edit}
+        self.assertEqual(self.post('live-content/publish', payload, token='outsider').status_code, 403)
+        result = self.post('live-content/publish', payload)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(previous, characters={npc: edit['character']}, npcs={npc: edit['placement']}))
+        self.assertEqual(self.post('live-content/publish', dict(payload, expected=2)).status_code, 409)
+
     def test_dax_routine_publish_and_clear_without_a_mission(self):
         stay = {'mode': 'stay', 'x': 125.3, 'z': -96.4, 'yaw': 0, 'actions': ['shadow']}
         route = {'mode': 'path', 'points': [

@@ -46,6 +46,47 @@ def _json(path):
     return json.loads((ROOT / path).read_text(encoding='utf-8'))
 
 
+_published_models_cache = {}
+
+
+def _published_inventory(chars, inv):
+    if not isinstance(chars, dict):
+        return inv
+    ids = {c['model'] for c in chars.values() if isinstance(c, dict)
+           and isinstance(c.get('model'), str) and re.fullmatch(r'npc-upload-[0-9a-f]{32}', c['model'])}
+    if not ids:
+        return inv
+    import urllib.request
+    caps = _published_models_cache.get('caps', {})
+    now = time.monotonic()
+    if now - _published_models_cache.get('at', -1000) > (300 if ids <= caps.get('models', {}).keys() else 5):
+        try:
+            url = 'https://thedarknetdistrict.com/void-runner/npc-publish-capabilities.json'
+            with urllib.request.urlopen(url, timeout=8) as response:
+                raw = response.read(8 * 1024 * 1024 + 1)
+            if len(raw) > 8 * 1024 * 1024:
+                raise ValueError('Published model registry exceeds its size limit.')
+            fetched = json.loads(raw)
+            if not isinstance(fetched['models'], dict) or not isinstance(fetched['animationLists'], list):
+                raise ValueError('Invalid published model registry.')
+            caps = fetched
+            _published_models_cache.update(at=now, caps=caps)
+        except (OSError, ValueError, KeyError) as exc:
+            if not ids <= caps.get('models', {}).keys():
+                raise DraftError('The deployed NPC model registry is unavailable. Retry after deployment.', 503) from exc
+    mc = inv['madeCharacters']
+    lists = mc.get('animationLists', [])
+    models = dict(mc['models'])
+    for key in ids.intersection(caps.get('models', {})):
+        model = json.loads(json.dumps(caps['models'][key]))
+        for variant in (model, model.get('adult') or {}):
+            mover = variant.get('movable')
+            if mover:
+                mover['animationLists'] = [i + len(lists) for i in mover.get('animationLists', [])]
+        models[key] = model
+    return {**inv, 'madeCharacters': {**mc, 'models': models, 'animationLists': lists + caps.get('animationLists', [])}}
+
+
 def registry():
     return _json('tools/audio/npc-voice-registry.json')
 
@@ -216,6 +257,7 @@ def check(content, inv=None):
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
         inv = inv or _json('void_runner_admin_inventory.json')
+        inv = _published_inventory(content.get('characters'), inv)
         for p in made_problems(content, inv):
             err(p)
         inv = with_made(content.get('characters'), inv)
@@ -2894,8 +2936,52 @@ def _commit(db, uid, expected, action, content_for, note='', interaction_only=Fa
     return result
 
 
+def _add_imported_npc(previous, edit, inventory):
+    npc = edit['id']
+    if npc in (previous.get('characters') or {}) or npc in (previous.get('npcs') or {}):
+        raise DraftError('This NPC ID is already live. Open the world NPC to edit it.', 409)
+    content = dict(previous)
+    content['characters'] = {**(previous.get('characters') or {}), npc: edit['character']}
+    content['npcs'] = {**(previous.get('npcs') or {}), npc: edit['placement']}
+    if edit['clips']:
+        content['clips'] = list(previous.get('clips') or []) + edit['clips']
+    # Validate this addition without reinterpreting historical mission definitions.
+    only_npc = {npc: edit['character']}
+    just_added = {'characters': only_npc, 'npcs': {npc: edit['placement']}}
+    problems = made_problems(just_added, inventory)
+    if not problems:
+        problems.extend(npc_problems(just_added['npcs'], with_made(only_npc, inventory)))
+    problems.extend(clip_problems(content.get('clips', [])))
+    if len(content['characters']) > inventory['madeCharacters']['limits']['characters'] or len(content['npcs']) > 20:
+        problems.append('The world NPC limit has been reached.')
+    if len(json.dumps(content).encode('utf-8')) > MAX_BYTES:
+        problems.append('The published content exceeds the size limit.')
+    if problems:
+        raise DraftError('NPC could not be published: ' + '; '.join(problems[:5]), 422)
+    return content
+
+
 def publish(db, uid, payload):
     expected = _expected(payload)
+    if _keys(payload, ['expected', 'importedNpc']) and 'importedNpc' in payload:
+        edit = payload['importedNpc']
+        if (not isinstance(edit, dict) or set(edit) != {'id', 'character', 'placement', 'clips'}
+                or not isinstance(edit['id'], str) or not re.fullmatch(r'imp-[0-9a-f-]{36}', edit['id'])
+                or not isinstance(edit['character'], dict) or not isinstance(edit['placement'], dict)
+                or edit['placement'].get('mode') not in ('stay', 'path') or clip_problems(edit['clips'])
+                or any(c['who'] != edit['id'] for c in edit['clips'])):
+            raise DraftError('Invalid NPC, placement or recording.', 422)
+        if clips_missing(db, sorted({c['hash'] for c in edit['clips']})):
+            raise DraftError('Upload the NPC recordings first.', 422)
+
+        inventory = _published_inventory({edit['id']: edit['character']}, _json('void_runner_admin_inventory.json'))
+
+        def add_npc(tx, live, history):
+            record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}
+            previous = record.get('content') or {'format': FORMAT, 'version': 1}
+            return _add_imported_npc(previous, edit, inventory), None
+
+        return _commit(db, uid, expected, 'publish', add_npc, 'Import NPC ' + edit['id'], interaction_only=True)
     if _keys(payload, ['expected', 'interaction']) and 'interaction' in payload:
         edit = payload['interaction']
         if not _keys(edit, ['npc', 'value']) or not isinstance(edit.get('npc'), str) or 'value' not in edit or not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', edit['npc']):
