@@ -224,7 +224,19 @@
  function residenceInstances(chars,lookup=door){const out=new Map(),street=new Map();for(const [id,c] of Object.entries(chars||{})){const r=c?.residence,d=r&&lookup(r.door);if(!d||!['city','container',undefined].includes(d.family)||!STYLE_IDS.includes(d.style)||!Number.isInteger(r.slot)||r.slot<0||r.slot>=geo(d.style).HALL.slots.length)continue;const key=residenceKey(d.id||r.door,r.slot);if(!out.has(key))out.set(key,{key,id:'residence-'+r.slot,mission:null,door:r.door,style:d.style,number:slotNumber(r.slot,d.style),residenceSlot:r.slot,locked:false,items:[],residents:[],rules:[]});const h=out.get(key);h.residents.push(id);h.rules.push(r.apartmentAccess);if(!street.has(r.door))street.set(r.door,[]);street.get(r.door).push(r.streetAccess);}return [...out.values()].map(h=>{const {rules,...rest}=h;return {...rest,apartmentAccess:accessRules(rules),streetAccess:accessRules(street.get(h.door))};});}
  function mergeResidenceInstances(missions,homes){const out=[...(missions||[])];for(const h of homes||[]){const same=out.filter(a=>a.door===h.door);if(same.some(a=>a.modular||a.style!==h.style)||same.length>=geo(h.style).HALL.slots.length)continue;out.push(h);}return out;}
  // Mission apartments occupy dynamically allocated hallway slots, so reserve the entire building, even before the mission starts.
- function addressRegistry(trees,characters){const result=new Map(),row=id=>{if(!result.has(id))result.set(id,{door:id,missions:[],apartments:[],residents:[]});return result.get(id);};for(const t of trees||[])for(const m of t?.missions||[]){const ids=new Set();for(const a of m.apartments||[]){if(!a?.door)continue;ids.add(a.door);const r=row(a.door),numbers=isLoc(a)?a.modules.filter(x=>Number.isInteger(x.number)).map(x=>x.number):Number.isInteger(a.number)?[a.number]:[];const existing=r.apartments.find(x=>x.mission===m.id&&x.id===a.id);if(existing){existing.numbers=[...new Set([...existing.numbers,...numbers])];}else r.apartments.push({mission:m.id,id:a.id,title:m.title||m.id,numbers:[...new Set(numbers)],modular:isLoc(a)});}for(const o of m.objectives||[]){const p=o?.kind==='hack'&&apOf(o.ap);if(p?.door)ids.add(p.door);}for(const id of ids){const r=row(id);if(!r.missions.some(x=>x.id===m.id))r.missions.push({id:m.id,title:m.title||m.id});}}for(const [id,c] of Object.entries(characters||{})){const r=c?.residence;if(r?.door&&Number.isInteger(r.slot)){const x=row(r.door);x.residents.push({id,name:c.name||id,slot:r.slot});}}return result;}
+ function addressRegistry(trees,characters){const result=new Map(),row=id=>{if(!result.has(id))result.set(id,{door:id,missions:[],apartments:[],residents:[]});return result.get(id);};for(const t of trees||[])for(const m of t?.missions||[]){const ids=new Set();for(const a of m.apartments||[]){if(!a?.door)continue;ids.add(a.door);const r=row(a.door),numbers=isLoc(a)?a.modules.filter(x=>Number.isInteger(x.number)).map(x=>x.number):Number.isInteger(a.number)?[a.number]:[];const existing=r.apartments.find(x=>x.mission===m.id&&x.id===a.id);if(existing){existing.numbers=[...new Set([...existing.numbers,...numbers])];}else r.apartments.push({mission:m.id,id:a.id,title:m.title||m.id,numbers:[...new Set(numbers)],modular:isLoc(a)});}for(const o of m.objectives||[]){const p=o?.kind==='hack'&&apOf(o.ap);if(p?.door)ids.add(p.door);}for(const id of ids){const r=row(id);if(!r.missions.some(x=>x.id===m.id))r.missions.push({id:m.id,title:m.title||m.id});}}for(const [id,c] of Object.entries(characters||{})){const r=c?.residence;if(r?.door&&Number.isInteger(r.slot)){const x=row(r.door);x.residents.push({id,name:c.name||id,slot:r.slot});}}
+  for(const t of trees||[])for(const m of t?.missions||[]){
+   const involved=new Set([m.giver,...(m.objectives||[]).map(o=>o?.npc),...(m.cast||[]).map(c=>c?.id)]);
+   for(const id of involved){
+    const home=characters?.[id]?.residence;
+    if(!home?.door||!Number.isInteger(home.slot))continue;
+    const r=row(home.door);
+    if(r.missions.some(x=>x.id===m.id))continue;
+    const associated=r.associatedMissions||=[];
+    if(!associated.some(x=>x.id===m.id))associated.push({id:m.id,title:m.title||m.id});
+   }
+  }
+  return result;}
 
  const entranceLegend={
   mission:{label:'Mission or reservation',colors:['#f4ca43']},
@@ -235,7 +247,7 @@
   available:{label:'Available entrance',colors:['#98a3ae']}
  };
  function entranceType(d,row,players=[]){
-  if(row?.missions?.length)return 'mission';
+  if(row?.missions?.length||row?.associatedMissions?.length)return 'mission';
   if(row?.residents?.length)return players.length?'shared':'npc';
   if(players.length)return 'player';
   return ['office','commercial'].includes(d.family)?'commercial':'available';
@@ -268,7 +280,7 @@
     reservations:(row?.apartments||[]).filter(a=>a.numbers.includes(number))};
   }):[];
   return {door:d.id,building:'building/'+d.id,hall:residential?'hall/'+d.id:null,kind:entranceType(d,row,players),units,
-   missions:row?.missions||[],apartments:row?.apartments||[],residents:row?.residents||[]};
+   reserved:!!row?.missions?.length,missions:[...(row?.missions||[]),...(row?.associatedMissions||[]).filter(m=>!row?.missions?.some(x=>x.id===m.id))],apartments:row?.apartments||[],residents:row?.residents||[]};
  }
  // Shared read-only address lookup. Neither editor needs to initialize the other.
  async function readAddressRegistry({shipped=[],cached={},readLive,readDraft,readLocal,readProperties,companions={}}={}){

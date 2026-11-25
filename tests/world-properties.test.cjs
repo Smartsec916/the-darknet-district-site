@@ -49,3 +49,13 @@ test('corporate entrance and arrival point round-trip through the area map',()=>
   assert.deepEqual(areas.toLocal(door.scene,displayed),{x:point[0],z:point[1]});
  }
 });
+
+test('a mission giver makes its residence yellow and leaves other units assignable',()=>{
+ const door=A.doors()[0],characters={giver:{name:'Giver',residence:{door:door.id,slot:0}}};
+ const rows=A.addressRegistry([{missions:[{id:'test-mission',title:'Test mission',giver:'giver'}]}],characters);
+ const property=A.propertyRecord(door,rows.get(door.id));
+ assert.equal(property.kind,'mission');
+ assert.equal(property.reserved,false);
+ assert.equal(property.missions[0].id,'test-mission');
+ assert.equal(property.units[1].residents.length,0);
+});

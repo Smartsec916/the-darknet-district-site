@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "6bf20febd156a273",
+  "revision": "0c32f500a8c646cd",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80871,7 +80871,7 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
     "void-runner/apartment-integration.js": "9636fcbf0178e488e7e18fe4a515fccac5f7bd827efb4a65166f9f204af678c4",
-    "void-runner/apartments.js": "f4ecaddbc424cebeadb64a1a8f35312b285b50d4fe81b8713afe58ff27daa3de",
+    "void-runner/apartments.js": "2a9c3e2170afbe80b8f3378b727a48071fc5069b64915d56e6e3e60413a7f567",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
@@ -81160,7 +81160,7 @@
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
-    "void-runner/world-map-editor.js": "c6da7089b3470453fefa7d3ac3e782df5f7de64b392363d471c25f6aa50249d9",
+    "void-runner/world-map-editor.js": "63e39b19ef433f59305415ff005632fec098315b3e63352ba71311c8da298a29",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
