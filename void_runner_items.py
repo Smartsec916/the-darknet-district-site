@@ -169,10 +169,12 @@ def grant_card(db, editor, body):
     if not _only(body, ['item', 'destination', 'target', 'nonce']):
         raise DraftError('Choose a published keycard and a destination.')
     destination, target = body.get('destination'), body.get('target')
-    if destination not in ('player', 'ground') or not isinstance(target, str):
+    if destination not in ('player', 'ground', 'npc') or not isinstance(target, str):
         raise DraftError('Choose a player account or a street entrance.')
     if destination == 'ground' and (not valid_card_door(target) or '/' in target):
         raise DraftError('Choose a registered street entrance.')
+    if destination == 'npc' and not re.fullmatch('[a-z][a-z0-9-]{0,79}', target):
+        raise DraftError('Choose a registered NPC.')
     if destination == 'player' and not re.fullmatch('[A-Za-z0-9_-]{1,128}', target):
         raise DraftError('Enter a valid player account ID.')
     card_id = _tag('grant/' + editor + '/' + _nonce(body))
@@ -191,11 +193,27 @@ def grant_card(db, editor, body):
         item = next((i for i in content.get('items', []) if i['id'] == body.get('item') and i['kind'] == 'keycard' and i['status'] == 'published'), None)
         if not item:
             raise DraftError('Publish the keycard template before issuing it.', 409)
-        card = issue_card(item, target if destination == 'player' else editor, card_id, time.time())
+        owner = 'npc/' + target if destination == 'npc' else target if destination == 'player' else editor
+        card = issue_card(item, owner, card_id, time.time())
         if destination == 'ground':
             if not all(card[k] for k in ('pickup', 'transferable', 'bearer')):
                 raise DraftError('A world pickup requires pickup, transfer and bearer permissions.')
             tx.create(db.collection('vr_keycard_drops').document(card_id), {'door': target, 'card': card})
+        elif destination == 'npc':
+            import void_runner_live_content as world
+            known = target in inventory()['missionEditor']['givers'] or target in inventory()['npcPaths']['movable']
+            if not known:
+                state = world._state_ref(db).get(transaction=tx).to_dict() or {}
+                version = state.get('live', 0)
+                record = world._version_ref(db, version).get(transaction=tx).to_dict() or {} if version else {}
+                bundle = record.get('content') or {}
+                known = target in (bundle.get('characters') or {}) or target in (bundle.get('npcs') or {})
+            if not known:
+                raise DraftError('This NPC is not registered in the game.', 404)
+            holder = db.collection('vr_npc_keycards').document(target)
+            bag = _clean_player(holder.get(transaction=tx).to_dict())
+            _receive_card(bag, card)
+            tx.set(holder, bag)
         else:
             if not db.collection('vr_players').document(_tag(target)).get(transaction=tx).to_dict():
                 raise DraftError('The player needs a saved campaign.', 404)

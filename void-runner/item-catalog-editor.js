@@ -54,6 +54,9 @@
    const units=current?A.propertyRecord(current).units:[];
    const targets=current?[[current.id,'Street entrance'],...units.map(u=>[u.id,'Apartment '+u.number])]:[];
    for(const inner of A.interiorDoors(root.VoidMainStory?.trees?.()||[]).values())if(inner.entrance===current?.id)targets.push([inner.id,inner.location+' · '+inner.name]);
+   const npcs=new Map((root.VoidLiveContent?.env?.givers||[]).map(n=>[n.id,n.name||n.id]));
+   for(const [id,n] of Object.entries(root.VoidLiveContent?.env?.characters||{}))npcs.set(id,n.name||id);
+   for(const [id,n] of Object.entries(root.VoidNPCPaths?.MOVABLE||{}))if(!npcs.has(id))npcs.set(id,n.name||id);
    const missions=new Map();
    for(const tree of [...(root.VoidMainStory?.trees?.()||[]),...(root.VoidLiveContent?.env?.trees||[])])
     for(const m of tree.missions||[])missions.set(m.id,m.title||m.id);
@@ -71,7 +74,8 @@
     flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
     '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details>'+
     '<label>Mission reward <select data-card-text="rewardMission">'+options([['','No mission reward'],...missions],card.rewardMission||'')+'</select></label>'+
-    '<details><summary>Issue a published keycard</summary><label>Player account ID <input data-card-recipient></label>'+button('grant-player','Give to player')+button('grant-ground','Place at selected street entrance')+'</details></fieldset>';
+    '<details><summary>Issue a published keycard</summary><label>Player account ID <input data-card-recipient></label>'+button('grant-player','Give to player')+
+    '<label>NPC <select data-card-npc>'+options([['','Select an NPC'],...npcs],'')+'</select></label>'+button('grant-npc','Give to NPC')+button('grant-ground','Place at selected street entrance')+'</details></fieldset>';
   }
   function serviceFields(it){
    const svc=it.service,steps=svc?.steps||[],id=tools.catalogNpc?.id||sellers(s.data,it.id).find(v=>v.kind==='npc')?.entity.replace(/^npc-/,'');
@@ -203,14 +207,14 @@
    const act=e.target.closest('[data-catalog]')?.dataset.catalog;if(!act||!current()||s.busy)return;
    const template=host.querySelector('[data-example]')?.value;
    const idText=host.querySelector('[data-field=newId]')?.value.trim(),target=Number(host.querySelector('[data-version]')?.value);
-   if(act==='grant-player'||act==='grant-ground'){
-    const destination=act==='grant-player'?'player':'ground',target=host.querySelector(destination==='player'?'[data-card-recipient]':'[data-card-building]')?.value.trim();
+   if(act==='grant-player'||act==='grant-npc'||act==='grant-ground'){
+    const destination=act.slice(6),target=host.querySelector({player:'[data-card-recipient]',npc:'[data-card-npc]',ground:'[data-card-building]'}[destination])?.value.trim();
     if(!target||!item()?.keycard)return;
     const command={destination,target,item:item().id},key=JSON.stringify(command);
     if(s.grant?.key!==key)s.grant={key,nonce:crypto.randomUUID()};
     return work(async()=>{
      await send('developer/keycards/grant',{...command,nonce:s.grant.nonce});
-     s.grant=null;s.message=destination==='player'?'Keycard issued to the player.':'Keycard placed at the selected entrance.';
+     s.grant=null;s.message=destination==='ground'?'Keycard placed at the selected entrance.':'Keycard issued to '+target+'.';
     });
    }
    work(async()=>{

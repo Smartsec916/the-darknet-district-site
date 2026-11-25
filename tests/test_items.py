@@ -113,6 +113,13 @@ class ItemTests(unittest.TestCase):
         self.assertEqual(granted.status_code, 200, granted.json)
         self.assertTrue(self.post('developer/keycards/grant', grant).json['duplicate'])
         self.assertEqual(self.post('developer/keycards/grant', dict(grant, destination='player', target='owner')).status_code, 409)
+        npc_grant = dict(grant, destination='npc', target='iris', nonce=self.nonce())
+        self.assertEqual(self.post('developer/keycards/grant', dict(npc_grant, target='unknown-character')).status_code, 404)
+        issued = self.post('developer/keycards/grant', npc_grant)
+        self.assertEqual(issued.status_code, 200, issued.json)
+        held_by_npc = self.db.data['vr_npc_keycards/iris']['cards'][issued.json['id']]
+        self.assertTrue(items.card_allows(held_by_npc, 'npc/iris', unit, 0))
+        self.assertTrue(self.post('developer/keycards/grant', npc_grant).json['duplicate'])
         self.assertNotIn('doors', mystery)
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
