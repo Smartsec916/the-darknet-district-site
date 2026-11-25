@@ -272,7 +272,7 @@
  function returnTrip(farId){const f=Q.far(farId);if(!f)return null;const st=stops().find(s=>s.id===f.returnStop),lane=Q.bayFor(f.gate,f.from);return {dest:st,fare:0,legs:[],through:{gate:f.gate,lane:lane.key}};}
  function exitRide(world,s){
   const job=world.job;if(!job||job.released||job.cab.phase!=='arrived')return {ok:false,reason:'The taxi has not arrived.'};
-  const doors=doorPoints(job.cab);arrive(s);release(world,job.cab);return {ok:true,doors};
+  const doors=doorPoints(job.cab);job.exitSeat=companionSeat(job.cab);arrive(s);release(world,job.cab);return {ok:true,doors};
  }
  function cancel(world){
   const job=world.job;if(!job||job.released||job.charged||!['to-pickup','waiting'].includes(job.cab.phase))return {ok:false,reason:'This taxi can no longer be cancelled.'};
