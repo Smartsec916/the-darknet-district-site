@@ -88,3 +88,17 @@ jobs:
       - run: |
           node tests/serve-modern.cjs > /tmp/food-stand-test-host.log 2>&1 &
           node tests/ncz-food-stands-browser.cjs
+
+
+  rig-workshop:
+    name: Companion and NPC rig repair in Babylon
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/rig-workshop-browser.cjs

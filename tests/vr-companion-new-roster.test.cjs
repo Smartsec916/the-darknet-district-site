@@ -29,3 +29,20 @@ test('two women can share a room, never a man and a woman; the public roster',()
  assert.deepEqual(C.party({companions:['base-m','base-f']}).map(e=>e.id),['base-m']);
  assert.deepEqual([...C.companions.values()].filter(e=>C.offered(e,'thedarknetdistrict.com')).map(e=>e.id).sort(),['ava','base-f','base-m','eva','kai','luna','nadia','zane']);
 });
+
+
+test('imported companion feet alignment is independent of the model skeleton',()=>{
+ assert.equal(C.floorOffset(-0.8,1.1),0.8);
+ assert.equal(C.floorOffset(0,1.7),0);
+ assert.ok(Math.abs(C.floorOffset(-0.3,1.5,0.4)-0.7)<1e-9);
+ assert.equal(C.floorOffset(NaN,2),0);
+ assert.equal(C.floorOffset(2,1),0);
+});
+
+test('Nomi, Se7en and unfinished Tao are not offered in the VR bedroom',()=>{
+ for(const name of ['Nomi','Se7en','Tao']){
+  assert.equal(C.offered({id:'draft-'+name,name,localDraft:true,listed:true},'localhost'),false,name);
+  assert.equal(C.offered({id:'draft-'+name,name,localDraft:true,listed:true},'thedarknetdistrict.com'),false,name);
+ }
+ assert.equal(C.offered({id:'another',name:'Another Companion',localDraft:false,listed:true},'localhost'),true);
+});

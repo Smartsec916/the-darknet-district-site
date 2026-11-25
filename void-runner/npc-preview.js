@@ -7,7 +7,10 @@
 (function(root){
  'use strict';
  let loaderP=null;
- function loaders(){const B=root.BABYLON;if(B?.SceneLoader?.IsPluginForExtensionAvailable?.('.glb'))return Promise.resolve();
+ function loaders(){const B=root.BABYLON;
+  // File imports bypass VoidAssets.loadContainer, so configure the same local decoders here.
+  root.VoidAssets?.useKTX2Locally?.();root.VoidAssets?.useMeshoptLocally?.();
+  if(B?.SceneLoader?.IsPluginForExtensionAvailable?.('.glb'))return Promise.resolve();
   return loaderP??=new Promise((ok,fail)=>{const s=document.createElement('script');s.src='void-runner/vendor/babylonjs-loaders-8.26.0.min.js?v='+encodeURIComponent(root.VoidCompanionBuild||'12');s.onload=ok;s.onerror=()=>fail(new Error('The model loader could not be loaded.'));document.head.append(s);});}
  function mount(host){
   const B=root.BABYLON,cv=document.createElement('canvas');cv.className='npc-preview-canvas';cv.width=360;cv.height=360;cv.setAttribute('aria-label','3D preview of the NPC');const viewPanel=document.createElement('div');viewPanel.className='companion-preview-panel';host.append(viewPanel);viewPanel.append(cv);const detail=document.createElement('div'),detailLabel=document.createElement('p'),detailCanvas=document.createElement('canvas');detail.className='companion-joint-detail';detail.hidden=true;detailCanvas.width=180;detailCanvas.height=180;detailCanvas.setAttribute('aria-label','Magnified selected joint');detail.append(detailLabel,detailCanvas);viewPanel.append(detail);const detailCtx=detailCanvas.getContext('2d');
@@ -16,7 +19,7 @@
   const hemi=new B.HemisphericLight('npc-preview-sky',new B.Vector3(0,1,0),scene);hemi.intensity=.85;hemi.groundColor=new B.Color3(.18,.16,.22);
   const key=new B.DirectionalLight('npc-preview-key',new B.Vector3(-.4,-.7,.6),scene);key.intensity=1.6;
   const floor=B.MeshBuilder.CreateDisc('npc-preview-floor',{radius:1.1,tessellation:48},scene);floor.rotation.x=Math.PI/2;const fm=new B.StandardMaterial('npc-preview-floor-m',scene);fm.diffuseColor=new B.Color3(.16,.17,.22);fm.specularColor=new B.Color3(0,0,0);floor.material=fm;
-  let facingFlip=1,restForward=null;let viewCenter=new B.Vector3(0,.95,0),viewStrafe=0,viewHeight=0;let container=null,rootNode=null,placement=null,groundY=0,groups=[],current=null,spin=true,disposed=false,info=null,poser=null,custom=null,propRoot=null,propContainer=null,propMaterials=[],grid=null;
+  let facingFlip=1,restForward=null;let viewCenter=new B.Vector3(0,.95,0),viewStrafe=0,viewHeight=0;let previewFile=null,container=null,rootNode=null,placement=null,groundY=0,groups=[],current=null,spin=true,disposed=false,info=null,poser=null,custom=null,propRoot=null,propContainer=null,propMaterials=[],grid=null;
   function clearProps(){propContainer?.dispose();propContainer=null;propRoot?.dispose();propRoot=null;for(const m of propMaterials)m.dispose();propMaterials=[];}
   function prop(kind){clearProps();floor.setEnabled(kind!=='none');floor.scaling.set(2,2,2);if(kind==='none'||kind==='floor')return;propRoot=new B.TransformNode('preview-prop',scene);const mat=(color)=>{const m=new B.StandardMaterial('preview-prop-mat',scene);m.diffuseColor=B.Color3.FromHexString(color);propMaterials.push(m);return m;},fabric=mat('#393444'),metal=mat('#55505a'),stone=mat('#77717a');const box=(size,pos,m=fabric,rot=0)=>{const mesh=B.MeshBuilder.CreateBox('preview-prop',{width:size[0],height:size[1],depth:size[2]},scene);mesh.parent=propRoot;mesh.position.set(...pos);mesh.rotation.z=rot;mesh.material=m;mesh.isPickable=false;};
    if(kind==='sofa'){box([.95,.32,2.6],[0,.24,0]);for(const z of [-1.2,1.2])for(const x of [-.35,.35])box([.05,.08,.05],[x,.04,z],metal);for(const z of [-.57,.57]){box([.74,.17,1.13],[.13,.48,z]);box([.2,.5,1.13],[-.35,.79,z],fabric,.12);}for(const z of [-1.22,1.22])box([.95,.5,.16],[0,.42,z]);propRoot.position.x=-.8;}
@@ -42,7 +45,7 @@
    const textures=(container.textures||[]).map(t=>{const s=t.getSize?.()||{};return {name:t.name,w:s.width|0,h:s.height|0};});
    return {triangles:Math.round(tri),bytes:bytes|0,textures,bones,rest,clips:groups.map(g=>g.name.split('-').pop()===g.name?g.name:g.name),height:Number.isFinite(max.y-min.y)?max.y-min.y:NaN,min,max};}
   function frame(){const i=info;if(!i||!Number.isFinite(i.height))return;const h=i.height;const s=h>0&&(h<1.3||h>2.3)?1.75/h:1;if(placement&&s!==1)placement.scaling.setAll(s);snapFloor();viewCenter=new B.Vector3(0,Math.min(1.2,h*s*.55),0);viewStrafe=viewHeight=0;cam.target=viewCenter.clone();cam.radius=Math.max(2.2,h*s*1.9);}
-  async function show(src){clear();await loaders();
+  async function show(src){clear();previewFile=src.file||null;await loaders();
    if(src.asset){container=await root.VoidAssets.loadContainer({src:root.VoidMadeNPCs?.fileOf(src.asset)||'assets/models/crowd/'+src.asset+'.glb'},scene,null,'preview:'+src.asset);}
    else if(src.file){const buf=src.buffer||await src.file.arrayBuffer(),ext=/\.gltf$/i.test(src.file.name||'')?'.gltf':'.glb';root.VoidNPCPaths.importDocument(buf,ext);container=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);src.bytes=buf.byteLength;}
    else return null;
@@ -71,7 +74,7 @@
   }
   async function tryLibrary(id,look,library='actorcore'){const L=root.VoidAnimLibrary;if(!L?.apply)return {ok:false,why:'The animation library is not loaded here.'};if(!rootNode)return {ok:false,why:'Nothing is shown yet.'};
    const meta=rootNode.metadata=rootNode.metadata||{};meta.animationGroups=meta.animationGroups||groups;let added=[];
-   try{const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(id);if(m){library='crowd:'+m[1];L.register?.(library,'assets/models/crowd/'+m[1]+'.glb',[{id,clip:m[2]}]);}added=await L.apply(rootNode,look||'preview',{only:[id],scene,library,catalog:!library.startsWith('local-motion-')});}catch(e){return {ok:false,why:'Could not try it: '+(e?.message||e)};}
+   try{const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(id);if(m){library='crowd:'+m[1];L.register?.(library,'assets/models/crowd/'+m[1]+'.glb',[{id,clip:m[2]}]);}added=await L.apply(rootNode,look||'preview',{only:[id],scene,library,targetFile:previewFile,catalog:!library.startsWith('local-motion-')});}catch(e){return {ok:false,why:'Could not try it: '+(e?.message||e)};}
    if(!added.length)return {ok:false,why:meta.animLibraryRefused!=null?'Her rig does not take it: the rest pose is '+meta.animLibraryRefused+' degrees off (the limit is '+L.REST_LIMIT+').':(library==='actorcore'?'The animation library file is not on this computer (licensed motion capture is published with the live site only), or her bones do not match.':'Her bones do not match that file’s, so it was not added.')};
    const g=(meta.animationGroups||[]).find(x=>x.name.endsWith(id));if(g&&!groups.includes(g))groups.push(g);play(id);return {ok:true};}
   function dispose(){disposed=true;clear();clearProps();engine.stopRenderLoop();scene.dispose();engine.dispose();viewPanel.remove();}

@@ -38,7 +38,7 @@ function renderMainMenu() {
   const a = window.VoidAccount,
     u = a?.user;
   menuShell('main',
-    `<section class="main-menu"><p class="menu-kicker">SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">THE DARKNET<br>DISTRICT</h1>${legacyRetired?'<p class="menu-subtitle">Your earlier campaign was retired in the District reset. A new campaign begins at The Darknet District.</p>':''}<nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${(typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized)?button('DEVELOPER TOOLS','menu-devtools')+button('PLAY AS ADMIN','menu-admin'):''}${VoidMenu.returnTo?button('GUIDANCE','menu-guidance'):''}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}${button('BACK TO WEBSITE','menu-website',true)}</nav><div class="menu-account">${u?(u.isAnonymous?'GUEST · SOLO PLAY ONLY. Create an account to meet other players.':'SIGNED IN'+(a.handle?' · '+escapeText(a.handle):' · choose a District handle in Settings to go online')):'NOT SIGNED IN · SOLO PLAY ONLY. Sign in to meet other players.'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins in a Sleeping Pod.'}</p></section>`
+    `<section class="main-menu"><p class="menu-kicker">SYSTEMS ONLINE</p><h1 class="game-logo" tabindex="-1">VOID<br>RUNNER</h1>${legacyRetired?'<p class="menu-subtitle">Your earlier campaign was retired in the District reset. A new campaign begins at The Darknet District.</p>':''}<nav class="menu-options" aria-label="Main menu">${VoidMenu.returnTo?button('RESUME GAME','menu-resume'):''}${button('CONTINUE CAMPAIGN','menu-continue',false,!hasSave)}${button('CAMPAIGN','menu-campaign')}${button('SKIRMISH','menu-skirmish')}${(typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized)?button('DEVELOPER TOOLS','menu-devtools')+button('PLAY AS ADMIN','menu-admin'):''}${VoidMenu.returnTo?button('GUIDANCE','menu-guidance'):''}${button('SETTINGS / KEYBINDINGS','menu-settings')}${VoidMenu.returnTo?button('MAIN MENU','menu-main',true):''}${button('LOGOUT','menu-logout',false,!u||a?.busy)}${button('BACK TO WEBSITE','menu-website',true)}</nav><div class="menu-account">${u?(u.isAnonymous?'GUEST · SOLO PLAY ONLY. Create an account to meet other players.':'SIGNED IN'+(a.handle?' · '+escapeText(a.handle):' · choose a District handle in Settings to go online')):'NOT SIGNED IN · SOLO PLAY ONLY. Sign in to meet other players.'}${button(u?'ACCOUNT / CLOUD SAVES':'SIGN IN','menu-account',true)}</div><p class="menu-save">${hasSave?saveDescription(state):'Your journey begins in a Sleeping Pod.'}</p></section>`
     );
 }
 
@@ -239,12 +239,22 @@ addEventListener('keydown', e => {
   const action = VoidInput.action(e.code);
   if (!action) return;
   if (action === 'pause' && !e.repeat) {
+    // An open gameplay panel handles Escape itself. Leave its return state intact.
+    if(['walking','vr-seated','food-seated','pod-waking'].includes(mode)&&VoidInputState.current.ui)return;
+    if(mode==='dock'&&view==='account'&&VoidMenu.returnTo){e.preventDefault();VoidAccount.request('account-resume');return;}
     e.preventDefault();
+    if(mode==='walking'&&globalThis.VoidTeaDuo?.leaveSeat?.()){e.stopImmediatePropagation();return;}
+    if(e.code==='Escape'){
+      if(['vr-menu','vr-pause','food-seated'].includes(mode))return;
+      if(['walking','skirmish-fps','vr-seated','pod-waking'].includes(mode)&&VoidInputState.freeMouse()){
+        e.stopImmediatePropagation();return;
+      }
+    }
     if (mode === 'menu') resumeMenu();
     else openGameMenu();
     return;
   }
-  if (mode !== 'play' || !VoidFlightSession.running()) return;
+  if (mode !== 'play' || !VoidInputState.current.movement || !VoidFlightSession.running()) return;
   e.preventDefault();
   VoidInput.held.add(e.code);
   if (e.repeat) return;

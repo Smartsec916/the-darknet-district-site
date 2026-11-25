@@ -19,7 +19,7 @@
   description:'The longer text under the name in the V1 Mission Log, read while the mission is on.',
   category:'A short label shown with the mission in the Mission Log, e.g. “Main storyline” or “Side job”. Only a label: it changes nothing else.',
   objective:'The one-line headline in the Mission Log, e.g. “Photograph Juno Vex”. Left empty, the Log shows the current step instead.',
-  location:'A label for the Mission Log (where the mission happens). It does NOT move anyone and does not start anything: people stay where the game puts them. To make Reverie or Lace wait somewhere, use “Giver waits at”.',
+  location:'A label for the Mission Log (where the mission happens). It does NOT move anyone and does not start anything: people stay where the game puts them. To make a movable giver wait somewhere, use “Giver waits at”.',
   giver:'Who the mission belongs to. IN PERSON requires a walking-game TALK prompt. MESSAGES, COMMS and NOTIFICATION starts can use any registered NPC because the device trigger starts the mission. Changing the giver also moves the offer lines to the new giver.',
   type:'What kind of mission it is (main, side, cargo …), for sorting in the Mission Log. It does not change how it plays.',
   offer:'What the giver says when offering it, one line per box. Text only (no voice) until it is recorded.',
@@ -239,19 +239,82 @@
   ul.append(el('li','Lines marked “needs a code change” are kept in your draft and in EXPORT MY EDITS for Claude or Codex to apply.'));
   box.append(ul);return box;}
  // ---------------- trees
+ function freightPanel(){
+  const box=el('section','','me-mission-panel',{'data-me-freight':'1'}),gen=root.VoidRookCargoGen;
+  const defaults=gen.defaults(),d=local(),config=structuredClone(d.rookFreight||server.live?.rookFreight||defaults);
+  box.append(el('h3','Rook freight contracts'),el('p','Meet Rook at Meridian → load cargo → deliver to the assigned station → return to Rook for payment. The next contract opens after collection.'));
+  function field(label,input){const row=el('label',label,'me-field');row.append(input);box.append(row);}
+  for(const [key,label] of [['destinations','Delivery locations'],['excluded','Excluded locations'],['cargo','Cargo types'],['difficulties','Contract difficulties']]){
+   const select=el('select');select.multiple=true;select.size=Math.min(6,(key==='excluded'?defaults.destinations:defaults[key]).length);
+   for(const id of key==='excluded'?defaults.destinations:defaults[key]){
+    const option=new Option(root.VoidCampaign?.stations?.[id]?.name||id,id);option.selected=config[key].includes(id);select.append(option);
+   }
+   select.onchange=()=>{config[key]=Array.from(select.selectedOptions,x=>x.value);};field(label,select);
+  }
+  for(const [key,label] of [['minReward','Minimum credits'],['maxReward','Maximum credits']]){
+   const input=el('input');input.type='number';input.min='1';input.max='999999';input.value=config[key];input.oninput=()=>{config[key]=input.valueAsNumber;};field(label,input);
+  }
+  const unlock=el('select');unlock.append(new Option('First Cargo Delivery',''));
+  for(const tree of built.trees.filter(t=>t.story))for(const m of tree.missions)if(m.id)unlock.append(new Option(m.title,m.id));
+  unlock.value=config.unlockMission;unlock.onchange=()=>{config.unlockMission=unlock.value;};field('Additional required mission',unlock);
+  const lines=el('textarea');lines.rows=4;lines.value=config.dialogue.join('\n');lines.oninput=()=>{config.dialogue=lines.value.split('\n').map(s=>s.trim()).filter(Boolean);};field('Rook offer dialogue (one line per variation)',lines);
+  box.append(btn('SAVE FREIGHT DRAFT',()=>{const errors=gen.configErrors(config);if(errors.length){setStatus(errors.join(' '));return;}const latest=local();latest.rookFreight=config;saveLocal(latest);setStatus('Freight draft saved. Review it in Publish.');}));
+  return box;
+ }
  function treeView(root_){
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'Mission trees'});
   const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS'],['archived','Removed from the game (archived)']];
   side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from your scripts)','me-small'));
   side.append(btn('+ NEW MISSION TREE',()=>{ui.newTree=true;root.VoidEditorGuide?.focusNext();draw();},ui.newTree?'on':'',{'data-me-new-tree':'1'}));
-  for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;
-   // Archived trees sit in one collapsed group (open while one of them is shown): readable and copyable, never in the game.
-   let box=side;if(st==='archived'){const d=el('details','','me-archived',{'data-me-archived':'1'});d.open=!!ui.archivedOpen||ts.some(t=>t.id===ui.tree);d.ontoggle=()=>{ui.archivedOpen=d.open;};d.append(el('summary',name+' ('+ts.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;}
-   else side.append(el('h4',name,'me-group'));
-   for(const t of ts){const b=btn(t.title+' ('+t.missions.length+')',()=>{ui.tree=t.id;ui.mission=null;ui.step=null;ui.newTree=false;draw();},ui.tree===t.id?'on':'',{'data-me-tree':t.id});box.append(b);
-    if(ui.tree===t.id)for(const m of t.missions){const mb=btn(m.title+(editCount(m)?' ✎':''),()=>{ui.mission=m.key;ui.step=null;draw();},'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key});box.append(mb);}}}
+  const filters=el('form','','me-row',{role:'search','aria-label':'Filter missions'});
+  const search=el('input','','',{type:'search','aria-label':'Mission title or ID',placeholder:'Mission title or ID'});
+  search.value=ui.missionQuery||'';
+  const status=el('select','','',{'aria-label':'Mission status'});
+  status.append(new Option('All statuses',''));
+  for(const [id,label] of groups)status.append(new Option(label,id));
+  status.value=ui.missionStatus||'';
+  const apply=el('button','Filter','',{type:'submit'});
+  filters.onsubmit=event=>{event.preventDefault();ui.missionQuery=search.value.trim();ui.missionStatus=status.value;draw();};
+  status.onchange=()=>filters.requestSubmit();
+  filters.append(search,status,apply);
+  if(ui.missionQuery||ui.missionStatus)filters.append(btn('Clear filters',()=>{ui.missionQuery='';ui.missionStatus='';draw();}));
+  side.append(filters);
+  const query=(ui.missionQuery||'').toLowerCase();
+  const matches=(...parts)=>parts.some(part=>String(part||'').toLowerCase().includes(query));
+  let shown=0;
+  if((!ui.missionStatus||ui.missionStatus==='active')&&matches('Rook freight contracts','rook-freight')){
+   side.append(btn('Rook freight contracts',()=>{ui.tree='rook-freight';ui.newTree=false;ui.mission=null;draw();},ui.tree==='rook-freight'?'on':'',{'data-me-tree':'rook-freight'}));
+   shown++;
+  }
+  for(const [st,name] of groups){
+   if(ui.missionStatus&&st!==ui.missionStatus)continue;
+   const rows=[];
+   for(const tree of built.trees){
+    if(tree.status!==st)continue;
+    const missions=matches(tree.title,tree.id)?tree.missions:tree.missions.filter(m=>matches(m.title,m.key,m.id));
+    if(missions.length||matches(tree.title,tree.id))rows.push({tree,missions});
+   }
+   if(!rows.length)continue;
+   shown+=rows.length;
+   let box=side;
+   if(st==='archived'){
+    const d=el('details','','me-archived',{'data-me-archived':'1'});
+    d.open=!!query||!!ui.archivedOpen||rows.some(row=>row.tree.id===ui.tree);
+    d.ontoggle=()=>{if(!query)ui.archivedOpen=d.open;};
+    d.append(el('summary',name+' ('+rows.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;
+   }else side.append(el('h4',name,'me-group'));
+   for(const {tree,missions} of rows){
+    box.append(btn(tree.title+' ('+missions.length+')',()=>{ui.tree=tree.id;ui.mission=null;ui.step=null;ui.newTree=false;draw();},ui.tree===tree.id?'on':'',{'data-me-tree':tree.id}));
+    if(ui.tree===tree.id||query)for(const m of missions){
+     const select=()=>{ui.tree=tree.id;ui.mission=m.key;ui.step=null;ui.newTree=false;ui.scrollTo=true;draw();};
+     box.append(btn(m.title+(editCount(m)?' ✎':''),select,'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key}));
+    }
+   }
+  }
+  if(!shown)side.append(el('p','No matching missions.','me-small',{role:'status'}));
   const t=built.trees.find(x=>x.id===ui.tree)||built.trees[0];const main=el('div','','me-main');
   if(ui.newTree){main.append(newTreeForm());cols.append(side,main);root_.append(cols);return;}
+  if(ui.tree==='rook-freight'){main.append(freightPanel());cols.append(side,main);root_.append(cols);return;}
   if(t.ownerTree){main.append(ownerTreePanel(t));cols.append(side,main);root_.append(cols);if(ui.mission){const target=root_.querySelector('[data-me-tree-mission="'+CSS.escape(ui.mission.replace(/^tree:/,''))+'"]');if(target&&ui.scrollTo)setTimeout(()=>target.scrollIntoView({block:'start'}),0);ui.scrollTo=false;}return;}
   main.append(el('h3',t.title),el('p',t.statusText,'me-badge me-'+t.status),el('p',t.note,'dev-note'),el('p','Source: '+t.source,'me-small'));
   if(t.archived){const r=el('div','','me-row',{'data-me-archived-tree':t.id});r.append(el('b','NOT IN THE GAME','me-bad'),btn('COPY THIS TREE INTO A NEW TREE',()=>copyInto(t.missions,t.title),'',{'data-me-copy-tree':t.id}));main.append(r);}
@@ -940,7 +1003,7 @@
   const ok=givers.filter(g=>E.can(g.id,o.kind).ok),no=givers.filter(g=>!E.can(g.id,o.kind).ok&&g.group==='district');for(const g of ok)sel.append(new Option(g.name,g.id));
   if(no.length){const og=el('optgroup','',null,{label:'Cannot walk with the player yet'});for(const g of no){const op=new Option(g.name+' — '+E.can(g.id,o.kind).why.split(':')[0],g.id);op.disabled=true;op.title=E.can(g.id,o.kind).why;og.append(op);}sel.append(og);}
   sel.value=o.npc&&E.can(o.npc,o.kind).ok?o.npc:'';if(o.npc&&!sel.value){const op=new Option((giver(o.npc)||{name:o.npc}).name+' (cannot do this step)',o.npc);op.disabled=true;sel.append(op);sel.value=o.npc;}
-  sel.title='Only people whose walking the game controls (Reverie, Lace, the street cat) can walk with the player. Others are greyed with the reason.';sel.onchange=()=>eo(x=>{x.npc=sel.value;if(E.CAB.has(x.kind)&&x.stop&&!E.stopOk(x.npc,x.stop,escArea(null,x.npc)))delete x.stop;},true);return sel;}
+  sel.title='Only people whose walking the game controls can walk with the player. Others are greyed with the reason.';sel.onchange=()=>eo(x=>{x.npc=sel.value;if(E.CAB.has(x.kind)&&x.stop&&!E.stopOk(x.npc,x.stop,escArea(null,x.npc)))delete x.stop;},true);return sel;}
  function escortPanel(m,o,eo){const E=EX(),X=root.VoidNPCPaths,box=el('section','','me-end me-esc',{'data-me-esc':o.id}),who=giver(o.npc)||{name:o.npc||'they'},c=o.npc?E.can(o.npc,o.kind):{ok:false,why:'Choose who walks with the player first.'};
   box.append(el('h4',E.SPOT.has(o.kind)?'Where they go':'The cab ride'));if(!c.ok){box.append(el('p','⚠ '+c.why,'me-warn',{'data-me-esc-why':o.id}));return box;}
   const area=escArea(m,o.npc),AN=(root.VoidNPCAreas?.get(area)||{name:'The Avenue'}).name;box.append(el('p',who.name+' starts in '+AN+' for this mission (where she waits for it, else her placement in Developer Tools > NPCs). The step may go on into other areas: '+who.name+' comes through the city gates, the stairs to and from the tunnels and the District’s door with the player, walking or in a taxi (never where they may not go: a problem below says so).','me-small',{'data-me-esc-area':o.id}));
@@ -989,16 +1052,29 @@
  async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;fresh();const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
   write(back||RETURN,{tree:ui.tree,mission:ui.mission,step:null,npc:npc||null,at:Date.now()},root.sessionStorage);
   const r=await root.VoidDevTest.session({banner:'VIEWING: '+(label||'a spot')+' — not your real save',leave:'LEAVE',kind:'draft',
-   apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
-   build:()=>{jumpTo.notes=streetClock([npc]);const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
+   apply:()=>{if(c.ok){root.VoidLiveContent?.useDraft(content);if(npc==='dax')root.VoidDax?.previewAt(opts.minute);}},
+   build:()=>{jumpTo.notes=[];const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
    clock:clockText,enter:async()=>{state.location='earth';
     // the area of the spot (npc-areas.js): a street quarter or the District interior; the player stands a few steps away on ground they can walk, facing it
     const AR=root.VoidNPCAreas,a=AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
     if(w.walk==='darknet-district'){state.story.flags.area='district';state.story.flags.districtBadge=true;await enterWalking(VoidDistrictArea.KEY.interior,{silent:true});}
-    else{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
-    let at=a==='avenue'?{x,z:Math.max(-16,z-3.4)}:null;if(!at&&AR){for(const r of [3.4,2.4,4.4])for(let k=0;k<12&&!at;k++){const t=k/12*Math.PI*2,q={x:x+Math.sin(t+Math.PI)*r,z:z+Math.cos(t+Math.PI)*r},c=AR.check(q,a);if(c.ok&&c.area===a)at=q;}}
-    try{if(at){walker.x=at.x;walker.z=at.z;walker.yaw=Math.atan2(x-at.x,z-at.z);}}catch{}},
+    else{delete state.story.flags.area;await enterWalking(w.walk,{silent:true,quarter:w.quarter});}
+    if(!AR)return;
+    const target=AR.toLocal(a,{x,z});
+    const actor=root.VoidNPCPaths?.MOVABLE?.[npc];
+    const permissions={adult:!!actor?.adult,made:!!actor?.made};
+    for(const radius of [3.4,2.4,1.6,4.4]){
+     for(let k=0;k<12;k++){
+      const angle=Math.PI+k*Math.PI/6;
+      const q={x:x+Math.sin(angle)*radius,z:z+Math.cos(angle)*radius};
+      const ground=AR.check(q,a,undefined,permissions),point=AR.toLocal(a,q);
+      if(!ground.ok||ground.area!==a||root.VoidExplorer.blocked(point.x,point.z,walkingLocation))continue;
+      walker.x=point.x;walker.z=point.z;walker.yaw=Math.atan2(target.x-point.x,target.z-point.z);
+      return;
+     }
+    }
+   },
    message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+VoidUnits.text(c.errors.slice(0,2).join(' · ')))+' · nothing is saved'+((jumpTo.notes||[]).length?' · '+jumpTo.notes.join(' '):'')});
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
@@ -1043,7 +1119,7 @@
   if(m.engine==='tree'){const b=MC().treeBlockers(m.raw,givers,items);return why?(b.length?'Cannot be played yet: '+b.join('; ')+'.':''):!b.length;}
   return why?(m.engine==='contract'?'Not playable as a draft yet: contracts are flown from the contract board and have no draft adapter.':m.engine==='data'?'Not playable: this mission is inactive data; nothing in the game starts it yet.':'Not playable from here.'):false;}
  const STAGE={'ground-training':['inheritance','vesper'],'flight-training':['inheritance','vesper'],'meet-rook':['arrival','meridian'],'first-station':['legal-offer','meridian'],'combat-qualification':['legal-offer','meridian'],'legal-run':['legal-run','meridian'],'return':['return','kepler'],'illegal-run':['illegal-run','meridian'],'meet-admin':['open','earth']};
- function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items,clipText:clipTextOf});}
+ function draftContent(){const draft={rookFreight:server.live?.rookFreight,...local()};return MC().fromDrafts({studio:studio(),local:draft,shippedBeginner:shipped().beginner,note:'draft play',givers,items,clipText:clipTextOf});}
  function checkCtx(){return {registry:src.registry,speakers:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName)),registryIds:new Set(Object.keys(shipped().registry).filter(id=>shipped().registry[id]?.beginner!==true)),
   registryObjectives:Object.fromEntries(Object.entries(shipped().registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),lines:new Set(index.keys()),
   givers:new Map(givers.map(g=>[g.id,g])),places:G().placeIds(),subjects:new Set(G().photoSubjects(givers).map(g=>g.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id)),numbers:serverNumbers()};}
@@ -1072,18 +1148,17 @@
   {const AR=root.VoidNPCAreas,X=root.VoidNPCPaths,id=m.giver;if(AR&&X&&X.MOVABLE[id]&&where&&where.walk==='sacramento'&&where.quarter==='avenue'){const np=(draftContent().npcs||{})[id],t=m.waitAt||(np&&np.mode==='stay'?np:np&&np.mode==='path'?np.points[0]:null),a=t&&AR.areaOf(t);
    if(a&&a!=='avenue'){where=AR.enter(a);notes.push('Draft play starts in '+AR.get(a).name+', where '+((giver(id)||{}).name||id)+' is placed.');}}}
   // Reverie and Lace take turns on one UTC street clock: the test runs at a time the first one it uses is really out (a simulated street clock; throwaway session only)
-  {const nw=(m.start&&m.start.when)||{};notes.push(...streetClock([m.giver,nw.kind==='near'?nw.npc:null,...m.objectives.flatMap(o=>[o.npc,...(o.subjects||[])]),m.ending&&m.ending.npc]));}
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
   M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
  /* The street clock of a test (the owner, 19 Nov 2026: "If I test with REVERIE or LACE make it the time they are actually there"): a test that involves Reverie or Lace
     runs on a simulated street clock inside her shift (ncz-street-pair.js testClock: the first one used; never in the 90 s handover), so the pair, the cat, Milked's
     Studio 1 and her missions agree. Set in the session's build (dev-test.js clears it at the start of every session; leaving reloads the page). Returns the notice. */
- function streetClock(ids){const S=root.VoidStreetPair;if(!S||!S.testClock)return [];const tc=S.testClock(ids);S.simulate(tc?tc.ms:null);return tc?[tc.note]:[];}
  // The draft banner shows both clocks: the street (UTC, the pair's shift) and the in-game day (game-clock.js: schedules).
  function clockText(){const S=root.VoidStreetPair,GC=root.VoidClock;let t='';if(S&&S.streetTime)t='Street '+S.utcLabel(S.streetTime())+' UTC'+(S.simulated()?' (test)':'');
   try{if(GC&&state)t+=(t?' · ':'')+'In-game '+GC.now(state).label;}catch{}return t;}
  async function enterTree(w){
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
+  else if(['milked','corporate','temple'].includes(w.walk)){state.location='earth';delete state.story.flags.area;await enterWalking(w.walk,{silent:true});}
   else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
   else if(w.location==='vesper')await worldEnterWalking('vesper');else{state.location=w.location;await dock();}}
  function beginnerState(mid,stepId){
@@ -1142,7 +1217,7 @@
   const shippedB=shipped().beginner.map(MC().strip),nextB=content.beginner||shippedB;
   chk.append(el('h5','Problems that block publishing ('+(c.errors.length+(ui.check?.errors||[]).length)+')'));for(const t of [...c.errors,...(ui.check?.errors||[])])chk.append(el('p',VoidUnits.text(t),'me-bad'));if(!c.errors.length&&!(ui.check?.errors||[]).length)chk.append(el('p','None.','me-ok'));
   const ch=MC().changes(shippedB,nextB),regN=Object.keys(content.registry||{}).length,linesN=(content.lines||[]).length;
-  chk.append(el('h5','What changes for players'));if(!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
+  chk.append(el('h5','What changes for players'));if(content.rookFreight)chk.append(el('p','Rook freight contracts: '+content.rookFreight.destinations.length+' configured destinations, '+content.rookFreight.minReward+' to '+content.rookFreight.maxReward+' credits.'));if(!content.rookFreight&&!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
   for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' mission(s) in '+(content.trees||[]).length+' tree(s) (the Main storyline is always sent), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));

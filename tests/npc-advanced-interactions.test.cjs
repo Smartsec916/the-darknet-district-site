@@ -26,3 +26,10 @@ test('follow invitation can time out, wait for a player, finish only together, o
  assert.equal(step(p,{atDestination:true,playerArrived:false,dt:1}).phase,'wait');assert.equal(step(p,{atDestination:true,playerArrived:true}).phase,'done');
  assert.equal(step(p,{declined:true}).phase,'return');
 });
+
+test('coincident people separate by one personal-space radius',()=>{
+ const actor={x:12,z:8}, other={...actor};
+ const result=A.separate(actor,[other],0.8);
+ assert.ok(Math.abs(Math.hypot(result.x-other.x,result.z-other.z)-0.8)<1e-9);
+ assert.deepEqual(actor,{x:12,z:8});
+});

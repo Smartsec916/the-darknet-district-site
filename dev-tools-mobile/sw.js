@@ -1,0 +1,3 @@
+// Cache only the public application shell, never authentication or API responses.
+const CACHE='vr-dev-mobile-shell-3';const SHELL=['./','./index.html','./app.css','./app.js','./model.mjs','./icon.svg','./manifest.webmanifest'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL))));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('vr-dev-mobile-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin||!SHELL.some(s=>new URL(s,self.location.href).href===e.request.url))return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});

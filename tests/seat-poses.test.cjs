@@ -28,7 +28,7 @@ test('the seats: cushions take the floor poses, the mahjong stools are chairs wi
  assert.equal(U.SEATS.length,6,'the alcoves\' chairs unchanged');
  const cush=by('under-tea-room');assert.equal(cush.length,9);for(const s of cush)assert.deepEqual(s.poses,['kneel','cross','knees']);
  const mj=by('under-mahjong');assert.equal(mj.length,6);for(const s of mj){assert.deepEqual(s.poses,['chair']);assert.equal(s.h,.48);}
- const cots=by('under-sleeping-room');assert.equal(cots.length,4);for(const s of cots){assert.deepEqual(s.poses,['knees','cross']);assert.equal(s.h,.44);}
+ const cots=by('under-sleeping-room');assert.equal(cots.length,4);for(const s of cots){assert.deepEqual(s.poses,['knees','cross']);assert.equal(s.h,.54);}
  assert.equal(all.filter(s=>/bench-up$/.test(s.id)).length,4);
  for(const s of all){   // (the alcoves' chairs from 20 Nov 2026 are reached within 0.6 m of their front, as before)
   assert.equal(U.placeAt(s.x,s.z),s.place,s.id+' in its place');const f=SP.standOf(s);assert.equal(U.placeAt(f.x,f.z),s.place,s.id+' stand point in its place');
@@ -61,18 +61,18 @@ test('a placed person walks onto a cushion, takes the pose at the seat\'s height
   const cot=U.seatsAll().find(s=>s.id==='under-sleeping-room-cot-2'),cf=SP.standOf(cot);assert.deepEqual(P.planProblems('sitter',{mode:'stay',x:cf.x,z:cf.z,yaw:0,actions:['sit-knees']}),[]);
  }finally{P.setMade({});}
  // Reverie and Lace can too; a figure without the clips is never offered them (Kai, a companion)
- assert.ok(P.actionsFor('grey-reverie').some(a=>a.id==='sit-kneel'));
+ assert.deepEqual(P.actionsFor('grey-reverie'),[]);
  // the inventory hands the server each seat's poses and stand point
- const inv=JSON.parse(read('void_runner_admin_inventory.json')),seats=inv.npcPaths.movable['grey-reverie'].seats;const c=seats.find(s=>s.id==='under-tea-room-cushion-c-w');
+ const inv=JSON.parse(read('void_runner_admin_inventory.json')),seats=inv.npcPaths.movable['tea-host'].seats;const c=seats.find(s=>s.id==='under-tea-room-cushion-c-w');
  assert.deepEqual(c.poses,['kneel','cross','knees']);assert.deepEqual(c.front,[+f.x.toFixed(3),+f.z.toFixed(3)]);
- assert.ok(inv.npcPaths.movable['grey-reverie'].actions.includes('sit-kneel'));});
+ assert.equal(inv.npcPaths.movable['grey-reverie'],undefined);});
 
 test('the Mission Editor\'s cast and the gestures offer the poses only to figures that have them',()=>{
  for(const c of FLOOR)assert.ok(MM.CLIPS.includes(c));
  const m=(model,clip)=>({id:'m',cast:[{id:'p1',model,place:'under-tea-room',clip}],objectives:[{id:'a'}]}),probs=x=>MM.castProblems(x,{}).filter(p=>/pose/.test(p));
  assert.deepEqual(probs(m('npc-cook-old','floor-kneel')),[]);assert.ok(probs(m('npc-kai','floor-kneel')).length,'Kai has no floor pose');
  assert.match(read('void_runner_live_content.py'),/'floor-kneel', 'floor-cross', 'floor-knees'\)/,'the server accepts the cast poses');
- const g=NG.clipsFor('grey-reverie');assert.ok(g.clips.filter(c=>c.pose).map(c=>c.id).sort().join()===FLOOR.slice().sort().join(),'idle poses in the gestures list');
+ const g=NG.clipsFor('tea-host');assert.ok(g.clips.filter(c=>c.pose).map(c=>c.id).sort().join()===FLOOR.slice().sort().join(),'idle poses in the gestures list');
  assert.match(NG.nameOf('floor-kneel'),/^Idle pose/);});
 
 test('Mission 011 pays 5,000 CR (the owner, 21 Nov 2026)',()=>{const MS=require(R('void-runner/main-story.js'));assert.equal(MS.REWARD,5000);

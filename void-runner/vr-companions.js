@@ -31,6 +31,13 @@
   glanceEvery:[5,11],    // seconds between brief natural glances away
   glanceFor:[.8,1.8]};
  const settings=(entry)=>({...defaults,...(entry?.personality||{})});
+ // Reusable floor correction for an imported GLB. Never alter its skeleton or animation data.
+ // Bounding values must be in world coordinates; apply the result to the model's visual root.
+ function floorOffset(minY,maxY,floorY=0){
+  if(![minY,maxY,floorY].every(Number.isFinite)||maxY<=minY)return 0;
+  return floorY-minY;
+ }
+
 
  // ---- The registry ----
  const companions=new Map();
@@ -71,7 +78,10 @@
  // licence isn't confirmed for release yet). licensed:true marks purchased models kept out of the public repository:
  // the live site gets them, encrypted, from the private asset repository (tools/assets/build-pages.cjs).
  const localHost=h=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h||'');
- const offered=(e,host=globalThis.location?.hostname)=>(!e.localDraft||typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized&&VoidDevTools.request)&&e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
+ // These workshop drafts belong to the underground Tea Room project, not the VR bedroom.
+ // Keep their browser-local packages intact for reuse in the world NPC pipeline.
+ const teaRoomDrafts=new Set(['Nomi','Se7en','Tao']);
+ const offered=(e,host=globalThis.location?.hostname)=>!(e.localDraft&&teaRoomDrafts.has(e.name))&&(!e.localDraft||typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized&&VoidDevTools.request)&&e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
  // A companion's own clip for a role (its personality picks its gestures), falling back through common names.
  function clipFor(entry,role,has){const want=[...(entry.clips[role]||[]),role,...(fallbackClips[role]||[])];for(const c of want)if(!has||has(c))return c;return 'idle';}
  const fallbackClips={greet:['wave','interact'],flirt:['blow-kiss','coy','head-tilt','interact'],laugh:['laugh','talk'],shy:['coy','head-tilt'],idleAlt:['idle'],dance:['slow-dance','dance'],
@@ -594,6 +604,6 @@
     m.setVerticesData(B.VertexBuffer.ColorKind,rgba,false,4);m.hasVertexAlpha=false;cavityDone.add(m.geometry);report.cavity++;});}
   return report;}
 
- const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,behindAt,maxCorrection,turnSpeed,reach,headWeight,turnStep,glideAt,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
+ const api={defaults,settings,floorOffset,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,behindAt,maxCorrection,turnSpeed,reach,headWeight,turnStep,glideAt,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);

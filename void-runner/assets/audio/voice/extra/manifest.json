@@ -1833,7 +1833,7 @@
    "voiceId": "ggacvEjbmpoSuEinfFWs",
    "effect": "device",
    "offset": 0.75,
-   "gain": 0.7,
+   "gain": 0.35,
    "note": "STANDARD (the owner, 17 Nov 2026): a V1 translation is spoken in the speaker's OWN voice, in English. ONE setting per character: the voice, a subtle live device filter ('device'; null for none), when the English starts after the original (s) and the original's volume. The clip is the line in `with`; its `file` can be swapped."
   }
  },

@@ -30,6 +30,7 @@
   const DW=()=>Math.round(((root.VoidApartments?.DOOR?.wait)||.62)*1000);   // the shared door timing: the door is open (and the place beyond shows in it) before the fade
   VoidInteractions.register('under-down',({item})=>{const sd=root.VoidBabylon?.district?.backAlleys?.underDoor?.(item.entrance);try{root.VoidAudio?.event?.('door');sd?.open?.(true);}catch{}setTimeout(()=>go(U.arrive(item.entrance)),sd?DW():0);});
   VoidInteractions.register('under-up',({item})=>{const h=root.VoidBabylon?.district?.underground,d=h?.door?.(item.door);try{d?.force?.(1);}catch{}setTimeout(()=>go(U.leave(item.entrance)),(d?.t??0)>.9?0:DW());});
+  VoidInteractions.register('under-curtain',({item})=>{const open=root.VoidBabylon?.district?.underground?.toggleCurtain?.(item.mod,item.curtain);if(open!=null)note(open?'You draw the curtain open.':'You close the curtain.');});
   VoidInteractions.register('under-look',({item})=>note(item.text||''));},300);
  /* For tests and the editor: where the player is in the network (the place id), or null. */
  root.VoidUnderground.here=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='street'&&walkingLocation.quarter===U.ID&&typeof walker!=='undefined'&&walker?U.placeAt(walker.x,walker.z):null;}catch{return null;}};

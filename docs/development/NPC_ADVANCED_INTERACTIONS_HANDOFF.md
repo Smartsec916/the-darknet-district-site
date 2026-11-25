@@ -1,5 +1,12 @@
 # Advanced NPC interactions — implementation checkpoint (2026-11-22)
 
+## November 24 integration checkpoint
+
+Main now includes the crowd-density change (#501), room integration (#502), the recorded Tea Room duet (#514, #515, #517 and #519), group cooldown repair (#525), listener coordination (#529) and scanner clearance (#551). Existing room, voice and mission behavior takes precedence over historical draft snippets below. The updated branch retains tests for the interaction helpers and fixes coincident actor separation. The shipped duet suite covers entry, re-entry cooldown, cancellation, audio pacing and independent player state.
+
+Open verification and implementation work includes rendered taxi clearance and recovery, physical return after social travel, residence itineraries, positional audio and two-client gameplay. The historical roadmap includes additional editor proposals beyond the original draft implementation.
+
+
 Branch: codex/npc-advanced-interactions. This is an isolated development branch, not deployed.
 
 Owner-approved scope:

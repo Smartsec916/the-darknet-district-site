@@ -100,10 +100,10 @@ def interaction_pool_ok(text):
 ROOM_DIALOGUE_POOLS = ('enter', 'exit', 'shortVisit', 'longVisit')
 
 
-def advanced_room_ok(advanced):
-    if not _keys(advanced, ['room']):
-        return False
-    room = advanced.get('room')
+FOLLOW_POOLS = ('invite', 'arrive', 'cancel')
+
+
+def room_record_ok(room):
     if (not _keys(room, ['id', 'cooldown', 'longSeconds', *ROOM_DIALOGUE_POOLS])
             or not isinstance(room.get('id'), str) or not ID.fullmatch(room['id'])
             or type(room.get('cooldown')) is not int or not 5 <= room['cooldown'] <= 600):
@@ -115,6 +115,72 @@ def advanced_room_ok(advanced):
     return (type(room.get('longSeconds')) is int and 5 <= room['longSeconds'] <= 600) if timed else 'longSeconds' not in room
 
 
+def follow_record_ok(follow, places=None):
+    if (not _keys(follow, ['role', 'invite', 'accept', 'decline', 'arrive', 'cancel', 'maxWait', 'place', 'districtTravel'])
+            or follow.get('role') not in ('lead', 'follow') or not interaction_pool_ok(follow.get('invite'))
+            or not _plain(follow.get('accept'), 60) or not _plain(follow.get('decline'), 60)
+            or follow.get('accept') == follow.get('decline')):
+        return False
+    if 'arrive' in follow and not interaction_pool_ok(follow['arrive']) or 'cancel' in follow and not interaction_pool_ok(follow['cancel']):
+        return False
+    if 'districtTravel' in follow and type(follow['districtTravel']) is not bool:
+        return False
+    if type(follow.get('maxWait')) is not int or not 5 <= follow['maxWait'] <= 120:
+        return False
+    if follow['role'] == 'lead' and (not isinstance(follow.get('place'), str) or not ID.fullmatch(follow['place'])):
+        return False
+    if 'place' in follow and (not isinstance(follow.get('place'), str) or not ID.fullmatch(follow['place']) or (places is not None and follow['place'] not in places)):
+        return False
+    return True
+
+
+def group_record_ok(group, self_id):
+    members = group.get('members')
+    if (not _keys(group, ['id', 'members', 'order', 'cooldown', 'lines']) or not isinstance(group.get('id'), str)
+            or not ID.fullmatch(group['id']) or not isinstance(members, list) or not 2 <= len(members) <= 6
+            or len(set(members)) != len(members) or any(not isinstance(m, str) or not ID.fullmatch(m) for m in members)
+            or self_id not in members or group.get('order') not in ('alternate', 'authored')):
+        return False
+    return type(group.get('cooldown')) is int and 5 <= group['cooldown'] <= 600 and interaction_pool_ok(group.get('lines'))
+
+
+def advanced_ok(advanced, places=None, self_id=''):
+    if not _keys(advanced, ['room', 'follow', 'group']) or not advanced:
+        return False
+    if 'room' in advanced and not room_record_ok(advanced['room']):
+        return False
+    if 'follow' in advanced and not follow_record_ok(advanced['follow'], places):
+        return False
+    if 'group' in advanced and not group_record_ok(advanced['group'], self_id):
+        return False
+    return not (advanced.get('room') and places is not None and advanced['room']['id'] not in places)
+
+
+def groups_agree(table):
+    for npc, record in table.items():
+        group = (record.get('advanced') or {}).get('group') or {}
+        members = group.get('members')
+        if not isinstance(members, list):
+            continue
+        for member in members:
+            other = table.get(member)
+            if not other:
+                continue
+            theirs = (other.get('advanced') or {}).get('group')
+            if not theirs or theirs.get('id') != group['id'] or theirs.get('order') != group['order'] or theirs.get('cooldown') != group['cooldown'] or theirs.get('members') != group['members']:
+                return npc
+    return None
+
+
+def interaction_lines(record):
+    advanced = record.get('advanced') or {}
+    room = advanced.get('room') or {}
+    follow = advanced.get('follow') or {}
+    group = advanced.get('group') or {}
+    pools = [record.get(k) for k in ('near', 'talk', 'reply')] + [room.get(k) for k in ROOM_DIALOGUE_POOLS] + [follow.get(k) for k in FOLLOW_POOLS] + [group.get('lines')]
+    return {line.strip() for text in pools for line in (text or '').splitlines() if line.strip()}
+
+
 def interaction_problems(table, givers=None, places=None):
     if not isinstance(table, dict) or len(table) > 100:
         return ['Invalid NPC interactions.']
@@ -122,19 +188,18 @@ def interaction_problems(table, givers=None, places=None):
     for npc, r in table.items():
         if (not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', npc) or (givers is not None and not (givers.get(npc) or {}).get('canTalk'))
                 or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply', 'clips', 'advanced'])
-                or ('advanced' in r and (not advanced_room_ok(r['advanced']) or (places is not None and r['advanced']['room']['id'] not in places)))
+                or ('advanced' in r and not advanced_ok(r['advanced'], places, npc))
                 or not (r.get('near') or r.get('talk') or r.get('advanced'))
                 or any(k in r and r[k] is not None and not (_plain(r[k], 60) if k == 'choice' else interaction_pool_ok(r[k])) for k in ('near', 'talk', 'choice', 'reply'))
                 or type(r.get('distance')) not in (int, float) or not 1 <= r['distance'] <= 8
                 or type(r.get('cooldown')) is not int or not 5 <= r['cooldown'] <= 600
                 or bool(r.get('choice')) != bool(r.get('reply')) or (r.get('choice') and not r.get('talk'))):
             errors.append('Invalid interaction for ' + npc + '.')
-        elif 'clips' in r:
-            room = r.get('advanced', {}).get('room', {})
-            pools = [r.get(k) for k in ('near', 'talk', 'reply')] + [room.get(k) for k in ROOM_DIALOGUE_POOLS]
-            lines = {line.strip() for text in pools for line in (text or '').splitlines() if line.strip()}
-            if clip_problems(r['clips']) or any(c['who'] != npc or c['text'] not in lines for c in r['clips']):
-                errors.append('Invalid interaction audio for ' + npc + '.')
+        elif 'clips' in r and (clip_problems(r['clips']) or any(c['who'] != npc or c['text'] not in interaction_lines(r) for c in r['clips'])):
+            errors.append('Invalid interaction audio for ' + npc + '.')
+    disagree = groups_agree(table)
+    if disagree and not errors:
+        errors.append('Invalid interaction for ' + disagree + '.')
     return errors
 
 
@@ -142,8 +207,12 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'interactions', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'interactions', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
+    if 'rookFreight' in content:
+        import void_runner_freight as freight
+        missions = _json('void-runner/save-manifest.json')['storyMissions']
+        errors.extend(freight.config_errors(content['rookFreight'], missions))
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
         inv = inv or _json('void_runner_admin_inventory.json')
@@ -443,12 +512,12 @@ def area_of(p, inv, prefer=None):
     return None
 
 
-def area_check(p, inv, prefer=None, m=None, adult=False, passing=False):
+def area_check(p, inv, prefer=None, m=None, adult=False, passing=False, made=False):
     """The same rule as void-runner/npc-areas.js check(): (ok, area, kind, why). Kinds: ok, rule (the owner's content rule: Milked, NULL, the District bar, VR, arcade,
     Corporate District, and standing in NULL's doorway), blocked, gate, road, obstacle, post, outside. passing: a walk over a venue's doorway on a public pavement
     (`doorway` rectangles: walked past, never a spot to stand or wait in; the owner, 20 Nov 2026)."""
     def skip(n):
-        return (adult and n.get('adult')) or (passing and n.get('doorway'))
+        return (adult and n.get('adult')) or (passing and n.get('doorway')) or (made and n.get('cast') == 'made')
     A = _areas(inv)
     if m is None:
         m = A.get('clear', .3)
@@ -507,7 +576,7 @@ def forbidden_spot_problems(npcs, trees=None, inv=None, adults=()):
             plan_spots(b)
     adult_spots = []
     for k, p in (npcs or {}).items() if isinstance(npcs, dict) else []:
-        if k in adults:
+        if k in adults or _movable(inv).get(k, {}).get('adult'):
             n0 = len(spots)
             plan_spots(p)
             adult_spots.extend(spots[n0:])
@@ -530,8 +599,10 @@ def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')))
+    ok, area, _k, why = area_check(p, inv, adult=bool(mv.get('adult')), made=bool(mv.get('made')))
     out = [] if ok else [why]
+    if ok and mv.get('areas') and area not in mv['areas']:
+        out.append('This NPC cannot be placed in that area.')
     if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
     return out
@@ -541,8 +612,9 @@ def _leg_problems(mv, a, b, inv=None):
     A = _areas(inv)
     m = A.get('clear', .3) - .1
     ad = bool((mv or {}).get('adult'))
-    oka, aa, _, _ = area_check(a, inv, None, m, ad, True)
-    okb, ab, _, _ = area_check(b, inv, aa, m, ad, True)
+    md = bool((mv or {}).get('made'))
+    oka, aa, _, _ = area_check(a, inv, None, m, ad, True, md)
+    okb, ab, _, _ = area_check(b, inv, aa, m, ad, True, md)
     if oka and okb and aa != ab:
         return ['the walk to the next point goes into another area: a route stays in one area.']
     area = aa or ab
@@ -553,7 +625,7 @@ def _leg_problems(mv, a, b, inv=None):
     for k in range(n + 1):
         t = k / n
         q = {'x': a['x'] + (b['x'] - a['x']) * t, 'z': a['z'] + (b['z'] - a['z']) * t}
-        ok, qa, kind, _ = area_check(q, inv, area, m, ad, True)
+        ok, qa, kind, _ = area_check(q, inv, area, m, ad, True, md)
         if ok and qa == area:
             continue
         if ok:
@@ -1449,7 +1521,7 @@ def escort_problems(o, inv, area='avenue', m=None):
     kind, npc = o.get('kind'), o.get('npc')
     who = (esc.get('npcs') or {}).get(npc)
     if not who or not _movable(inv).get(npc):
-        return ['only someone who can walk with the player (Reverie, Lace, the street cat) can do this step.']
+        return ['only someone who can walk with the player can do this step.']
     out = []
     allowed = (esc.get('fields') or {}).get(kind) or []
     for f in ESCORT_FIELDS:
@@ -1512,7 +1584,7 @@ def escort_shape_problems(trees):
 
 
 # the sit actions and the pose each needs at its seat (npc-paths.js ACTIONS pose; 21 Nov 2026: the floor poses at the tea room cushions, the cots and the alcove benches)
-SIT_POSES = {'sit': 'chair', 'sit-kneel': 'kneel', 'sit-cross': 'cross', 'sit-knees': 'knees'}
+SIT_POSES = {'sit': 'chair', 'sit-wave': 'chair', 'sit-kneel': 'kneel', 'sit-cross': 'cross', 'sit-knees': 'knees'}
 
 
 def _ledge_at(mv, p, pose='chair'):
@@ -1528,8 +1600,8 @@ def _ledge_at(mv, p, pose='chair'):
 def wait_at_problems(giver, w, inv):
     if w is None:
         return []
-    if not _movable(inv).get(giver):
-        return ['"Giver waits at" works only for a giver the editor can move (Reverie or Lace).']
+    if not _movable(inv).get(giver) or _movable(inv)[giver].get('placementOnly'):
+        return ['"Giver waits at" works only for a giver the editor can move.']
     if not _keys(w, ['x', 'z', 'yaw']):
         return ['"Giver waits at" has unknown fields.']
     return spot_problems(giver, w, inv)
@@ -1551,25 +1623,31 @@ def npc_problems(npcs, inv):
             out.append(w + 'unknown kind of placement.')
             continue
         anims = p.get('anims')
-        if anims is not None and (not isinstance(anims, list) or len(anims) > 8 or any(a not in (mv.get('anims') or []) for a in anims)):
+        if anims is not None and (not isinstance(anims, list) or any(not isinstance(a, str) for a in anims) or len(set(anims)) != len(anims) or not set(anims).issubset(mv.get('anims') or [])):
             out.append(w + 'an added animation is not allowed for this NPC.')
         ok = set(mv.get('actions') or []) | set(a for a in (anims if isinstance(anims, list) else []) if isinstance(a, str))
         rest = {k: v for k, v in p.items() if k != 'schedule'}
         out += [w + x for x in _plan_only(npc, rest, mv, inv, ok)]
         if 'schedule' in p:
-            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {})]
+            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {}, p.get('tier') or 1, rest)]
     return out
 
 
 def _plan_only(npc, p, mv, inv, ok):
     out = []
     path_only = set(mv.get('pathOnly') or [])
+    if p.get('tier') not in (None, 1, 2, 3):
+        out.append('the tier is 1, 2 or 3.')
+    if p.get('awareness') is not None:
+        if (p.get('tier') or 1) < 2:
+            out.append('only a Tier 2 or Tier 3 character keeps a sight and hearing record.')
+        out += _awareness_problems(p.get('awareness'))
     if p['mode'] == 'original':
-        if not _keys(p, ['mode', 'anims']):
+        if not _keys(p, ['mode', 'anims', 'tier', 'awareness']):
             out.append('unknown fields.')
         return out
     if p['mode'] == 'stay':
-        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims']):
+        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims', 'tier', 'awareness']):
             return ['the stay has unknown fields.']
         out += spot_problems(npc, p, inv)
         acts = p.get('actions')
@@ -1582,7 +1660,7 @@ def _plan_only(npc, p, mv, inv, ok):
                 elif a in SIT_POSES and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p, SIT_POSES[a]):
                     out.append('"Sit" needs a ledge.' if a == 'sit' else 'that sitting pose needs a seat that takes it (a cushion, a cot or a bench).')
         return out
-    if not _keys(p, ['mode', 'points', 'anims']):
+    if not _keys(p, ['mode', 'points', 'anims', 'tier', 'awareness']):
         return ['the path has unknown fields.']
     pts = p.get('points')
     if not isinstance(pts, list) or not 2 <= len(pts) <= 12:
@@ -1615,7 +1693,7 @@ def _plan_only(npc, p, mv, inv, ok):
 # minutes, a plain-words name; each block's stay or route is checked like a placement. Nothing in it is code: times, numbers and action ids only.
 HHMM = re.compile(r'^([01]\d|2[0-3]):([0-5]\d)$')
 BLOCK_NAME = re.compile(r"^[A-Za-z0-9 .,'\u2019()&!?\-/]{1,40}$")
-BLOCK_KEYS = {'original': ['from', 'to', 'name', 'mode'], 'stay': ['from', 'to', 'name', 'mode', 'x', 'z', 'yaw', 'actions'], 'path': ['from', 'to', 'name', 'mode', 'points']}
+BLOCK_KEYS = {'original': ['from', 'to', 'name', 'mode'], 'stay': ['from', 'to', 'name', 'mode', 'x', 'z', 'yaw', 'actions', 'cross'], 'path': ['from', 'to', 'name', 'mode', 'points', 'cross']}
 
 
 def _hhmm(t):
@@ -1639,7 +1717,52 @@ def schedule_shape_problems(sched):
     return []
 
 
-def schedule_problems(npc, sched, mv, inv, ok, limits=None):
+def _awareness_problems(rec):
+    if not isinstance(rec, dict) or not _keys(rec, ['sight', 'fov', 'hear']):
+        return ['Awareness has unknown fields.']
+    out = []
+    def span(v, a, b):
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and a <= v <= b
+    if not span(rec.get('sight'), 10, 80):
+        out.append('Sight is 10 to 80 feet.')
+    if not span(rec.get('fov'), 40, 160):
+        out.append('The field of view is 40 to 160 degrees.')
+    h = rec.get('hear')
+    if not isinstance(h, dict) or not _keys(h, ['walk', 'sprint', 'combat']):
+        out.append('Hearing needs a walk, a sprint and a combat range.')
+    else:
+        if not all(span(h.get(k), 10, 150) for k in ('walk', 'sprint', 'combat')):
+            out.append('Each hearing range is 10 to 150 feet.')
+        if span(h.get('walk'), 10, 150) and span(h.get('sprint'), 10, 150) and h['sprint'] < h['walk']:
+            out.append('A sprint is heard at least as far as a walk.')
+        if span(h.get('sprint'), 10, 150) and span(h.get('combat'), 10, 150) and h['combat'] < h['sprint']:
+            out.append('Combat is heard at least as far as a sprint.')
+    return out
+
+
+def _block_area(b, inv):
+    if not isinstance(b, dict) or b.get('mode') == 'original':
+        return None
+    p = b['points'][0] if b.get('mode') == 'path' and isinstance(b.get('points'), list) and b['points'] else b
+    return area_of(p, inv) if isinstance(p, dict) else None
+
+
+def _earlier_block(sched, i):
+    f = _hhmm(sched[i].get('from')) if isinstance(sched[i], dict) else None
+    best, bd = None, 1440
+    for k, b in enumerate(sched):
+        if k == i or not isinstance(b, dict) or b.get('mode') == 'original':
+            continue
+        t = _hhmm(b.get('to'))
+        if f is None or t is None:
+            continue
+        d = (f - t) % 1440
+        if d < bd:
+            bd, best = d, b
+    return best
+
+
+def schedule_problems(npc, sched, mv, inv, ok, limits=None, tier=1, base=None):
     limits = limits or {}
     most, least = limits.get('blocks', 8), limits.get('blockMin', 15)
     if not isinstance(sched, list):
@@ -1675,8 +1798,27 @@ def schedule_problems(npc, sched, mv, inv, ok, limits=None):
                 out.append(bw + 'it overlaps time block %d.' % (clash + 1))
         if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
             out.append(bw + 'the name may use letters, numbers and simple punctuation only.')
+        if b.get('cross') not in (None, True):
+            out.append(bw + '“Walk through the gates” is on or left off.')
+        if b.get('cross') is True:
+            if mv.get('placementOnly'):
+                out.append(bw + 'Dax stays in the District.')
+            elif not (isinstance(tier, int) and tier >= 2):
+                out.append(bw + 'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.')
+            elif b['mode'] == 'original':
+                out.append(bw + 'walking through the gates needs a spot in the area she is going to.')
+            else:
+                dest = _block_area(b, inv)
+                prev = _earlier_block(sched, i)
+                src = _block_area(prev, inv) or _block_area(base, inv)
+                kind = 'cat' if mv.get('cat') else 'walker'
+                reach = set((((inv or {}).get('npcPaths') or {}).get('cross') or {}).get(kind, {}).get(src) or [])
+                if not src or not dest:
+                    out.append(bw + 'say where she walks from: an earlier spot in an area she can leave.')
+                elif src != dest and dest not in reach:
+                    out.append(bw + 'she cannot walk from that area to the next (there is no way through for her).')
         if b['mode'] != 'original':
-            rest = {k: v for k, v in b.items() if k not in ('from', 'to', 'name')}
+            rest = {k: v for k, v in b.items() if k not in ('from', 'to', 'name', 'cross')}
             out += [bw + x for x in _plan_only(npc, rest, mv, inv, ok)]
     return out
 
@@ -1842,7 +1984,7 @@ def import_package_problems(pkg, inv=None):
     tri, size = m.get('triangles'), m.get('bytes')
     if type(tri) is not int or tri < 0:
         out.append('The package does not say how many triangles the model has.')
-    elif tri > cap.get('maxTriangles', 50000):
+    elif tri > cap.get('maxTriangles', 50000) and pkg.get('allowOverTriangleLimit') is not True:
         out.append('This model has %d triangles; the limit is %d.' % (tri, cap.get('maxTriangles', 50000)))
     if type(size) is not int or size < 0:
         out.append('The package does not say how big the file is.')
@@ -2677,7 +2819,13 @@ def summary(db):
     state = _state_ref(db).get().to_dict() or {}
     numbers = {str(k): v for k, v in shipped_numbers().items()}
     numbers.update(state.get('numbers') or {})
-    return {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    result = {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
+    if state.get('live'):
+        record = _version_ref(db, state['live']).get().to_dict() or {}
+        cfg = (record.get('content') or {}).get('rookFreight')
+        if cfg:
+            result['rookFreight'] = cfg
+    return result
 
 
 def public(db, now=None):
@@ -2786,7 +2934,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight')):
         raise DraftError('There is nothing to publish.', 422)
     missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
     if missing:
@@ -3434,9 +3582,12 @@ def with_made(chars, inv):
         v = md.get('adult') if adult and md.get('adult') else md
         name = c.get('name') if isinstance(c.get('name'), str) and c.get('name').strip() else cid
         mv = v.get('movable') or {}
+        animations = list(mv.get('anims') or [])
+        for index in mv.get('animationLists') or []:
+            animations.extend(mc['animationLists'][index])
         # (20 Nov 2026) made characters sit too: on the Avenue's ledges and the tunnels' alcove seats (the same list as everyone's, npc-paths.js inventory)
         seat_src = next((m for m in (inv.get('npcPaths') or {}).get('movable', {}).values() if isinstance(m, dict) and m.get('ledges')), {})
-        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
+        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': animations, 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
         me['givers'][cid] = {'name': name, 'canTalk': True, 'players': True, 'draft': True, 'group': 'district'}
         if v.get('gestures'):
             me['gestures'][cid] = {'look': c.get('model'), 'clips': v['gestures']}

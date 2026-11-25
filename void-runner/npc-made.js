@@ -40,7 +40,7 @@
     licensed model), its jacket darkened by a look (npc-looks.js colour, skin kept). His post and actions: npc-paths.js MOVABLE['tea-host'].home; the roster entry and
     TALK prompt: mission-givers.js FACTS (action ACTION). Placeholder name; no lines. */
  const BUILTIN={'tea-host':{name:'Tea Room Host',model:'npc-cook-old',look:{colour:{'*':{tint:'#30343a',sat:.55,bright:.62}}}}};
- const YOUNG=['npc-grey-reverie','npc-ethereal-lace','npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
+ const YOUNG=['npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
  const adultAllowed=asset=>!YOUNG.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
  const LIMIT={characters:12,name:40,role:80,items:6};
@@ -79,7 +79,8 @@
  const GROUPS={street:'Street people',named:'Named characters’ models',older:'Older figures (off-world places)',licensed:'Licensed models (recolour and hide only, never any AI tool)'};
  const modelOf=a=>models().find(m=>m.asset===a)||null;
  /* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */
- function fileOf(asset){const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
+ function teaResident(asset){const duo=node?req('./tea-duo.js'):root.VoidTeaDuo;return Object.values(duo?.PEOPLE||{}).find(p=>p.model===asset);}
+ function fileOf(asset){const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
  /* Every item a giver can carry: personal gear, a hacking device when the game has one, ship modules and ship gear. show: how it is seen on them, or null (data only). */
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');
@@ -142,11 +143,34 @@
  /* For the admin inventory (the server's copy): every model with what a made character on it may do (npc-paths.js / npc-gestures.js / npc-escort.js, worked out once per model). */
  function inventory(){const X=NPX(),out={limits:LIMIT,devices:Object.keys(DEVICES),items:Object.fromEntries(items().map(i=>[i.id,{name:i.name,show:i.show}])),ships:ships().map(s=>s.id),models:{}};
   const NG=req('./npc-gestures.js'),E=req('./npc-escort.js'),before=X.madeNow();
+  // Store each donor's identical clip list once across the model inventory.
+  out.animationLists=[];const listIndices=new Map();
+  function motionLists(ids){
+   const groups=new Map();for(const id of ids){const key=id.includes('/')?id.split('/')[0]:id.split('-')[0];if(!groups.has(key))groups.set(key,[]);groups.get(key).push(id);}
+   return [...groups.values()].map(list=>{const key=JSON.stringify(list);if(!listIndices.has(key)){listIndices.set(key,out.animationLists.length);out.animationLists.push(list);}return listIndices.get(key);});
+  }
   const K='made-model-check',one=(m,adult)=>{X.setMade({[K]:{name:'Made',model:m.asset,...(adult?{adult:true}:{})}});const mv=X.inventory().movable[K];
-   return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
+   return {movable:mv?{actions:mv.actions,animationLists:motionLists(mv.anims),pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
- const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ function deletionReferences(draft,id){
+  const uses=value=>value===id||!!value&&typeof value==='object'&&Object.values(value).some(uses);
+  const refs=(draft.trees||[]).filter(uses).map(tree=>tree.name||tree.id);
+  for(const [other,record] of Object.entries(draft.interactions||{}))
+   if(other!==id&&record.advanced?.group?.members?.includes(id))refs.push('interaction with '+other);
+  for(const [other,record] of Object.entries(draft.characters||{}))
+   if(other!==id&&record.relationships?.some(r=>r.target===id))refs.push('relationship with '+(record.name||other));
+  for(const [mission,record] of Object.entries(draft.missions||{}))if(uses(record))refs.push(mission);
+  return refs;
+ }
+ function deleteCharacter(draft,id){
+  if(!Object.hasOwn(draft.characters||{},id)||deletionReferences(draft,id).length)return false;
+  for(const key of ['characters','npcs','voices','names','interactions'])if(draft[key])delete draft[key][id];
+  if(draft.animRequests)draft.animRequests=draft.animRequests.filter(r=>r.npc!==id);
+  for(const [key,clip] of Object.entries(draft.clips||{}))if(clip?.who===id)delete draft.clips[key];
+  return true;
+ }
+ const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
@@ -176,6 +200,7 @@
  // ---- one scene's figures (every street quarter and the District interior)
  function start({B=root.BABYLON,scene,parent,quality='medium',where={scene:'street',quarter:'avenue'}}={}){
   const A=root.VoidAssets,SP=root.VoidStreetPair,Ar=AR(),HERE=new Set(Ar?Ar.here(where.scene||'street',where.quarter||null):[]),cfg=SP&&SP.config;if(!A||!SP||!cfg||!scene)return null;
+  const shift=Ar?.SCENE_SHIFT?.[where.scene]||null,scenePlan=P=>{if(!shift||!P)return P;const u=q=>q&&Number.isFinite(q.x)?{...q,x:q.x-shift.x,z:q.z-shift.z}:q;if(P.mode==='stay')return u(P);if(P.mode==='path')return {...P,points:(P.points||[]).map(u)};if(P.mode==='escort')return {...P,to:u(P.to),from:u(P.from),resume:u(P.resume),final:u(P.final)};return P;};
   const people=new Map(),asked=new Map(),items=new Map(),away=new Set(),rnd=Math.random;let clock=0,scan=0,disposed=false;
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null,me=()=>typeof walker!=='undefined'?walker:null;
   const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};   // on the stairs to the tunnels: the steps' height
@@ -184,7 +209,7 @@
   function ask(m){const t=asked.get(m);if(t!=null&&clock<t)return;asked.set(m,clock+20);Promise.resolve(A.load('crowd:'+m,{src:fileOf(m),background:true},scene)).catch(e=>{try{console.info('[VOID//RUNNER made givers] '+m+' is not on this machine ('+(e&&e.message||e)+').');}catch{}});}
   function itemFor(id,c){let it=items.get(id);if(!it){it={id:'made-'+id,action:ACTION,character:id,label:'TALK TO '+String(c.name||id).toUpperCase(),position:[0,1.6,0],range:2.2,talk:true};items.set(id,it);}it.label='TALK TO '+String(c.name||id).toUpperCase();return it;}
   function leave(id){const p=people.get(id);if(!p)return;people.delete(id);const L=wl(),it=items.get(id);if(L&&Array.isArray(L.interactions)&&it){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}try{p.anim?.dispose?.();}catch{}for(const x of p.props)try{x.dispose();}catch{}try{p.node.dispose();}catch{}}
-  function arrive(id,c,P){const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
+  function arrive(id,c,P){P=scenePlan(P);const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
    for(const m of n.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
    const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null)||{x:0,z:0};
@@ -213,8 +238,9 @@
    if(rr.ev)tellE(rr.ev,{ride:e.st.ride||null});
    if(e.st.ride==='in-cab'){p.seat=e.cab&&root.VoidRoadTaxiRules?.companionSeat?root.VoidRoadTaxiRules.companionSeat(e.cab):null;if(p.seat){e.st.x=p.seat.x;e.st.z=p.seat.z;e.st.yaw=p.seat.yaw;}p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return 'sit';}
    p.seat=null;if(e.st.ride==='to-cab'){p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return e.st.clip||'walk';}
-   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
+   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,social:!!P.social,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
+   if(P.social){const others=[...people.values()].filter(o=>o!==p&&o.node?.isEnabled?.()).map(o=>({x:o.s.x,z:o.s.z}));if(mp)others.push(mp);const n=root.VoidAdvancedInteractions?.separate?.({x:p.s.x,z:p.s.z},others,.85);if(n&&Ar&&!Ar.leg({x:p.s.x,z:p.s.z},n,{passing:true,adult:!!p.c.adult,made:true}).length){p.s.x=e.st.x=n.x;p.s.z=e.st.z=n.z;}}
    if(ev)tellE(ev);return e.st.clip||'idle';}
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026; as ncz-street-pair.js): a new plan she cannot walk to straight is held while she is in view
      (p.hold: the plan she keeps), and a figure that should go (its mission is over, its plan left this area) stays on its last plan until it is out of view (p.going). */
@@ -232,7 +258,7 @@
     if(canWalk&&b.activity==='seat'&&['auto','tea','sleeping'].includes(b.room)){const actions=NPX().actionsFor(p.id),seat=nearbySeat(SP.seats?.()||[],plan,s=>{const f=SP.standOf(s);return Math.hypot(f.x-plan.x,f.z-plan.z)<=b.distance&&(!Ar.leg(plan,f,{made:true,adult:!!p.c.adult}).length)&&(b.room==='auto'||String(s.id).startsWith(b.room==='tea'?'under-tea-room-':'under-sleeping-room-'))&&actions.some(a=>a.pose&&(s.poses||['chair']).includes(a.pose))&&![...people.values()].some(o=>o!==p&&Math.hypot(o.s.x-s.x,o.s.z-s.z)<.65);});if(seat){const f=SP.standOf(seat),a=actions.find(a=>a.pose&&(seat.poses||['chair']).includes(a.pose));p.nearTarget={...plan,x:f.x,z:f.z,yaw:seat.yaw,actions:[a.id],key:plan.key+':companion-seat'};}}
    }const target=p.nearTarget||plan;if(b.activity!=='seat'&&(traits.attention??.5)>=.5)return {...target,yaw:Math.atan2(w.x-target.x,w.z-target.z)};return target;
   }
-  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:planOf(p.id),talk=chatting()===p.id,w=me();
+  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:scenePlan(planOf(p.id)),talk=chatting()===p.id,w=me();
    if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
@@ -247,6 +273,7 @@
    if(!Number.isFinite(p.s.x+p.s.z+p.s.yaw)){const t=P&&(P.mode==='stay'?P:P.points?P.points[0]:null)||{x:n.position.x,z:n.position.z};p.s.x=t.x;p.s.z=t.z;p.s.yaw=0;}
    if(clip==='sit'&&p.seat&&p.esc&&p.esc.st.ride==='in-cab'){const sit=(NPX()?.crowdClips?.(p.c.model)||[]).includes('sit');n.position.set(p.s.x,p.seat.y,p.s.z);n.rotation.y=p.s.yaw;if(n.isEnabled()!==sit)n.setEnabled(sit);if(sit&&p.anim&&p.clip!=='sit'){p.clip='sit';p.anim.play('sit');}p.anim?.setActive?.(sit&&d<animRadius);const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}return;}   // riding in the player's taxi
    p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y+(p.s.lift||0),p.s.z+o.z);}/* seated (lift: a floor pose on a cushion or cot top): the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
+   {const sp=root.VoidLiveContent?.socialPose?.(p.id);if(sp&&p.s.mode!=='esc'){const clips=NPX()?.crowdClips?.(p.c.model)||[];clip=sp==='talk'&&clips.includes('talk')?'talk':clips.includes('idle')?'idle':clip;if(sp==='talk'&&w)p.s.yaw=Math.atan2(w.x-p.s.x,w.z-p.s.z);}}
    if(p.anim&&clip!==p.clip){p.clip=clip;if(p.s.once&&p.s.after&&p.anim.playOnce)p.anim.playOnce(clip,p.s.after);else p.anim.play(clip);}   // a floor seat's sit-down / stand-up clip plays once, then its pose (ncz-street-pair.js FLOOR_MOVE)
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
@@ -273,6 +300,9 @@
  // the inside of Milked (milked-build.js build, its own scene): reception, for adult made characters only (npc-areas.js area 'milked')
  (function wrapMilked(){const MK=root.VoidMilked;if(!MK||!MK.build||MK.build.made)return;const b0=MK.build;const b1=function(o){const h=b0.apply(this,arguments);let m=null;try{m=start({...(o||{}),where:{scene:'milked'}});}catch(e){}
    if(!h||!m)return h;let last=null;const t=h.tick,d=h.dispose;h.tick=function(time){const r=t.apply(this,arguments);const now=performance.now()/1000,dt=last==null?0:Math.min(.1,now-last);last=now;m.tick(dt);return r;};h.dispose=function(){try{m.dispose();}catch{}return d.apply(this,arguments);};h.made=m;return h;};b1.made=true;MK.build=b1;})();
+ function watchScene(sceneId,owner){if(!owner||typeof owner.build!=='function'||owner.build.made)return;const b0=owner.build;const b1=function(o){const h=b0.apply(this,arguments);let m=null;try{m=start({...(o||{}),where:{scene:sceneId}});}catch(e){}
+   if(!h||!m)return h;let last=null;const t=h.tick,d=h.dispose;h.tick=function(time){const r=t.apply(this,arguments);const now=performance.now()/1000,dt=last==null?0:Math.min(.1,now-last);last=now;m.tick(dt);return r;};h.dispose=function(){try{m.dispose();}catch{}return d.apply(this,arguments);};h.made=m;return h;};b1.made=true;owner.build=b1;}
+ root.VoidMadeNPCs.watchScene=watchScene;watchScene('corporate',root.VoidCorporate);watchScene('temple',root.VoidTemple);
  // TALK TO <NAME> with no mission waiting: a silent beat (no words are invented for them; live-content.js offers their missions first)
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);nameCards();
   VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);

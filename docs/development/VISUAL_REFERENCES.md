@@ -75,8 +75,6 @@ They stay passive unless the player acts, for example by breaking in. If the pla
 
 **Feeds:** how people inside Sleeping Pods should look, and the stay the owner described. Do not modify the existing sleeping pod room until the owner says so. The room, the ten pods, the music player, and the wall vending unit stay as they are.
 
-In-game occupants must stay clothed and non-explicit. If a reference reads as more revealing than that, the game version stays covered.
-
 **Images:** four, all pending. Each is a tight white capsule lit by one strong colour:
 
 1. Teal light strips.

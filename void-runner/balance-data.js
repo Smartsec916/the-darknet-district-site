@@ -1,5 +1,9 @@
 /* Shared by the browser and Python API. Edit this JSON object to tune defaults and limits. */
 globalThis.VoidBalanceSpec = {
+  "daxRecruitPlayMinutes": {"value":-1,"min":-1,"max":100000},
+  "daxBountyPlayMinutes": {"value":-1,"min":-1,"max":100000},
+  "daxRecruitCivilianReputation": {"value":0,"min":-100,"max":100},
+  "daxBountyCivilianReputation": {"value":0,"min":-100,"max":100},
   "firstRaiderDelay": {"value":10,"min":0,"max":60},
   "playerHull": {
     "value": 100,

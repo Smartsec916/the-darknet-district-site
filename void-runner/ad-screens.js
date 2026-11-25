@@ -275,7 +275,7 @@
  const newsNow=()=>{try{return D.newsFor(relayContent(),typeof state!=='undefined'?state?.relay?.occurred:null);}catch{return [];}};
  function createFeed(id,zone,seed){
   const f={id,zone,seed,programme:[],relayCount:-1,pos:-1,slide:null,i:0,lineT:0,dur:1,slideT:0,clip:null,said:false,spots:[],texture:null,material:null,dirty:true,spoken:0,shown:0,log:[]};
-  f.rebuild=()=>{const rc=relayContent();f.relayCount=(rc.segments||[]).length;f.programme=D.programme(zone,{relay:rc,seed});if(f.pos<0)f.pos=seed*7%Math.max(1,f.programme.length)-1;};
+  f.rebuild=()=>{const rc=relayContent();f.relayCount=(rc.segments||[]).length;f.programme=D.programme(zone,{relay:rc,seed});try{const pl=root.VoidDevStudios?.activePlaylist?.();if(pl)f.programme=root.VoidDevStudios.filterProgramme(f.programme,pl);}catch{}if(f.pos<0)f.pos=seed*7%Math.max(1,f.programme.length)-1;};
   f.rebuild();return f;
  }
  function nextSlide(f){

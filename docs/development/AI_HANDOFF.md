@@ -1,5 +1,73 @@
 # The Darknet District — current AI handoff
 
+## 24 Nov 2026 — Lace and Reverie removal (local development)
+
+The owner retired both Avenue NPCs and their Milked Studio 1 rotation. Studio 1 is vacant. The street cat still uses the Avenue runtime. Other characters use the same movement, seats and floor transitions. The shared rigging workshop loads its approved run from a skeleton-only animation asset. The public mission-content endpoint returned version 3 with no references to either retired ID during the audit.
+
+In the NPC Editor, deleting a created character checks draft missions, group interactions and relationships, then removes the character's owned records in one undoable draft save. Imported models use their separate local deletion control. Shipped NPCs with bespoke code require repository edits. Original downloads and unrelated personal editor drafts were left in place.
+
+Verification included real Edge NPC Editor deletion, Babylon NullEngine Avenue ticks and shared animation retargeting. No production deployment.
+
+## 23 Nov 2026 — Approach greetings are random (Tea Room Host)
+
+- Bug: the NPC editor's "Approach greetings (one alternative per line)" box (Conversations & Interactions, saved as `interactions[id].near`) was stored in full, but the game played its lines strictly in written order from a counter that restarts at 0 on every page load or content reload. So a tester who reloads always saw line 1 (for the Tea Room Host, the "Our more intimate services" line).
+- Fix: `MC.interactionPick(text,state)` (mission-content.js) is a shuffle bag: every line plays once, random order, before any repeats, never the same line twice in a row, one line works. `ordinaryTick` in live-content.js uses it for any NPC's approach greeting. Cooldown, distance, TALK, room, follow and group lines are unchanged (still in written order); the mission editor's walk-near banner is a different, single-text field and was not touched. No schema change, no server change, no Render redeploy. Test: tests/near-lines.test.cjs.
+
+## 23 Nov 2026 — Developer studios
+
+- SHOP HERE stands in the District store, apart from Admin and Iris. It sells a sprint tonic and a street tint. Buying again refreshes the time. The sprint is capped and changes walking speed. The tint stays off when reduced motion is on. Credits save; the effect is a short flag.
+- Developer Tools > Studios lists the existing area music, says an ad playlist may only use ads that already exist, and says a cinematic shot jumps in a throwaway session. A shared skirmish lobby is not on the multiplayer service. Practice on this machine still does not spend credits.
+
+## 23 Nov 2026 — VOID//RUNNER branding
+
+- The games directory card and the main menu use the VOID//RUNNER wordmark. The homepage keeps Enter The Darknet District and shows the wordmark underneath. Every game card has a staggered edge glow that stops on hover, focus, reduced motion and forced colors. Site navigation is unchanged.
+
+## 23 Nov 2026 — Tier 2 and 3 sight and hearing
+
+- A Tier 2 or 3 character can keep a sight distance, a field of view, and hearing ranges for a walk, a sprint and combat. Sight stops at a wall. Hearing is a distance, not a view through the building. Tier 1 keeps a short fixed notice and ignores a saved record. When a record is set, Reverie or Lace turns her head toward a player only if she can see or hear them. There is no memory and no device night vision in this release.
+
+## 23 Nov 2026 — Tier 2 and 3 characters can walk from one area to the next
+
+- A character’s placement can be Tier 1, 2 or 3. Tier 1 is the ordinary case and stays in one area. Tier 2 or 3 may mark a later time block “Walk through the gates.” She walks to the gate in the area she is leaving and, after the player goes through, comes in on the far side and walks to the spot. There is still no walked route from the city into the Corporate District or the Temple, and the cat still does not go inside or underground.
+- Desktop Dev Tools has the tier list and the checkbox. The server rejects a Tier 1 cross-area walk and a walk with no way through.
+
+## 23 Nov 2026 — Reverie, Lace and the cat in the Corporate District and the Temple
+
+- The open streets of the Corporate District and Zen Zephyr Temple are ordinary placement ground for Reverie, Lace and the street cat, as well as characters made in the editor. Saved spots stay shifted off the city map. Those scenes start the street-pair runtime and convert the spots into the scene’s own metres. The cat’s Avenue shop-wall clamp does not apply there.
+- A seated wave still needs a chair-pose seat. These scenes do not have one, so that action is refused at a bare spot. Standing and walking clips are unchanged. A follow or lead step can use a spot in the same scene. She still cannot be walked or taken by cab from the city into those scenes in one step: there is no walking link, and those cab stops stay far stops. She is there when the scene loads if her placement says so. The city tiles beyond the Function Gate and the East Gate stay unused. Adult venues, Milked’s studios and the Sleeping Pod room are unchanged.
+
+## 23 Nov 2026 — #419 Corporate District and Temple scene hooks
+
+- Made characters can be placed on the open ground of the Corporate District and Zen Zephyr Temple. Stored coordinates are shifted so they cannot land on a city pavement. In those scenes the figures use the scene’s own metres. The follow-up above also lets Reverie, Lace and the street cat stand there. The city side of the gates stays unused.
+- The District bar, VR play area, arcade, Milked reception and NULL floor keep their existing adult-made placement. Reverie and Lace still carry the same 16 native clips, including the seated wave.
+- The scene builders start and dispose the made-character runtime with the area. Draft play can enter either scene.
+
+## 23 Nov 2026 — #495 follow, lead and group dialogue
+
+- Walking TALK NPCs can invite the local player to follow them or lead them to a registered place. Movement uses the existing escort walk, obstacle routing and per-player copy. A mission escort or active mission dialogue cancels it and can play the cancel line. Arrival dialogue plays when both reach the place. Desktop and mobile Dev Tools edit the same record; the server rejects unknown fields and unregistered places. Released in #503.
+- Linked groups speak one at a time, in member order, with talk/idle poses on made NPCs who are close enough. Mission dialogue suppresses the group. No new save field and no shared NPC position sync.
+- Still open on #495: cross-area daily itineraries, tier awareness, consumables and the later studio requests in the draft handoff.
+
+## 22 Nov 2026 — #495 room-dialogue release candidate
+
+- Room-aware ordinary NPC dialogue now checks walking TALK positions, registered room boundaries, closed-door collision solids, mission priority and per-player transition timing. It supports entry, exit, short/long visits, independent cooldowns and exact recording preservation. Desktop includes the actual tea room; mobile has matching room dialogue fields and private draft-only synchronization. No existing dialogue, saves, publishing privileges or NPC eligibility changed.
+- Focused tests: 14 Node and 3 Python passed locally. Full CI, authenticated gameplay and production deployment remain pending. This release is isolated from stale #495; follow/lead and coordinated NPC group behaviors remain separate work.
+
+## 22 Nov 2026 — Mobile Dev Tools v0.1
+
+- Separate Android-installable PWA at `/dev-tools-mobile/`, reusing existing Firebase and revision-guarded private workspace API. Draft NPC interactions, existing missions, Eleven v4 voice choices and individual MP3 downloads; no publishing or player-save changes. Voice selection honors current registry restrictions. Full graphical placement, flowchart, bulk attachment, undo history and authenticated device verification remain outstanding.
+
+## 22 Nov 2026 — PR #419 animation recovery
+
+- Recovered the explicit native seated wave and preview clip-count/button fix on current main without reverting the newer underground seating or placement rules. Both models retain 16 original clips plus the newer floor-pose entries. The client and API require a compatible chair-pose seat for the new action.
+- The original draft #419 remains incomplete: independent scene placement and lifecycle integration needs separate geometry and gameplay checks using eligible NPCs. Do not merge the stale branch as-is. No player saves or published configurations are modified by this increment.
+
+## 22 Nov 2026 — Underground sleeping room
+
+- The four cots behind the tea room share their geometry, collision and seat positions in `modules.js` (`COT_LAYOUT`). Each is 1.08 × 2.16 m with a clear approach; lockers are beneath the mattresses, not in the aisle.
+- Curtain cloth is passable. Two curtains start open (one on each side). Each front curtain has its own E interaction and animates open/closed, including in the underground network. Existing room, seat and mission-object IDs are retained; no mission tree or player-save data changes.
+- Compatibility follow-up: retain the original cot, locker and curtain interaction IDs at their corresponding nooks; curtain animation keys are independent of interaction IDs. Regression checks all three legacy targets and all four independent curtains.
+
 ## 19 Nov 2026 — DEV TOOLS NPC CAPABILITY AUDIT (CURRENT RULE)
 
 Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Mission Editor eligibility.
@@ -36,6 +104,43 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
+
+**24 Nov 2026 draft: Hotel Headshots account scores.** Authenticated runs now post ordered floor checkpoints and a completed balance to `/api/void-runner/hotel-headshots`. Shared District Firebase identity and public handles; transactional personal bests and top-100 board; score-bearing Personal Best and current highest-balance achievements on V1 player profiles. Existing local scores remain separate and are never imported as account achievements. See `HOTEL_HEADSHOTS.md` for validation and release requirements. Local changes only; backend and frontend must both be deployed before this is live.
+
+**Owner naming correction, 24 Nov 2026:** the 3D game is called **Void Runner** again. This supersedes the earlier “The Darknet District - Game” public title. The games-list card, browser/loading/menu/HUD titles and device gate use Void Runner; The Darknet District remains the site and in-world location name. Internal filenames, save keys and IDs are unchanged. Its games-list attract preview now carries a persistent VOID RUNNER title and scene captions, with versioned preview/script URLs to refresh cached copies.
+
+> **Codex draft, 18 Nov 2026 — HOTEL HEADSHOTS:** New standalone five-floor foam-blaster arcade game on `codex/hotel-headshots`, with a games-list card and the first unused District cabinet (formerly LASER MOTH). Owner corrections: neon/cyberpunk, not fancy; centered tan-only blaster without gray/white attachments; rounded lower pump grip partly behind the HUD, a short up/down grip wind-up before foam release (owner clarified the delay is intentional), and vertical mouse aiming to 89 degrees up/down, and foam gravity arcs with slight pressure/range variation and swept collisions. Latest presentation: opaque downward liquid drips on surfaces and moving NPC hit regions; four-scene attract tour with animated lobby guests, swimmers, diners and approaching/blocking pursuers, and a 16-frame District cabinet loop; black Milked sponsor-logo fade before each new run. The cabinet front and sides now show actual NPCs blocking and receiving foam impacts; the owner rejected exterior flower artwork. Games-list cards now include silent attract previews with pause/reduced-motion controls, including Hotel Headshots. 24 Nov NPC pass: textured adult MakeHuman characters, fitted original swimwear, skeletal locomotion/guard blending and bone-following hit regions replace the primitive figures. 24 Nov reference-plan redesign: enclosed bedrooms/bathrooms, front lobby, rear pool and separate stairwell; sleeping/waking/bathroom/swimming residents; three blocking poses including palms-out. Ground-floor side dining area added with seated eating guests and stand-to-pursue reactions. All 32 rooms now have paired nightstands, writing desks/chairs, wall TVs and verified private bathroom access. All rooms have glazed windows with perspective-correct shared 3D trees, meadow, sky and cloud views (512px, 20Hz cap, six merged exterior meshes). Four owner-requested recorded foam-hit reactions are integrated with positional audio, overlap limits and pause/mute support. Original flower and bee paintings in walnut frames now decorate all five floors and every guest room (104 placements). Daytime pass: blue sky/clouds, warm sunlight and glazed roofs over the opening lobby and pool; daylight nature views outside windows. Layout audit: mirrored guestrooms with entry-side bathrooms and clear foot-of-bed exits, aligned rear stair landings, separate dry pool/stair access, and a wall-side breakfast buffet, coffee machine and mini fridge in dining. Current ending: lobby entrance/main exit, rear pool exit, and emergency exits at both ground-floor stair bases; reaching the penthouse triggers police entry through all four, pursuit across floors, gunfire and a non-graphic no-escape ending. Remaining money is scored. Plans and behavior screenshots are in the linked implementation notes. Environment remains procedural; not a photorealistic/AAA certification. Not merged or live. Implementation, verification and limitations: [`HOTEL_HEADSHOTS.md`](HOTEL_HEADSHOTS.md).
+
+
+### 17 Nov 2026 (newest): MISSION 003 — CORPORATE CONNECTIONS (branch `claude/mission-003`, build `2026-11-17-mission-003-1`, pushed, NO PR, not merged)
+
+### 24 Nov 2026 (newest): NOMI AND SE7EN ARE ALIVE FOR AS LONG AS THE PLAYER IS IN THE ROOM (branch `claude/nomi-se7en-4`, build `2026-11-23-nomi-se7en-4`)
+
+The owner (playing nomi-se7en-3): "Nomi and Se7en don't move, they only had a few lines. Then they were quiet the rest of the time."
+- **Reproduced** (browser, 3 minutes with the player inside): no lines at all when the models were still loading at the moment of entry (the visit was only built at the instant of entering); otherwise one burst of 7 to 12 lines and then nothing until leaving and returning after the 90 s cooldown; and the figures did not move at all between lines (their packages' idle, talk and sit clips are held poses: the head and hands moved 0.0 cm over 3 minutes); the code gestures only played during lines.
+- **Fixed:** `roomDuoStep` starts the visit as soon as they are present (and waits out the cooldown rather than giving up), and takes `refill` {gap, script, max}: while the guest stays, another round after a quiet gap of 6 to 15 s, 12 rounds in all (about 12 minutes), each 5 to 9 steps drawn from all 25 pools with the same rules; the first round has the arrival pair, no round before the last has a goodbye; after the last round they live on quietly. Lines now cycle: of a pool, the line heard longest ago (never = first) is used, so all five are heard before any repeats; all 250 come round. Per player (one state per game); a second player entering restarts nothing.
+- **Movement:** (1) a continuous layer on both: breathing, the head following the guest, and every 1 to 4 s (own random timers, never in step) a look at the guest, at the other, or round the room, a weight shift, a head tilt, a nod, a hand adjusting, a lean, a stretch; gestures on lines are larger. (2) **Real clips:** the owner made both on Meshy, so the female companion clips were retargeted onto their rigs (`tools/animation-pipeline/prepare_nomi_se7en.py`, `unmeshopt.cjs`; 19 clips added to the sealed `.vrpak`s in the private repo): seated sit-talk while speaking, standing talk-f / idle-f / idle-f2, hips, coy, shrug, wave, blow-kiss, laugh, and real dances (slow-dance, dance-belly: legs too). (3) **Episodes:** after a long quiet (30 to 75 s) one of them gets up (never both), does something (shrug, hips, coy, dance, wave, blow a kiss), perhaps walks to her standing spot (modules.js spots) and back with the walk clip at its own stride speed, and sits again; a line cancels it and she walks back to her bed first.
+- **Not used:** sit-relax (hips 6 cm high, feet lifted), sit-wave (hips 11 cm high), recline (a lying pose): they would float off the mattress; the seated gestures stay code poses.
+- **Not verified:** the sound by ear; two real players; real frame rate (software GL here, about 0.5 frames a second: timing checked against the clock).
+
+### 23 Nov 2026 (newest): NOMI AND SE7EN: ALL 250 LINES, AN ACTION ON MOST LINES; THE CAT PAINTING MOVED (branch `claude/nomi-se7en-3`, build `2026-11-23-nomi-se7en-3`)
+
+The owner: "i wouldn't have put it [flirt] in there if i didn't want it in there"; of the 15 skipped pools "try to find a way to make them make sense, maybe add animations after... i want them to do more actions than less"; "yes 250, find an algorithm that works between all of them"; and "try to center the cat picture in the tea room more to the left" (his marked-up screenshot: centre 975 px instead of 1135).
+- **All 250 recordings** published (byte-identical, `extra/tea-duo.json`, about 15 MB). **One picker over 25 pools** (`tea-duo.js visit()`): arrival pair (greet / approach / welcomeBack), then beats, then a bye; 9 to 12 steps (7 to 12 lines after skips). Beats: chat (chat, compliment, flirt, relax, window, aside), an INVITATION (inviteSit, joinSofa, comeHere, inviteDance, inviteRecline) answered by the OTHER hostess (accepted if the guest has come within 2.8 m of the one who asked, else declined or notNow) and, if accepted, the one who asked shows it (sit, hands, dance, recline pool); an AFFECTION beat (kiss, then kissAfter if the guest is close, else notYet); a hands beat. A reply never plays without its invitation. Lines not heard lately come first; no repeats in a visit. `roomDuoStep` takes `script` (the plan) and `resolve` (a step into its line when it falls due, or null to skip).
+- **Actions** (the packages have only idle, talk, walk, sit, sit-enter, sit-exit, run, no wave/dance/kiss clips): wave, head-tilt, glance, nod, lean-in, lean-back, laugh, blow-kiss, reach-hand, hands-out, settle, recline and dance, made by code on the 19 bones (turns about the figure's own axes, applied after the clip each frame; `POSES`), on about 88% of lines (two on a long line), the listener reacts sometimes, and both always look toward the guest. Standing up and sitting down use the packages' own sit-exit / sit-enter clips and hold the feet where they are every frame (no sliding): she stands for inviteDance and comeHere and sits back after the beat, and everyone sits for the bye or when the guest leaves. The recline is a lean back on the bed, not lying down.
+- **Cat painting** (`module-build.js` tea-under): x 2.36 to 1.91 (0.45 m to the viewer's left, the picture lamp with it); the sign 表と裏 is on the partition, unchanged.
+- **Not verified:** the sound by ear; real frame rate (software GL here runs about 0.5 frames a second, so timing was checked with the blend sped up); two real players.
+
+### 23 Nov 2026 (newest): NOMI AND SE7EN TALK FROM TEN POOLS, DIFFERENT EVERY VISIT (branch `claude/nomi-se7en-2`, build `2026-11-23-nomi-se7en-2`)
+
+The owner: "lines, please try to use most of them. it should pick lines from each category so the experience is different each time"; and of the models "i made them on meshy" (his own Meshy generations: licence record updated, nothing depends on a No AI flag for them).
+- **`tea-duo.js visit(rng, memory)`:** 6 to 8 lines per entry, Nomi first, alternating; the arrival pair (greet or approach, welcomeBack for a visitor this game has seen), middle turns each from a different pool than the previous two (chat, compliment, flirt, relax, window, aside), always ending on a bye; no line twice in a visit; lines (and pools) not heard for longest are likelier (a small memory per page session). `roomDuoStep` takes a `script` function (called only when a visit really starts). All the old rules stay (alternate, wait for the recording, 0.9 s pause, cancel on leaving, 90 s cooldown, other conversations hold it).
+- **Published:** 10 pools, 100 recordings (about 6.3 MB of MP3 as supplied; the old greeting files unchanged). **Skipped (15 pools):** sit, dance, hands, kiss, kissAfter, notYet, notNow (answers to a touch, a kiss or a refusal), joinSofa, inviteSit, inviteDance, inviteRecline, comeHere, recline, accepted, declined (invitations to move or sit and the replies to them).
+
+### 23 Nov 2026 (newest): NOMI AND SE7EN IN THE UNDERGROUND SLEEPING ROOM (branch `claude/nomi-se7en`, build `2026-11-23-nomi-se7en-1`)
+
+The owner's brief: finish Nomi and Se7en only. **Done:** the two models from his `.vrcompanion` packages published privately (`npc-nomi.vrpak`, `npc-se7en.vrpak`, private repo commit 708caab8, sealed at the Pages build, never in this repo); `void-runner/tea-duo.js` (`VoidTeaDuo`) puts them in `under-sleeping-room`, **seated on the two beds with open curtains (cot-2 and cot-3), Nomi on the one nearer the door** (the owner's words), facing each other across the aisle, on their own `sit` clip; the PR #512 standing spots are the fallback. Floor: the bind-pose lift (`floorLift`, the PR #512 rule) on the visual child only, absolute so reloads never add it; measured seated: hips about 0.61 m over the floor (cot top 0.54 m), feet on the floor. Entering the room: Nomi, Se7en, Nomi ... through the five greeting lines each (the owner's text and recordings, `assets/audio/voice/extra/tea-duo.json`, read by `voice-clips.js`), one voice at a time (`roomDuoStep` in `npc-advanced-interactions.js`, from PR #495, now waiting for each recording to end, then a 0.9 s pause; walking out cancels; 90 s re-entry cooldown; another conversation or mission line holds it; one state per player). Tests: `tests/tea-duo.test.cjs`. Brought over from PR #512: the anchors, `floorOffset`, hiding Nomi / Se7en / Tao drafts from the VR bedroom (not its vr-suite hunk). Not from #495: everything else.
+- **Not verified:** the actual sound by ear (headless browser); two real players; real GPU frame rate (Se7en is 216k triangles); Nomi's shoulders (no distortion seen in the seated pose; no adjustment made). Only the greeting pools are published (10 of 250 recordings).
 
 ### 21 Nov 2026: FPS SKIRMISH — THREE-SECTOR STATION
 

@@ -37,7 +37,12 @@ function start({voice=null,ledger=null,identify,access={allowed:null,denied:new 
     ws.alive=true;ws.joined=false;ws.busy=false;let released=false;
     const release=()=>{if(!released){released=true;gate.release(ip);}};
     const hello=setTimeout(()=>{if(!ws.joined)ws.close(4005,'hello required');},LIMITS.helloMs);
-    ws.on('pong',()=>{ws.alive=true;});
+    ws.on('pong',()=>{
+      ws.alive=true;
+      // A hidden browser still answers protocol pings when its animation frames and JS timers are suspended.
+      const peer=hub.byConn.get(ws);
+      if(peer)peer.lastAt=hub.now();
+    });
     ws.on('message',async data=>{
       const m=parse(data.toString());
       if(!m){hub.send(ws,{t:'refused',reason:'invalid message'});if(!ws.joined)ws.close(4002,'invalid');else{const p=hub.byConn.get(ws);if(p)hub.violate(p,'invalid message');}return;}
@@ -71,6 +76,8 @@ function start({voice=null,ledger=null,identify,access={allowed:null,denied:new 
       if(m.t==='vr-create'){const r=hub.vrCreate(ws,m);if(r.ok)log('vr-create',m.private?'private':'public',m.exp);return;}
       if(m.t==='vr-join'){hub.vrJoin(ws,m);return;}
       if(m.t==='vr-leave'){hub.vrLeave(ws);return;}
+      if(m.t==='tea-pose'){hub.tea.publish(hub.byConn.get(ws),m);return;}
+      if(m.t==='npc-ready'||m.t==='npc-end'){hub.dialogue.handle(hub.byConn.get(ws),m);return;}
       if(m.t==='chat'){hub.chat(ws,m);return;}
       if(m.t==='eye'){hub.eye(ws,m);return;}
       if(m.t==='dev'){hub.dev(ws,m);return;}

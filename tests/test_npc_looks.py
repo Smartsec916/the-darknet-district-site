@@ -25,7 +25,7 @@ class LookRulesTests(unittest.TestCase):
         self.assertEqual(live.look_problems({'district-smuggler': OK}), [])
         self.assertEqual(live.check(doc(looks={'npc-office-f': {'looks': [{'id': 'a', 'name': 'Navy', 'colour': {'*': {'tint': '#1d2c5a'}}}], 'use': 'mix'}})), [])
         self.assertEqual(live.look_problems({'vr-companion-f': one(hide=['vr_companion_f.long01'], colour={'vr_companion_f.female_elegantsuit01': {'hue': 30}})}), [])
-        self.assertEqual(live.look_problems({'npc-grey-reverie': one(colour={'*': {'tint': '#8c1f2b'}})}), [])
+        self.assertTrue(live.look_problems({'npc-grey-reverie': one(colour={'*': {'tint': '#8c1f2b'}})}))
 
     def test_unsafe_or_unknown_changes_are_refused(self):
         bad = [('district-smuggler', one(hide=['district_smuggler.male_casualsuit01']), 'cannot be hidden'),
@@ -37,8 +37,8 @@ class LookRulesTests(unittest.TestCase):
                ('district-smuggler', one(colour={'district_smuggler.male_casualsuit01': {'hue': 500}}), '#rrggbb'),
                ('district-smuggler', one(hair='long01'), 'under the hat'),
                ('npc-office-f', one(gear=['gear-visor']), 'nothing can be added'), ('npc-office-f', one(hair='bob01'), 'nothing can be added'),
-               ('vr-companion-f', one(gear=['gear-visor']), 'nothing can be added'), ('npc-grey-reverie', one(gear=['gear-visor']), 'nothing can be added'),
-               ('npc-grey-reverie', one(hide=['char']), 'cannot be hidden'), ('npc-office-f', one(gear=['gear-jetpack']), 'unknown gear'),
+               ('vr-companion-f', one(gear=['gear-visor']), 'nothing can be added'), ('npc-grey-reverie', one(gear=['gear-visor']), 'not a model'),
+               ('npc-grey-reverie', one(hide=['char']), 'not a model'), ('npc-office-f', one(gear=['gear-jetpack']), 'unknown gear'),
                ('npc-office-f', {'looks': [], 'use': 'look-9'}, 'does not exist'), ('npc-office-f', {'looks': [], 'use': 'mix'}, 'mix needs'),
                ('npc-office-f', one(name='<b>x</b>'), 'plain name'), ('npc-office-f', one(script='x'), 'unknown fields'),
                ('npc-office-f', {'looks': [{'id': 'a', 'name': 'A'}, {'id': 'a', 'name': 'B'}]}, 'repeated id'),

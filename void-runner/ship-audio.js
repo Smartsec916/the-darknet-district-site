@@ -107,7 +107,7 @@
     }
   } catch {}
   let context, buses, engine, engineGain, sub, subGain, bed, ambient, tension, speaking = false,
-    speechTimer, token = 0,
+    speechTimer, token = 0, voiceLine = null, voicePending = false,
     activated = false,
     voiceProvider = null,
     profile = 'menu',
@@ -122,18 +122,21 @@
 
   // Places with a sound of their own (the nightclub) turn the street's ambience down without touching the player's setting.
   const trims = {ambient: 1};
+  let studioMix = {master:1,music:1,effects:1,dialogue:1,ambient:1,cinematic:1,duck:.4};
   function mix() {
     if (!context) return;
-    target(buses.master.gain, settings.enabled ? settings.master : 0, .05);
-    target(buses.music.gain, settings.music * (speaking ? .4 : 1));
-    target(buses.effects.gain, settings.effects);
-    target(buses.voice.gain, settings.voice);
-    target(buses.ambient.gain, settings.ambient * trims.ambient);
+    target(buses.master.gain, settings.enabled ? settings.master * studioMix.master : 0, .05);
+    target(buses.music.gain, settings.music * studioMix.music * (speaking ? studioMix.duck : 1));
+    target(buses.effects.gain, settings.effects * studioMix.effects);
+    target(buses.voice.gain, settings.voice * studioMix.dialogue);
+    target(buses.ambient.gain, settings.ambient * trims.ambient * studioMix.ambient * (speaking ? studioMix.duck : 1));
   }
 
   function cancel() {
     token++;
     speaking = false;
+    voiceLine = null;
+    voicePending = false;
     clearTimeout(speechTimer);
     try {
       root.speechSynthesis?.cancel();
@@ -278,6 +281,7 @@
   }
 
   function event(name, ship, position, basis) {
+    if (root.VoidSoundStudio?.event(name)) return;
     if (effects[name]) tone(...effects[name], position, basis);
     if (['explosion', 'missile', 'hull', 'dock', 'boost', 'door'].includes(name)) noise(name ===
       'explosion' ? 1 : .35, name === 'explosion' ? .22 : .06, position, basis);
@@ -408,9 +412,10 @@
     const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
     return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
   }
-  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false) {
+  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false, key = token + 1) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
+    voiceLine = {id,text,ordinary,key};
     const p = profileOf(id);
     // Recorded clips when the line has one; otherwise (or if a clip fails) the browser voice.
     if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text, ordinary))) {
@@ -424,7 +429,7 @@
           profile: p,
           volume: settings.master * settings.voice,
           bus: buses?.voice
-        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary);}).finally(() => {
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary, key);}).finally(() => {
           if (token === current) {
             speaking = false;
             mix();
@@ -440,8 +445,9 @@
     try {
       refreshVoices();
       if (!voices.length && !waitedForVoices) {
+        voicePending = true;
         const current = token;
-        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, false, ordinary); }, 1000);
+        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key); }, 1000);
         return true;
       }
       const selected = selectVoice(id);
@@ -451,7 +457,7 @@
       u.lang = u.voice?.lang || 'en-US';
       u.pitch = p.pitch;
       u.rate = p.rate;
-      u.volume = settings.master * settings.voice * p.volume;
+      u.volume = settings.master * studioMix.master * settings.voice * studioMix.dialogue * p.volume;
       speaking = true;
       mix();
       const current = token;
@@ -480,10 +486,12 @@
     } catch {}
   }
   const api = {
+    setStudioMix(values){studioMix={...studioMix,...values};mix();},
     selectVoice, chooseVoice,
     voiceChoice: id => voiceChoices[id] || '',
     availableVoices() { refreshVoices(); return voices; },
     get ready() { return !!context && context.state === 'running'; },
+    get voiceStatus() { return voiceLine ? {...voiceLine,active:speaking||voicePending} : null; },
     mediaActive(value) { mediaPlaying = value === true; },
     composerActive(value) { composer = value === true; },
     trim(name, value) { if (name in trims) trims[name] = Math.max(0, Math.min(1, +value || 0)); },

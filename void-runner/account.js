@@ -1,11 +1,11 @@
 /* Firebase identity + authenticated API. Cloud save replacement is always explicit.
    Sign-in: a District handle (no Google needed), an email link, or Google. */
-const account = window.VoidAccount = {user:null,products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,character:null,handle:undefined,handleNextChange:null,profileReady:false};
-let authInitialization=null,unsubscribe=null;
+const account = window.VoidAccount = {user:null,authStatus:'restoring',products:[],status:'Verified purchases require a connection.',busy:false,revision:0,cloud:null,savedAt:null,character:null,handle:undefined,handleNextChange:null,profileReady:false};
+let authInitialization=null,unsubscribe=null,lastIdentity,identityWork=Promise.resolve(),accountFromGame=false;
 let firebase, generation=0, handleVersion=0, pendingCheckout=new URLSearchParams(location.search).get('checkout');
 let saveReady=false,verifiedUntil=0,ownershipTimer,refreshTimer,serviceRetryTimer,lastRefreshAttempt=0;
 // Handles, email links and Google linking are shared with every District game.
-let identityModule=null;const identity=()=>identityModule??=import('../district-identity.js');
+let identityModule=null;const identity=()=>identityModule??=import('../district-identity.js').catch(error=>{identityModule=null;throw error;});
 // The public handle comes from the handle registry, never from the Firebase display name (a Google account's is a real name).
 // undefined = unknown (service unreachable), null = none chosen yet, otherwise the handle.
 async function loadHandle(){
@@ -80,7 +80,7 @@ function accountPage(){
     if(account.handle)body+=`<details class="account-other"><summary>Change public handle</summary>${handleField('vr-handle-change','New handle','change-handle','CHANGE HANDLE',account.handle)}<small>Handles can be changed once every 30 days. Your progress and purchases are not affected.</small></details>`;
   }
   menuPage('PILOT ACCOUNT','Pilot account',body+`<p class="fine">Cloud saves copy campaign progress only. Paid ownership is checked separately with the server. Your browser save remains available if the account service is offline.</p>`);
-  const back=screen.querySelector('.shop-heading button');if(back){back.dataset.action='account-main-menu';back.textContent='BACK TO MAIN MENU';}
+  const back=screen.querySelector('.shop-heading button');if(back){back.dataset.action=accountFromGame?'account-resume':'account-main-menu';back.textContent=accountFromGame?'RETURN TO GAME':'BACK TO MAIN MENU';}
 }
 function fieldValue(id){return screen.querySelector('#'+id)?.value.trim()||'';}
 async function afterIdentityChange(){
@@ -104,22 +104,39 @@ async function confirmCheckout(){
   else if(data.status==='revoked'){clearCheckout();announce('This purchase was refunded or suspended.');}
   else announce('Payment is still processing. Refresh your account in a moment.');
 }
+function receiveIdentity(user){
+  account.authStatus='ready';
+  VoidNetwork.report('identity','ready');
+  if(lastIdentity===user)return identityWork;
+  lastIdentity=user;
+  const epoch=++generation;
+  clearTimeout(ownershipTimer);clearTimeout(refreshTimer);clearTimeout(serviceRetryTimer);
+  verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;account.profileReady=false;
+  VoidDevTools.identity(null,{uid:user?.uid||null});account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+  if(!user)return identityWork=Promise.resolve();
+  loadHandle().catch(()=>{});
+  identityWork=(async()=>{try{await confirmCheckout();}catch{}if(epoch===generation)await refresh();})().catch(()=>{});
+  return identityWork;
+}
 function initializeAuth(){
   if(authInitialization)return authInitialization;
+  if(account.authStatus!=='ready')account.authStatus='restoring';
   VoidNetwork.report('identity','connecting');
   authInitialization=(async()=>{
     try{
       firebase=await import('../firebase-auth.js');
-      if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
-        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;account.profileReady=false;VoidDevTools.identity(null,{uid:user?.uid||null});account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
-        VoidNetwork.report('identity','ready');
-        if(user){loadHandle();run(async()=>{await confirmCheckout();await refresh();},true);}
+      if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,receiveIdentity,()=>{
+        unsubscribe?.();unsubscribe=null;authInitialization=null;account.authStatus='unavailable';VoidNetwork.report('identity','degraded');
       });
+      if(firebase.auth.authStateReady){
+        await firebase.auth.authStateReady();
+        receiveIdentity(firebase.auth.currentUser);
+      }
       await firebase.getRedirectResult(firebase.auth);
       try{const done=await (await identity()).completeEmailLink();
         if(done){await afterIdentityChange();announce(done.result==='secured'?'Handle secured. You can now sign in anywhere with your email.':done.result==='switched'?'That email already had an account. You are now signed in to it.':'Signed in with your email link.');}
       }catch(error){announce(error.message);}
-    }catch{VoidNetwork.report('identity','degraded');authInitialization=null;}
+    }catch{if(account.authStatus!=='ready'){account.authStatus='unavailable';VoidNetwork.report('identity','degraded');}authInitialization=null;}
     render();
   })();
   return authInitialization;
@@ -128,7 +145,9 @@ function initializeAuth(){
 function requestAction(action){
   if(globalThis.VoidSkirmish?.active||globalThis.VoidFlightSkirmish?.active)return;
   if(['play','pause'].includes(mode))return;
-  if(action==='account'){accountPage();return;}
+  if(action==='account-resume'){accountFromGame=false;resumeMenu();return;}
+  if(action==='account-game'&&mode==='walking'){openGameMenu();accountFromGame=true;accountPage();return;}
+  if(action==='account'){accountFromGame=!!VoidMenu.returnTo;accountPage();return;}
   if(action==='auth-retry'){run(initializeAuth);return;}
   if(action==='create-character'){const [gender,model]=fieldValue('vr-character-model').split(':');run(async()=>{if(!account.user||(account.user.isAnonymous&&!account.handle))throw new Error('Register a District handle first.');const data=await api('character',{gender,model});account.character=data.character;accountPage();announce('Your character was created for this account.');globalThis.VoidRemotePlayers?.reconnect?.();});return;}
   // Read typed values first: run() redraws the page (busy state) before the action starts.
@@ -156,7 +175,7 @@ function requestAction(action){
       throw new Error('Google sign-in failed. Please try again.');
     }
     // The auth listener can fire while run() is busy; refresh explicitly afterward.
-    account.user=firebase.auth.currentUser;await confirmCheckout();await refresh();
+    await receiveIdentity(firebase.auth.currentUser);
   });
   else if(action==='sign-out')run(async()=>{generation++;setOwnedGear([]);await firebase.signOut(firebase.auth);account.user=null;saveReady=false;account.cloud=null;account.character=null;});
   else if(action==='account-refresh')run(async()=>{setOwnedGear([]);await confirmCheckout();await refresh();announce('Account and equipment refreshed.');});
@@ -213,4 +232,13 @@ screen.addEventListener('keydown',e=>{const action=e.target.dataset?.enter;if(e.
 if(pendingCheckout==='cancelled'){clearCheckout();announce('Checkout cancelled. No equipment was added.');}
 VoidLoading.stage('account','ACCOUNT INITIALIZATION STARTED · OPTIONAL SERVICES CONNECTING');
 initializeAuth();
-addEventListener('focus',()=>{if(account.user&&Date.now()>verifiedUntil-240000&&Date.now()-lastRefreshAttempt>60000)run(refresh,true);});
+async function restoreSession(){
+  if(document.hidden)return;
+  await initializeAuth();
+  if(!firebase||account.authStatus!=='ready')return;
+  if(firebase.auth.currentUser!==lastIdentity){await receiveIdentity(firebase.auth.currentUser);return;}
+  if(account.user&&account.handle===undefined)loadHandle().catch(()=>{});
+  if(account.user&&Date.now()>verifiedUntil-240000&&Date.now()-lastRefreshAttempt>60000)run(refresh,true);
+}
+for(const event of ['focus','online','pageshow'])addEventListener(event,restoreSession);
+document.addEventListener('visibilitychange',restoreSession);

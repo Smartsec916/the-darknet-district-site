@@ -51,19 +51,19 @@
  const num=v=>typeof v==='number'&&Number.isFinite(v);
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
  const kind=id=>KINDS.find(k=>k.id===id)||null;
- const movable=id=>{const X=NPX();return (X&&X.MOVABLE&&X.MOVABLE[id])||null;};
+ const movable=id=>{const X=NPX();const m=X?.MOVABLE?.[id];return m&&!m.placementOnly?m:null;};
  /* Can this NPC do this kind of step? {ok, why}. */
  function can(id,k){if(!id)return {ok:false,why:'Choose who walks with the player.'};const M=movable(id);
-  if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can (today Reverie, Lace and the street cat). Others are added as the path system grows.'};
+  if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can. Others are added as the path system grows.'};
   if(CAB.has(k)&&M.cat)return {ok:false,why:'The cat walks with the player but does not ride in cabs (it is a cat).'};
-  if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together works only with Reverie or Lace for now (a made character walks: use “Follow them” or “They follow you”).'};
+  if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together is unavailable for created characters (a made character walks: use “Follow them” or “They follow you”).'};
   return {ok:true,why:null};}
  /* Every cab stop and far place, with whether this NPC can go there: {id, name, quarter, far, ok, why}. */
  function stops(id,area='avenue'){const Q=QT(),M=movable(id),out=[],A=AR(),q=A&&A.get(area)?A.get(area).quarter:'avenue';if(!Q)return out;
   // (20 Nov 2026, escort across) the cab drives through the gates' bays like the player's own: any stop of the city, as long as her area has taxis (she calls it there)
   const taxis=!!q&&(Q.STOPS||[]).some(s=>s.quarter===q);
   for(const s of Q.STOPS||[]){const ok=!!M&&!M.cat&&!M.made&&taxis;
-   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'Cab rides: only Reverie or Lace for now.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
+   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'This character does not support shared cab rides.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
   for(const f of Q.FAR||[])out.push({id:f.id,name:f.name,quarter:null,far:true,ok:false,why:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.name+' stays in the city (her content rule): never the Corporate District or the Temple.'});
   return out;}
  const stopOk=(id,stop,area='avenue')=>stops(id,area).some(s=>s.id===stop&&s.ok);
@@ -153,15 +153,23 @@
  function follow(st,inp){const me=inp.me,tr=inp.trail,dt=inp.dt||0,cat=!!inp.cat,gap=cat?LIMIT.catGap:LIMIT.gap,S=settings(inp.set);let ev=null;const go=p=>{if(st.phase!==p){st.phase=p;ev=p;}};
   if(!st.phase)st.phase='ready';st.speed=0;st.clip='idle';if(st.phase==='done'||!me)return null;
   const d=dist(me,st);
+  // Ordinary social followers wait when separated; never use the mission's off-screen catch-up teleport.
+  if(inp.social&&d>S.lost){go('paused');face(st,me,dt);return ev;}
+  if(inp.social&&st.phase==='paused'){if(d>S.wait){face(st,me,dt);return null;}st.phase='ready';st.lastMe=null;st.meV=0;}
   if(st.phase==='ready'){if(d<=S.wait){go('follow');tr.pts.length=0;tr.shifted=0;st.ti=0;st.tShift=0;trailPush(tr,st);trailPush(tr,me);}else{face(st,me,dt);return ev;}}
   // the player's pace (smoothed), from how far they moved since the last step
   if(st.lastMe&&dt>0){const v=Math.min(10,dist(me,st.lastMe)/dt);st.meV=(st.meV||0)+(v-(st.meV||0))*Math.min(1,dt*4);}st.lastMe={x:me.x,z:me.z};
   if(st.tShift!==(tr.shifted||0)){st.ti=Math.max(0,(st.ti||0)-((tr.shifted||0)-(st.tShift||0)));st.tShift=tr.shifted||0;}
-  if(d>LIMIT.catchUp&&inp.seen===false){const b=behind(tr,LIMIT.behind);if(b){st.x=b.x;st.z=b.z;st.ti=b.i+1;st.yaw=Math.atan2(me.x-b.x,me.z-b.z);ev='caught-up';}}
+  if(!inp.social&&d>LIMIT.catchUp&&inp.seen===false){const b=behind(tr,LIMIT.behind);if(b){st.x=b.x;st.z=b.z;st.ti=b.i+1;st.yaw=Math.atan2(me.x-b.x,me.z-b.z);ev='caught-up';}}
   else if(d>gap){const p=tr.pts;let i=Math.min(st.ti||0,p.length-1);while(i<p.length-1&&dist(p[i],st)<.35)i++;st.ti=i;
    // straight to the player when the trail's next crumb is further than the player (a trail that loops back)
    const t=p[i]&&dist(p[i],me)<d?p[i]:me,want=(st.meV||0)+(d-gap)*SPEED.gain,cap=cat?(d>SPEED.catDashOver?SPEED.catDash:SPEED.catTrot):SPEED.max;
-   st.speed=Math.max(0,Math.min(cap,Math.max(want,Math.min(cap,cat?SPEED.catWalk:SPEED.walk)*Math.min(1,(d-gap)/.6))));st.clip=st.speed>SPEED.runAbove?'run':'walk';stepTo(st,t,st.speed,dt);if(dist(me,st)<gap)face(st,me,dt);}
+   st.speed=Math.max(0,Math.min(cap,Math.max(want,Math.min(cap,cat?SPEED.catWalk:SPEED.walk)*Math.min(1,(d-gap)/.6))));st.clip=st.speed>SPEED.runAbove?'run':'walk';const fromX=st.x,fromZ=st.z;stepTo(st,t,st.speed,dt);
+   // A social follower can approach the scanner, but only the completed exchange moves it off its source walk grid.
+   if(inp.social&&inp.area&&AR()?.areaOf({x:fromX,z:fromZ},inp.area)===inp.area&&AR().areaOf(st,inp.area)!==inp.area){
+    st.x=fromX;st.z=fromZ;st.speed=0;st.clip='idle';
+   }
+   if(dist(me,st)<gap)face(st,me,dt);}
   else face(st,me,dt);
   if(inp.to&&!inp.door&&!inp.noDone&&dist(me,inp.to)<=LIMIT.arrive&&dist(st,inp.to)<=LIMIT.arrive+gap+1){go('done');}
   return ev;}
@@ -204,7 +212,7 @@
  function encode(e){if(!e||typeof e.key!=='string')return null;const w=e.w?String(e.w).replace(/[^a-z]/g,'').slice(0,4):'';const s=[e.key.slice(0,150),String(e.phase||'').replace(/[^a-z-]/g,'').slice(0,12),num(e.x)?e.x.toFixed(1):'',num(e.z)?e.z.toFixed(1):'',...(w?[w]:[])].join('|');return s.length<200?s:null;}
  function decode(v){if(typeof v!=='string')return null;const [key,phase,x,z,w]=v.split('|');if(!key)return null;const out={key,phase:phase||null};if(x!==''&&x!=null&&Number.isFinite(+x)&&z!==''&&z!=null&&Number.isFinite(+z)){out.x=+x;out.z=+z;}if(w)out.w=w;return out;}
  /* For the admin inventory (the server's copy of these rules: void_runner_live_content.py escort_problems). */
- function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,youthful:!!(X.MOVABLE[id]&&X.MOVABLE[id].youthful),reach:Object.fromEntries(ids.map(a=>[a,[...reach(id,a)].sort()]))};
+ function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}).filter(movable))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,youthful:!!(X.MOVABLE[id]&&X.MOVABLE[id].youthful),reach:Object.fromEntries(ids.map(a=>[a,[...reach(id,a)].sort()]))};
   // into a place (the server's into_problems): the area of every street door's front (npc-areas.js), the rooms a youthful character never goes into
   const P=APX(),doorAreas={};try{for(const d of (P&&P.doors?P.doors():[]))doorAreas[d.id]=doorArea({front:{x:d.front[0],z:d.front[1]}})||null;}catch{}
   return {kinds:IDS.slice(),fields:FIELDS,limits:{wait:LIMIT.wait,lost:LIMIT.lost,def:LIMIT.def},ifLost:IF_LOST.map(x=>x.id),npcs:out,into:{kinds:[...SPOT],adultRooms:ADULT_ROOMS.slice(),doorAreas}};}
@@ -343,17 +351,17 @@
  /* May this person go into `area` at all, and stand at point p there? {ok, why}. The cat: streets only (never inside, never down into the tunnels). */
  function mayEnter(id,area,p){const M=movable(id),A=AR(),a=A&&A.get(area),who=(M&&M.name)||'They';if(!M)return {ok:false,why:'This character cannot walk with the player.'};
   if(!a)return {ok:false,why:who+' stays in the city: '+(M.cat?'it waits':'she waits')+' here for you.'};
-  if(M.cat&&(a.scene!=='street'||area===areaOfQuarter('underground')))return {ok:false,why:'The cat never goes inside or down into the tunnels: it waits here for you.'};
+  if(M.cat&&(a.scene==='interior'||a.scene==='milked'||area==='underground'||area===areaOfQuarter('underground')))return {ok:false,why:'The cat never goes inside or down into the tunnels: it waits here for you.'};
   if(p){const X=NPX(),pp=X&&X.spotProblems?X.spotProblems(id,p):[];if(pp.length)return {ok:false,why:who+' does not go there ('+String(pp[0]).replace(/\.$/,'')+'): '+(M.cat?'it waits':'she waits')+' here for you.'};}
   return {ok:true,why:null};}
  const usable=(l,id)=>Object.entries(l.ends).every(([a,e])=>mayEnter(id,a,e.wait).ok&&mayEnter(id,a,e.ahead).ok);
  /* The cheapest chain of links from `from` ({area, x, z}) to `to` ({area, x, z}) for this person: [{link, a (area she leaves), b (area she enters)}], [] when already
     there, null when there is no way. Cost: metres walked (straight) plus a few per crossing. */
- function areaRoute(id,from,to){if(!from||!to||!from.area||!to.area)return null;if(from.area===to.area)return [];const L=links().filter(l=>usable(l,id));
+ function areaRoute(id,from,to,allowLink=null){if(!from||!to||!from.area||!to.area)return null;if(from.area===to.area)return [];const L=links().filter(l=>usable(l,id));
   const best=new Map(),q=[{cost:0,area:from.area,at:{x:num(from.x)?from.x:0,z:num(from.z)?from.z:0},path:[]}];let win=null;
   while(q.length){q.sort((u,v)=>u.cost-v.cost);const s=q.shift();if(s.area===to.area){const c=s.cost+(num(to.x)&&num(to.z)?dist(s.at,to):0);if(!win||c<win.cost)win={cost:c,path:s.path};continue;}
    if(win&&s.cost>=win.cost)continue;
-   for(const l of L){const e=l.ends[s.area];if(!e)continue;for(const [b,f] of Object.entries(l.ends)){if(b===s.area||s.path.some(p=>p.a===b))continue;const cost=s.cost+dist(s.at,e.wait)+ACROSS.cross,k=l.id+'>'+b;if(best.has(k)&&best.get(k)<=cost)continue;best.set(k,cost);q.push({cost,area:b,at:{x:f.ahead.x,z:f.ahead.z},path:[...s.path,{link:l,a:s.area,b}]});}}}
+   for(const l of L){const e=l.ends[s.area];if(!e)continue;for(const [b,f] of Object.entries(l.ends)){if(b===s.area||s.path.some(p=>p.a===b)||(allowLink&&!allowLink(l,s.area,b)))continue;const cost=s.cost+dist(s.at,e.wait)+ACROSS.cross,k=l.id+'>'+b;if(best.has(k)&&best.get(k)<=cost)continue;best.set(k,cost);q.push({cost,area:b,at:{x:f.ahead.x,z:f.ahead.z},path:[...s.path,{link:l,a:s.area,b}]});}}}
   return win?win.path:null;}
  /* The areas this person can walk to from `area` (through the links she may use), `area` included. */
  function reach(id,area){const out=new Set([area]),L=links().filter(l=>usable(l,id)),q=[area];while(q.length){const a=q.shift();for(const l of L){if(!l.ends[a])continue;for(const b of Object.keys(l.ends))if(!out.has(b)){out.add(b);q.push(b);}}}return out;}
@@ -396,6 +404,44 @@
   if(job.phase==='waiting'&&me&&job.cab&&dist(me,job.cab)<=ACROSS.rideNear&&d<=Math.max(S.lost,LIMIT.cabNear)){const doors=job.doors||[],door=doors.slice(0,2).sort((a,b)=>dist(a,st)-dist(b,st))[0];if(!door)return {busy:false,ev};
    if(st.ride!=='to-cab'){st.ride='to-cab';ev='to-cab';}st.clip='walk';st.speed=SPEED.walk*1.5;if(stepTo(st,door,SPEED.walk*1.5,dt)){st.ride='in-cab';st.rideArrived=false;st.clip='sit';ev='in-cab';}return {busy:true,ev};}
   if(st.ride==='to-cab')st.ride=null;return {busy:false,ev};}
- const api={ACROSS,links,linkById,mayEnter,areaRoute,reach,reachWhy,legOf,linkBetween,across,arrival,rideAlong,areaOfQuarter,ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
+ 
+ /* Checked gate planning for the NPC Editor's opt-in district escorts.
+    An adapter must supply the published opt-in, actual actor/scene state, and current gate authorization.
+    This planner handles registered foot gates. The scene adapter handles seated taxi passengers. */
+ const socialPoint=(p,a)=>!!(p&&num(p.x)&&num(p.z)&&AR()?.areaOf(p,a)===a);
+ function socialEligible(id,policy){const M=movable(id);return !!(M&&!M.cat&&policy?.enabled===true&&(policy.tier===2||policy.tier===3)&&typeof policy.allowGate==='function');}
+ function socialGateAllowed(id,l,a,b,policy){try{
+  const A=AR(),u=l?.ends?.[a],v=l?.ends?.[b];
+  return !!(l?.kind==='gate'&&a!==b&&A?.get(a)?.scene==='street'&&A?.get(b)?.scene==='street'&&
+   socialPoint(u?.wait,a)&&socialPoint(v?.ahead,b)&&mayEnter(id,a,u.wait).ok&&mayEnter(id,b,v.ahead).ok&&
+   policy.allowGate(id,l.id,a,b)===true);
+ }catch{return false;}}
+ function socialGateLeg(id,from,dest,policy){
+  if(!socialEligible(id,policy)||!from?.area||!dest?.area||from.area===dest.area||
+   !socialPoint(from,from.area)||!socialPoint(dest,dest.area)||!mayEnter(id,from.area,from).ok||!mayEnter(id,dest.area,dest).ok||
+   !Number.isSafeInteger(policy.leg)||policy.leg<0||typeof policy.session!=='string'||!policy.session.startsWith('social:'+id+':')||policy.session.length<('social:'+id+':').length+1)return null;
+  const r=areaRoute(id,from,dest,(l,a,b)=>socialGateAllowed(id,l,a,b,policy));
+  if(!r?.length)return null;const {link,a,b}=r[0],w=link.ends[a].wait;
+  return {npc:id,session:policy.session,leg:policy.leg,key:policy.session+':'+policy.leg+':'+a+':'+link.id,area:a,next:b,via:link.id,to:{x:w.x,z:w.z},final:false};
+ }
+ /* The next leg can be committed only for this live generation and actual walking transition.
+    The canonical arrival is checked again, never reconstructed from the player's spawn. */
+ function socialGateCross(plan,actor,transition,policy){
+  const id=plan?.npc;
+  // Scanner chambers straddle two walk grids. The registered gate still identifies the player's lane.
+  const lane=transition?.scanned&&transition.player&&QT()?.laneAt?.(transition.player,AR()?.get(plan?.area)?.quarter);
+  const inScanner=lane?.kind==='foot'&&'gate:'+lane.key===plan?.via;
+  if(!socialEligible(id,policy)||!plan||!actor||!transition||plan.session!==policy.session||
+   !Number.isSafeInteger(policy.leg)||policy.leg<0||plan.leg!==policy.leg||
+   plan.key!==plan.session+':'+plan.leg+':'+plan.area+':'+plan.via||actor.key!==plan.key||transition.key!==plan.key||actor.area!==plan.area||
+   transition.from!==plan.area||transition.to!==plan.next||transition.via!==plan.via||transition.onFoot!==true||transition.riding!==false||
+   !socialPoint(actor,plan.area)||(!socialPoint(transition.player,plan.area)&&!inScanner))return null;
+  const l=linkById(plan.via);
+  if(!socialGateAllowed(id,l,plan.area,plan.next,policy))return null;
+  const w=l.ends[plan.area].wait,at=l.ends[plan.next].ahead;
+  if(!socialPoint(plan.to,plan.area)||dist(plan.to,w)>.01||dist(actor,w)>2.5||dist(transition.player,w)>6)return null;
+  return {key:plan.key,session:plan.session,leg:plan.leg,area:plan.next,x:at.x,z:at.z,yaw:num(at.yaw)?at.yaw:0,via:l.id,ride:null};
+ }
+ const api={socialGateLeg,socialGateCross,ACROSS,links,linkById,mayEnter,areaRoute,reach,reachWhy,legOf,linkBetween,across,arrival,rideAlong,areaOfQuarter,ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
  if(node)module.exports=api;else root.VoidNPCEscort=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
