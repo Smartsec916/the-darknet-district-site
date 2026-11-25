@@ -107,6 +107,12 @@ class ItemTests(unittest.TestCase):
         bought = self.buy(credits=925)
         self.assertEqual(bought.status_code, 200, bought.json)
         mystery = self.get('shop/state').json['keycards'][0]
+        grant = {'item': card['id'], 'destination': 'ground', 'target': door, 'nonce': self.nonce()}
+        self.assertEqual(self.post('developer/keycards/grant', grant, 'outsider').status_code, 403)
+        granted = self.post('developer/keycards/grant', grant)
+        self.assertEqual(granted.status_code, 200, granted.json)
+        self.assertTrue(self.post('developer/keycards/grant', grant).json['duplicate'])
+        self.assertEqual(self.post('developer/keycards/grant', dict(grant, destination='player', target='owner')).status_code, 409)
         self.assertNotIn('doors', mystery)
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])

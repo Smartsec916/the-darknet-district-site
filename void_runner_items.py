@@ -161,6 +161,50 @@ def issue_card(item, owner, identity, now):
     }
 
 
+def grant_card(db, editor, body):
+    from firebase_admin import firestore
+    if not _only(body, ['item', 'destination', 'target', 'nonce']):
+        raise DraftError('Choose a published keycard and a destination.')
+    destination, target = body.get('destination'), body.get('target')
+    if destination not in ('player', 'ground') or not isinstance(target, str):
+        raise DraftError('Choose a player account or a street entrance.')
+    if destination == 'ground' and (not valid_card_door(target) or '/' in target):
+        raise DraftError('Choose a registered street entrance.')
+    if destination == 'player' and not re.fullmatch('[A-Za-z0-9_-]{1,128}', target):
+        raise DraftError('Enter a valid player account ID.')
+    card_id = _tag('grant/' + editor + '/' + _nonce(body))
+    receipt = db.collection('vr_keycard_grants').document(card_id)
+    command = {key:body.get(key) for key in ('item', 'destination', 'target')}
+
+    @firestore.transactional
+    def write(tx):
+        prior = receipt.get(transaction=tx).to_dict()
+        if prior:
+            if prior != command:
+                raise DraftError('The grant reference belongs to another action.', 409)
+            return {'id': card_id, 'duplicate': True}
+        version = (_state_ref(db).get(transaction=tx).to_dict() or {}).get('live', 0)
+        content = (_version_ref(db, version).get(transaction=tx).to_dict() or {}).get('content', {}) if version else {}
+        item = next((i for i in content.get('items', []) if i['id'] == body.get('item') and i['kind'] == 'keycard' and i['status'] == 'published'), None)
+        if not item:
+            raise DraftError('Publish the keycard template before issuing it.', 409)
+        card = issue_card(item, target if destination == 'player' else editor, card_id, time.time())
+        if destination == 'ground':
+            if not all(card[k] for k in ('pickup', 'transferable', 'bearer')):
+                raise DraftError('A world pickup requires pickup, transfer and bearer permissions.')
+            tx.create(db.collection('vr_keycard_drops').document(card_id), {'door': target, 'card': card})
+        else:
+            if not db.collection('vr_players').document(_tag(target)).get(transaction=tx).to_dict():
+                raise DraftError('The player needs a saved campaign.', 404)
+            holder = _player_ref(db, target)
+            bag = _clean_player(holder.get(transaction=tx).to_dict())
+            _receive_card(bag, card)
+            tx.set(holder, bag)
+        tx.create(receipt, command)
+        return {'id': card_id, 'duplicate': False}
+    return write(db.transaction())
+
+
 def card_allows(card, holder, target, now):
     return (target in card['doors'] and (not card['expires'] or card['expires'] > now)
             and (card['bearer'] or card['issuedTo'] == _tag(holder)))

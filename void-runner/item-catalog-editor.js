@@ -65,7 +65,8 @@
     '<label>Player-visible notes <textarea data-card-text="notes" maxlength="600">'+esc(card.notes)+'</textarea></label>'+
     '<details><summary>Permissions and private notes</summary>'+flag('transferable','Allow transfer')+flag('droppable','Allow dropping')+flag('pickup','Allow pickup')+
     flag('discoverable','Show the address and allow Locate Address')+flag('bearer','Any holder can use this card')+'<label>Lifetime in seconds (0 for permanent) <input type="number" min="0" max="315360000" data-card-duration value="'+card.duration+'"></label>'+
-    '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details></fieldset>';
+    '<label>Private developer notes <textarea data-card-text="privateNotes" maxlength="600">'+esc(card.privateNotes)+'</textarea></label></details>'+
+    '<details><summary>Issue a published keycard</summary><label>Player account ID <input data-card-recipient></label>'+button('grant-player','Give to player')+button('grant-ground','Place at selected street entrance')+'</details></fieldset>';
   }
   function serviceFields(it){
    const svc=it.service,steps=svc?.steps||[],id=tools.catalogNpc?.id||sellers(s.data,it.id).find(v=>v.kind==='npc')?.entity.replace(/^npc-/,'');
@@ -197,6 +198,16 @@
    const act=e.target.closest('[data-catalog]')?.dataset.catalog;if(!act||!current()||s.busy)return;
    const template=host.querySelector('[data-example]')?.value;
    const idText=host.querySelector('[data-field=newId]')?.value.trim(),target=Number(host.querySelector('[data-version]')?.value);
+   if(act==='grant-player'||act==='grant-ground'){
+    const destination=act==='grant-player'?'player':'ground',target=host.querySelector(destination==='player'?'[data-card-recipient]':'[data-card-building]')?.value.trim();
+    if(!target||!item()?.keycard)return;
+    const command={destination,target,item:item().id},key=JSON.stringify(command);
+    if(s.grant?.key!==key)s.grant={key,nonce:crypto.randomUUID()};
+    return work(async()=>{
+     await send('developer/keycards/grant',{...command,nonce:s.grant.nonce});
+     s.grant=null;s.message=destination==='player'?'Keycard issued to the player.':'Keycard placed at the selected entrance.';
+    });
+   }
    work(async()=>{
     if(act==='reload'){if(!s.dirty||confirm('Discard unsaved edits and reload?'))await reload();return;}
     if(act==='step'){if(item().service.steps.length>=12)throw Error('The service has twelve steps.');item().service.steps.push({seconds:10,point:0,clip:'',line:''});mark();return;}

@@ -1182,6 +1182,13 @@ def keycard_move(db, uid):
     return jsonify(items_service.move_card(db, uid, request.get_json(silent=True)))
 
 
+@api.post('/developer/keycards/grant')
+@signed_in
+def grant_keycard(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.grant_card(db, uid, request.get_json(silent=True)))
+
+
 @api.route('/developer/properties', methods=['GET', 'POST'])
 @signed_in
 def property_registry(db, uid):
