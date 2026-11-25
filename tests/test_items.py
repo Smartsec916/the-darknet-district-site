@@ -344,6 +344,21 @@ class ItemTests(unittest.TestCase):
         self.assertEqual((k['price'], k['stock'], v['price'], v['stock']), (75, 2, 50, 9))
         self.assertEqual(self.get('shop/vendor/nowhere').status_code, 404)
 
+    def test_surface_food_stalls_charge_the_listed_price_and_record_stock(self):
+        self.fund('owner', 1000)
+        balance = 1000
+        for quarter in ('port', 'oldtown', 'avenue', 'far-south', 'outskirts'):
+            vendor = 'food-stand-' + quarter
+            menu = self.get('shop/vendor/' + vendor)
+            self.assertEqual(menu.status_code, 200)
+            for entry in menu.json['entries']:
+                order = self.buy(vendor=vendor, item=entry['item'], credits=balance)
+                self.assertEqual(order.status_code, 200)
+                balance -= entry['price']
+                self.assertEqual(order.json['credits'], balance)
+                self.assertEqual(order.json['stock'], entry['stock'] - 1)
+        self.assertEqual(self.get('shop/state').json['owned'], {'street-supper': 5, 'sprint-tonic': 5})
+
     def test_purchase_checks_price_stock_carry_and_credits(self):
         self.publish()
         self.assertEqual(self.buy(credits=74).status_code, 402)

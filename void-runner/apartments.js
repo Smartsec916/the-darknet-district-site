@@ -87,7 +87,7 @@
   if(!noMouth){const X=BAL();if(X&&X.mouthAt&&X.mouthAt(p[0],p[1],.7,1))return 'a back alley opens here';}   // the back alleys' mouths (ncz-backalleys.js, 20 Nov 2026)
  const Q=QT();for(const g of (Q&&Q.GATES)||[])if(inRect(g.rect,p[0],p[1],2.2))return g.name;
   for(const cp of (Q&&Q.CALL_POINTS)||[])if(cp.post&&Math.hypot(cp.post[0]-p[0],cp.post[1]-p[1])<2.6)return 'a taxi post';
-  const A=NA();if(A){for(const id of A.IDS||[]){const ar=A.get(id);for(const o of [...((ar&&ar.obstacles)||[]),...((ar&&ar.legacy)||[])]){if(o[4]==='a wall')continue;
+  const A=NA();if(A){for(const id of A.IDS||[]){const ar=A.get(id);for(const o of [...((ar&&(ar.addressObstacles||ar.obstacles))||[]),...((ar&&ar.legacy)||[])]){if(o[4]==='a wall')continue;
    const cx=Math.max(o[0],Math.min(p[0],o[1])),cz=Math.max(o[2],Math.min(p[1],o[3])),across=e.n[0]?Math.abs(cx-p[0]):Math.abs(cz-p[1]),along=e.n[0]?Math.abs(cz-p[1]):Math.abs(cx-p[0]);
    if(across<1.3&&along<.9)return o[4];}}}
   return '';}
@@ -120,7 +120,7 @@
     in the yard's middle or a lane. family 'container'; styles alternate rundown / regular; reach: how far the collision of a stacked container stands out (its upper levels). */
  let ySolids=null;
  function clearAt(x,z,own){const C=CT();if(!ySolids)ySolids=C.solids();for(const so of ySolids){if(so.id===own)continue;if(Math.abs(x-so.position[0])<so.size[0]/2+.5&&Math.abs(z-so.position[2])<so.size[2]/2+.5)return false;}
-  const A=NA(),ar=A&&A.get&&A.get('outskirts');for(const o of (ar&&ar.obstacles)||[])if(x>o[0]-.45&&x<o[1]+.45&&z>o[2]-.45&&z<o[3]+.45)return false;return true;}
+  const A=NA(),ar=A&&A.get&&A.get('outskirts');for(const o of (ar&&(ar.addressObstacles||ar.obstacles))||[])if(x>o[0]-.45&&x<o[1]+.45&&z>o[2]-.45&&z<o[3]+.45)return false;return true;}
  function containerDoors(){const C=CT();if(!C||!C.PLAN)return [];const out=[],Q=QT(),hw=C.CW/2;
   C.PLAN.forEach((c,i)=>{const n=i+1,edge=c.axis==='x'?c.z<-255:(c.x<40||c.x>88);if(!edge||c.flag==='kai'||c.flag==='deck'||c.levels[0].sideDoor===undefined)return;
    const s=c.axis==='x'?1:(c.x<61?1:-1),nv=c.axis==='x'?[0,-1]:[-s,0],reach=c.stack>1?.6:0;

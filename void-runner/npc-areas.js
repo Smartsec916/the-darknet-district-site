@@ -129,7 +129,16 @@
    if(a.id==='oldtown'){const N=NC();try{for(const s of (N&&N.solids?N.solids():[]))if(!/^club-(north|south|west|front|entry|shutter)/.test(s.id||'')){const [x,,z]=s.position,[w,,d]=s.size;if(x>18&&x<50&&z>-68.5&&z<-48.5)a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,'NULL’s furniture']);}}catch{}}
    if(a.id==='far-south'){const M=MK();try{for(const o of (M&&M.solids?M.solids():[]))if(!/door|shutter/.test(o.id||'')){const [x,,z]=o.position,[w,,d]=o.size;if(x>71&&x<101&&((z>lane[2]-.2&&z<lane[3])||(z>alley[2]&&z<alley[3]+.2)))a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,/clad|wall/.test(o.id)?'Milked’s wall':'Milked’s '+String(o.id).replace(/^milked-(alley-|front-)?/,'')]);}}catch{}}   // its lanes' walls, planter, dumpster and crates (milked.js solids)
    if(a.scene==='street'){const X=XW();for(const c of (X?X.list(a.quarter):[]))for(const p of c.posts)a.obstacles.push([p.p[0]-.12,p.p[0]+.12,p.p[1]-.12,p.p[1]+.12,'a crosswalk signal post']);}   // crosswalks.js (20 Nov 2026): the crossings themselves are road
-   a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);}
+   a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);
+   const food=typeof module==='object'&&module.exports?require('./ncz-food-stands.js'):root.VoidFoodStands;
+   if(food?.STANDS[a.id]&&!(a.id==='port'&&root.VoidPort?.enabled)){
+    a.addressObstacles=a.obstacles.slice();
+    for(const s of food.solids(a.id)){
+     const [x,,z]=s.position,[w,,d]=s.size;
+     a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,food.STANDS[a.id].name]);
+    }
+   }
+  }
   // Corporate District and the Temple are separate scenes with their own origins. Their stored placement coordinates are shifted so they cannot be confused with a city spot.
   // Anyone the editor can place may stand on the open streets (Reverie, Lace, the cat, and a character made in the editor). The Sleeping Pod room is not part of either scene.
   {const CO=node?require('./corporate.js'):root.VoidCorporate,TP=node?require('./temple.js'):root.VoidTemple,inset=(r,m)=>[r[0]+m,r[1]-m,r[2]+m,r[3]-m],move=(r,sx,sz)=>[r[0]+sx,r[1]+sx,r[2]+sz,r[3]+sz];

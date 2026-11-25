@@ -109,6 +109,34 @@
         ],
         "modifiers": []
       }
+    },
+    {
+      "id": "street-supper",
+      "name": "Street supper",
+      "description": "A hot meal from a NeoChinatown counter. Restores 1% of maximum health per second for 10 seconds.",
+      "category": "food",
+      "subcategory": "",
+      "kind": "consumable",
+      "icon": "♨",
+      "model": null,
+      "animation": "eat",
+      "price": 12,
+      "stack": 5,
+      "weight": 0.1,
+      "rarity": "common",
+      "status": "published",
+      "cooldown": 0,
+      "consumable": {
+        "effects": [],
+        "modifiers": [
+          {
+            "stat": "healthRecovery",
+            "amount": 0.01,
+            "delay": 0,
+            "duration": 10
+          }
+        ]
+      }
     }
   ],
   "vendors": [
@@ -290,6 +318,171 @@
             "mode": "interval",
             "every": 600,
             "amount": 2
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "food-stand-port",
+      "name": "Docklight Noodles",
+      "kind": "counter",
+      "location": "NeoChinatown · Port",
+      "id": "food-stand-port",
+      "entries": [
+        {
+          "item": "street-supper",
+          "price": 12,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        },
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "food-stand-oldtown",
+      "name": "Lantern Kitchen",
+      "kind": "counter",
+      "location": "NeoChinatown · Old Town",
+      "id": "food-stand-oldtown",
+      "entries": [
+        {
+          "item": "street-supper",
+          "price": 12,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        },
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "food-stand-avenue",
+      "name": "Jade Circuit Dumplings",
+      "kind": "counter",
+      "location": "NeoChinatown · The Avenue",
+      "id": "food-stand-avenue",
+      "entries": [
+        {
+          "item": "street-supper",
+          "price": 12,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        },
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "food-stand-far-south",
+      "name": "Southline Broth",
+      "kind": "counter",
+      "location": "NeoChinatown · Far South",
+      "id": "food-stand-far-south",
+      "entries": [
+        {
+          "item": "street-supper",
+          "price": 12,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        },
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "food-stand-outskirts",
+      "name": "Last Light Rice & Tea",
+      "kind": "counter",
+      "location": "NeoChinatown · Outskirts",
+      "id": "food-stand-outskirts",
+      "entries": [
+        {
+          "item": "street-supper",
+          "price": 12,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
+          },
+          "available": true
+        },
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 40,
+          "maxStock": 40,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 4
           },
           "available": true
         }

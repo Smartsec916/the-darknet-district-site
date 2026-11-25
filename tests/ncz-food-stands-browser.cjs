@@ -20,16 +20,44 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
   const result=await page.evaluate(q=>({cart:!!VoidBabylon.scene.getTransformNodeByName('food-stand-'+q),seats:walkingLocation.interactions.filter(i=>i.action==='ncz-food-seat'&&i.quarter===q).length,worker:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q),customer:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q),apron:VoidBabylon.scene.meshes.some(m=>m.name.includes('food-vendor:'+q)),nearbyScreens:VoidAdScreens.current?.spots.filter(p=>Math.hypot(p.x-VoidFoodStands.STANDS[q].x,p.z-VoidFoodStands.STANDS[q].z)<20).map(p=>[p.x,p.z])||[]}),q);
   assert.equal(result.cart,true,q);assert.equal(result.seats,3,q);assert.equal(result.worker,true,q);assert.equal(result.customer,true,q);assert.equal(result.apron,true,q);
   for(const [x,z] of result.nearbyScreens)assert.ok(Math.hypot(x-s.x,z-s.z)>=6,q+' ad screen crowding food stand at '+x+','+z);
-  console.log(q,result);
+  const phases=await page.evaluate(async q=>{
+   const scene=VoidBabylon.scene,customer=scene.transformNodes.find(n=>n.metadata?.foodCustomer===q);
+   const clock=Date.now,offset=Object.keys(VoidFoodStands.STANDS).indexOf(q)*11,observed=[];
+   try{
+    for(const t of [3,7,12,20,40,44,50]){
+     Date.now=()=>1000*(54*40000000+t-offset);
+     await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);
+     const pose=VoidFoodStands.customerPose(q,Date.now()/1000);
+     observed.push({phase:pose.phase,error:Math.hypot(customer.position.x-pose.x,customer.position.z-pose.z),
+      sip:scene.getMeshByName('food-diner-cup')?.isEnabled()&&customer.metadata.animationGroups.some(g=>g.name==='food-sip'&&g.isPlaying)});
+    }
+   }finally{Date.now=clock;}
+   return observed;
+  },q);
+  assert.deepEqual(phases.map(p=>p.phase),['approach','sit-enter','sit','sip','sit-exit','leave','wait']);
+  for(const p of phases){assert.ok(p.error<.01,q+' '+p.phase+' position');assert.equal(!!p.sip,p.phase==='sip',q+' seated cup animation');}
+  const movement=await page.evaluate(q=>{
+   const stand=VoidFoodStands.STANDS[q], [x,z]=VoidFoodStands.world(stand,-2.1,-2.8);
+   const before={...walker};
+   try{return [false,true].map(run=>{
+    Object.assign(walker,{x,z,vx:0,vz:0,yaw:stand.yaw+Math.PI/2});
+    for(let i=0;i<45;i++)VoidExplorer.step(walker,{x:0,z:1,run},1/60,walkingLocation);
+    return Math.hypot(walker.x-x,walker.z-z);
+   });}finally{Object.assign(walker,before);}
+  },q);
+  assert.ok(movement[0]>2.5&&movement[1]>4,q+' pedestrian clearance '+movement);
+  console.log(q,result,movement);
   if(process.env.FOOD_SCREENSHOT_DIR){fs.mkdirSync(process.env.FOOD_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.FOOD_SCREENSHOT_DIR,q+'-street.png')});}
-  if(q==='oldtown'){
-   await page.screenshot({path:process.env.FOOD_STANDING_SCREENSHOT||path.join(os.tmpdir(),'food-stand-oldtown-standing.png')});
-   const seat=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='food-seat-oldtown-1'));
+  {
+   if(q==='oldtown')await page.screenshot({path:process.env.FOOD_STANDING_SCREENSHOT||path.join(os.tmpdir(),'food-stand-oldtown-standing.png')});
+   const seat=await page.evaluate(q=>walkingLocation.interactions.find(i=>i.id==='food-seat-'+q+'-1'),q);
    await page.evaluate(item=>VoidInteractions.handlers.get('ncz-food-seat')({item}),seat);
    assert.equal(await page.evaluate(()=>mode),'food-seated');
-   await page.screenshot({path:process.env.FOOD_SCREENSHOT||path.join(os.tmpdir(),'food-stand-oldtown-seat.png')});
+   if(q==='oldtown')await page.screenshot({path:process.env.FOOD_SCREENSHOT||path.join(os.tmpdir(),'food-stand-oldtown-seat.png')});
    await page.keyboard.press('KeyE');assert.equal(await page.evaluate(()=>mode),'walking');
-   await page.evaluate(()=>VoidInteractions.handlers.get('ncz-food-vendor')({item:walkingLocation.interactions.find(i=>i.id==='food-stand-oldtown'),resume:resumeWalking}));
+   await page.evaluate(q=>VoidInteractions.handlers.get('ncz-food-vendor')({item:walkingLocation.interactions.find(i=>i.id==='food-stand-'+q),resume:resumeWalking}),q);
+   const menu=page.getByRole('dialog',{name:'Vendor catalog'});await menu.waitFor();
+   await menu.getByRole('button',{name:'Close',exact:true}).click();
    assert.equal(await page.evaluate(()=>mode),'walking');
   }
  }

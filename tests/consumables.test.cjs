@@ -14,7 +14,7 @@ test('items and vendors are checked together',()=>{const c=C.seed();assert.deepE
  const html=C.clone(c);html.items[0].name='<b>x</b>';assert.ok(C.problems(html).length);});
 test('vendor listing uses the vendor price and stock, and hides retired items',()=>{const c=C.seed();c.items.push({...C.newItem('x-pill','X pill'),status:'published'});
  c.vendors[0].entries.push({...C.newVendorEntry('x-pill',33),stock:3,maxStock:3});const l=C.listing(c,'shop-here',null,0);assert.equal(l.entries.find(e=>e.item==='x-pill').price,33);
- c.items[2].status='retired';assert.ok(!C.listing(c,'shop-here',null,0).entries.some(e=>e.item==='x-pill'));assert.equal(C.listing(c,'nowhere',null,0),null);});
+ c.items.find(it=>it.id==='x-pill').status='retired';assert.ok(!C.listing(c,'shop-here',null,0).entries.some(e=>e.item==='x-pill'));assert.equal(C.listing(c,'nowhere',null,0),null);});
 test('restocking adds the amount per interval, never above max',()=>{const en={...C.newVendorEntry('a',1),stock:1,maxStock:4,restock:{mode:'interval',every:60,amount:2}};
  assert.equal(C.restocked(en,{remaining:1,at:0,base:1},130).remaining,4);assert.equal(C.restocked(en,{remaining:1,at:0,base:1},59).remaining,1);assert.equal(C.restocked(en,{remaining:0,at:0,base:9},5).remaining,1);});
 test('use returns published definitions only',()=>{const c=C.seed();assert.equal(C.use(c,'sprint-tonic').modifiers.length,2);assert.equal(C.use(c,'nothing'),null);c.items[0].status='draft';assert.equal(C.use(c,'sprint-tonic'),null);});
