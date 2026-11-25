@@ -1,0 +1,2961 @@
+[
+  {
+    "id": "pn-aim",
+    "cue": "round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-aim-1",
+        "speaker": "pixel",
+        "delivery": "focused",
+        "text": "Shut up. I'm trying to aim.",
+        "seconds": 2.64
+      },
+      {
+        "id": "pn-aim-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "That's what he said.",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-aim-3",
+        "speaker": "pixel",
+        "delivery": "annoyed",
+        "text": "You're making me miss!",
+        "seconds": 1.76
+      },
+      {
+        "id": "pn-aim-4",
+        "speaker": "neon",
+        "delivery": "teasing",
+        "text": "Performance anxiety already?",
+        "seconds": 2.24
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-three-headshots",
+    "cue": "streak",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-three-headshots-1",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "Holy shit! Three headshots in a row!",
+        "seconds": 3.44
+      },
+      {
+        "id": "pn-three-headshots-2",
+        "speaker": "neon",
+        "delivery": "impressed",
+        "text": "Someone's been practicing in private.",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-empty",
+    "cue": "reload",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-empty-1",
+        "speaker": "pixel",
+        "delivery": "frustrated",
+        "text": "Damn it! I'm out of ammo.",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-empty-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Already? That's disappointing.",
+        "seconds": 3.44
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-record",
+    "cue": "record",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-record-1",
+        "speaker": "pixel",
+        "delivery": "determined",
+        "text": "I just beat my personal record!",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-record-2",
+        "speaker": "neon",
+        "delivery": "sarcastic",
+        "text": "Your apartment neighbors must be proud.",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-accuracy",
+    "cue": "round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-accuracy-1",
+        "speaker": "pixel",
+        "delivery": "focused",
+        "text": "It's all about timing and accuracy.",
+        "seconds": 2.72
+      },
+      {
+        "id": "pn-accuracy-2",
+        "speaker": "neon",
+        "delivery": "playfully",
+        "text": "And here I thought size mattered.",
+        "seconds": 2.56
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-spread",
+    "cue": "round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-spread-1",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "Look at that spread!",
+        "seconds": 1.92
+      },
+      {
+        "id": "pn-spread-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Somebody's going to need housekeeping.",
+        "seconds": 3.28
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-lessons",
+    "cue": "admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-lessons-1",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "Think Admin gives private shooting lessons?",
+        "seconds": 3.28
+      },
+      {
+        "id": "pn-lessons-2",
+        "speaker": "pixel",
+        "delivery": "flirtatious",
+        "text": "I'd volunteer for target practice.",
+        "seconds": 2.64
+      },
+      {
+        "id": "pn-lessons-3",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Get in line, bitch.",
+        "seconds": 2.72
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-mission-request",
+    "cue": "admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-mission-request-1",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "Think he's any good at this?",
+        "seconds": 1.92
+      },
+      {
+        "id": "pn-mission-request-2",
+        "speaker": "neon",
+        "delivery": "suggestive",
+        "text": "Only one way to find out.",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-mission-request-3",
+        "speaker": "pixel",
+        "delivery": "giggles",
+        "text": "Imagine putting that on a mission request.",
+        "seconds": 3.84
+      },
+      {
+        "id": "pn-mission-request-4",
+        "speaker": "neon",
+        "delivery": "mock serious",
+        "text": "Optional objective: investigate Admin's equipment.",
+        "seconds": 3.76
+      },
+      {
+        "id": "pn-mission-request-5",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Reward?",
+        "seconds": 1.84
+      },
+      {
+        "id": "pn-mission-request-6",
+        "speaker": "neon",
+        "delivery": "playfully",
+        "text": "Depends on his performance.",
+        "seconds": 2.32
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-multiplayer",
+    "cue": "admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-multiplayer-1",
+        "speaker": "pixel",
+        "delivery": "mischievously",
+        "text": "We should invite him to multiplayer.",
+        "seconds": 2.64
+      },
+      {
+        "id": "pn-multiplayer-2",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Now that's a team-building exercise!",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-within-earshot",
+    "cue": "admin-near",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-within-earshot-1",
+        "speaker": "pixel",
+        "delivery": "nervous laughter",
+        "text": "Shit. How much of that did he hear?",
+        "seconds": 4.08
+      },
+      {
+        "id": "pn-within-earshot-2",
+        "speaker": "neon",
+        "delivery": "boldly",
+        "text": "Hopefully everything.",
+        "seconds": 2.0
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-networking",
+    "cue": "admin-near",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-networking-1",
+        "speaker": "pixel",
+        "delivery": "innocently",
+        "text": "Hey, Admin. We're just discussing game mechanics.",
+        "seconds": 3.44
+      },
+      {
+        "id": "pn-networking-2",
+        "speaker": "neon",
+        "delivery": "teasing",
+        "text": "Very hands-on game mechanics.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-networking-3",
+        "speaker": "pixel",
+        "delivery": "embarrassed",
+        "text": "Neon, shut the hell up!",
+        "seconds": 2.64
+      },
+      {
+        "id": "pn-networking-4",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "What? I'm networking.",
+        "seconds": 2.64
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-joystick",
+    "cue": "loss",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-joystick-1",
+        "speaker": "pixel",
+        "delivery": "furious",
+        "text": "This fucking joystick!",
+        "seconds": 2.16
+      },
+      {
+        "id": "pn-joystick-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Maybe you're gripping it too hard.",
+        "seconds": 3.2
+      },
+      {
+        "id": "pn-joystick-3",
+        "speaker": "pixel",
+        "delivery": "defensive",
+        "text": "I know how to handle a joystick!",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-joystick-4",
+        "speaker": "neon",
+        "delivery": "sarcastic",
+        "text": "The leaderboard suggests otherwise.",
+        "seconds": 2.64
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-another-round",
+    "cue": "loss",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-another-round-1",
+        "speaker": "pixel",
+        "delivery": "annoyed",
+        "text": "I need another round.",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-another-round-2",
+        "speaker": "neon",
+        "delivery": "impressed",
+        "text": "Damn, girl. You've got stamina.",
+        "seconds": 3.04
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-wrist",
+    "cue": "leaving",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-wrist-1",
+        "speaker": "pixel",
+        "delivery": "sighs",
+        "text": "My wrist hurts.",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-wrist-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Never admit that in public.",
+        "seconds": 3.12
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-tomorrow",
+    "cue": "leaving",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-tomorrow-1",
+        "speaker": "pixel",
+        "delivery": "amused",
+        "text": "That game is absolutely disgusting.",
+        "seconds": 3.52
+      },
+      {
+        "id": "pn-tomorrow-2",
+        "speaker": "neon",
+        "delivery": "cheerfully",
+        "text": "Same time tomorrow?",
+        "seconds": 1.52
+      },
+      {
+        "id": "pn-tomorrow-3",
+        "speaker": "pixel",
+        "delivery": "enthusiastic",
+        "text": "Absolutely.",
+        "seconds": 1.52
+      },
+      {
+        "id": "pn-tomorrow-4",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "Next time we're bringing Admin.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-tomorrow-5",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "You're a terrible influence.",
+        "seconds": 3.12
+      },
+      {
+        "id": "pn-tomorrow-6",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "That's why we're friends.",
+        "seconds": 1.92
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-bad-decisions",
+    "cue": "opening",
+    "locations": [
+      "district"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-bad-decisions-1",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "Tonight, we're making bad decisions.",
+        "seconds": 2.96
+      },
+      {
+        "id": "pn-night-bad-decisions-2",
+        "speaker": "neon",
+        "delivery": "enthusiastic",
+        "text": "Finally! A mission I'm qualified for.",
+        "seconds": 3.36
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-dignity",
+    "cue": "opening",
+    "locations": [
+      "district"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-dignity-1",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "No work, no responsibilities, no dignity.",
+        "seconds": 5.2
+      },
+      {
+        "id": "pn-night-dignity-2",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "I left my dignity back at the apartment.",
+        "seconds": 2.96
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-uncomfortable-leaderboard",
+    "cue": "opening",
+    "locations": [
+      "district"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-uncomfortable-leaderboard-1",
+        "speaker": "pixel",
+        "delivery": "mischievously",
+        "text": "Straight to Hotel Headshots?",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-night-uncomfortable-leaderboard-2",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Fuck yeah! Let's make the leaderboard uncomfortable.",
+        "seconds": 3.6
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-muscle-memory",
+    "cue": "competitive",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-muscle-memory-1",
+        "speaker": "pixel",
+        "delivery": "confident",
+        "text": "Watch and learn, sweetheart.",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-night-muscle-memory-2",
+        "speaker": "neon",
+        "delivery": "sarcastic",
+        "text": "Oh, please. You've been practicing all week.",
+        "seconds": 3.76
+      },
+      {
+        "id": "pn-night-muscle-memory-3",
+        "speaker": "pixel",
+        "delivery": "proudly",
+        "text": "Muscle memory, baby!",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-night-muscle-memory-4",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "That's a concerning choice of words.",
+        "seconds": 3.2
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-aim-higher",
+    "cue": "competitive",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-aim-higher-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Aim higher! Higher!",
+        "seconds": 2.16
+      },
+      {
+        "id": "pn-night-aim-higher-2",
+        "speaker": "pixel",
+        "delivery": "frustrated",
+        "text": "Stop yelling instructions!",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-night-aim-higher-3",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Fine! I'll just stand here and judge your technique.",
+        "seconds": 4.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-bonus-round",
+    "cue": "competitive",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-bonus-round-1",
+        "speaker": "pixel",
+        "delivery": "shocked",
+        "text": "Holy shit! Bonus round!",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-night-bonus-round-2",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Keep going! You've still got juice!",
+        "seconds": 2.64
+      },
+      {
+        "id": "pn-night-bonus-round-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "You're enjoying this way too much.",
+        "seconds": 3.44
+      },
+      {
+        "id": "pn-night-bonus-round-4",
+        "speaker": "neon",
+        "delivery": "boldly",
+        "text": "I'm a very supportive friend.",
+        "seconds": 2.24
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-recoil",
+    "cue": "competitive",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-recoil-1",
+        "speaker": "pixel",
+        "delivery": "annoyed",
+        "text": "Why does this thing have recoil?",
+        "seconds": 2.24
+      },
+      {
+        "id": "pn-night-recoil-2",
+        "speaker": "neon",
+        "delivery": "deadpan",
+        "text": "Budget cuts in the realism department.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-night-recoil-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Who the fuck designed this game?",
+        "seconds": 3.2
+      },
+      {
+        "id": "pn-night-recoil-4",
+        "speaker": "neon",
+        "delivery": "admiring",
+        "text": "A visionary.",
+        "seconds": 1.76
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-atmosphere",
+    "cue": "competitive",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-atmosphere-1",
+        "speaker": "pixel",
+        "delivery": "focused",
+        "text": "I need to concentrate.",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-night-atmosphere-2",
+        "speaker": "neon",
+        "delivery": "teasing",
+        "text": "Want me to dim the lights and put on some music?",
+        "seconds": 3.44
+      },
+      {
+        "id": "pn-night-atmosphere-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Bitch, it's an arcade cabinet!",
+        "seconds": 3.36
+      },
+      {
+        "id": "pn-night-atmosphere-4",
+        "speaker": "neon",
+        "delivery": "innocently",
+        "text": "I'm creating atmosphere.",
+        "seconds": 2.08
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-cooperative",
+    "cue": "late-round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-cooperative-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "Do you think this game has a cooperative mode?",
+        "seconds": 3.12
+      },
+      {
+        "id": "pn-night-cooperative-2",
+        "speaker": "pixel",
+        "delivery": "mischievously",
+        "text": "Everything has a cooperative mode with the right attitude.",
+        "seconds": 4.24
+      },
+      {
+        "id": "pn-night-cooperative-3",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "That's my girl!",
+        "seconds": 2.48
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-resume",
+    "cue": "late-round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-resume-1",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "I'm getting really good at this!",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-night-resume-2",
+        "speaker": "neon",
+        "delivery": "teasing",
+        "text": "Finally, a marketable skill.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-night-resume-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Should I update my résumé?",
+        "seconds": 2.96
+      },
+      {
+        "id": "pn-night-resume-4",
+        "speaker": "neon",
+        "delivery": "mock professional",
+        "text": "Excellent hand-eye coordination. Performs well under pressure.",
+        "seconds": 4.24
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-came-to-win",
+    "cue": "late-round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-came-to-win-1",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Look at your face! You're taking this so seriously!",
+        "seconds": 4.72
+      },
+      {
+        "id": "pn-night-came-to-win-2",
+        "speaker": "pixel",
+        "delivery": "defensive",
+        "text": "I came here to win!",
+        "seconds": 1.84
+      },
+      {
+        "id": "pn-night-came-to-win-3",
+        "speaker": "neon",
+        "delivery": "giggles",
+        "text": "Interesting choice of words.",
+        "seconds": 3.12
+      },
+      {
+        "id": "pn-night-came-to-win-4",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Oh, fuck off!",
+        "seconds": 2.08
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-hard-mode",
+    "cue": "late-round",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-hard-mode-1",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "Think there's a difficulty setting?",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-night-hard-mode-2",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "I prefer hard mode.",
+        "seconds": 2.24
+      },
+      {
+        "id": "pn-night-hard-mode-3",
+        "speaker": "pixel",
+        "delivery": "deadpan",
+        "text": "Of course you fucking do.",
+        "seconds": 2.32
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-recreation",
+    "cue": "late-admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-recreation-1",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "Admin needs to organize more recreational activities.",
+        "seconds": 3.84
+      },
+      {
+        "id": "pn-night-recreation-2",
+        "speaker": "pixel",
+        "delivery": "flirtatious",
+        "text": "Preferably private ones.",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-night-recreation-3",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Look at you! Coming out of your shell!",
+        "seconds": 3.6
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-honorary-girl",
+    "cue": "late-admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-honorary-girl-1",
+        "speaker": "pixel",
+        "delivery": "mischievously",
+        "text": "Think Admin would join us for girls' night?",
+        "seconds": 3.04
+      },
+      {
+        "id": "pn-night-honorary-girl-2",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "He can be an honorary girl for twenty minutes.",
+        "seconds": 3.12
+      },
+      {
+        "id": "pn-night-honorary-girl-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Twenty minutes? You're optimistic.",
+        "seconds": 3.52
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-admin-high-score",
+    "cue": "late-admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-admin-high-score-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "What do you think Admin's high score is?",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-night-admin-high-score-2",
+        "speaker": "pixel",
+        "delivery": "suggestive",
+        "text": "I'd rather find out in person.",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-night-admin-high-score-3",
+        "speaker": "neon",
+        "delivery": "shocked laughter",
+        "text": "Pixel! You filthy bitch!",
+        "seconds": 3.84
+      },
+      {
+        "id": "pn-night-admin-high-score-4",
+        "speaker": "pixel",
+        "delivery": "proudly",
+        "text": "You're finally rubbing off on me.",
+        "seconds": 2.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-education",
+    "cue": "late-admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-education-1",
+        "speaker": "pixel",
+        "delivery": "thoughtful",
+        "text": "We should ask Admin for a demonstration.",
+        "seconds": 2.72
+      },
+      {
+        "id": "pn-night-education-2",
+        "speaker": "neon",
+        "delivery": "mock serious",
+        "text": "For educational purposes.",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-night-education-3",
+        "speaker": "pixel",
+        "delivery": "giggles",
+        "text": "Professional development.",
+        "seconds": 3.04
+      },
+      {
+        "id": "pn-night-education-4",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Continuing education!",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-your-turn",
+    "cue": "late-admin",
+    "locations": [
+      "arcade",
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-your-turn-1",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "Should we send Admin a picture of our high score?",
+        "seconds": 3.2
+      },
+      {
+        "id": "pn-night-your-turn-2",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "With the caption, \"Your turn.\"",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-night-your-turn-3",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Oh, we're definitely getting banned.",
+        "seconds": 3.44
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-athletes",
+    "cue": "passerby",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-athletes-1",
+        "speaker": "pixel",
+        "delivery": "embarrassed",
+        "text": "That guy's been staring at us.",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-night-athletes-2",
+        "speaker": "neon",
+        "delivery": "calling out",
+        "text": "What? You've never seen professional athletes before?",
+        "seconds": 3.68
+      },
+      {
+        "id": "pn-night-athletes-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Professional degenerates, maybe.",
+        "seconds": 3.2
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-advertising",
+    "cue": "passerby",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-advertising-1",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "Nothing to see here. Just two respectable women.",
+        "seconds": 3.52
+      },
+      {
+        "id": "pn-night-advertising-2",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Respectable?",
+        "seconds": 2.24
+      },
+      {
+        "id": "pn-night-advertising-3",
+        "speaker": "neon",
+        "delivery": "whispers",
+        "text": "It's called false advertising.",
+        "seconds": 2.48
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-vr-next",
+    "cue": "vr-entry",
+    "locations": [
+      "arcade",
+      "vr"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-vr-next-1",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "Arcade's done. VR next?",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-night-vr-next-2",
+        "speaker": "neon",
+        "delivery": "enthusiastic",
+        "text": "Let's go make some questionable memories.",
+        "seconds": 2.88
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-cameras",
+    "cue": "vr-entry",
+    "locations": [
+      "arcade",
+      "vr"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-cameras-1",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "Does that room have security cameras?",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-night-cameras-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Suddenly concerned about your reputation?",
+        "seconds": 3.68
+      },
+      {
+        "id": "pn-night-cameras-3",
+        "speaker": "pixel",
+        "delivery": "mischievously",
+        "text": "No. Just wondering where to wave.",
+        "seconds": 3.36
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-sponsor",
+    "cue": "vr-entry",
+    "locations": [
+      "arcade",
+      "vr"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-sponsor-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Tonight is officially sponsored by poor judgment.",
+        "seconds": 3.6
+      },
+      {
+        "id": "pn-night-sponsor-2",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "And tomorrow by regret.",
+        "seconds": 2.96
+      },
+      {
+        "id": "pn-night-sponsor-3",
+        "speaker": "neon",
+        "delivery": "cheerfully",
+        "text": "That's tomorrow's problem.",
+        "seconds": 2.0
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-guilty",
+    "cue": "vr-entry",
+    "locations": [
+      "arcade",
+      "vr"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-night-guilty-1",
+        "speaker": "pixel",
+        "delivery": "giggles",
+        "text": "We're going to get kicked out eventually.",
+        "seconds": 3.36
+      },
+      {
+        "id": "pn-night-guilty-2",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Admin likes us too much.",
+        "seconds": 2.24
+      },
+      {
+        "id": "pn-night-guilty-3",
+        "speaker": "pixel",
+        "delivery": "teasing",
+        "text": "You certainly like Admin enough.",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-night-guilty-4",
+        "speaker": "neon",
+        "delivery": "boldly",
+        "text": "Guilty as charged.",
+        "seconds": 1.84
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-independent",
+    "cue": "maximum-chaos",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "rarity": "rare",
+    "lines": [
+      {
+        "id": "pn-night-independent-1",
+        "speaker": "pixel",
+        "delivery": "serious",
+        "text": "We are mature, independent women.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-night-independent-2",
+        "speaker": "neon",
+        "delivery": "serious",
+        "text": "Absolutely.",
+        "seconds": 1.36
+      },
+      {
+        "id": "pn-night-independent-3",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "Another round of Hotel Headshots?",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-night-independent-4",
+        "speaker": "neon",
+        "delivery": "screaming excitedly",
+        "text": "FUCK YES!",
+        "seconds": 1.68
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-supervision",
+    "cue": "maximum-chaos",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "rarity": "rare",
+    "lines": [
+      {
+        "id": "pn-night-supervision-1",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "You know what our problem is?",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-night-supervision-2",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "What?",
+        "seconds": 0.96
+      },
+      {
+        "id": "pn-night-supervision-3",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Insufficient adult supervision.",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-night-supervision-4",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "That's why we need Admin!",
+        "seconds": 2.88
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-three-hours",
+    "cue": "maximum-chaos",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "rarity": "rare",
+    "lines": [
+      {
+        "id": "pn-night-three-hours-1",
+        "speaker": "pixel",
+        "delivery": "exhausted",
+        "text": "I can't believe we spent three hours playing that.",
+        "seconds": 4.0
+      },
+      {
+        "id": "pn-night-three-hours-2",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "Time well wasted.",
+        "seconds": 2.0
+      },
+      {
+        "id": "pn-night-three-hours-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "We're terrible people.",
+        "seconds": 2.72
+      },
+      {
+        "id": "pn-night-three-hours-4",
+        "speaker": "neon",
+        "delivery": "affectionately",
+        "text": "But we're terrible people together.",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-operation",
+    "cue": "maximum-chaos",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "rarity": "rare",
+    "lines": [
+      {
+        "id": "pn-night-operation-1",
+        "speaker": "neon",
+        "delivery": "whispers",
+        "text": "Operation Seduce Admin begins tonight.",
+        "seconds": 3.28
+      },
+      {
+        "id": "pn-night-operation-2",
+        "speaker": "pixel",
+        "delivery": "mock serious",
+        "text": "What's our strategy?",
+        "seconds": 1.76
+      },
+      {
+        "id": "pn-night-operation-3",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Absolutely no strategy.",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-night-operation-4",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Our specialty!",
+        "seconds": 2.24
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-night-leaderboard-stays",
+    "cue": "maximum-chaos",
+    "locations": [
+      "arcade"
+    ],
+    "requiresAdminNearby": false,
+    "rarity": "rare",
+    "lines": [
+      {
+        "id": "pn-night-leaderboard-stays-1",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "What happens on girls' night stays on girls' night.",
+        "seconds": 4.4
+      },
+      {
+        "id": "pn-night-leaderboard-stays-2",
+        "speaker": "neon",
+        "delivery": "concerned",
+        "text": "Except the leaderboard.",
+        "seconds": 2.0
+      },
+      {
+        "id": "pn-night-leaderboard-stays-3",
+        "speaker": "pixel",
+        "delivery": "long pause",
+        "text": "Oh, shit.",
+        "seconds": 2.16
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-clothing-1",
+    "cue": "store-clothing",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-clothing-1-1",
+        "speaker": "pixel",
+        "delivery": "excited",
+        "text": "Oh, this shirt is cute!",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-store-new-clothing-1-2",
+        "speaker": "neon",
+        "delivery": "teasing",
+        "text": "Think Admin would like you in it?",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-store-new-clothing-1-3",
+        "speaker": "pixel",
+        "delivery": "mischievously",
+        "text": "I'm more interested in whether he'd like me out of it.",
+        "seconds": 4.0
+      },
+      {
+        "id": "pn-store-new-clothing-1-4",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Buy two. Just in case.",
+        "seconds": 2.96
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-clothing-2",
+    "cue": "store-clothing",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-clothing-2-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "Does this come in a smaller size?",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-store-new-clothing-2-2",
+        "speaker": "pixel",
+        "delivery": "sarcastic",
+        "text": "You're supposed to wear it, not negotiate with it.",
+        "seconds": 3.44
+      },
+      {
+        "id": "pn-store-new-clothing-2-3",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Fashion requires sacrifice.",
+        "seconds": 2.48
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-clothing-3",
+    "cue": "store-clothing",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-clothing-3-1",
+        "speaker": "pixel",
+        "delivery": "thoughtful",
+        "text": "Should I get something practical or something sexy?",
+        "seconds": 4.48
+      },
+      {
+        "id": "pn-store-new-clothing-3-2",
+        "speaker": "neon",
+        "delivery": "deadpan",
+        "text": "Have you learned nothing from girls' night?",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-clothing-3-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Sexy it is.",
+        "seconds": 2.56
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-clothing-4",
+    "cue": "store-clothing",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-clothing-4-1",
+        "speaker": "neon",
+        "delivery": "flirtatious",
+        "text": "Hey, Admin! Does this shirt come with complimentary removal?",
+        "seconds": 4.64
+      },
+      {
+        "id": "pn-store-new-clothing-4-2",
+        "speaker": "pixel",
+        "delivery": "bursting into laughter",
+        "text": "You're going to get us fucking banned!",
+        "seconds": 3.84
+      },
+      {
+        "id": "pn-store-new-clothing-4-3",
+        "speaker": "neon",
+        "delivery": "innocently",
+        "text": "I'm asking about customer service!",
+        "seconds": 2.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-survival-1",
+    "cue": "store-survival",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-survival-1-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "We should probably buy some survival equipment before leaving NeoChinatown.",
+        "seconds": 4.48
+      },
+      {
+        "id": "pn-store-new-survival-1-2",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "I've survived three terrible relationships. I think I'm qualified.",
+        "seconds": 4.32
+      },
+      {
+        "id": "pn-store-new-survival-1-3",
+        "speaker": "pixel",
+        "delivery": "deadpan",
+        "text": "That's not the same thing.",
+        "seconds": 2.08
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-survival-2",
+    "cue": "store-survival",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-survival-2-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "How much protection does this armor provide?",
+        "seconds": 3.04
+      },
+      {
+        "id": "pn-store-new-survival-2-2",
+        "speaker": "pixel",
+        "delivery": "serious",
+        "text": "Depends on what you're fighting.",
+        "seconds": 2.0
+      },
+      {
+        "id": "pn-store-new-survival-2-3",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "What about emotional damage?",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-store-new-survival-2-4",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "You're beyond repair, sweetheart.",
+        "seconds": 3.44
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-survival-3",
+    "cue": "store-survival",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-survival-3-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Always check your equipment before heading into dangerous territory.",
+        "seconds": 3.76
+      },
+      {
+        "id": "pn-store-new-survival-3-2",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "I'd happily inspect Admin's equipment.",
+        "seconds": 3.28
+      },
+      {
+        "id": "pn-store-new-survival-3-3",
+        "speaker": "pixel",
+        "delivery": "sighs",
+        "text": "We were having an educational moment.",
+        "seconds": 3.52
+      },
+      {
+        "id": "pn-store-new-survival-3-4",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "We still are.",
+        "seconds": 1.44
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-survival-4",
+    "cue": "store-survival",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-survival-4-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Look at all this tactical gear!",
+        "seconds": 2.4
+      },
+      {
+        "id": "pn-store-new-survival-4-2",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "Planning something dangerous?",
+        "seconds": 2.32
+      },
+      {
+        "id": "pn-store-new-survival-4-3",
+        "speaker": "neon",
+        "delivery": "playfully",
+        "text": "Depends on whether Admin is working tonight.",
+        "seconds": 3.12
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-medical-1",
+    "cue": "store-medical",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-medical-1-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "You should always carry something to restore your health.",
+        "seconds": 3.28
+      },
+      {
+        "id": "pn-store-new-medical-1-2",
+        "speaker": "neon",
+        "delivery": "dramatically",
+        "text": "What about a broken heart?",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-store-new-medical-1-3",
+        "speaker": "pixel",
+        "delivery": "sarcastic",
+        "text": "Buy a personality upgrade.",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-store-new-medical-1-4",
+        "speaker": "neon",
+        "delivery": "offended",
+        "text": "Bitch!",
+        "seconds": 1.12
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-medical-2",
+    "cue": "store-medical",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-medical-2-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "Should we buy some medical supplies?",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-store-new-medical-2-2",
+        "speaker": "pixel",
+        "delivery": "serious",
+        "text": "Better to have them before you need them.",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-medical-2-3",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "Especially considering our plans tonight.",
+        "seconds": 3.04
+      },
+      {
+        "id": "pn-store-new-medical-2-4",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "What the hell are you planning?",
+        "seconds": 2.56
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-medical-3",
+    "cue": "store-medical",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-medical-3-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Check what a consumable actually does before using it.",
+        "seconds": 3.52
+      },
+      {
+        "id": "pn-store-new-medical-3-2",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Instructions are for people who don't enjoy surprises.",
+        "seconds": 4.4
+      },
+      {
+        "id": "pn-store-new-medical-3-3",
+        "speaker": "pixel",
+        "delivery": "deadpan",
+        "text": "And that's why I'm buying medical supplies.",
+        "seconds": 2.64
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-food-energy-1",
+    "cue": "store-food-energy",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-food-energy-1-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Do they sell anything that increases stamina?",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-food-energy-1-2",
+        "speaker": "pixel",
+        "delivery": "teasing",
+        "text": "Planning a long night?",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-store-new-food-energy-1-3",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Planning an unforgettable one.",
+        "seconds": 2.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-food-energy-2",
+    "cue": "store-food-energy",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-food-energy-2-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Some consumables have temporary effects. Don't waste them when you don't need them.",
+        "seconds": 4.88
+      },
+      {
+        "id": "pn-store-new-food-energy-2-2",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "So save the stamina boost until Admin gets off work?",
+        "seconds": 4.16
+      },
+      {
+        "id": "pn-store-new-food-energy-2-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "You're fucking relentless.",
+        "seconds": 2.96
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-food-energy-3",
+    "cue": "store-food-energy",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-food-energy-3-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "What happens if I consume everything at once?",
+        "seconds": 3.36
+      },
+      {
+        "id": "pn-store-new-food-energy-3-2",
+        "speaker": "pixel",
+        "delivery": "concerned",
+        "text": "Probably an expensive lesson.",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-store-new-food-energy-3-3",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Science!",
+        "seconds": 1.2
+      },
+      {
+        "id": "pn-store-new-food-energy-3-4",
+        "speaker": "pixel",
+        "delivery": "sternly",
+        "text": "No.",
+        "seconds": 0.96
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-food-energy-4",
+    "cue": "store-food-energy",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-food-energy-4-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Read the item description. It'll tell you what you're buying.",
+        "seconds": 3.04
+      },
+      {
+        "id": "pn-store-new-food-energy-4-2",
+        "speaker": "neon",
+        "delivery": "disappointed",
+        "text": "None of these descriptions mention making Admin fall in love with me.",
+        "seconds": 4.4
+      },
+      {
+        "id": "pn-store-new-food-energy-4-3",
+        "speaker": "pixel",
+        "delivery": "sarcastic",
+        "text": "That's probably a premium upgrade.",
+        "seconds": 2.88
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-kiosk-1",
+    "cue": "store-kiosk",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-kiosk-1-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "You can browse the merchandise directly from these kiosks.",
+        "seconds": 3.36
+      },
+      {
+        "id": "pn-store-new-kiosk-1-2",
+        "speaker": "neon",
+        "delivery": "disappointed",
+        "text": "But then I don't have an excuse to bother Admin.",
+        "seconds": 3.6
+      },
+      {
+        "id": "pn-store-new-kiosk-1-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Like you've ever needed one.",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-kiosk-2",
+    "cue": "store-kiosk",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-kiosk-2-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Shopping without human interaction!",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-store-new-kiosk-2-2",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "Isn't that what you wanted?",
+        "seconds": 1.68
+      },
+      {
+        "id": "pn-store-new-kiosk-2-3",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "Depends on how attractive the human is.",
+        "seconds": 3.12
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-kiosk-3",
+    "cue": "store-kiosk",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-kiosk-3-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Check your balance before confirming the purchase.",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-kiosk-3-2",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Financial responsibility is tomorrow's problem.",
+        "seconds": 3.36
+      },
+      {
+        "id": "pn-store-new-kiosk-3-3",
+        "speaker": "pixel",
+        "delivery": "sarcastic",
+        "text": "Tomorrow must fucking hate you.",
+        "seconds": 2.8
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-kiosk-4",
+    "cue": "store-kiosk",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-kiosk-4-1",
+        "speaker": "neon",
+        "delivery": "frustrated",
+        "text": "Insufficient funds?",
+        "seconds": 1.76
+      },
+      {
+        "id": "pn-store-new-kiosk-4-2",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "That's the game's way of telling you to get a job.",
+        "seconds": 3.92
+      },
+      {
+        "id": "pn-store-new-kiosk-4-3",
+        "speaker": "neon",
+        "delivery": "dramatically",
+        "text": "I came here to escape reality!",
+        "seconds": 2.72
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-equipment-1",
+    "cue": "store-equipment",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-equipment-1-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Expensive equipment isn't necessarily the best equipment. Buy what suits your playstyle.",
+        "seconds": 5.76
+      },
+      {
+        "id": "pn-store-new-equipment-1-2",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "What if my playstyle is looking incredibly hot while making terrible decisions?",
+        "seconds": 5.6
+      },
+      {
+        "id": "pn-store-new-equipment-1-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Then you're already fully equipped.",
+        "seconds": 3.28
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-equipment-2",
+    "cue": "store-equipment",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-equipment-2-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Bigger is better, right?",
+        "seconds": 2.0
+      },
+      {
+        "id": "pn-store-new-equipment-2-2",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "Not necessarily. Accuracy and handling matter too.",
+        "seconds": 4.0
+      },
+      {
+        "id": "pn-store-new-equipment-2-3",
+        "speaker": "neon",
+        "delivery": "giggles",
+        "text": "That's surprisingly reassuring.",
+        "seconds": 3.28
+      },
+      {
+        "id": "pn-store-new-equipment-2-4",
+        "speaker": "pixel",
+        "delivery": "annoyed",
+        "text": "We're talking about weapons!",
+        "seconds": 2.08
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-equipment-3",
+    "cue": "store-equipment",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-equipment-3-1",
+        "speaker": "pixel",
+        "delivery": "conversational",
+        "text": "You should consider your equipment's strengths and weaknesses before buying it.",
+        "seconds": 4.32
+      },
+      {
+        "id": "pn-store-new-equipment-3-2",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "My biggest weakness is handsome men with authority.",
+        "seconds": 4.56
+      },
+      {
+        "id": "pn-store-new-equipment-3-3",
+        "speaker": "pixel",
+        "delivery": "deadpan",
+        "text": "Unfortunately, there's no armor for that.",
+        "seconds": 3.04
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-iris-1",
+    "cue": "store-iris",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-iris-1-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "Iris, does Admin ever take a night off?",
+        "seconds": 3.12
+      },
+      {
+        "id": "pn-store-new-iris-1-2",
+        "speaker": "pixel",
+        "delivery": "embarrassed",
+        "text": "Don't answer that.",
+        "seconds": 1.84
+      },
+      {
+        "id": "pn-store-new-iris-1-3",
+        "speaker": "neon",
+        "delivery": "innocently",
+        "text": "I'm conducting market research.",
+        "seconds": 2.32
+      }
+    ],
+    "requiresIrisNearby": true,
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-iris-2",
+    "cue": "store-iris",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-iris-2-1",
+        "speaker": "pixel",
+        "delivery": "friendly",
+        "text": "Hey, Iris! Anything new in stock?",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-iris-2-2",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Preferably something that makes us irresistible.",
+        "seconds": 3.52
+      },
+      {
+        "id": "pn-store-new-iris-2-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "You'd still find a way to overuse it.",
+        "seconds": 3.52
+      }
+    ],
+    "requiresIrisNearby": true,
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-iris-3",
+    "cue": "store-iris",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-iris-3-1",
+        "speaker": "neon",
+        "delivery": "whispers",
+        "text": "Think Iris gets an employee discount?",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-iris-3-2",
+        "speaker": "pixel",
+        "delivery": "curious",
+        "text": "Probably.",
+        "seconds": 1.28
+      },
+      {
+        "id": "pn-store-new-iris-3-3",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "Maybe we should apply for jobs here.",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-store-new-iris-3-4",
+        "speaker": "pixel",
+        "delivery": "sarcastic",
+        "text": "You'd spend your entire shift flirting with management.",
+        "seconds": 3.92
+      },
+      {
+        "id": "pn-store-new-iris-3-5",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "Employee engagement!",
+        "seconds": 2.08
+      }
+    ],
+    "requiresIrisNearby": true,
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-admin-1",
+    "cue": "store-admin",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-admin-1-1",
+        "speaker": "neon",
+        "delivery": "flirtatious",
+        "text": "Admin, do you offer private equipment demonstrations?",
+        "seconds": 4.24
+      },
+      {
+        "id": "pn-store-new-admin-1-2",
+        "speaker": "pixel",
+        "delivery": "giggles",
+        "text": "She's been asking that all night.",
+        "seconds": 3.28
+      },
+      {
+        "id": "pn-store-new-admin-1-3",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Persistence is a valuable character trait.",
+        "seconds": 2.96
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-admin-2",
+    "cue": "store-admin",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-admin-2-1",
+        "speaker": "pixel",
+        "delivery": "playfully",
+        "text": "Admin, how does this shirt look on me?",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-store-new-admin-2-2",
+        "speaker": "neon",
+        "delivery": "mischievously",
+        "text": "Careful. That's a trick question.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-store-new-admin-2-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Shut up!",
+        "seconds": 1.92
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-admin-3",
+    "cue": "store-admin",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-admin-3-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "Admin, do frequent customers get special treatment?",
+        "seconds": 3.92
+      },
+      {
+        "id": "pn-store-new-admin-3-2",
+        "speaker": "pixel",
+        "delivery": "teasing",
+        "text": "She's hoping for a loyalty program.",
+        "seconds": 2.88
+      },
+      {
+        "id": "pn-store-new-admin-3-3",
+        "speaker": "neon",
+        "delivery": "flirtatious",
+        "text": "A very personal loyalty program.",
+        "seconds": 3.2
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-admin-4",
+    "cue": "store-admin",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-admin-4-1",
+        "speaker": "pixel",
+        "delivery": "innocently",
+        "text": "We're actually here to buy survival gear.",
+        "seconds": 2.72
+      },
+      {
+        "id": "pn-store-new-admin-4-2",
+        "speaker": "neon",
+        "delivery": "whispers",
+        "text": "Among other things.",
+        "seconds": 2.0
+      },
+      {
+        "id": "pn-store-new-admin-4-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "Can you behave for five fucking minutes?",
+        "seconds": 3.92
+      },
+      {
+        "id": "pn-store-new-admin-4-4",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "Probably not.",
+        "seconds": 1.84
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-exit-1",
+    "cue": "store-exit",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-store-new-exit-1-1",
+        "speaker": "pixel",
+        "delivery": "satisfied",
+        "text": "New clothes, medical supplies, survival gear. I think we're ready.",
+        "seconds": 5.6
+      },
+      {
+        "id": "pn-store-new-exit-1-2",
+        "speaker": "neon",
+        "delivery": "disappointed",
+        "text": "We forgot to buy Admin a drink.",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-store-new-exit-1-3",
+        "speaker": "pixel",
+        "delivery": "laughs",
+        "text": "He's not a fucking consumable!",
+        "seconds": 3.36
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-exit-2",
+    "cue": "store-exit",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-exit-2-1",
+        "speaker": "neon",
+        "delivery": "excited",
+        "text": "Arcade next?",
+        "seconds": 1.44
+      },
+      {
+        "id": "pn-store-new-exit-2-2",
+        "speaker": "pixel",
+        "delivery": "enthusiastic",
+        "text": "Hotel Headshots!",
+        "seconds": 1.92
+      },
+      {
+        "id": "pn-store-new-exit-2-3",
+        "speaker": "neon",
+        "delivery": "laughs",
+        "text": "Let's see if that stamina boost was worth the money.",
+        "seconds": 4.08
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-store-new-exit-3",
+    "cue": "store-exit",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-store-new-exit-3-1",
+        "speaker": "pixel",
+        "delivery": "concerned",
+        "text": "We spent way too many credits.",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-store-new-exit-3-2",
+        "speaker": "neon",
+        "delivery": "cheerfully",
+        "text": "We invested in ourselves.",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-store-new-exit-3-3",
+        "speaker": "pixel",
+        "delivery": "sarcastic",
+        "text": "We bought matching shirts and enough energy supplies to power Meridian Station.",
+        "seconds": 4.96
+      },
+      {
+        "id": "pn-store-new-exit-3-4",
+        "speaker": "neon",
+        "delivery": "proudly",
+        "text": "An excellent investment.",
+        "seconds": 2.24
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-1",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-1-1",
+        "speaker": "neon",
+        "delivery": "playfully",
+        "text": "Miss me?",
+        "seconds": 1.12
+      },
+      {
+        "id": "pn-brief-bar-1-2",
+        "speaker": "bartender",
+        "delivery": "dryly",
+        "text": "You were here yesterday.",
+        "seconds": 2.0
+      },
+      {
+        "id": "pn-brief-bar-1-3",
+        "speaker": "neon",
+        "delivery": "flirtatious",
+        "text": "That's not an answer.",
+        "seconds": 2.0
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-2",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-2-1",
+        "speaker": "neon",
+        "delivery": "casually",
+        "text": "Pixel's in VR. I figured I'd come keep you company.",
+        "seconds": 3.6
+      },
+      {
+        "id": "pn-brief-bar-2-2",
+        "speaker": "bartender",
+        "delivery": "dryly",
+        "text": "How generous.",
+        "seconds": 1.76
+      },
+      {
+        "id": "pn-brief-bar-2-3",
+        "speaker": "neon",
+        "delivery": "innocently",
+        "text": "I'm a very charitable person.",
+        "seconds": 2.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-3",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-3-1",
+        "speaker": "neon",
+        "delivery": "flirtatious",
+        "text": "You always look this good behind the bar?",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-brief-bar-3-2",
+        "speaker": "bartender",
+        "delivery": "businesslike",
+        "text": "Are you ordering something?",
+        "seconds": 1.68
+      },
+      {
+        "id": "pn-brief-bar-3-3",
+        "speaker": "neon",
+        "delivery": "unhurried",
+        "text": "Eventually.",
+        "seconds": 1.6
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-4",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-4-1",
+        "speaker": "neon",
+        "delivery": "dejected",
+        "text": "I just lost at Headshot Hotel.",
+        "seconds": 2.96
+      },
+      {
+        "id": "pn-brief-bar-4-2",
+        "speaker": "bartender",
+        "delivery": "knowing",
+        "text": "Again?",
+        "seconds": 1.2
+      },
+      {
+        "id": "pn-brief-bar-4-3",
+        "speaker": "neon",
+        "delivery": "exasperated",
+        "text": "I'm beginning to dislike everyone in this building.",
+        "seconds": 3.28
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-5",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-5-1",
+        "speaker": "neon",
+        "delivery": "weary",
+        "text": "Something strong, please.",
+        "seconds": 2.8
+      },
+      {
+        "id": "pn-brief-bar-5-2",
+        "speaker": "bartender",
+        "delivery": "concerned",
+        "text": "Bad day?",
+        "seconds": 1.36
+      },
+      {
+        "id": "pn-brief-bar-5-3",
+        "speaker": "neon",
+        "delivery": "deadpan",
+        "text": "Pixel's been providing commentary.",
+        "seconds": 2.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-6",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-6-1",
+        "speaker": "neon",
+        "delivery": "inviting",
+        "text": "You should come watch me play sometime.",
+        "seconds": 2.16
+      },
+      {
+        "id": "pn-brief-bar-6-2",
+        "speaker": "bartender",
+        "delivery": "curious",
+        "text": "Are you any good?",
+        "seconds": 1.52
+      },
+      {
+        "id": "pn-brief-bar-6-3",
+        "speaker": "neon",
+        "delivery": "sheepishly",
+        "text": "Don't ask Pixel.",
+        "seconds": 2.32
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-7",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-7-1",
+        "speaker": "neon",
+        "delivery": "thoughtful",
+        "text": "I think Pixel enjoys watching me lose.",
+        "seconds": 3.36
+      },
+      {
+        "id": "pn-brief-bar-7-2",
+        "speaker": "bartender",
+        "delivery": "warmly",
+        "text": "Maybe she just enjoys watching you.",
+        "seconds": 2.56
+      },
+      {
+        "id": "pn-brief-bar-7-3",
+        "speaker": "neon",
+        "delivery": "short pause",
+        "text": "That's actually sweet.",
+        "seconds": 2.16
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-bar-8",
+    "cue": "bar",
+    "locations": [
+      "bar"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-bar-8-1",
+        "speaker": "neon",
+        "delivery": "curious",
+        "text": "What's the most popular drink tonight?",
+        "seconds": 2.48
+      },
+      {
+        "id": "pn-brief-bar-8-2",
+        "speaker": "bartender",
+        "delivery": "playful",
+        "text": "Depends on who's asking.",
+        "seconds": 2.08
+      },
+      {
+        "id": "pn-brief-bar-8-3",
+        "speaker": "neon",
+        "delivery": "confident",
+        "text": "Someone with excellent taste.",
+        "seconds": 2.4
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-greeting-1",
+    "cue": "greeting",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-brief-greeting-1-1",
+        "speaker": "pixel",
+        "delivery": "cheerfully",
+        "text": "Hey, Admin!",
+        "seconds": 1.52
+      },
+      {
+        "id": "pn-brief-greeting-1-2",
+        "speaker": "neon",
+        "delivery": "friendly",
+        "text": "What's happening?",
+        "seconds": 1.36
+      },
+      {
+        "id": "pn-brief-greeting-1-3",
+        "speaker": "admin",
+        "delivery": "warmly",
+        "text": "Good to see you two.",
+        "seconds": 1.68
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-greeting-2",
+    "cue": "greeting",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-greeting-2-1",
+        "speaker": "pixel",
+        "delivery": "cheerful",
+        "text": "Hi, Iris! Anything new today?",
+        "seconds": 2.72
+      },
+      {
+        "id": "pn-brief-greeting-2-2",
+        "speaker": "iris",
+        "delivery": "welcoming",
+        "text": "Take a look around.",
+        "seconds": 1.44
+      },
+      {
+        "id": "pn-brief-greeting-2-3",
+        "speaker": "neon",
+        "delivery": "teasing",
+        "text": "That's dangerous advice.",
+        "seconds": 2.32
+      }
+    ],
+    "requiresIrisNearby": true,
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-greeting-3",
+    "cue": "greeting",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": true,
+    "lines": [
+      {
+        "id": "pn-brief-greeting-3-1",
+        "speaker": "neon",
+        "delivery": "enthusiastic",
+        "text": "Admin, you should try Headshot Hotel sometime.",
+        "seconds": 3.2
+      },
+      {
+        "id": "pn-brief-greeting-3-2",
+        "speaker": "pixel",
+        "delivery": "deadpan",
+        "text": "Don't take advice from her.",
+        "seconds": 1.92
+      }
+    ],
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-greeting-4",
+    "cue": "greeting",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-greeting-4-1",
+        "speaker": "pixel",
+        "delivery": "playful",
+        "text": "Iris, tell Neon she needs new clothes.",
+        "seconds": 3.2
+      },
+      {
+        "id": "pn-brief-greeting-4-2",
+        "speaker": "neon",
+        "delivery": "exasperated",
+        "text": "Don't encourage her.",
+        "seconds": 1.92
+      }
+    ],
+    "requiresIrisNearby": true,
+    "model_id": "eleven_v4"
+  },
+  {
+    "id": "pn-brief-greeting-5",
+    "cue": "greeting",
+    "locations": [
+      "store"
+    ],
+    "requiresAdminNearby": false,
+    "lines": [
+      {
+        "id": "pn-brief-greeting-5-1",
+        "speaker": "neon",
+        "delivery": "innocently",
+        "text": "We're just looking.",
+        "seconds": 1.52
+      },
+      {
+        "id": "pn-brief-greeting-5-2",
+        "speaker": "pixel",
+        "delivery": "knowingly",
+        "text": "That's what she thinks.",
+        "seconds": 2.08
+      }
+    ],
+    "model_id": "eleven_v4"
+  }
+]
