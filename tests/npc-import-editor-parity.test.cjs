@@ -18,7 +18,7 @@ test('paid voice generation is explicit, developer-authenticated, and never gene
  assert.match(editor,/dev\.request\('developer\/companion-voice'/);
  assert.match(editor,/DTX\(\)\?\.authorized/);
  assert.match(editor,/await saveRec\(rec\)/);
- const start=editor.indexOf('async function importFile(file)');
+ const start=editor.indexOf('async function importFile(');
  const end=editor.indexOf('async function saveRec(rec)',start);
  assert.ok(start>0&&end>start);
  assert.doesNotMatch(editor.slice(start,end),/developer\/companion-voice/);

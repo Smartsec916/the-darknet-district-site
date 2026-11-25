@@ -62,7 +62,7 @@
   for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',made:!!x.made,group:x.made?'made':mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
   for(const look of Object.keys(root.VoidCrowd?.street||{}))out.push({id:'crowd:'+look,name:'Street figure '+look.replace(/^npc-/,''),kind:'crowd',group:'crowd',look});
   {const C=root.VoidCrowd||{},seen=new Set([...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
-  for(const r of imports)out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
+  for(const r of imports.filter(record=>!record.archived))out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
   return out;}
  const GROUPS=[['made','Made by you (mission givers you created)'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models in this browser'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
  // ---------------------------------------------------------------- imported models (this browser only: IndexedDB)
@@ -71,7 +71,15 @@
  async function dbAll(){try{const d=await db();return await new Promise((ok,fail)=>{const q=d.transaction(ST).objectStore(ST).getAll();q.onsuccess=()=>ok(q.result||[]);q.onerror=()=>fail(q.error);});}catch{return [];}}
  async function dbPut(rec){const d=await db();try{await new Promise((ok,fail)=>{const t=d.transaction(ST,'readwrite');t.oncomplete=ok;t.onerror=t.onabort=()=>fail(t.error||Error('Import save aborted'));t.objectStore(ST).put(rec);});}finally{d.close();}}
  async function dbDel(id){const d=await db();await new Promise((ok,fail)=>{const t=d.transaction(ST,'readwrite');t.objectStore(ST).delete(id);t.oncomplete=ok;t.onerror=()=>fail(t.error);});}
- async function loadImports(){imports=(await dbAll()).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));importsLoaded=true;}
+ function preparedModel(rec){return root.VoidCrowd?.prepared?.find(p=>p.sha256===rec.library?.sha256);}
+ async function loadImports(){const records=await dbAll(),ids=new Set(records.map(r=>r.id));
+  for(const p of root.VoidCrowd?.prepared||[]){if(ids.has(p.id))continue;
+   records.push({id:p.id,name:p.name,sourceFileName:p.source,fileName:p.asset+'.vrpak',bytes:p.bytes,
+    licence:{source:p.source,type:'Owner-supplied Meshy generation',noAI:false},
+    library:{sha256:p.sha256,rigged:true,materials:p.materials,textures:p.textures,clips:p.clips},
+    info:{bytes:p.bytes,triangles:p.triangles,bones:p.bones,clips:p.clips,textures:[]}});
+  }
+  imports=records.filter(r=>!r.deleted).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));importsLoaded=true;}
  // ---------------------------------------------------------------- the draft (shared with the Mission Editor)
  const plan=id=>(S().local().npcs||{})[id]||null;
  /* keep: a new plan without a `schedule` field keeps the daily schedule already there (the mode buttons, the map and the animation ticks never drop it); keep:false writes p exactly. */
@@ -94,6 +102,8 @@
   if(root.VoidEditorGuide)top.append(root.VoidEditorGuide.toggle(()=>guideNow()));r.append(top);
   {const adv=el('label','','eg-switch',{title:'Shows the internal names (ids) the game uses. You never need them to make things.'}),c=el('input','','',{type:'checkbox','data-npc-advanced':'1'});c.checked=advanced();c.onchange=()=>{try{root.localStorage.setItem(ADV,c.checked?'1':'0');}catch{}draw();};adv.append(c,document.createTextNode('Advanced (show internal names)'));top.append(adv);}
   if(status){const st=el('p',status,'me-status',{role:'status'});if(ui.undo){st.append(' ',btn('UNDO',async()=>{const u=ui.undo;ui.undo=null;status='Undone.';await u();draw();},'',{'data-npc-undo':'1'}));}r.append(st);}
+  top.append(btn('NPC Library',()=>{ui.make=null;ui.id='library';draw();},'',{'data-npc-library':'1'}));
+  if(ui.id==='library'){libraryView(r);return;}
   r.append(startCard());
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'NPCs'});const main=el('div','','me-main');cols.append(side,main);r.append(cols);
   side.append(hint(HELP.list));const q=el('input','','',{'aria-label':'Find an NPC',placeholder:'Find (name or id)','data-npc-search':'1'});q.value=ui.search;q.oninput=()=>{ui.search=q.value;listInto(list);};side.append(q,hint(HELP.search));
@@ -101,6 +111,91 @@
   const list=el('div','','npc-list');side.append(list);listInto(list);
   if(ui.make){makeView(main,pv);}else{const all=entries();const e=all.find(x=>x.id===ui.id)||all.find(x=>x.group==='move')||all[0];if(e){ui.id=e.id;detail(main,e,pv);}}
   host.scrollTop=keep;setTimeout(guideNow,0);}
+ function namesExcept(id){
+  return [...entries().filter(e=>e.rec?.id!==id).map(e=>e.name),
+   ...imports.filter(r=>r.id!==id).map(r=>r.name),...Object.values(S().local().characters||{}).map(c=>c.name),
+   ...Array.from(root.VoidVRCompanions?.companions?.values?.()||[],c=>c.name),'Nomi','Se7en','The Function'];
+ }
+ function libraryView(main){
+  if(DTX()?.authorized)DTX().loadCompanions().then(()=>root.VoidVRCompanionStudio.restore()).catch(()=>{});
+  const open=rec=>{ui.id='import:'+rec.id;draw();};
+  main.append(btn('Back to NPCs',()=>{ui.id=null;draw();}),el('h2','NPC Library'),btn('Import model or companion package',importPick));
+  const folder=el('input','','',{type:'file','aria-label':'Prepared library folder'});folder.webkitdirectory=true;
+  const msg=el('p','','me-status',{role:'status'});
+  const batch=btn('Import prepared folder',async()=>{
+   const files=Array.from(folder.files||[]),manifest=files.find(f=>f.name==='preparation.json');
+   if(!manifest&&files.some(f=>f.name==='motions.json')){
+    batch.disabled=true;try{await DTX().loadCompanions();msg.textContent=await root.VoidVRCompanionStudio.importMotionFolder(files);}catch(e){msg.textContent=e.message;}finally{batch.disabled=false;}return;
+   }
+   if(!manifest){msg.textContent='Choose a prepared character or motion folder.';return;}
+   batch.disabled=true;
+   try{
+    const review=files.find(f=>f.webkitRelativePath===manifest.webkitRelativePath.replace(/preparation\.json$/,'review.json'));
+    const rows=JSON.parse(await (review||manifest).text()),dir=manifest.webkitRelativePath.split('/').slice(0,-1).join('/');
+    if(!Array.isArray(rows))throw Error('Invalid preparation manifest.');
+    const byPath=new Map(files.map(f=>[f.webkitRelativePath,f]));let added=0,known=0;const failed=[];
+    for(const row of rows){
+     if(row.error||row.reviewError){failed.push(String(row.file||row.source)+': '+(row.error||row.reviewError));continue;}
+     try{
+      if(!/^imp-[0-9a-f-]{36}$/i.test(row.id)||!/^([a-z0-9 _.-]+)\.glb$/i.test(row.file)||typeof row.name!=='string'||typeof row.source!=='string')throw Error('Invalid asset metadata');
+      const prior=imports.find(r=>r.id===row.id);
+      if(prior){if(prior.library?.sha256!==row.sha256)throw Error('ID already belongs to another version');known++;continue;}
+      const file=byPath.get(dir+'/'+row.file);if(!file)throw Error('File is missing');
+      const imported=await importFile(file,{...row,source:row.source.split('!').map(s=>s.split(/[\\/]/).pop()).join('!')});
+      if(!imported)throw Error(status);added++;
+     }catch(e){failed.push(String(row.file)+': '+e.message);}
+    }
+    status=added+' imported · '+known+' already in Library'+(failed.length?' · '+failed.join('; '):'');ui.id='library';draw();
+   }catch(e){msg.textContent=e.message;}finally{batch.disabled=false;}
+  });
+  const local=el('details','','me-check');local.append(el('summary','Import a prepared folder'),folder,batch,msg);main.append(local);
+  const ready=r=>r.library?.rigged&&r.info&&X().importCheck(r.info,r.allowOverTriangleLimit).ok&&r.info.clips?.length;
+  const layout=el('div','','me-row');
+  const selectors=[0,1].map(i=>{const s=el('select','','',{'aria-label':'Comparison model '+(i+1)});s.append(new Option('Choose a model',''));for(const rec of imports)s.append(new Option(rec.name,rec.id));return s;});
+  if(imports.length>1){
+   const output=el('div','','me-row');let active=[];
+   let epoch=0;const clear=()=>{epoch++;for(const view of active)view.dispose();active=[];output.replaceChildren();};
+   const observer=new MutationObserver(()=>{if(!output.isConnected||host.hidden){clear();observer.disconnect();}});
+   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+   layout.append(...selectors,btn('Compare in 3D',async()=>{
+    clear();const version=epoch;
+    try{
+     const pair=selectors.map(s=>imports.find(r=>r.id===s.value));
+     if(!pair[0]||!pair[1]||pair[0]===pair[1])throw Error('Select two different library entries.');
+     for(const rec of pair){
+      const pane=el('section','','me-check');pane.style.flex='1 1 240px';pane.append(el('h4',rec.name));output.append(pane);
+      const view=root.VoidNPCPreview.mount(pane);active.push(view);
+      const info=await view.show(rec.blob?{file:rec.blob}:{asset:preparedModel(rec)?.asset});if(!info||!output.isConnected||version!==epoch)return;
+      const clips=el('select','','',{'aria-label':'Animation for '+rec.name});
+      for(const name of info.clips)clips.append(new Option(name,name));
+      clips.onchange=()=>view.play(clips.value);pane.append(clips);
+      const localMotions=root.VoidAnimLibrary?.all().filter(c=>c.library.startsWith('local-motion-'))||[];
+      if(localMotions.length){const shared=el('select','','',{'aria-label':'Shared motion for '+rec.name}),note=el('p','','me-small',{role:'status'});
+       for(const m of localMotions)shared.append(new Option(m.title,m.id));
+       pane.append(shared,btn('Test shared motion',async()=>{const m=localMotions.find(c=>c.id===shared.value);const result=await view.tryLibrary(m.id,rec.id,m.library);note.textContent=result.ok?'Playing '+m.title:result.why;}),note);}
+
+     }
+    }catch(err){if(version!==epoch)return;clear();output.append(el('p',err.message,'me-warn'));}
+   }));main.append(layout,output);
+  }
+  for(const [title,records] of [['New NPCs / Ready to Assign',imports.filter(r=>!r.archived&&ready(r))],['Needs validation',imports.filter(r=>!r.archived&&!ready(r))],['Archived',imports.filter(r=>r.archived)]]){
+   const list=el('section','','me-check');list.append(el('h3',title));main.append(list);
+   if(!records.length)list.append(el('p','No characters in this category.','me-small'));
+   for(const rec of records){
+    const row=el('article','','me-check');row.append(el('h4',rec.name),el('p',rec.sourceFileName||rec.fileName,'me-small'));
+    const details=el('details');details.append(el('summary','Technical details'),el('p',rec.id+' · '+(rec.bytes/1048576).toFixed(2)+' MiB'));
+    if(rec.library)details.append(el('p',rec.library.materials+' materials · '+rec.library.textures+' textures · '+rec.library.clips.length+' clips · '+(rec.library.rigged?'skinned':'no skin detected')));
+    if(rec.info)details.append(el('p',rec.info.triangles.toLocaleString()+' triangles'));
+    for(const other of imports){if(other.id===rec.id)continue;const why=root.VoidNPCLibrary.match(rec.library,other.library);if(why)row.append(el('p',why+' · '+other.name,'me-warn'));}
+    row.append(details,btn('Edit / preview',()=>open(rec)),btn(rec.archived?'Restore':'Archive',async()=>{await saveRec({...rec,archived:!rec.archived});draw();}),
+     btn('Duplicate',async()=>{const copy={...rec,id:'imp-'+crypto.randomUUID(),name:root.VoidNPCLibrary.availableName(rec.name,namesExcept(null),rec.companion?40:60),placement:null,archived:false,createdAt:new Date().toISOString()};if(copy.companion)copy.companion={...copy.companion,name:copy.name};await dbPut(copy);await loadImports();draw();}));
+    const prepared=preparedModel(rec);if(prepared&&!rec.archived)row.append(btn('Assign to world draft',()=>{
+     startMake();Object.assign(ui.make,{model:prepared.asset,name:rec.name,step:1});draw();
+    },'me-play'));
+    list.append(row);
+   }
+  }
+ }
  /* "What do you want to do?" (the owner: make it for someone who has never done it): big choices that open the right screen. */
  function startCard(){const d=el('details','','npc-start',{'data-npc-start':'1'});d.open=ui.start;d.ontoggle=()=>{ui.start=d.open;};d.append(el('summary','What do you want to do?'));const grid=el('div','','npc-cards');
   const pick=(id,fn)=>()=>{ui.id=id;ui.start=false;status='';if(fn)fn();draw();setTimeout(()=>{const t=host.querySelector(fn&&fn.focus||'[data-npc-facts]');t&&t.scrollIntoView({block:'start'});},50);};
@@ -171,7 +266,7 @@
   const fill=names=>{cl.replaceChildren();cl.append(el('b',names.length+' animation clips available in this preview','me-small',{'data-npc-clip-count':String(names.length)}));for(const c of names){const button=btn(c.replace(/\.\d{3}$/,''),()=>{ui.preview?.play(c);for(const b of cl.querySelectorAll('[data-npc-clip]'))b.classList.toggle('on',b===button);},ui.preview?.current===c?'on':'',{'data-npc-clip':c});cl.append(button);}};
   if(ui.preview&&ui.previewFor===e.id){fill(ui.preview.clips);}
   else{const go=btn('Show me in 3D',async()=>{go.disabled=true;note.textContent='Loading the model…';try{ui.preview?.dispose();ui.preview=root.VoidNPCPreview.mount(stage);ui.previewFor=e.id;
-    const info=await ui.preview.show(file?{file,buffer:file.buffer}:{asset});ui.previewNote=info?'Loaded: '+info.triangles.toLocaleString('en')+' triangles · '+ui.preview.clips.length+' clips in the file.':'';note.textContent=ui.previewNote;fill(ui.preview.clips);go.remove();if(file&&e.onInfo)e.onInfo(info);host.querySelector('[data-npc-appearance]')?.refill?.();}
+    const info=await ui.preview.show(file?{file,buffer:file.buffer}:{asset});ui.previewNote=info?'Loaded: '+info.triangles.toLocaleString('en')+' triangles · '+ui.preview.clips.length+' clips in the file.':'';note.textContent=ui.previewNote;fill(ui.preview.clips);go.remove();if(e.onInfo)e.onInfo(info);host.querySelector('[data-npc-appearance]')?.refill?.();}
     catch(err){note.textContent='No preview: '+(/HTTP 404|unavailable/.test(String(err&&err.message))?'this model file is not in the public files here (a licensed model is published with the live site only; the game still shows it there).':err.message);go.disabled=false;}},'',{'data-npc-preview-go':e.id});
    if(asset||file)cl.append(go);else note.textContent='No model file to preview (this person is drawn by their scene’s own code).';
    if(clips.length&&!file)box.append(el('p','Clips in their file (crowd.js): '+clips.join(', '),'me-small'));}
@@ -540,10 +635,10 @@
   await ensureCompanionImporter();
   await loadImportTools(['VoidNPCVoices','void-runner/npc-voices.js'],['VoidNPCVoiceBatch','void-runner/npc-voice-batch.js']);
  }
- async function importFile(file){
+ async function importFile(file,prepared=null){
   const ext=(file.name.match(/\.[a-z0-9]+$/i)||[''])[0].toLowerCase(),transfer=ext==='.vrcompanion';
   if(!transfer&&!X().IMPORT.exts.includes(ext)){status='Only .glb, .gltf or .vrcompanion files can be imported.';draw();return null;}
-  let model=file, companion=null, original=null, modelName=file.name;
+  let library=null,model=file, companion=null, original=null, modelName=file.name;
   try{
    if(transfer){
     const inspected=await(await ensureCompanionImporter()).inspect(file);
@@ -557,13 +652,16 @@
      missingVoiceLines:inspected.missingVoiceLines};
    }
    if(model.size>X().IMPORT.maxBytes)throw Error('Model exceeds the '+(X().IMPORT.maxBytes/1048576).toFixed(0)+' MB limit. Reduce it in Blender.');
-   X().importDocument(await model.arrayBuffer(),transfer?'.glb':ext);
+   const buffer=await model.arrayBuffer();library=await root.VoidNPCLibrary.inspect(buffer,X().importDocument(buffer,transfer?'.glb':ext));
   }catch(err){status='Import refused: '+err.message;draw();return null;}
-  const rec={id:'imp-'+crypto.randomUUID(),name:(companion?.name||file.name.replace(/\.[^.]+$/,'')).slice(0,60),
-   fileName:modelName,sourceFileName:file.name,type:model.type||'model/gltf-binary',bytes:model.size,
+  const rec={id:prepared?.id||'imp-'+crypto.randomUUID(),library,name:root.VoidNPCLibrary.availableName(prepared?.name||companion?.name||file.name.replace(/\.[^.]+$/,''),namesExcept(null),companion?40:60),
+   fileName:modelName,sourceFileName:prepared?.source||file.name,type:model.type||'model/gltf-binary',bytes:model.size,
    blob:model,transferBlob:original,companion,createdAt:new Date().toISOString(),
-   licence:{source:'',type:'',noAI:null},placement:null,info:null};
-  try{await dbPut(rec);await loadImports();}catch(err){status='Could not save the local import: '+err.message;draw();return null;}
+   licence:{source:'',type:'',noAI:null},placement:null,info:prepared?.preview&&library.rigged&&Number.isFinite(prepared.heightMetres)?{
+    bytes:model.size,triangles:library.triangles,bones:library.bones,clips:library.clips,height:prepared.heightMetres,textures:[]}:null};
+  if(prepared&&library.sha256!==prepared.sha256)throw Error('The prepared model checksum differs from the manifest.');
+  try{if(prepared){const db_=await db();try{await new Promise((resolve,reject)=>{const tx=db_.transaction(ST,'readwrite');tx.objectStore(ST).add(rec);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);});}finally{db_.close();}}else await dbPut(rec);await loadImports();}catch(err){status='Could not save the local import: '+err.message;draw();return null;}
+  if(prepared)return rec;
   ui.id='import:'+rec.id;
   status='Imported '+file.name+' privately. Press SHOW 3D PREVIEW to check its model and animations.';
   root.VoidEditorGuide?.focusNext();draw();return rec;
@@ -775,10 +873,10 @@
    const world=useImportedProfile(p);if(world)summary.append(world);
    main.append(summary);
   }
-  const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{let compatibility=null;if(/\.glb$/i.test(rec.fileName)){try{const w=await import('./rig-workshop.mjs'),r=await w.check(rec.blob);compatibility={bound:r.rig.state!=='unrigged',ready:r.rig.ready,missing:r.missing,issues:r.rig.issues};}catch(err){compatibility={bound:true,ready:false,missing:[],issues:[err.message]};}}
+  const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{if(file&&!rec.library){const buf=await file.arrayBuffer();rec.library=await root.VoidNPCLibrary.inspect(buf,X().importDocument(buf,/\.gltf$/i.test(rec.fileName)?'.gltf':'.glb'));}let compatibility=null;if(file&&/\.glb$/i.test(rec.fileName)){try{const w=await import('./rig-workshop.mjs'),r=await w.check(rec.blob);compatibility={bound:r.rig.state!=='unrigged',ready:r.rig.ready,missing:r.missing,issues:r.rig.issues};}catch(err){compatibility={bound:true,ready:false,missing:[],issues:[err.message]};}}
    rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height,compatibility};await saveRec(rec);draw();}};
-  previewBox(main,e,null,[],pv,file);
-  if(/\.glb$/i.test(rec.fileName)){
+  previewBox(main,e,preparedModel(rec)?.asset||null,[],pv,file);
+  if(file&&/\.glb$/i.test(rec.fileName)){
    const workshop=el('div');main.append(workshop);
    import('./rig-workshop.mjs').then(w=>{
     if(!workshop.isConnected)return;
@@ -823,7 +921,7 @@
    publishButton.title=missing.join(' ')||(!rec.placement?'Choose the world placement above.':'Publish this NPC at the selected placement.');
    exportButton.title=packageHint.textContent=missing.join(' ');
   }
-  const nm=el('section','','me-check');const ni=el('input','','',{'aria-label':'Name of the model','data-npc-import-name':rec.id,maxlength:rec.companion?'40':'60'});ni.value=rec.name||'';ni.onchange=()=>{rec.name=ni.value.trim().slice(0,rec.companion?40:60);if(rec.companion)rec.companion.name=rec.name;refreshPackage();persistEdit();listInto(host.querySelector('.npc-list'));};
+  const nm=el('section','','me-check');const ni=el('input','','',{'aria-label':'Name of the model','data-npc-import-name':rec.id,maxlength:rec.companion?'40':'60'});ni.value=rec.name||'';ni.onchange=()=>{rec.name=root.VoidNPCLibrary.availableName(ni.value,namesExcept(rec.id),rec.companion?40:60);ni.value=rec.name;if(rec.companion)rec.companion.name=rec.name;refreshPackage();persistEdit();listInto(host.querySelector('.npc-list'));};
   const l=el('label','','me-field');l.append(el('span','Name'),ni,hint('What you call it (shown in the list and in the package).'));nm.append(l);main.append(nm);
   const refused=verdict&&!verdict.ok;
   // placement (local test)
@@ -855,10 +953,10 @@
      const importer=await ensureCompanionImporter();
      companionExport=await importer.repack(rec.transferBlob,{...rec.companion,name:rec.name},rec.blob);
     }
-    download(rec.fileName,rec.blob);
+    if(rec.blob)download(rec.fileName,rec.blob);
     if(companionExport)download(rec.sourceFileName,companionExport);
     download((rec.name||'model').replace(/[^\w-]+/g,'-')+'-package.json',packageOf(rec));
-    status='Downloaded model, '+(companionExport?'updated companion transfer with current voices and personality, and ':'')+'integration package. No character was published.';
+    status=(rec.blob?'Downloaded model, ':'Downloaded ')+(companionExport?'updated companion transfer with current voices and personality, and ':'')+'integration package. No character was published.';
    }catch(err){status='Cannot export companion package: '+err.message;}
    draw();
   },'me-play',{'data-npc-add-to-game':rec.id});
@@ -878,7 +976,7 @@
   },'me-publish',{'data-npc-publish-import':rec.id});
   refreshPackage();
   const r=el('div','','me-row me-actions');r.append(publishButton,exportButton,hint(HELP.addToGame));lic.append(packageHint,r,publishNote);
-  lic.append(btn('Delete this model (from this browser)',async()=>{if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
+  lic.append(btn('Delete this model (from this browser)',async()=>{const ids=new Set([rec.id,'import:'+rec.id,rec.companion?.id,preparedModel(rec)?.asset].filter(Boolean));if(root.VoidNPCLibrary.referenced(S().local(),ids)||root.VoidNPCLibrary.referenced(S().server,ids)||imports.some(r=>r!==rec&&root.VoidNPCLibrary.referenced(r.companion?.relationships,ids))){status='A world or draft reference uses this asset. Archive it in the NPC Library.';draw();return;}if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;if(root.VoidCrowd?.prepared?.some(p=>p.id===rec.id))await dbPut({id:rec.id,deleted:true});else await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
   main.append(lic);}
  async function publishImport(rec,progress){
   const {deployedModel}=await import('./npc-publish.mjs');
@@ -901,7 +999,7 @@
   progress('Publishing this NPC and its placement…');
   return S().publishImportedNpc({id,character,placement:rec.placement,clips});
  }
- function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
+ function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,libraryId:rec.id,registeredModel:preparedModel(rec)?.asset||null,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
   model:{triangles:I.triangles|0,bytes:rec.bytes|0,textures:I.textures||[],joints:(I.bones||[]).length,bones:(I.bones||[]).slice(0,80),clips:I.clips||[],height:Number.isFinite(I.height)?Math.round(I.height*100)/100:null},
   allowOverTriangleLimit:rec.allowOverTriangleLimit===true,
   caps:{maxTriangles:X().IMPORT.maxTriangles,target:X().IMPORT.target,maxBytes:X().IMPORT.maxBytes,texWarn:X().IMPORT.texWarn},checklist:I.triangles!=null?X().importCheck(I,rec.allowOverTriangleLimit).items:[],
@@ -918,8 +1016,10 @@
    return Sx.jumpTo(t.x,t.z,pet?null:e.id,M.name+(p&&p.mode==='path'?' walks your route':p&&p.mode==='stay'?' stays at your spot':'')+(Number.isFinite(minute)?' · in-game '+X().hhmm(minute):''),RETURN,{...(opts.plan?{npcs:{[e.id]:opts.plan}}:{}),...(Number.isFinite(minute)?{minute}:{})});}
   const rec=e.rec,p=rec.placement,t=p.mode==='stay'?p:p.points[0];const r=await Sx.jumpTo(t.x,t.z,null,rec.name+' (local test only)',RETURN);if(r&&r.started)setTimeout(()=>spawn(rec).catch(err=>{try{announce('The imported model could not be shown: '+err.message);}catch{}}),400);}
  /* The imported model in the test session: loaded from this browser into the game's scene, scaled to a person's height if it is far off, and moved by a small loop. */
- async function spawn(rec){const B=root.BABYLON,scene=root.VoidBabylon?.scene;if(!scene)throw new Error('no scene');await root.VoidNPCPreview.loaders();const buf=await rec.blob.arrayBuffer(),ext=/\.gltf$/i.test(rec.fileName)?'.gltf':'.glb';
-  X().importDocument(buf,ext);const c=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);c.addAllToScene();const n=new B.TransformNode('npc-import-'+rec.id,scene);
+ async function spawn(rec){const B=root.BABYLON,scene=root.VoidBabylon?.scene;if(!scene)throw new Error('no scene');await root.VoidNPCPreview.loaders();let c;
+  if(!rec.blob&&preparedModel(rec)){const src=MD().fileOf(preparedModel(rec).asset);c=await root.VoidAssets.loadContainer({src},scene,null,'library-preview:'+rec.id);}
+  else{const buf=await rec.blob.arrayBuffer(),ext=/\.gltf$/i.test(rec.fileName)?'.gltf':'.glb';X().importDocument(buf,ext);c=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);}
+  c.addAllToScene();const n=new B.TransformNode('npc-import-'+rec.id,scene);
   for(const m of c.meshes)if(!m.parent)m.parent=n;for(const t of c.transformNodes)if(!t.parent)t.parent=n;for(const m of c.meshes){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights>8)m.material.maxSimultaneousLights=8;}
   const h=rec.info&&rec.info.height;if(h&&(h<1.3||h>2.3))n.scaling.scaleInPlace(1.75/h);const groups=c.animationGroups;for(const g of groups)g.stop();const play=name=>{for(const g of groups)g.stop();const g=groups.find(x=>x.name===name||x.name.endsWith('-'+name));if(g)g.start(true);};
   const p=rec.placement,Y=.18;let i=0,left=0,doing=false;root.VoidNPCEditor.spawned={id:rec.id,node:n};

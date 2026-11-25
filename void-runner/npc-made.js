@@ -74,13 +74,13 @@
  const pretty=a=>a.replace(/^npc-|^vr-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
  function models(){const C=CROWD()||{},clips=C.clips||{},street=C.street||{},out=[];
   for(const [asset,list] of Object.entries(clips)){if(asset==='npc-street-cat'||asset.startsWith('local-model-')||!Array.isArray(list)||!list.includes('idle'))continue;const lic=LICENSED().test(asset);
-   out.push({asset,label:pretty(asset),licensed:lic,clips:list.slice(),walk:list.includes('walk'),group:lic?'licensed':street[asset]?'street':/^npc-/.test(asset)?'named':'older'});}
+   out.push({asset,label:C.prepared?.find(p=>p.asset===asset)?.name||pretty(asset),licensed:lic,clips:list.slice(),walk:list.includes('walk'),group:lic?'licensed':street[asset]?'street':/^npc-/.test(asset)?'named':'older'});}
   const rank={street:0,named:1,older:2,licensed:3};return out.sort((a,b)=>rank[a.group]-rank[b.group]||a.asset.localeCompare(b.asset));}
  const GROUPS={street:'Street people',named:'Named characters’ models',older:'Older figures (off-world places)',licensed:'Licensed models (recolour and hide only, never any AI tool)'};
  const modelOf=a=>models().find(m=>m.asset===a)||null;
  /* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */
  function teaResident(asset){const duo=node?req('./tea-duo.js'):root.VoidTeaDuo;return Object.values(duo?.PEOPLE||{}).find(p=>p.model===asset);}
- function fileOf(asset){if(/^npc-upload-[a-f0-9]{32}$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
+ function fileOf(asset){if(/^npc-upload-[a-f0-9]{32}$/.test(asset)||CROWD()?.prepared?.some(p=>p.asset===asset))return 'assets/models/crowd/'+asset+'.vrpak';const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
  /* Every item a giver can carry: personal gear, a hacking device when the game has one, ship modules and ship gear. show: how it is seen on them, or null (data only). */
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');

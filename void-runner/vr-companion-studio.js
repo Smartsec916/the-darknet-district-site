@@ -144,7 +144,35 @@
  async function transaction(mode,fn){const d=await db();try{return await new Promise((ok,no)=>{const t=d.transaction('drafts',mode),r=fn(t.objectStore('drafts'));t.oncomplete=()=>ok(r.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error);});}finally{d.close();}}
  function reset(){disposePreview();for(const [key,value] of clipSnapshots)root.VoidCrowd.clips[key]=value;clipSnapshots.clear();for(const [id,e] of original){if(e)C().companions.set(id,e);else C().companions.delete(id);if(drafts.get(id)?.blob)delete root.VoidCrowd.clips[drafts.get(id).entry.model];}root.VoidAnimLibrary?.clearLocal();motions.clear();original.clear();drafts.clear();activeUid=null;selected=null;}
  function apply(d){const c=C(),e=d.entry;if(d.blob)e.model='local-model-'+e.id;if(!original.has(e.id))original.set(e.id,c.get(e.id));drafts.set(e.id,d);if(d.blob&&!companionReadiness(d,c.requiredClips).ready){const old=original.get(e.id);if(old)c.companions.set(e.id,old);else c.companions.delete(e.id);delete root.VoidCrowd.clips[e.model];return;}if(d.blob)root.VoidCrowd.clips[e.model]=d.clips;c.register({...e,localDraft:true});}
- function applyMotion(m){motions.set(m.id,m);root.VoidAnimLibrary?.registerLocal(m.id,m.blob,[{id:m.id,clip:m.clip,title:m.name}]);}
+ function applyMotion(m){motions.set(m.id,m);root.VoidAnimLibrary?.registerLocal(m.id,m.blob,[{id:m.id,clip:m.clip,title:m.name,category:m.category||'shared',loop:m.loop!==false}]);}
+ async function importMotionFolder(files){
+  await restore();const uid=activeUid;if(!auth()||!uid)throw Error('Sign in as the developer to store shared motions.');
+  const manifest=files.find(f=>f.name==='motions.json');if(!manifest||manifest.size>4*1024*1024)throw Error('Choose a folder containing motions.json.');
+  const prefix=manifest.webkitRelativePath.slice(0,-manifest.name.length),byPath=new Map(files.map(f=>[f.webkitRelativePath,f]));
+  const rows=JSON.parse(await manifest.text());if(!Array.isArray(rows))throw Error('Invalid motion catalog.');
+  let added=0,known=0;const errors=[];
+  for(const row of rows){
+   try{
+    if(!auth()||activeUid!==uid)throw Error('Developer session changed.');
+    if(row.error)throw Error(row.error);
+    if(!/^motion-[0-9a-f]{20}$/.test(row.id)||row.file!==row.id+'.glb'||typeof row.name!=='string'||!row.name.trim())throw Error('Invalid motion record.');
+    const file=byPath.get(prefix+row.file);if(!file||file.size<28||file.size>15*1024*1024)throw Error('Missing or oversized motion file.');
+    const data=await file.arrayBuffer(),view=new DataView(data),length=view.getUint32(12,true);
+    if(view.getUint32(0,true)!==0x46546c67||view.getUint32(4,true)!==2||view.getUint32(8,true)!==file.size||view.getUint32(16,true)!==0x4e4f534a||length>file.size-20)throw Error('Invalid motion GLB.');
+    const g=JSON.parse(new TextDecoder().decode(new Uint8Array(data,20,length)));
+    if(g.meshes?.length||g.images?.length||g.buffers?.some(b=>b.uri)||!g.animations?.some(a=>a.name===row.id&&a.channels.length))throw Error('Expected a self-contained skeleton-only motion.');
+    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data)),v=>v.toString(16).padStart(2,'0')).join('');
+    if(hash!==row.sha256)throw Error('Motion checksum mismatch.');
+    const id='local-motion-'+hash.slice(0,24);
+    if(motions.has(id)){known++;continue;}
+    const m={uid,id,key:uid+':'+id,kind:'motion',blob:file,name:row.name.slice(0,100),clip:row.id,loop:row.loop===true,category:String(row.category||'shared').slice(0,40)};
+    if(!auth()||activeUid!==uid)throw Error('Developer session changed.');
+    await transaction('readwrite',store=>store.put(m));
+    if(auth()&&activeUid===uid)applyMotion(m);added++;
+   }catch(err){errors.push(String(row.name||row.file)+': '+err.message);}
+  }
+  return added+' motions imported · '+known+' already available'+(errors.length?' · '+errors.join('; '):'');
+ }
  async function restore(){if(!auth())return;const uid=D().uid;if(!uid||uid===activeUid)return;if(restoring?.uid===uid)return restoring.promise;reset();const promise=(async()=>{const all=await transaction('readonly',s=>s.getAll());if(!auth()||D().uid!==uid)return;activeUid=uid;for(const d of all.filter(d=>d.uid===uid)){if(d.kind==='motion')applyMotion(d);else apply(d);}})();restoring={uid,promise};try{await promise;}finally{if(restoring?.promise===promise)restoring=null;}}
  async function save(d){if(!auth()||!activeUid||activeUid!==D().uid)throw Error('Sign in as developer again.');d.uid=activeUid;d.key=activeUid+':'+d.entry.id;await transaction('readwrite',s=>s.put(d));if(auth()&&D().uid===d.uid)apply(d);}
  function findVoice(who,text){if(!auth())return null;const e=[...drafts.values()].find(d=>d.entry.name===who||d.entry.voice?.characterId===who);const r=e?.voices?.[V().keyOf(e.entry.id,text)];return r?{...r,src:'draft'}:null;}
@@ -350,5 +378,5 @@
   if(section==='guide'){guide(stage);const edit=el('details');edit.append(el('summary','Slow motion and pose editing'),el('p','1. Preview a model with an animation. 2. Choose a speed such as 0.1× and tap Apply playback speed. 3. Pause animation / Start poser, or choose a percentage and Jump to position and pause. 4. Drag a point or use Fine adjustment. 5. Download pose JSON or capture a keyframe in Animations. 6. Resume original animation when finished. To create a new clip, capture two or more poses at increasing times and export a custom GLB for your imported model. The original animation is unchanged.'));stage.append(edit);}
   if(section==='guide'||section==='animation'){const free=el('details');free.append(el('summary','Free animations — no Meshy credits'),el('p','Download GLB animation packs directly when available. FBX and BVH need conversion and retargeting in Blender. Test compatibility on your character before assigning a clip.'));for(const [label,url] of [['Quaternius — CC0 humanoid animation library','https://quaternius.com/packs/universalanimationlibrary.html'],['KinemIQ — 35 CC0 GLB animations','https://github.com/Kinemiq/free-game-animations'],['Mixamo — free Adobe account, FBX','https://www.mixamo.com/'],['Blender — free conversion and posing','https://www.blender.org/']]){const a=el('a',label);a.href=url;a.target='_blank';a.rel='noopener noreferrer';const p=el('p');p.append(a);free.append(p);}stage.append(free);}
  }
- root.VoidVRCompanionStudio={...api,restore,reset,render,findVoice,model,clips,authorized:auth,applyMotions,disposePreview,exportableMotionSources:()=>auth()&&D().uid===activeUid?[...motions.values()].filter(m=>m.uid===activeUid):[],motionName:id=>motions.get(id)?.name};
+ root.VoidVRCompanionStudio={...api,restore,reset,render,importMotionFolder,findVoice,model,clips,authorized:auth,applyMotions,disposePreview,exportableMotionSources:()=>auth()&&D().uid===activeUid?[...motions.values()].filter(m=>m.uid===activeUid):[],motionName:id=>motions.get(id)?.name};
 })(globalThis);
