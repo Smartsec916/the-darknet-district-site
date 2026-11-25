@@ -73,7 +73,8 @@ const root=path.resolve(__dirname,'..');
    await panel.locator('summary').click();
    await folder.setInputFiles(path.resolve(process.env.NPC_LIBRARY_FOLDER));
    await page.getByRole('button',{name:'Import prepared folder'}).click();
-   await page.waitForFunction(()=>VoidNPCEditor.imports.length>=25);
+   await page.getByRole('status').filter({hasText:/\d+ imported · \d+ already in Library/}).waitFor();
+   assert.ok(await page.evaluate(()=>VoidNPCEditor.imports.length>=25));
    await page.getByRole('button',{name:'Compare in 3D'}).waitFor();
    if(process.env.NPC_MOTION_FOLDER){
     if(!await panel.evaluate(p=>p.open))await panel.locator('summary').click();

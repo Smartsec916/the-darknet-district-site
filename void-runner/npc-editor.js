@@ -149,7 +149,7 @@
    }catch(e){msg.textContent=e.message;}finally{batch.disabled=false;}
   });
   const local=el('details','','me-check');local.append(el('summary','Import a prepared folder'),folder,batch,msg);main.append(local);
-  const ready=r=>r.library?.rigged&&r.info&&X().importCheck(r.info).ok&&r.info.clips?.length;
+  const ready=r=>r.library?.rigged&&r.info&&X().importCheck(r.info,r.allowOverTriangleLimit).ok&&r.info.clips?.length;
   const layout=el('div','','me-row');
   const selectors=[0,1].map(i=>{const s=el('select','','',{'aria-label':'Comparison model '+(i+1)});s.append(new Option('Choose a model',''));for(const rec of imports)s.append(new Option(rec.name,rec.id));return s;});
   if(imports.length>1){
