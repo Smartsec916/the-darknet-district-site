@@ -35,7 +35,7 @@
  const mapUi=new Map();   // per door list (its key): {open, area, zoom, cx}
  function doorKind(d){const f=d.family||'city';if(f==='office')return 'office entrance';if(f==='commercial')return 'shop back entrance';if(f==='container')return 'container home in The Outskirts ('+(d.style==='container-regular'?'regular':'rundown')+')';return d.style+' apartment building';}
  function doorTitle(d){return d.name.replace(/ \((offices|shop)\)$/,'')+' — '+doorKind(d);}
- function doorMap(sel,opts={}){const A=X();if(!A||!A.doors)return null;const ids=new Set([...sel.options].map(o=>o.value).filter(Boolean)),list=A.doors().filter(d=>ids.has(d.id)),used=opts.used||{},S=mapUi.get(opts.key)||{};
+ function doorMap(sel,opts={}){const A=X();if(!A||!A.doors)return null;const ids=new Set([...sel.options].map(o=>o.value).filter(Boolean)),list=A.doors().filter(d=>ids.has(d.id)).map(d=>({...d,...A.editorDoorPoint(d)})),used=opts.used||{},S=mapUi.get(opts.key)||{};
   const qs=Object.keys(QN).filter(q=>opts.allAreas||list.some(d=>d.quarter===q));if(!qs.length)return null;const cur=A.door(sel.value);if(!S.area||!qs.includes(S.area))S.area=cur&&qs.includes(cur.quarter)?cur.quarter:qs[0];if(opts.key)mapUi.set(opts.key,S);
   const wrap=el('div','','mod-dmap',{'data-door-map':opts.key||'1'}),bar=el('div','','me-row'),area=el('select','','',{'aria-label':'Which part of town the map shows','data-door-map-area':'1'});for(const q of qs)area.append(new Option(QN[q]+' ('+list.filter(d=>d.quarter===q).length+' doors)',q));area.value=S.area;
   const zoom=el('select','','',{'aria-label':'Map zoom','data-door-map-zoom':'1'});zoom.append(new Option('Whole area','all'),new Option('Close up','near'));zoom.value=S.zoom||'all';

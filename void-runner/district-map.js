@@ -65,13 +65,14 @@
  const flags=()=>{try{return state?.story?.flags||null;}catch{return null;}};
  const me=()=>{try{if(typeof walker==='undefined'||!walker||(walkingLocation?.id!=='neochinatown'&&!walkingLocation?.mapSpace))return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
  const isDev=()=>{try{return !!root.VoidDevTools?.authorized;}catch{return false;}};
- function addressPoint(id){
-  if(typeof id!=='string'||!id.startsWith('address/')||spaceId()!=='neochinatown')return null;
+ function addressPoint(id,currentSpace=true){
+  if(typeof id!=='string'||!id.startsWith('address/'))return null;
   const door=root.VoidApartments?.door(id.slice(8));
+  if(currentSpace&&spaceId()!==(door?.scene==='corporate'?'corporate':'neochinatown'))return null;
   return door?{id,name:door.name,kind:'entrance',area:'street',x:door.x,z:door.z}:null;
  }
  const waypoint=()=>{const id=flags()?.[FLAG];return typeof id==='string'?data().pois.find(p=>p.id===id&&(isDev()||!p.dev))||addressPoint(id):null;};
- function setWaypoint(id){const f=flags();if(!f)return false;const p=id&&(data().pois.find(x=>x.id===id)||addressPoint(id));if(p)f[FLAG]=p.id;else delete f[FLAG];chipTick();if(host)paintInfo();draw();return true;}
+ function setWaypoint(id){const f=flags();if(!f)return false;const p=id&&(data().pois.find(x=>x.id===id)||addressPoint(id,false));if(p)f[FLAG]=p.id;else delete f[FLAG];chipTick();if(host)paintInfo();draw();return true;}
  const fit=()=>{const b=data().bounds,p=me();view={cx:p?p.x:(b.x0+b.x1)/2,cz:p?p.z:(b.z0+b.z1)/2,s:p?(p.area==='interior'?9:3.2):1.6};};
  const S=(x,z)=>[cv.width/2+(x-view.cx)*view.s,cv.height/2-(z-view.cz)*view.s];
  function draw(){
@@ -186,6 +187,6 @@
   if(chip.hidden)chip.hidden=false;
  }
  setInterval(chipTick,250);
- Object.assign(api,{mount,refresh,setWaypoint,locateAddress(id){const target='address/'+id;return !!addressPoint(target)&&setWaypoint(target);}});
+ Object.assign(api,{mount,refresh,setWaypoint,locateAddress(id){const target='address/'+id;return !!addressPoint(target,false)&&setWaypoint(target);}});
  Object.defineProperties(api,{waypoint:{get:()=>waypoint()},selected:{get:()=>selected},view:{get:()=>view&&{...view}},data:{get:()=>data()}});   // live values, read when asked
 })(typeof globalThis!=='undefined'?globalThis:this);

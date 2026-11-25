@@ -253,6 +253,11 @@
   }
   return records;
  }
+ function editorDoorPoint(d,point=[d.x,d.z]){
+  const areas=node?require('./npc-areas.js'):root.VoidNPCAreas;
+  const shift=areas?.SCENE_SHIFT?.[d.scene];
+  return {x:point[0]+(shift?.x||0),z:point[1]+(shift?.z||0)};
+ }
  function propertyRecord(d,row,players=[]){
   const residential=!['office','commercial'].includes(d.family);
   const units=residential?geo(d.style).HALL.slots.map(({i})=>{
@@ -379,7 +384,7 @@
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
   HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
-  readAddressRegistry,interiorDoors,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
+  readAddressRegistry,interiorDoors,editorDoorPoint,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
  if(node){module.exports=api;return;}
  root.VoidApartments=Object.assign(root.VoidApartments||{},api);
 })(typeof globalThis!=='undefined'?globalThis:this);

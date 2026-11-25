@@ -41,3 +41,11 @@ test('companion address checks include player occupants without exposing account
  assert.equal(result.complete,true);
  assert.deepEqual(result.rows.get(door.id).players,[{name:'Resident',slot:1}]);
 });
+
+test('corporate entrance and arrival point round-trip through the area map',()=>{
+ const areas=require('../void-runner/npc-areas.js'),door=A.door('biz-corp-s-40');
+ for(const point of [[door.x,door.z],door.front]){
+  const displayed=A.editorDoorPoint(door,point);
+  assert.deepEqual(areas.toLocal(door.scene,displayed),{x:point[0],z:point[1]});
+ }
+});

@@ -148,9 +148,10 @@
      }catch(e){feedback.textContent=e.message;button.disabled=false;}
     };
    }
-   if(d.front&&root.VoidNPCAreas?.areaOf({x:d.front[0],z:d.front[1]})&&d.quarter!=='corporate'){
+   if(d.front&&root.VoidNPCAreas?.get(d.quarter)){
+    const point=A.editorDoorPoint(d,d.front);
     const jump=element('button','Jump to entrance');jump.type='button';
-    jump.onclick=async()=>{await M.shared.ensure();M.shared.jumpTo(d.front[0],d.front[1],null,d.name);};detail.append(jump);
+    jump.onclick=async()=>{await M.shared.ensure();M.shared.jumpTo(point.x,point.z,null,d.name,null,{area:d.quarter});};detail.append(jump);
    }
   }
   const paths=new Map(missions().map(m=>[m,missionPaths(m)]));

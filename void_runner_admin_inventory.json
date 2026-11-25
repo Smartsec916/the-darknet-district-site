@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "15a41b23204e97a0",
+  "revision": "6bf20febd156a273",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80871,7 +80871,7 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
     "void-runner/apartment-integration.js": "9636fcbf0178e488e7e18fe4a515fccac5f7bd827efb4a65166f9f204af678c4",
-    "void-runner/apartments.js": "4206057324a97adfeacbd86af351075d62b4e87eeeda45a78ff671ac880505aa",
+    "void-runner/apartments.js": "f4ecaddbc424cebeadb64a1a8f35312b285b50d4fe81b8713afe58ff27daa3de",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
@@ -80942,7 +80942,7 @@
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
-    "void-runner/district-map.js": "0c639324789551a796eb359b3f4b467f183c0d019a5b3d131508c40d0219be32",
+    "void-runner/district-map.js": "7d803c370dbe66a80ffc65b48a58a159fd46b7fd5ecd0758a5379a16720b0301",
     "void-runner/district-people.js": "8bbb7424c4ef8a1b8118875cb895a910b4d78c437f1bd69ffbcb2010a8ef40da",
     "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
@@ -81024,7 +81024,7 @@
     "void-runner/mission-trees.js": "2baba4dedd1e25f5eb502812a97f8d03324c1d83a3615571bca537ae73f266d8",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "ec7d7f4df27ae5572f886ed2cb63da8dd33afdbe0cad60020bdaebb76891a68e",
-    "void-runner/module-editor.js": "af2523dece2fcb8609d803da5715c48acfdc30df5b87d6b4d5f2b0db90a14c66",
+    "void-runner/module-editor.js": "84a725872f9d7cf5b9f857a06bd3c2a333c77335190a832533a18f983f8c2a13",
     "void-runner/module-integration.js": "0100e004d16e983a56b43bad3c1dab50414163210043fcc8f22b621b0c2c3ef8",
     "void-runner/modules.js": "baac3cc82c2f01a78418e588c7ec1210a99d392cc759c4bc710b6af49e240c3f",
     "void-runner/mouse-control.js": "33d7d3da26d2dde7a1f1c0cd88b05e15b6263ac8214f4fa8719e9d751fa3865b",
@@ -81160,7 +81160,7 @@
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
-    "void-runner/world-map-editor.js": "abc3afb4543de3f8d686088b7b66a7a7fbe1c2fad5ce608727fe96c5ff025edd",
+    "void-runner/world-map-editor.js": "c6da7089b3470453fefa7d3ac3e782df5f7de64b392363d471c25f6aa50249d9",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
