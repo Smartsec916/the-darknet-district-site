@@ -416,7 +416,7 @@
   return chooseGuest(people,owner)||w;
  }
  function panelFor(title,choices){
-  panel?.remove();panel=document.createElement('aside');panel.className='tea-duo-choices';panel.setAttribute('aria-label',title);
+  panel?.remove();panel=document.createElement('aside');panel.className=playerSeat?'tea-duo-choices tea-seated':'tea-duo-choices';panel.setAttribute('aria-label',title);
   const label=document.createElement('p');label.textContent=title;panel.append(label);
   for(const [text,run] of choices){const button=document.createElement('button');button.type='button';button.textContent=text;button.onclick=run;if(text==='Cancel'||text==='Stand up'||text.startsWith('2 ·'))button.dataset.inputDismiss='';panel.append(button);}
   document.body.append(panel);
@@ -454,6 +454,7 @@
  }
  function beginSeat(w,g){
   const src={x:w.x,y:w.y,z:w.z},target={x:g.x,y:g.y+g.seatH+.45*(w.eye||1.68),z:g.z};
+  w.yaw=g.yaw;w.pitch=0;
   playerSeat={walker:w,from:src,target};
   try{walkingKeys?.clear();}catch{}
   panelFor('Seated with Nomi and Se7en',[['Stand up',standPlayer]]);

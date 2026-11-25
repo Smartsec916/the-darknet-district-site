@@ -24,7 +24,7 @@
   // (21 Nov 2026) the same speaker saying the TRANSLATION's words (Mission 004: Fish's Comms calls are written in the owner's English) plays the original with its translation over it
   for(const e of extraById.values()){const w=e.with&&extraById.get(e.with.id);if(w&&w.speaker===e.speaker&&w.text!==e.text)lookup.set(e.speaker+'|'+w.text,{...e,shown:w.text});}}).catch(()=>{});
  // The owner's own recordings of Nomi and Se7en (their .vrcompanion packages; tea-duo.js plays them): MP3 files as supplied, listed in extra/tea-duo.json. Same lookup, same playback.
- fetch(new URL('extra/tea-duo.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/tea-duo\/[a-z0-9-]+\.mp3$/.test(l.file)){const e={id:'extra:'+id,...l};extraById.set(id,e);lookup.set(l.speaker+'|'+l.text,e);}}).catch(()=>{});
+ fetch(new URL('extra/tea-duo.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/tea-duo\/[a-z0-9-]+\.mp3$/i.test(l.file)){const e={id:'extra:'+id,...l};extraById.set(id,e);lookup.set(l.speaker+'|'+l.text,e);}}).catch(()=>{});
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  // Imported voice files (voice-imports.js, Developer Tools, 19 Nov 2026) override any recorded clip for that exact line text; same playback, same live effects.
  const imported=(who,text,ordinary)=>{const I=root.VoidVoiceImports;return I&&I.find?I.find(who,text,ordinary):null;};

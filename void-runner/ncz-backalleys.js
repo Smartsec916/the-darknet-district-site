@@ -321,6 +321,15 @@
   for(const u of UNDERGROUND_ENTRANCES.filter(u=>qs.includes(u.quarter))){const U=UNDER,d=u.down,t=u.across,L=U.STAIR+U.LAND,P=(a,o)=>[u.top[0]+d[0]*a+t[0]*o,u.top[2]+d[1]*a+t[1]*o],ry=d[0]!==0?Math.PI/2:0;
    const piece=(a0,a1,o0,o1,y0,y1,mat)=>{const [x,z]=P((a0+a1)/2,(o0+o1)/2),la=a1-a0,lo=o1-o0;return d[0]!==0?box(la,y1-y0,lo,x,(y0+y1)/2,z,mat):box(lo,y1-y0,la,x,(y0+y1)/2,z,mat);};
    const n=Math.round(U.DEPTH/.18),run=U.STAIR/n,B0=-U.DEPTH-.35;for(let i=0;i<n;i++){const top=-U.DEPTH*(i+1)/n;piece(i*run,(i+1)*run,-U.W/2,U.W/2,B0,top,stairConcrete);piece((i+1)*run-.045,(i+1)*run+.006,-U.W/2+.04,U.W/2-.04,top-.045,top+.008,stairEdge);}   // steps, a worn nosing on each
+   // Sample the falloff from the two wall fittings on each horizontal tread.
+   // The patches share the existing street light-pool batch across the flight.
+   for(let i=0;i<n;i++){
+    const a=(i+.5)*run,[x,z]=P(a,-U.W*.16);
+    const distance=Math.min(Math.abs(a-U.STAIR*.2),Math.abs(a-U.STAIR*.7));
+    const strength=.36+.54*Math.exp(-distance*distance/2);
+    const patch=pool('sodium',x,z,U.W*.9,run*.96,strength,true);
+    patch.rotation.y=ry;patch.position.y=-U.DEPTH*(i+1)/n+.014;
+   }
    piece(U.STAIR,L,-U.W/2,U.W/2,B0,-U.DEPTH,stairConcrete);   // the landing
    // Shielded wall fittings illuminate the full flight. The warm fill on the treads needs no dynamic lights.
    for(const a of [U.STAIR*.2,U.STAIR*.7]){
