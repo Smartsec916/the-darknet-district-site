@@ -142,8 +142,14 @@
  /* For the admin inventory (the server's copy): every model with what a made character on it may do (npc-paths.js / npc-gestures.js / npc-escort.js, worked out once per model). */
  function inventory(){const X=NPX(),out={limits:LIMIT,devices:Object.keys(DEVICES),items:Object.fromEntries(items().map(i=>[i.id,{name:i.name,show:i.show}])),ships:ships().map(s=>s.id),models:{}};
   const NG=req('./npc-gestures.js'),E=req('./npc-escort.js'),before=X.madeNow();
+  // Store each donor's identical clip list once across the model inventory.
+  out.animationLists=[];const listIndices=new Map();
+  function motionLists(ids){
+   const groups=new Map();for(const id of ids){const key=id.includes('/')?id.split('/')[0]:id.split('-')[0];if(!groups.has(key))groups.set(key,[]);groups.get(key).push(id);}
+   return [...groups.values()].map(list=>{const key=JSON.stringify(list);if(!listIndices.has(key)){listIndices.set(key,out.animationLists.length);out.animationLists.push(list);}return listIndices.get(key);});
+  }
   const K='made-model-check',one=(m,adult)=>{X.setMade({[K]:{name:'Made',model:m.asset,...(adult?{adult:true}:{})}});const mv=X.inventory().movable[K];
-   return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
+   return {movable:mv?{actions:mv.actions,animationLists:motionLists(mv.anims),pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
  function deletionReferences(draft,id){
