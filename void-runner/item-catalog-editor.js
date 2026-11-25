@@ -27,6 +27,8 @@
     (!(f.location||f.vendor||f.vendorType||f.stock)||vs.some(v=>venue(v)&&(!f.stock||v.entries.some(e=>e.item===i.id&&e.available&&e.stock>0))));
   });
  }
+ const sectionOf=kind=>['weapon','ammunition','missile','equipment'].includes(kind)?'gear':['keycard','service','misc'].includes(kind)?'other':'food';
+ const tabs={food:'Consumables',gear:'Combat &amp; Equipment',other:'Other items and services'};
  let session=null;
  function mount(host,tools){
   if(!tools.uid||!tools.authorized||typeof tools.request!=='function'){host.textContent='Sign in with a developer account to open the catalog.';return;}
@@ -35,7 +37,7 @@
   const current=()=>tools.uid===s.uid&&tools.authorized&&typeof tools.request==='function';
   const item=()=>s.data?.items.find(i=>i.id===s.id);
   const send=(path,body)=>{if(!current())throw Error('Sign in with the same developer account to continue.');return tools.request(path,body);};
-  function setData(d){s.data=rules.clone(d.draft.content||d.live.content);s.revision=d.draft.revision;s.version=d.state.version;s.history=d.state.history||[];s.dirty=false;if(!item())s.id=s.data.items[0]?.id;}
+  function setData(d){s.data=rules.clone(d.draft.content||d.live.content);s.revision=d.draft.revision;s.version=d.state.version;s.history=d.state.history||[];s.dirty=false;if(!item())s.id=s.data.items[0]?.id;s.section=sectionOf(item()?.kind);}
   function mark(){s.dirty=true;s.message='Unsaved changes';}
   function filter(key,title,values){return '<label>'+title+' <select data-filter="'+key+'">'+options([['','All'],...values],s.filter[key]||'')+'</select></label>';}
   function availabilityFields(scope,r={},kiosk=false){
@@ -96,29 +98,31 @@
      (e.restock.mode==='interval'?field('every','Interval (seconds)',e.restock.every)+field('amount','Units per interval',e.restock.amount):''):'')+'</fieldset>';
    }).join('');
   }
-  let propertyMap;
+  let propertyMap;const expanded=new Set();
   function draw(){
+   for(const pane of host.querySelectorAll('[data-pane]')){if(pane.open)expanded.add(pane.dataset.pane);else expanded.delete(pane.dataset.pane);}
    propertyMap?.dispose();propertyMap=null;
    if(!host.isConnected||!current())return;
    const c=s.data,it=item(),npc=tools.catalogNpc;
    if(!c){host.innerHTML='<h3>Items &amp; Vendors</h3><p role="status">'+esc(s.message||'Loading catalog…')+'</p>'+(!s.busy?button('reload','Reload catalog'):'');return;}
-   const cats=c.categories.map(x=>[x.id,x.name]),list=filtered(c,s.filter),where=it?sellers(c,it.id):[];
-   host.innerHTML='<h3>Items &amp; Vendors</h3><p role="status">'+esc(s.message||'Ready')+' · Live version '+s.version+' · Draft '+s.revision+'</p><fieldset '+(s.busy?'disabled':'')+'>'+
+   const cats=c.categories.map(x=>[x.id,x.name]),list=filtered(c,s.filter).filter(i=>sectionOf(i.kind)===(s.section||'food')),where=it?sellers(c,it.id):[];
+   host.innerHTML='<h3>Items</h3><nav aria-label="Item sections" class="cs-nav">'+Object.entries(tabs).map(([id,label])=>'<button data-item-section="'+id+'" aria-pressed="'+((s.section||'food')===id)+'">'+label+'</button>').join('')+'</nav><p role="status">'+esc(s.message||'Ready')+' · Live version '+s.version+' · Draft '+s.revision+'</p><fieldset '+(s.busy?'disabled':'')+'>'+
     (npc?'<p>'+esc(npc.name)+' '+button('enable-npc',s.data.vendors.some(v=>v.entity==='npc-'+npc.id&&v.enabled!==false)?'Disable vendor':'Enable as vendor')+'</p>':'')+
-    '<label>Search <input type="search" data-search value="'+esc(s.filter.search)+'"></label>'+filter('category','Category',cats)+
+    '<label>Search <input type="search" data-search value="'+esc(s.filter.search)+'"></label>'+'<details data-pane="filters"><summary>Library filters</summary>'+filter('category','Category',cats)+
     filter('vendor','Vendor',c.vendors.map(v=>[v.id,v.name]))+filter('vendorType','Vendor type',spec.vendorKinds)+filter('location','Location',[...new Set(c.vendors.map(v=>v.location))])+
     filter('status','Availability',spec.statuses)+filter('effect','Effect',Object.entries(spec.effects).map(([k,v])=>[k,v.label]))+
-    '<label><input type="checkbox" data-instock '+(s.filter.stock?'checked':'')+'> In stock</label><p><label>Items <select data-picker>'+options([['','Choose an item'],...list.map(v=>[v.id,v.name])],s.id)+'</select></label> '+list.length+' items</p>'+
-    field('newId','New item ID','')+'<label>Template <select data-example>'+options([['','Blank item'],...Object.entries(root.VoidConsumableStudio?.examples||{}).map(([id,v])=>[id,v[0]])],'')+'</select></label>'+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
-    (it?'<fieldset><legend>'+esc(it.name)+' · '+esc(it.id)+'</legend>'+field('name','Name',it.name)+field('description','Description',it.description)+field('category','Category',it.category,cats)+
+    '<label><input type="checkbox" data-instock '+(s.filter.stock?'checked':'')+'> In stock</label></details><p><label>Items <select data-picker>'+options([['','Choose an item'],...list.map(v=>[v.id,v.name])],s.id)+'</select></label> '+list.length+' items</p>'+
+    field('newId','New item ID','')+((s.section||'food')==='food'?'<label>Template <select data-example>'+options([['','Blank item'],...Object.entries(root.VoidConsumableStudio?.examples||{}).map(([id,v])=>[id,v[0]])],'')+'</select></label>':'')+button('new','Create item')+(it?button('duplicate','Duplicate selected'):'')+
+    (it?(sectionOf(it.kind)==='food'?'<p><button data-effects type="button">Open Consumables Studio</button></p>':'')+'<details class="cs-card cs-properties" data-pane="properties"><summary><strong>▤  Item properties</strong><small>'+esc(it.name)+' · '+esc(it.status)+'</small></summary><fieldset><legend>'+esc(it.name)+' · '+esc(it.id)+'</legend>'+field('name','Name',it.name)+field('description','Description',it.description)+field('category','Category',it.category,cats)+field('subcategory','Subcategory',it.subcategory||'')+
      field('kind','Item type',it.kind,spec.kinds)+(it.kind==='keycard'?keycardFields(it):'')+(it.kind==='service'?serviceFields(it):'')+field('status','Availability',it.status,spec.statuses)+field('icon','Inventory icon',it.icon)+field('model','Game model path',it.model||'')+
-     field('image','Product image path',it.image||'')+field('purchaseSound','Purchase sound',it.purchaseSound||'')+field('useSound','Use sound',it.useSound||'')+field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+
-     ('<button data-effects type="button">Open Consumables Studio</button>')+field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset>'+
-     '<h4>Sold at</h4><p>'+esc(where.map(v=>v.name+' · '+v.location).join(', ')||'No vendors assigned')+'</p>'+assignments(it):'')+
+     field('image','Product image path',it.image||'')+field('purchaseSound','Purchase sound',it.purchaseSound||'')+field('useSound','Activation sound',it.useSound||'')+(sectionOf(it.kind)==='food'?field('loopSound','Active sound loop',it.loopSound||'')+field('expireSound','Expiration sound',it.expireSound||''):'')+field('price','Base price',it.price)+field('stack','Stack limit',it.stack)+field('weight','Weight',it.weight)+field('rarity','Rarity',it.rarity,spec.rarities)+field('registryId','Linked game item',it.registryId||'',[['','None'],...Object.entries(spec.registryItems)])+
+     field('cooldown','Use cooldown (seconds)',it.cooldown||0)+field('animation','Use animation',it.animation||'none',spec.animations)+'</fieldset></details>'+
+     '<details class="cs-card cs-vendors" data-pane="vendors"><summary><strong>⌖  Vendors and distribution</strong><small>'+where.length+' assigned</small></summary><p>'+esc(where.map(v=>v.name+' · '+v.location).join(', ')||'No vendors assigned')+'</p>'+assignments(it)+'</details>':'')+
     '<p>'+button('category','Add category')+button('save','Save draft')+button('publish','Publish draft')+button('reload','Reload saved draft')+'</p>'+
     '<label>Import catalog <input type="file" data-import accept=".json,application/json"></label>'+button('export','Export JSON')+
     (s.history.length?'<label>Version <select data-version>'+options(s.history.map(v=>[String(v.version),'Version '+v.version+' '+(v.note||'')]),'')+'</select></label>'+button('restore','Restore version'):'')+
     '</fieldset>';
+   for(const pane of host.querySelectorAll('[data-pane]'))pane.open=expanded.has(pane.dataset.pane);
    const mapPanel=host.querySelector('[data-card-map]');
    if(mapPanel)mapPanel.ontoggle=async()=>{
     if(!mapPanel.open||propertyMap)return;
@@ -160,7 +164,7 @@
    if(el.matches('[data-import]')){
     const f=el.files[0];if(!f)return;
     await work(async()=>{if(f.size>spec.limits.bytes)throw Error('File exceeds the catalog size limit.');const c=JSON.parse(await f.text()),p=rules.problems(c);if(p.length)throw Error(p.slice(0,5).join(' '));
-     if(s.dirty&&!confirm('Replace your unsaved edits with the imported catalog?'))return;s.data=c;s.id=c.items[0]?.id;mark();});return;
+     if(s.dirty&&!confirm('Replace your unsaved edits with the imported catalog?'))return;s.data=c;s.id=c.items[0]?.id;s.section=sectionOf(item()?.kind);mark();});return;
    }
    if(el.matches('[data-picker]')){s.id=el.value;draw();return;}
    if(el.dataset.filter||el.matches('[data-instock]')){s.filter[el.dataset.filter||'stock']=el.type==='checkbox'?el.checked:el.value;draw();return;}
@@ -177,11 +181,11 @@
      it.keycard||={doors:[],notes:'',privateNotes:'',duration:0,transferable:false,droppable:false,pickup:true,bearer:false};
     }else delete it.keycard;
     if(it.kind==='service'){it.service||={participation:'watch',completion:'timer',steps:[{seconds:15,point:0,clip:'',line:''}]};it.consumable=null;}
-    else{delete it.service;if(!it.consumable&&it.kind==='consumable')it.consumable={effects:[],modifiers:[]};}mark();draw();return;
+    else{delete it.service;if(!it.consumable&&it.kind==='consumable')it.consumable={effects:[],modifiers:[]};}s.section=sectionOf(it.kind);mark();draw();return;
    }
    if(reg){
     const def=spec.vendorRegistry.find(v=>v.entity===reg);let vendor=s.data.vendors.find(v=>v.entity===reg);
-    if(!def)return;
+    if(!def&&!vendor)return;
     if(el.matches('[data-assigned]')){
      if(!vendor){vendor={...def,id:def.entity,entries:[]};s.data.vendors.push(vendor);}
      if(el.checked&&!vendor.entries.some(x=>x.item===it.id))vendor.entries.push(rules.newVendorEntry(it.id,it.price));
@@ -197,15 +201,19 @@
      else if(k==='every'||k==='amount')entry.restock[k]=el.valueAsNumber;
      else if(k)entry[k]=el.valueAsNumber;else return;
     }
-   }else if(k){it[k]=el.type==='number'?el.valueAsNumber:k==='model'?(el.value||null):el.value;}else return;
+   }else if(k==='registryId'&&!el.value){delete it.registryId;}else if(k){it[k]=el.type==='number'?el.valueAsNumber:k==='model'?(el.value||null):el.value;}else return;
    mark();
    // Keep unrelated controls mounted while focus moves from a field to Save.
    if(el.matches('[data-assigned]')||k==='mode')draw();else host.querySelector('[role=status]').textContent=s.message;
   };
   host.onclick=e=>{
+   const tab=e.target.closest('[data-item-section]');if(tab&&current()&&!s.busy){s.section=tab.dataset.itemSection;s.filter={};s.id=s.data.items.find(i=>sectionOf(i.kind)===s.section)?.id;draw();return;}
    const remove=e.target.closest('[data-drop-step]');if(remove&&item()?.service&&current()&&!s.busy){item().service.steps.splice(Number(remove.dataset.dropStep),1);mark();draw();return;}
    if(e.target.closest('[data-effects]')&&item()&&!s.busy&&current()){
-    root.VoidConsumableStudio.open(item(),s.data.presets,(effects,presets)=>{item().consumable=effects;s.data.presets=presets;mark();draw();},()=>host.isConnected&&!host.closest('[hidden]')&&current());return;
+    root.VoidConsumableStudio.open(item(),s.data.presets,(effects,presets)=>{item().consumable=effects;s.data.presets=presets;mark();draw();},()=>host.isConnected&&!host.closest('[hidden]')&&current(),s.data.items,{
+     vendors:sellers(s.data,item().id).map(v=>v.name),
+     focus(pane){const target=host.querySelector('[data-pane="'+pane+'"]');if(target){target.open=true;target.scrollIntoView({block:'center'});target.querySelector('summary').focus();}}
+    });return;
    }
    const act=e.target.closest('[data-catalog]')?.dataset.catalog;if(!act||!current()||s.busy)return;
    const template=host.querySelector('[data-example]')?.value;
@@ -231,7 +239,7 @@
     if(act==='new'||act==='duplicate'){
      const id=idText||uniqueId(s.data.items,act==='new'?(template||'new-item'):item().id+'-copy');
      if(!rules.ID.test(id)||s.data.items.some(i=>i.id===id))throw Error('Choose a unique ID starting with a letter, using lowercase letters, digits and hyphens.');
-     const it=act==='new'?(template?root.VoidConsumableStudio.example(template,id):rules.newItem(id,'New item')):{...rules.clone(item()),id,name:item().name+' copy',status:'draft'};s.data.items.push(it);s.id=id;s.filter={};mark();
+     const it=act==='new'?(template?root.VoidConsumableStudio.example(template,id):rules.newItem(id,'New item')):{...rules.clone(item()),id,name:item().name+' copy',status:'draft'};if(act==='new'&&s.section==='gear'){it.kind='equipment';it.consumable=null;}if(act==='new'&&s.section==='other'){it.kind='misc';it.consumable=null;}s.section=sectionOf(it.kind);s.data.items.push(it);s.id=id;s.filter={};mark();
     }else if(act==='category'){
      const name=prompt('Category name');if(!name?.trim())return;const id=uniqueId(s.data.categories,name);s.data.categories.push({id,name:name.trim()});mark();
     }else if(act==='save')await save();

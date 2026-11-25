@@ -8,9 +8,17 @@
  const L=S.limits,ID=/^[a-z][a-z0-9-]{0,39}$/,num=(v,lo,hi)=>typeof v==='number'&&Number.isFinite(v)&&v>=lo&&v<=hi,int=(v,lo,hi)=>Number.isInteger(v)&&v>=lo&&v<=hi;
  const plain=(v,n)=>typeof v==='string'&&v.length<=n&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v);
  const hasOnly=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
- const EFFECT_KEYS=['id','type','intensity','delay','duration','fadeIn','fadeOut','speed','stacking','params'],MOD_KEYS=['stat','amount','delay','duration','fadeIn','fadeOut'];
+ const EFFECT_KEYS=['id','type','intensity','delay','duration','fadeIn','fadeOut','speed','stacking','params','curve'],MOD_KEYS=['stat','amount','delay','duration','fadeIn','fadeOut','curve'];
+ function validCurve(curve){
+  if(!hasOnly(curve,['mode','points'])||!['linear','step','smooth'].includes(curve.mode))return false;
+  const points=curve.points;
+  return Array.isArray(points)&&points.length>=2&&points.length<=32&&points.every((p,i)=>
+   Array.isArray(p)&&p.length===2&&p.every(v=>num(v,0,1))&&(!i||p[0]>points[i-1][0]))&&
+   points[0][0]===0&&points.at(-1)[0]===1;
+ }
  function effectProblems(e,at){const out=[],n=at+': ';
   if(!hasOnly(e,EFFECT_KEYS))return [n+'an effect has unknown fields'];
+  if('curve' in e&&!validCurve(e.curve))out.push(n+'use 2–32 ordered curve points with endpoints at 0 and 1');
   const def=S.effects[e.type];if(!def)return [n+'unknown effect "'+e.type+'"'];
   if(typeof e.id!=='string'||!ID.test(e.id))out.push(n+'the effect id uses lowercase letters, numbers and hyphens');
   for(const k of ['intensity','delay','duration','fadeIn','fadeOut','speed']){const c=S.common[k];if(!num(e[k],c.min,c.max))out.push(n+k+' is a number from '+c.min+' to '+c.max);}
@@ -22,10 +30,10 @@
   return out;}
  function modifierProblems(m,at){const n=at+': ';if(!hasOnly(m,MOD_KEYS))return [n+'a modifier has unknown fields'];const d=S.modifiers[m.stat];
   if(!d)return [n+'unknown gameplay modifier "'+m.stat+'"'];if(!d.supported)return [n+d.label+' is not available: '+d.help];
-  const out=[];if(!num(m.amount,d.min,d.max))out.push(n+d.label+' is from '+d.min+' to '+d.max);
+  const out=[];if('curve' in m&&!validCurve(m.curve))out.push(n+'invalid modifier curve');if(!num(m.amount,d.min,d.max))out.push(n+d.label+' is from '+d.min+' to '+d.max);
   if(!num(m.fadeIn??0,0,60)||!num(m.fadeOut??0,0,120)||(m.fadeIn||0)+(m.fadeOut||0)>m.duration)out.push(n+'modifier fades must fit within the duration');
   if(!num(m.delay,0,L.delay))out.push(n+'delay is 0 to '+L.delay);if(!num(m.duration,1,L.duration))out.push(n+'duration is 1 to '+L.duration);return out;}
- const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound','service','keycard'];
+ const ITEM_KEYS=['id','name','description','category','subcategory','kind','icon','model','animation','price','stack','weight','rarity','status','cooldown','registryId','consumable','image','purchaseSound','useSound','loopSound','expireSound','service','keycard'];
  function itemProblems(it,cats){const out=[],n=(it&&it.id||'item')+': ';
   if(!hasOnly(it,ITEM_KEYS))return [n+'unknown fields'];
   if(it.kind==='keycard'){
@@ -41,7 +49,7 @@
    else if(steps.some(v=>!hasOnly(v,['seconds','point','line','clip'])||!int(v.seconds,1,180)||!int(v.point??0,0,32)||!plain(v.line||'',300)||!/^[a-z0-9 _-]{0,60}$/i.test(v.clip||''))||steps.reduce((sum,v)=>sum+v.seconds,0)>600)out.push(n+'invalid service step or duration');
   }else if(it.service!=null)out.push(n+'only a service can run a routine');
   if(it.image&&!/^assets\/[a-z0-9_/-]+\.(png|jpe?g|webp)$/i.test(it.image))out.push(n+'choose a game image');
-  for(const key of ['purchaseSound','useSound'])if(it[key]&&!/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(it[key]))out.push(n+'choose a game audio file for '+key);
+  for(const key of ['purchaseSound','useSound','loopSound','expireSound'])if(it[key]&&!/^assets\/audio\/[a-z0-9_/-]+\.(mp3|ogg|wav|m4a)$/i.test(it[key]))out.push(n+'choose a game audio file for '+key);
   if(typeof it.id!=='string'||!ID.test(it.id))out.push(n+'the item id uses lowercase letters, numbers and hyphens (1 to 40)');
   if(!plain(it.name,L.name)||!it.name)out.push(n+'name is required (up to '+L.name+' characters, no markup)');
   if(!plain(it.description,L.description))out.push(n+'description has markup or is too long');
@@ -58,8 +66,9 @@
   if(!S.statuses.includes(it.status))out.push(n+'status is '+S.statuses.join(', '));
   if(!int(it.cooldown||0,0,L.cooldown))out.push(n+'cooldown is 0 to '+L.cooldown+' seconds');
   if(it.registryId!=null&&!S.registryItems[it.registryId])out.push(n+'registryId is not an item the game already has');
-  if(it.consumable!=null){const c=it.consumable;if(!hasOnly(c,['effects','modifiers','repeat','group','maxStacks','maxSeconds']))out.push(n+'consumable has unknown fields');
-   else{if(!S.repeatPolicies.includes(c.repeat??'refresh')||c.group&&!ID.test(c.group)||!int(c.maxStacks??3,1,8)||!int(c.maxSeconds??1800,1,3600))out.push(n+'invalid repeat-use settings');
+  if(it.consumable!=null){const c=it.consumable;if(!hasOnly(c,['effects','modifiers','repeat','group','maxStacks','maxSeconds','onUseHealth','onUseStamina']))out.push(n+'consumable has unknown fields');
+   else{if(!num(c.onUseHealth??0,-1,1)||!num(c.onUseStamina??0,0,1))out.push(n+'use amounts must fit within one full health or stamina bar');
+    if(!S.repeatPolicies.includes(c.repeat??'refresh')||c.group&&!ID.test(c.group)||!int(c.maxStacks??3,1,8)||!int(c.maxSeconds??1800,1,3600))out.push(n+'invalid repeat-use settings');
     const ef=c.effects||[],mo=c.modifiers||[];if(!Array.isArray(ef)||ef.length>L.effects)out.push(n+'at most '+L.effects+' effects');
     else{const ids=new Set();ef.forEach((e,i)=>{out.push(...effectProblems(e,n+'effect '+(i+1)));if(e&&ids.has(e.id))out.push(n+'two effects share the id "'+e.id+'"');ids.add(e&&e.id);});}
     if(!Array.isArray(mo)||mo.length>L.modifiers)out.push(n+'at most '+L.modifiers+' gameplay modifiers');else mo.forEach((m,i)=>out.push(...modifierProblems(m,n+'modifier '+(i+1))));}}
@@ -109,7 +118,9 @@
   }
   const ents=c.vendors.map(v=>v&&v.entity);if(new Set(ents).size!==ents.length)out.push('Two vendors use the same seller.');
   if(!Array.isArray(c.presets)||c.presets.length>L.presets)return out.concat(['At most '+L.presets+' presets.']);
-  const pids=new Set();for(const p of c.presets){if(!hasOnly(p,['id','name','effects'])||typeof p.id!=='string'||!ID.test(p.id)||!plain(p.name,L.name)||!Array.isArray(p.effects)||p.effects.length>L.effects){out.push('A preset needs an id, a name and up to '+L.effects+' effects.');continue;}
+  const pids=new Set();for(const p of c.presets){if(!hasOnly(p,['id','name','effects','modifiers','onUseHealth','onUseStamina'])||typeof p.id!=='string'||!ID.test(p.id)||!plain(p.name,L.name)||!Array.isArray(p.effects)||p.effects.length>L.effects){out.push('A preset needs an id, a name and up to '+L.effects+' effects.');continue;}
+   if(!num(p.onUseHealth??0,-1,1)||!num(p.onUseStamina??0,0,1))out.push('Invalid preset use amounts.');
+   if('modifiers' in p){if(!Array.isArray(p.modifiers)||p.modifiers.length>L.modifiers)out.push('Invalid preset modifiers.');else p.modifiers.forEach(m=>out.push(...modifierProblems(m,'preset '+p.id)));}
    if(pids.has(p.id))out.push('Two presets share "'+p.id+'".');pids.add(p.id);p.effects.forEach((e,i)=>out.push(...effectProblems(e,'preset '+p.id+' effect '+(i+1))));}
   return out;}
  /* ---------- builders ---------- */
@@ -145,7 +156,7 @@
   const items=new Map(catalog.items.map(i=>[i.id,i]));
   return {vendor:{id:v.id,name:v.name,kind:v.kind,location:v.location,entity:v.entity},entries:v.entries.filter(e=>e.available&&items.get(e.item)&&items.get(e.item).status==='published').map(e=>{const it=items.get(e.item),r=restocked(e,stock&&stock[e.item],now);return {item:it.id,name:it.name,description:it.description,icon:it.icon,category:it.category,rarity:it.rarity,price:e.price,stock:r.remaining,maxStock:e.maxStock};})};}
  /* the effect/modifier definition a player's use of an item runs (published items only; unknown ids give null) */
- function use(catalog,itemId){const it=catalog.items.find(i=>i.id===itemId);if(!it||!it.consumable||it.status==='draft')return null;return {id:it.id,name:it.name,cooldown:it.cooldown||0,animation:it.animation||'none',effects:clone(it.consumable.effects||[]),modifiers:clone(it.consumable.modifiers||[])};}
+ function use(catalog,itemId){const it=catalog.items.find(i=>i.id===itemId);if(!it||!it.consumable||it.status==='draft')return null;return {id:it.id,name:it.name,cooldown:it.cooldown||0,animation:it.animation||'none',...(it.consumable.onUseHealth?{onUseHealth:it.consumable.onUseHealth}:{}),...(it.consumable.onUseStamina?{onUseStamina:it.consumable.onUseStamina}:{}),...(it.loopSound?{loopSound:it.loopSound}:{}),...(it.expireSound?{expireSound:it.expireSound}:{}),effects:clone(it.consumable.effects||[]),modifiers:clone(it.consumable.modifiers||[])};}
  const api={problems,itemProblems,effectProblems,modifierProblems,entryProblems,newEffect,newItem,newVendorEntry,defaultParams,seed,restocked,listing,use,clone,ID};
  if(node)module.exports=api;else root.VoidConsumables=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

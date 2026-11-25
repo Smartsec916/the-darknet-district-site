@@ -17,6 +17,8 @@ globalThis.VoidConsumableSpec = {
  "statuses": ["draft", "published", "retired"],
  "registryItems": {"ward-kit": "Ward kit"},
  "effects": {
+  "signalGlitch": {"group":"visual","label":"Signal glitch","help":"Horizontal bands displace the image while motion, distortion and flashing are enabled.","params":{
+   "amount":{"label":"Band displacement","min":0,"max":1,"def":0.35,"step":0.01}}},
   "lensGrade": {"group":"visual","label":"Lens and lighting","help":"Soften focus and adjust bloom, exposure and grain.","params":{
    "blur":{"label":"Lens blur","min":0,"max":1,"def":0,"step":0.01},
    "glow":{"label":"Highlight glow","min":0,"max":1,"def":0.3,"step":0.01},
@@ -111,12 +113,25 @@ globalThis.VoidConsumableSpec = {
    "level": {"label": "Level", "min": 0, "max": 1, "def": 0.3, "step": 0.01, "help": "How loud the murmurs are."},
    "density": {"label": "Density", "min": 0.1, "max": 3, "def": 0.6, "step": 0.05, "help": "Murmurs per second."},
    "pitch": {"label": "Voice pitch", "min": 0, "max": 1, "def": 0.5, "step": 0.01, "help": "Low to high."}}},
+  "audioVolume": {"group":"audio","label":"World volume","help":"Scale the audible mix during this track.","params":{
+   "gain":{"label":"Volume multiplier","min":0,"max":1.5,"def":0.75,"step":0.01}}},
+  "audioHeartbeat": {"group":"audio","label":"Heartbeat","help":"A two-beat pulse under the world sound.","params":{
+   "bpm":{"label":"Beats per minute","min":40,"max":160,"def":72,"step":1},
+   "level":{"label":"Level","min":0,"max":1,"def":0.35,"step":0.01}}},
   "audioAmbient": {"group": "audio", "label": "Ambient bed", "help": "A synthesized rain, wind or night-insect bed under the world sound.", "params": {
    "style": {"label": "Style", "min": 0, "max": 2, "def": 0, "step": 1, "help": "0 rain, 1 wind, 2 night insects."},
    "level": {"label": "Level", "min": 0, "max": 1, "def": 0.3, "step": 0.01, "help": "How loud."}}}
  },
  "repeatPolicies": ["none","refresh","extend","intensify","independent","replace"],
  "modifiers": {
+  "shieldRecovery": {"label":"Ship shield restoration rate","min":-0.5,"max":0.5,"supported":true,"help":"Scales fitted shield regeneration after its normal recharge delay."},
+  "energyRecovery": {"label":"Ship energy recovery","min":-0.5,"max":0.5,"supported":true,"help":"Scales the recharge rate of the pilot's energy bank."},
+  "movementRestriction": {"label":"Movement restriction","min":0,"max":1,"supported":true,"help":"Reduces horizontal movement. At one the player comes to a stop."},
+  "reloadSpeed": {"label":"Reload speed","min":-0.5,"max":0.5,"supported":true,"help":"Changes on-foot reload progress while active."},
+  "jumpHeight": {"label":"Jump height","min":-0.5,"max":0.5,"supported":true,"help":"Changes on-foot jump height."},
+  "recoilReduction": {"label":"Recoil reduction","min":-0.5,"max":0.5,"supported":true,"help":"Scales the camera kick of the on-foot sidearm."},
+  "healthLoss": {"label":"Health loss per second","min":0,"max":0.1,"supported":true,"help":"Drains a fraction of on-foot health each second."},
+  "maxHealth": {"label":"Temporary maximum health","min":-0.5,"max":0.5,"supported":true,"help":"Changes on-foot health capacity while preserving the current health fraction."},
   "healthRecovery": {"label":"Health recovery per second","min":0,"max":0.1,"supported":true,"help":"Restore this fraction of maximum on-foot health each second."},
   "perception": {"label":"Interaction awareness","min":-0.4,"max":0.5,"supported":true,"help":"Adjusts the distance at which visible interaction prompts appear."},
   "walkSpeed": {"label": "Walking speed", "min": -0.5, "max": 0.5, "supported": true, "help": "Changes walking speed. 0.2 is 20 percent faster."},
@@ -124,10 +139,10 @@ globalThis.VoidConsumableSpec = {
   "movementControl": {"label": "Movement control", "min": -0.6, "max": 0.4, "supported": true, "help": "How quickly you start and stop. Negative feels slippery."},
   "staminaRegen": {"label": "Stamina regeneration", "min": -0.5, "max": 0.5, "supported": true, "help": "Temporary sprint reserve recovery; positive values restore reserve faster while walking."},
   "staminaDrain": {"label": "Stamina drain", "min": -0.5, "max": 0.5, "supported": true, "help": "Temporary sprint reserve drain; positive values drain the reserve faster."},
-  "damageDealt": {"label": "Damage dealt", "min": -0.5, "max": 0.5, "supported": false, "help": "Not available on foot yet."},
+  "damageDealt": {"label": "On-foot damage dealt", "min": -0.5, "max": 0.5, "supported": true, "help": "Scales sidearm damage to hostile street NPCs."},
   "damageResist": {"label": "Damage resistance", "min": -0.5, "max": 0.5, "supported": true, "help": "Reduces or increases incoming on-foot damage."},
   "meleeEffectiveness": {"label": "Melee effectiveness", "min": -0.5, "max": 0.5, "supported": false, "help": "The game has no melee yet."},
-  "accuracy": {"label": "Accuracy", "min": -0.5, "max": 0.5, "supported": false, "help": "Not available on foot yet."},
+  "accuracy": {"label": "On-foot accuracy", "min": -0.5, "max": 0.5, "supported": true, "help": "Positive values reduce sidearm spread against street enemies."},
   "interactionSpeed": {"label": "Interaction speed", "min": -0.5, "max": 0.5, "supported": false, "help": "Interactions are instant today."}
  },
 

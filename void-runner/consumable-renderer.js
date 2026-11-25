@@ -2,10 +2,27 @@
 (function(root){
  'use strict';
  const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+ function curveValue(curve,t){
+  if(!curve)return 1;
+  const points=curve.points;
+  const i=points.findIndex(p=>p[0]>t);
+  if(i<=0)return points[i===0?0:points.length-1][1];
+  const [x,y]=points[i-1],[right,next]=points[i];
+  let u=(t-x)/(right-x);
+  if(curve.mode==='step')return y;
+  if(curve.mode==='smooth')u=u*u*(3-2*u);
+  return y+(next-y)*u;
+ }
  function envelope(e,elapsed){
   const t=elapsed-e.delay;
   if(t<0||t>=e.duration)return 0;
-  return clamp(e.intensity*Math.min(1,e.fadeIn?t/e.fadeIn:1,e.fadeOut?(e.duration-t)/e.fadeOut:1),0,1);
+  return clamp(e.intensity*curveValue(e.curve,t/e.duration)*Math.min(1,e.fadeIn?t/e.fadeIn:1,e.fadeOut?(e.duration-t)/e.fadeOut:1),0,1);
+ }
+ function staminaAfter(reserve,running,regen,drain,seconds){
+  return clamp(reserve+seconds*(running?-.08*(1+drain):.14*(1+regen)),0,1);
+ }
+ function recoveryRate(maximum,regen,damage,rest){
+  return maximum*(regen-damage)+rest;
  }
  function sample(active,now){
   const effects=new Map(),modifiers={};
@@ -36,6 +53,7 @@
  if(fold.w>0.){float sector=6.28318/max(2.,fold.x);float a=abs(mod(atan(center.y,center.x)+fold.y,sector)-sector*.5);uv=mix(uv,eye+vec2(cos(a),sin(a))*r*fold.z,fold.w);}
  uv+=wave.x*vec2(sin(uv.y*wave.y+wave.z),cos(uv.x*wave.y+wave.z)*wave.w);
  uv+=warp.x*vec2(sin(uv.y*warp.y+clock)*cos(uv.x*warp.z),cos(uv.x*warp.y+clock));
+ if(screen.w>0.){float band=noise(vec2(floor(uv.y*32.),floor(clock*6.)));uv.x+=screen.w*step(.82,band)*(band-.82)*.18;}
  uv=clamp(uv,vec2(.001),vec2(.999));vec4 pixel=texture2D(textureSampler,uv);vec3 col=pixel.rgb;
  if(split.x>0.){vec2 d=mix(vec2(1.,0.),center,split.y)*split.x;col.r=texture2D(textureSampler,clamp(uv+d,0.,1.)).r;col.b=texture2D(textureSampler,clamp(uv-d,0.,1.)).b;}
  if(ghost.z>0.)col=mix(col,texture2D(textureSampler,clamp(uv+ghost.xy,0.,1.)).rgb,ghost.z);
@@ -61,7 +79,8 @@
     case 'tunnelVision':u.eye=[p.centerX,p.centerY];u.tunnel=[p.radius,p.softness,p.darkness*w*(1+osc*p.pulse*.15*flash),0];break;
     case 'motionTrails':u.trail=clamp(p.length*p.opacity*w*Math.exp(-p.decay/60)*motion,0,.92);break;
     case 'cameraMotion':u.motion=[w*motion*(Math.sin(t*p.swayRate*6.28)*p.sway*.005+Math.sin(t*19)*p.shake*.0015),w*motion*(Math.cos(t)*p.bob*.05+Math.sin(t*.3)*p.drift*.002)];u.fov=(p.fov+osc*p.zoomPulse)*rad*w*motion;break;
-    case 'lensGrade':u.screen=[p.blur*.004*w,p.glow*w,p.grain*.12*w*flash,0];u.grade[2]+=p.brightness*w;break;
+    case 'signalGlitch':u.screen[3]=Math.max(u.screen[3],p.amount*w*dist*motion*flash);break;
+    case 'lensGrade':u.screen=[p.blur*.004*w,p.glow*w,p.grain*.12*w*flash,u.screen[3]];u.grade[2]+=p.brightness*w;break;
    }
   }
   u.grade[0]=clamp(u.grade[0],0,3);u.grade[1]=clamp(u.grade[1],.5,2);u.grade[2]=clamp(u.grade[2],-1,1);u.grade[3]=clamp(u.grade[3],0,1);
@@ -107,5 +126,5 @@
   function dispose(){scene.onBeforeCameraRenderObservable.remove(before);scene.onAfterCameraRenderObservable.remove(after);if(particles){particles.dispose(true);particles=null;}detach();}
   scene.onDisposeObservable.addOnce(dispose);return dispose;
  }
- const api={clamp,envelope,sample,uniforms,attach};if(typeof module!=='undefined')module.exports=api;else root.VoidConsumableRenderer=api;
+ const api={clamp,envelope,staminaAfter,recoveryRate,sample,uniforms,attach};if(typeof module!=='undefined')module.exports=api;else root.VoidConsumableRenderer=api;
 })(globalThis);

@@ -41,6 +41,19 @@ class ItemTests(unittest.TestCase):
         self.db.data[ref.key] = {'save': {'credits': credits, 'location': 'earth'}, 'revision': 1, 'handle': 'unchanged'}
 
 
+    def test_curved_modifiers_match_preview_and_expire(self):
+        c = catalog()
+        m = c['items'][-1]['consumable']['modifiers'][0]
+        m.update(duration=10, curve={'mode': 'linear', 'points': [[0, 0], [.5, 1], [1, 0]]})
+        active = [{'startedAt': 100, 'until': 110, 'definition': {'effects': [], 'modifiers': [m]}}]
+        for mode, weight in [('linear', .25), ('smooth', .15625), ('step', 0)]:
+            m['curve']['mode'] = mode
+            self.assertEqual(items.modifier_problems(m, 'test'), [])
+            self.assertAlmostEqual(items.modifiers_now(active, 101.25).get('walkSpeed', 0), .2 * weight)
+        self.assertEqual(items.modifiers_now(active, 110), {})
+        m['curve']['points'][1][0] = 0
+        self.assertTrue(items.modifier_problems(m, 'test'))
+
     def h(self, t='owner'):
         return {'Authorization': 'Bearer ' + t}
 
