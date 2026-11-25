@@ -53,7 +53,7 @@
    const doors=A.doors(),current=doors.find(d=>d.id===s.cardBuilding)||doors[0];
    const units=current?A.propertyRecord(current).units:[];
    const targets=current?[[current.id,'Street entrance'],...units.map(u=>[u.id,'Apartment '+u.number])]:[];
-   for(const inner of A.interiorDoors(root.VoidMainStory?.trees?.()||[]).values())if(inner.entrance===current?.id)targets.push([inner.id,inner.location+' · '+inner.name]);
+   for(const inner of A.interiorDoors([...(root.VoidMainStory?.trees?.()||[]),...(root.VoidLiveContent?.env?.trees||[]),...(root.VoidMissionEditor?.local?.()?.trees||[])]).values())if(inner.entrance===current?.id)targets.push([inner.id,inner.location+' · '+inner.name]);
    const npcs=new Map((root.VoidLiveContent?.env?.givers||[]).map(n=>[n.id,n.name||n.id]));
    for(const [id,n] of Object.entries(root.VoidLiveContent?.env?.characters||{}))npcs.set(id,n.name||id);
    for(const [id,n] of Object.entries(root.VoidNPCPaths?.MOVABLE||{}))if(!npcs.has(id))npcs.set(id,n.name||id);

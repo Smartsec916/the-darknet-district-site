@@ -138,6 +138,27 @@ class ItemTests(unittest.TestCase):
         self.assertNotIn('privateNotes', mystery)
         self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
 
+    def test_draft_interior_keycard_needs_a_published_door_before_release(self):
+        import void_runner_live_content as world
+        c = catalog()
+        item = next(i for i in c['items'] if i['id'] == 'ghost-circuit')
+        door = 'apt-avenue-n-16'
+        target = 'interior/'+door+'/draft-home-m1/home/flat.entry|hall.d0'
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard={'doors':[target], 'duration':0, 'transferable':False, 'droppable':False,
+                             'bearer':False, 'pickup':False})
+        self.assertNotEqual(self.publish(c).status_code, 200)
+        loc = {'id':'home', 'door':door, 'modules':[{'id':'hall','type':'hall-luxury'},
+               {'id':'flat','type':'apt-luxury','number':105}], 'entry':'hall.street',
+               'links':[{'a':'hall.d0','b':'flat.entry'}]}
+        self.db.data[world._state_ref(self.db).key] = {'live':1}
+        self.db.data[world._version_ref(self.db,1).key] = {'content':{'trees':[
+            {'missions':[{'id':'draft-home-m1','apartments':[loc]}]}]}}
+        self.assertEqual(self.publish(c).status_code, 200)
+        self.assertEqual(self.buy().status_code, 200)
+        self.assertTrue(self.post('keycards/access', {'door':target}).json['allowed'])
+        self.assertFalse(self.post('keycards/access', {'door':target.replace('hall.d0','hall.d1')}).json['allowed'])
+
     def test_reward_requires_saved_completion_and_stays_claimed_after_transfer(self):
         c = catalog()
         item = next(i for i in c['items'] if i['id'] == 'ghost-circuit')

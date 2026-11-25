@@ -115,7 +115,13 @@ def valid_card_door(target, doors=None):
     if not isinstance(target, str):
         return False
     doors = inventory()['apartments']['doors'] if doors is None else doors
-    if target in doors or target in inventory().get('interiorDoors', {}):
+    if target.startswith('interior/'):
+        parts = target.split('/')
+        return (len(parts) == 5 and parts[1] in doors and
+                all(re.fullmatch('[a-z][a-z0-9-]{0,79}', x) for x in parts[2:4]) and
+                bool(re.fullmatch(r'[a-z][a-z0-9-]*\.[a-z0-9-]+\|[a-z][a-z0-9-]*\.[a-z0-9-]+', parts[4])) and
+                len(parts[4]) <= 120)
+    if target in doors:
         return True
     parts = target.split('/')
     if len(parts) != 3 or parts[0] != 'residence' or not re.fullmatch(r'0|[1-9][0-9]?', parts[2]):
@@ -733,6 +739,30 @@ def _ledger_problems(content, state, prior_content):
     return out
 
 
+def unpublished_interior_targets(db, tx, catalog):
+    requested = {door for item in catalog.get('items', []) if item.get('status') == 'published'
+                 for door in (item.get('keycard') or {}).get('doors', [])
+                 if isinstance(door, str) and door.startswith('interior/')}
+    pending = requested.difference(inventory().get('interiorDoors', {}))
+    if not pending:
+        return []
+    import void_runner_live_content as world
+    state = world._state_ref(db).get(transaction=tx).to_dict() or {}
+    revision = state.get('live', 0)
+    record = world._version_ref(db, revision).get(transaction=tx).to_dict() or {} if revision else {}
+    for tree in (record.get('content') or {}).get('trees', []):
+        for mission in tree.get('missions', []):
+            for loc in mission.get('apartments', []):
+                if 'modules' not in loc:
+                    continue
+                graph, _ = world._module_analyse(loc, inventory()['modules'])
+                for kind, a, b in graph['doors']:
+                    if b:
+                        key = '/'.join(('interior', loc['door'], mission['id'], loc['id'], '|'.join(sorted((a, b)))))
+                        pending.discard(key)
+    return ['Publish the associated location before granting access to ' + door for door in sorted(pending)]
+
+
 def _commit(db, uid, expected, action, content_for, note=''):
     from firebase_admin import firestore
     owner_tag = _tag(uid)[:12]
@@ -748,6 +778,8 @@ def _commit(db, uid, expected, action, content_for, note=''):
         prior = (_version_ref(db, liv).get(transaction=tx).to_dict() or {}).get('content') if liv else None
         content = content_for(tx, state, prior)
         bad = problems(content) + _ledger_problems(content, state, prior if prior is not None else SEED)
+        if not bad:
+            bad = unpublished_interior_targets(db, tx, content)
         if bad:
             raise DraftError('The catalog has problems: ' + '; '.join(bad[:5]), 422, {'problems': bad})
         nxt = (history[-1]['version'] if history else 0) + 1
