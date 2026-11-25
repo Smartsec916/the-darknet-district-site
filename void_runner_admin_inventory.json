@@ -59886,7 +59886,7 @@
       "spawn"
     ]
   },
-  "revision": "88df529c3aa26e38",
+  "revision": "b04df77e145b96b4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81014,7 +81014,7 @@
     "void-runner/mission-blocks.js": "1af9c0a679b9b1503b92760f1110decd16cf68f5719cabfa320bbab98d94364a",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "91dd6458400e81067684c452cb2c5dfb8276113101688e0eab00baf7f78595fc",
+    "void-runner/mission-editor.js": "8cee73fa42a28131ced07e20528f1a28e091a05fa685c030791b4f6ba9a21ab5",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -81160,7 +81160,7 @@
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
-    "void-runner/world-map-editor.js": "9c99280506cb5cedca04285638dba5f3f8d532e8e164a4e9d3ef21beb4a642e4",
+    "void-runner/world-map-editor.js": "7042680e19c3dd197015b3ded4b26e9e981cfaec63cd5e7768f6f5862a76a082",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",

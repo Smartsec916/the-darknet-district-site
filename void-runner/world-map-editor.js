@@ -67,9 +67,31 @@
    filter();
   }
   const interiorDoors=A.interiorDoors(registry.trees);
+  const places=element('select'),jumpPlace=element('button','Jump to location'),placeSearch=element('input');
+  jumpPlace.type='button';placeSearch.type='search';
+  const landmarks=[];
+  for(const area of root.VoidNPCAreas.list()){
+   const data=root.VoidNPCPaths.mapData(area.id);
+   for(const spot of [...(data.labels||[]),...(data.shops||[])]){
+    if(Number.isFinite(spot.x)&&Number.isFinite(spot.z))landmarks.push({...spot,area:area.id,district:area.name});
+   }
+  }
+  function filterPlaces(){
+   const q=placeSearch.value.trim().toLowerCase();
+   places.replaceChildren(...landmarks.flatMap((spot,i)=>{
+    const label=spot.district+' · '+spot.name;
+    return label.toLowerCase().includes(q)?[new Option(label,String(i))]:[];
+   }));
+   jumpPlace.disabled=places.selectedIndex<0;
+  }
+  placeSearch.oninput=filterPlaces;filterPlaces();
+  jumpPlace.onclick=async()=>{
+   const spot=landmarks[Number(places.value)];if(!spot)return;
+   await M.shared.ensure();M.shared.jumpTo(spot.x,spot.z,null,spot.name,null,{area:spot.area});
+  };
   const map=element('div'),detail=element('section'),summary=element('p');
   detail.setAttribute('aria-live','polite');
-  panel.replaceChildren(field('Search entrances',search),field('Property type',type),field('Mission tree',tree),field('Mission',mission),field('Entrance',entrance),layers,summary,map,detail);
+  panel.replaceChildren(field('Search entrances',search),field('Property type',type),field('Mission tree',tree),field('Mission',mission),field('Entrance',entrance),layers,summary,map,detail,field('Search locations',placeSearch),field('Registered location',places),jumpPlace);
   const doors=A.doors(),records=new Map(doors.map(d=>[d.id,A.propertyRecord(d,registry.rows.get(d.id),players.get(d.id))]));
   function show(){
    detail.replaceChildren();
