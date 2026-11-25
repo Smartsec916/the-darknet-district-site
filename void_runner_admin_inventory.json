@@ -60593,7 +60593,7 @@
       "spawn"
     ]
   },
-  "revision": "08d1281bc75c2030",
+  "revision": "28a6bbd0bc517bb2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80566,43 +80566,61 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 31,
+      "line": 28,
+      "text": "const districtExchanges=fetch(new URL('../../../pixel-neon-dialogue.json',base)).then(response=>{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/voice-clips.js",
+      "line": 29,
+      "text": "if(!response.ok)throw Error('District dialogue '+response.status);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/voice-clips.js",
+      "line": 37,
+      "text": "}).catch(error=>{console.warn('[District dialogue]',error.message);return [];});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/voice-clips.js",
+      "line": 41,
       "text": "const importLine=(im,who)=>({id:'import:'+im.hash,speaker:manifest?.cast?.[im.who]||extraCast[im.who]?im.who:key(who,'').slice(0,-1),imported:im});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 102,
+      "line": 112,
       "text": "async function speak(o){const job={who:o&&o.characterId,text:o&&o.text,ended:false,endedAt:0};now=job;try{return await speakOne(o);}finally{job.ended=true;job.endedAt=performance.now();}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 106,
+      "line": 116,
       "text": "const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 117,
+      "line": 127,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 132,
+      "line": 142,
       "text": "function foreign(who,text){const l=lookup.get(key(who,text));return l&&l.shown===text&&l.text!==text?{text:l.text,translation:text}:null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 137,
+      "line": 147,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 138,
+      "line": 148,
       "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;speakLine();});",
       "kind": "source-reference"
     },
@@ -81820,6 +81838,7 @@
     "void-runner/personal-device.js": "c8f0574cf46a07cab0de40b566c0cc4566ba4f8c9afb3a88647c0818f7262d1f",
     "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
+    "void-runner/pixel-neon.js": "e0c7cc5be821fc4c75f646417824b0385733c42395b19dd1e0f4b56a4498eba7",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -81877,7 +81896,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "a2fc5106599175d02bd4d19878db57af671c60bbd5f8b6715a683834e08067bf",
+    "void-runner/voice-clips.js": "a461860797ffe98b8bfbe96382f86025efc39087ef2a0fe9d7481e3fa71171bc",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
