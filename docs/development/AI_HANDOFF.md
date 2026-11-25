@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 25 Nov 2026 - Imported world NPC editing
+
+Lace remains ready to assign under her permanent import ID. Her sealed model has 108 clips, including four owner-supplied motions verified with Babylon skinning. Explicit publication opens the regular NPC editor. World NPC changes and ordinary dialogue use separate versioned updates. No apartment, mission, or world placement was assigned as part of this release.
+
 ## 24 Nov 2026 — Lace and Reverie removal (local development)
 
 The owner retired both Avenue NPCs and their Milked Studio 1 rotation. Studio 1 is vacant. The street cat still uses the Avenue runtime. Other characters use the same movement, seats and floor transitions. The shared rigging workshop loads its approved run from a skeleton-only animation asset. The public mission-content endpoint returned version 3 with no references to either retired ID during the audit.

@@ -107,6 +107,21 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(result.json['content'], dict(previous, characters={npc: edit['character']}, npcs={npc: edit['placement']}))
         self.assertEqual(self.post('live-content/publish', dict(payload, expected=2)).status_code, 409)
 
+        route = {'mode': 'path', 'points': [
+            {'x': 100, 'z': -6.4, 'action': 'idle', 'seconds': 3},
+            {'x': 102, 'z': -6.4, 'action': 'walk-on', 'seconds': 0}]}
+        change = {'expected': 2, 'worldNpc': {'id': npc, 'character': edit['character'], 'placement': route}}
+        self.assertEqual(self.post('live-content/publish', change, token='outsider').status_code, 403)
+        result = self.post('live-content/publish', change)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(self.post('live-content/publish', change).status_code, 409)
+        talk = {'near': 'Welcome.', 'talk': 'Hello.', 'distance': 3, 'cooldown': 60}
+        result = self.post('live-content/publish', {'expected': 3, 'interaction': {'npc': npc, 'value': talk}})
+        self.assertEqual(result.status_code, 200, result.json)
+        ordinary = dict(characters={npc: edit['character']}, npcs={npc: route}, interactions={npc: talk})
+        self.assertEqual(self.get('live-content', token=None).json['content'], dict(previous, **ordinary))
+        self.assertEqual(live._ordinary_world(dict(previous, **ordinary)), dict(format=live.FORMAT, version=1, **ordinary))
+
     def test_dax_routine_publish_and_clear_without_a_mission(self):
         stay = {'mode': 'stay', 'x': 125.3, 'z': -96.4, 'yaw': 0, 'actions': ['shadow']}
         route = {'mode': 'path', 'points': [

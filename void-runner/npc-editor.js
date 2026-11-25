@@ -60,11 +60,14 @@
  const clipsOf=asset=>(root.VoidCrowd?.clips?.[asset]||[]).slice();
  function entries(){const g=S().givers||[],out=[];
   for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',made:!!x.made,group:x.made?'made':mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
+  for(const [id,character] of Object.entries(root.VoidLiveContent?.current?.content?.characters||{})){
+   if(id.startsWith('imp-')&&!out.some(row=>row.id===id))out.push({id,name:character.name,kind:'published',group:'made',look:character.model});
+  }
   for(const look of Object.keys(root.VoidCrowd?.street||{}))out.push({id:'crowd:'+look,name:'Street figure '+look.replace(/^npc-/,''),kind:'crowd',group:'crowd',look});
   {const C=root.VoidCrowd||{},seen=new Set([...(C.prepared||[]).map(p=>p.asset),...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
   for(const r of imports.filter(record=>!record.archived))out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:preparedModel(r)?'prepared':'import',rec:r});
   return out;}
- const GROUPS=[['prepared','Ready to assign'],['made','Made by you (mission givers you created)'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models in this browser'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
+ const GROUPS=[['prepared','Ready to assign'],['made','World NPCs made by you'],['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models in this browser'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
  // ---------------------------------------------------------------- imported models (this browser only: IndexedDB)
  const DB='void-npc-imports',ST='models';
  function db(){return new Promise((ok,fail)=>{try{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore(ST,{keyPath:'id'});};r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);}catch(e){fail(e);}});}
@@ -76,7 +79,7 @@
   for(const p of root.VoidCrowd?.prepared||[]){if(ids.has(p.id)){
     const r=records.find(record=>record.id===p.id);
     if(p.previousSha256&&r.library?.sha256===p.previousSha256){
-     r.blob=null;r.bytes=p.bytes;r.library={...r.library,sha256:p.sha256};if(r.info)r.info={...r.info,bytes:p.bytes};
+     r.blob=null;r.bytes=p.bytes;r.library={...r.library,sha256:p.sha256,clips:p.clips};if(r.info)r.info={...r.info,bytes:p.bytes,clips:p.clips};
     }
     continue;
    }
@@ -228,6 +231,7 @@
  // ---------------------------------------------------------------- one NPC
  function detail(main,e,pv){
   main.append(el('h3',e.name));if(advanced())main.append(el('p','id '+e.id,'me-small',{'data-npc-id':e.id}));
+  if(e.kind==='published'){main.append(btn('Edit world NPC',()=>{S().editPublishedNpc(e.id);draw();},'me-play'));return;}
   if(e.kind==='import')return importDetail(main,e.rec,pv);
   const g=e.giver,asset=e.look,clips=clipsOf(asset);
   const facts=el('section','','me-check',{'data-npc-facts':e.id});facts.append(el('h4','About'));
@@ -423,7 +427,7 @@
   for(const t of ['Name: '+c.name+(c.role?' — '+c.role:''),'Model: '+(MD().modelOf(c.model)||{label:c.model}).label+(c.adult?' · adult (18+)':''),'Look: '+(c.look?'changed':'as made'),'Device: '+(c.device?MD().DEVICES[c.device].name:'none'),'Ship: '+(c.ship?(MD().ships().find(s=>s.id===c.ship)||{}).name:'none'),
    'Items: '+((c.items||[]).map(i=>it.get(i.id)+(i.show?' (visible)':'')).join(', ')||'none'),'There: '+(c.when?'only during a mission':'always')])ul.append(el('li',t));return ul;}
  /* The made character's own box in the NPC list: everything the creator set, changed in place. */
- function madeBox(main,e){const id=e.id,c=madeOf(id);if(!c)return;const box=el('section','','me-check',{'data-npc-made':id});box.append(el('h4','Mission giver made by you'),hint('Everything you chose in the creator. Change it here or step by step.'));
+ function madeBox(main,e){const id=e.id,c=madeOf(id);if(!c)return;const box=el('section','','me-check',{'data-npc-made':id});box.append(el('h4','World NPC'),hint('Everything you chose in the creator. Change it here or step by step.'));
   box.append(summary(c));const r=el('div','','me-row');
   r.append(btn('CHANGE STEP BY STEP',()=>{ui.make={step:1,id,model:c.model,name:c.name,role:c.role||'',adult:!!c.adult,tried:false};ui.id=id;draw();},'',{'data-npc-made-edit':id}),
    btn('DELETE THIS CHARACTER',()=>{const d=S().local(),refs=MD().deletionReferences(d,id);
@@ -433,6 +437,25 @@
     S().saveLocal(d);ui.id=null;status=c.name+' was deleted from your draft (UNDO brings them back). Their associated draft records were removed.';draw();},'me-x',{'data-npc-made-delete':id}));
   box.append(r);const left=root.VoidMissionContent?.madeNeeds?.(S().local(),S().givers,id)||[];if(left.length)box.append(el('p','Not in the game yet: '+left.map(x=>x.replace(/^[^:]+: /,'')).join(' '),'me-warn',{'data-npc-made-needs':id}));
   const dv=el('div');dv.append(el('b','Device'));deviceStep(dv,id);const sh=el('div');sh.append(el('b','Ship'));shipStep(sh,id);const its=el('details','','me-npc-group');its.append(el('summary','Items'));itemsStep(its,id);box.append(dv,sh,its);
+  const residence=el('details','','me-check'),residenceStatus=el('p','','me-small',{role:'status'});
+  residence.append(el('summary','Apartment and home hours'));
+  residence.addEventListener('toggle',async()=>{
+   if(!residence.open||residence.dataset.ready)return;
+   residence.dataset.ready='1';
+   try{await ensureCompanionImporter();root.VoidVRCompanionStudio.residenceTab(residence, (label,act)=>btn(label,async()=>{
+    try{await act();}catch(err){residenceStatus.textContent=err.message;}
+   }),residenceStatus,{entry:c},value=>editMade(id,record=>{if(value)record.residence=value;else delete record.residence;},'Residence saved to draft.'));}
+   catch(err){delete residence.dataset.ready;residenceStatus.textContent=err.message;}
+  });
+  residence.append(residenceStatus);box.append(residence);
+  if(id.startsWith('imp-')){
+   const note=el('p','','me-small',{role:'status'});
+   box.append(btn('Publish world NPC changes',async()=>{
+    if(!root.confirm('Publish '+c.name+' and their placement for all players?'))return;
+    try{const result=await S().publishWorldNpc(id);note.textContent='Published world version '+result.version+'.';}
+    catch(err){note.textContent=err.message;}
+   },'me-publish'),note);
+  }
   main.append(box);whenStep(main,id);}
  /* This character's own look (content.characters[id].look), with the appearance editor's parts, colours and pieces. */
  function charLookBox(main,e,asset,inWizard){const id=e.id,box=el('section','','me-check',{'data-npc-appearance':id});box.append(el('h4','Their look'),hint(MHELP.look));main.append(box);
@@ -724,24 +747,16 @@
  }
  function importDetail(main,rec,pv){
   const prepared=preparedModel(rec);
-  if(prepared)main.append(btn('Assign to world draft',()=>{startMake();Object.assign(ui.make,{model:prepared.asset,name:rec.name,step:1});draw();}));
+  if(S().local().characters?.[rec.id]||root.VoidLiveContent?.current?.content?.characters?.[rec.id]){
+   main.append(btn('Open world NPC',()=>{S().editPublishedNpc(rec.id);ui.id=rec.id;ui.start=false;draw();},'me-play'));
+  }else if(prepared)main.append(btn('Assign to world draft',()=>{startMake();Object.assign(ui.make,{model:prepared.asset,name:rec.name,step:1});draw();}));
   main.append(el('p',(prepared?'NPC Library · Ready to assign · ':'Local import draft · kept in this browser · ')+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
   if(prepared?.profileFile&&!rec.companion){
    const feedback=el('span','','me-small',{role:'status'});
    const load=btn('Load personality and recordings',async()=>{
     load.disabled=true;
     try{
-     await ensureCompanionImporter();
-     const response=await fetch(prepared.profileFile);
-     if(!response.ok)throw Error('Could not load the prepared profile.');
-     const bytes=await root.VoidAssets.open(await response.arrayBuffer());
-     const {meta,parts}=await root.VoidVRCompanionStudio.unpackTransfer(new Blob([bytes]));
-     const profile=root.VoidVRCompanionStudio.profile(meta);
-     const voices=parts.filter(part=>part.meta.kind==='voice').map(part=>({record:part.meta.record,blob:part.blob}));
-     const recorded=new Set(voices.map(v=>v.record.text));
-     rec.companion={...meta,...profile,voices,recordedLineCount:recorded.size,
-      missingVoiceLines:Object.values(profile.dialogue).flat().filter(line=>!recorded.has(line)),
-      animationNames:prepared.clips,motions:[]};
+     await loadPreparedProfile(rec,prepared);
      draw();
     }catch(err){feedback.textContent=err.message;load.disabled=false;}
    });
@@ -1000,7 +1015,7 @@
    try{
     publishNote.textContent='Checking the deployed model…';
     const result=await publishImport(structuredClone(rec),progress=>publishNote.textContent=progress);
-    publishNote.textContent='Published '+rec.name+' in world version '+result.version+'. Players will see this NPC when they next load the game.';
+    status='Published '+rec.name+' in world version '+result.version+'. Edit dialogue, routes and residence below.';ui.id=rec.id;ui.make=null;ui.start=false;draw();
    }catch(error){publishNote.textContent=error.message;}
    finally{refreshPackage();}
   },'me-publish',{'data-npc-publish-import':rec.id});
@@ -1008,8 +1023,23 @@
   const r=el('div','','me-row me-actions');r.append(publishButton,exportButton,hint(HELP.addToGame));lic.append(packageHint,r,publishNote);
   lic.append(btn('Delete this model (from this browser)',async()=>{const ids=new Set([rec.id,'import:'+rec.id,rec.companion?.id,preparedModel(rec)?.asset].filter(Boolean));if(root.VoidNPCLibrary.referenced(S().local(),ids)||root.VoidNPCLibrary.referenced(S().server,ids)||imports.some(r=>r!==rec&&root.VoidNPCLibrary.referenced(r.companion?.relationships,ids))){status='A world or draft reference uses this asset. Archive it in the NPC Library.';draw();return;}if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;if(root.VoidCrowd?.prepared?.some(p=>p.id===rec.id))await dbPut({id:rec.id,deleted:true});else await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
   main.append(lic);}
+ async function loadPreparedProfile(rec,prepared){
+     await ensureCompanionImporter();
+     const response=await fetch(prepared.profileFile);
+     if(!response.ok)throw Error('Could not load the prepared profile.');
+     const bytes=await root.VoidAssets.open(await response.arrayBuffer());
+     const {meta,parts}=await root.VoidVRCompanionStudio.unpackTransfer(new Blob([bytes]));
+     const profile=root.VoidVRCompanionStudio.profile(meta);
+     const voices=parts.filter(part=>part.meta.kind==='voice').map(part=>({record:part.meta.record,blob:part.blob}));
+     const recorded=new Set(voices.map(v=>v.record.text));
+     rec.companion={...meta,...profile,voices,recordedLineCount:recorded.size,
+      missingVoiceLines:Object.values(profile.dialogue).flat().filter(line=>!recorded.has(line)),
+      animationNames:prepared.clips,motions:[]};
+ }
  async function publishImport(rec,progress){
   const {deployedModel}=await import('./npc-publish.mjs');
+  const prepared=preparedModel(rec);
+  if(prepared?.profileFile&&!rec.companion){progress('Loading companion dialogue and recordings…');await loadPreparedProfile(rec,prepared);}
   const model=await deployedModel(rec,progress);
   const id=rec.id,character={name:rec.name,model},clips=[];
   if(rec.companion){

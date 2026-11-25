@@ -2870,6 +2870,34 @@ def summary(db):
     return result
 
 
+def _ordinary_world(content):
+    """Retain independently valid residents when an older mission snapshot cannot run."""
+    ordinary = {'format': FORMAT, 'version': 1}
+    if not isinstance(content, dict):
+        return None
+    chars = content.get('characters')
+    plans = content.get('npcs')
+    chars = chars if isinstance(chars, dict) else {}
+    plans = plans if isinstance(plans, dict) else {}
+    for npc, character in chars.items():
+        if not isinstance(npc, str) or not npc.startswith('imp-') or npc not in plans:
+            continue
+        trial = dict(ordinary, characters={**ordinary.get('characters', {}), npc: character},
+                     npcs={**ordinary.get('npcs', {}), npc: plans[npc]})
+        if not check(trial):
+            ordinary = trial
+    interactions = content.get('interactions')
+    for npc, interaction in (interactions if isinstance(interactions, dict) else {}).items():
+        trial = dict(ordinary, interactions={**ordinary.get('interactions', {}), npc: interaction})
+        if not check(trial):
+            ordinary = trial
+    clips = content.get('clips')
+    clips = [c for c in clips if isinstance(c, dict) and isinstance(c.get('who'), str) and c['who'] in ordinary.get('characters', {})] if isinstance(clips, list) else []
+    if clips and not clip_problems(clips):
+        ordinary['clips'] = clips
+    return ordinary if len(ordinary) > 2 else None
+
+
 def public(db, now=None):
     now = now or time.time()
     if _cache['value'] is not None and now - _cache['at'] < CACHE_SECONDS:
@@ -2885,9 +2913,7 @@ def public(db, now=None):
             # A historical mission snapshot may no longer match the shipped game.
             # Keep the existing shipped-mission fallback, but expose independently
             # validated ordinary interactions for NPCs that exist in the shipped roster.
-            table = (record.get('content') or {}).get('interactions')
-            ordinary = {'format': FORMAT, 'version': 1, 'interactions': table} if table else None
-            value = {'version': live, 'content': ordinary if ordinary and not check(ordinary) else None, 'publishedAt': record.get('at')}
+            value = {'version': live, 'content': _ordinary_world(record.get('content') or {}), 'publishedAt': record.get('at')}
     _cache.update(at=now, value=value)
     return value
 
@@ -2969,6 +2995,31 @@ def _add_imported_npc(previous, edit, inventory):
 
 def publish(db, uid, payload):
     expected = _expected(payload)
+    if _keys(payload, ['expected', 'worldNpc']) and 'worldNpc' in payload:
+        edit = payload['worldNpc']
+        if (not isinstance(edit, dict) or set(edit) != {'id', 'character', 'placement'}
+                or not isinstance(edit['id'], str) or not re.fullmatch(r'imp-[0-9a-f-]{36}', edit['id'])
+                or not isinstance(edit['character'], dict) or not isinstance(edit['placement'], dict)):
+            raise DraftError('Invalid world NPC edit.', 422)
+        npc = edit['id']
+
+        def update_world_npc(tx, live, history):
+            record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}
+            previous = record.get('content') or {}
+            old = (previous.get('characters') or {}).get(npc)
+            if not old or old.get('model') != edit['character'].get('model'):
+                raise DraftError('Publish the imported NPC first. Its permanent model must match.', 409)
+            content = dict(previous, characters={**previous['characters'], npc: edit['character']},
+                           npcs={**(previous.get('npcs') or {}), npc: edit['placement']})
+            standalone = {'format': FORMAT, 'version': 1, 'characters': {npc: edit['character']}, 'npcs': {npc: edit['placement']}}
+            problems = check(standalone)
+            if not problems and not check(previous):
+                problems = check(content)
+            if problems or len(json.dumps(content).encode('utf-8')) > MAX_BYTES:
+                raise DraftError('World NPC changes could not be published: ' + '; '.join(problems[:5] or ['content size limit']), 422)
+            return content, None
+
+        return _commit(db, uid, expected, 'publish', update_world_npc, 'Edit world NPC ' + npc, interaction_only=True)
     if _keys(payload, ['expected', 'importedNpc']) and 'importedNpc' in payload:
         edit = payload['importedNpc']
         if (not isinstance(edit, dict) or set(edit) != {'id', 'character', 'placement', 'clips'}
@@ -3011,7 +3062,8 @@ def publish(db, uid, payload):
             # Old mission snapshots can be stale after a shipped story update.
             # Never change or reactivate those missions as part of an NPC edit.
             if check(previous):
-                problems = check({'format': FORMAT, 'version': 1, 'interactions': table})
+                ordinary = _ordinary_world(previous) or {'format': FORMAT, 'version': 1}
+                problems = check(dict(ordinary, interactions=table))
                 if len(json.dumps(content).encode('utf-8')) > MAX_BYTES:
                     problems.append('The content is too large.')
             else:
