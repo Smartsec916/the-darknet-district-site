@@ -60036,7 +60036,7 @@
       "spawn"
     ]
   },
-  "revision": "bdf075ad0ffd0d71",
+  "revision": "61a83d506164adab",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79709,37 +79709,37 @@
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 198,
-      "text": "const pure={GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,groupSeats,greetingPoint,chooseGuest,allLines,lineInfo,visit,mulberry32,",
+      "line": 214,
+      "text": "const pure={gazeGoal,gazeStep,GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,groupSeats,greetingPoint,chooseGuest,allLines,lineInfo,visit,mulberry32,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 209,
+      "line": 225,
       "text": "const where=()=>{try{if(typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.area!=='street'||walkingLocation.quarter!=='underground')return null;if(typeof mode==='undefined'||!['walking','dialogue','mission-log'].includes(mode))return null;const w=typeof walker!=='undefined'?walker:null;return w&&Number.isFinite(w.x+w.z)?w:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 271,
+      "line": 300,
       "text": "const spot=greetingPoint(f.id,w,(x,z)=>blockedAt(x,z,f,w),other);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 399,
+      "line": 462,
       "text": "const isBlocked=()=>{try{return !!((typeof speech!=='undefined'&&speech)||root.VoidLiveContent?.nearBlocked?.()||(typeof document!=='undefined'&&document.hidden));}catch{return true;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 550,
+      "line": 613,
       "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms,hardEnd:now+MAX_LINE-250};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 580,
+      "line": 643,
       "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};",
       "kind": "source-reference"
     },
@@ -81301,7 +81301,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "974f73e9bf49f284d8d65af0242dc227afdc1f8551d12dad48dccd53aa87b029",
+    "void-runner/tea-duo.js": "fd4de71dd4521521e6d5ef9eee175a013457f31ee4649f632e51e5541111febc",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
