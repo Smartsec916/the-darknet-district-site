@@ -64,7 +64,7 @@
    if(P.social){if(P.area!==fromArea||!Number.isFinite(h.x)||!Number.isFinite(h.z))continue;
     const point=socialArrival(h,fromArea,toArea,o,me,riding);
     // A failed cab exchange unloads the passenger on foot. Keep a walkable source position for that recovery.
-    const source=point?.ride==='in-cab' ? A.nearest(h,fromArea,16)||h : h;
+    const source=point?.ride==='in-cab' ? A.nearest?.(h,fromArea,16)||h : h;
     C.setCarry(h.npc,{key:P.step,area:fromArea,x:+source.x.toFixed(2),z:+source.z.toFixed(2),yaw:h.yaw,phase:P.kind==='follow-them'?'wait':'paused',ride:null});
     if(point){arrivals.push({npc:h.npc,key:P.step,from:fromArea,point,controller:root.VoidGateTransit,lane:o.gateLane});continue;}
     log.push({npc:h.npc,step:P.step,from:fromArea,to:toArea,via:link?link.id:null,go:'stay',dist:+Math.hypot(h.x-me.x,h.z-me.z).toFixed(1),at:Date.now()});if(log.length>30)log.shift();continue;}
