@@ -37,7 +37,7 @@
  function socialArrival(h,from,to,o,me,riding){
   const C=LC(),R=E(),Q=root.VoidQuarters,P=h.plan,policy=C.socialTravelPolicy?.(h.npc,P.step);
   const lane=o?.gateLane&&Q?.lane?.(o.gateLane),g=lane&&Q.gate(lane.gate);
-  if(!policy||!g||g.shut||!to||P.area!==from||!policy.allowGate(h.npc,'gate:'+lane.key,from,to))return null;
+  if(!policy||!g||g.shut||!to||P.area!==from||root.VoidGateTransit?.busy!==true||root.VoidGateTransit.state!=='EXCHANGE'||root.VoidGateTransit.lane!==lane.key||typeof root.VoidGateTransit.deferExchange!=='function'||!policy.allowGate(h.npc,'gate:'+lane.key,from,to))return null;
   if(riding){
    if(lane.kind!=='bay'||h.ride!=='in-cab'||!Array.isArray(o.spawn)||Math.hypot(h.x-me.x,h.z-me.z)>12)return null;
    const x=o.spawn[0],z=o.spawn[2];
@@ -63,8 +63,9 @@
    // actual position even when the player enters an unregistered interior; do not use mission transfer.
    if(P.social){if(P.area!==fromArea||!Number.isFinite(h.x)||!Number.isFinite(h.z))continue;
     const point=socialArrival(h,fromArea,toArea,o,me,riding);
-    if(point){arrivals.push({npc:h.npc,key:P.step,from:fromArea,point});continue;}
+    // Preserve the source pose before unloading, even for a provisional successful crossing.
     C.setCarry(h.npc,{key:P.step,area:fromArea,x:+h.x.toFixed(2),z:+h.z.toFixed(2),yaw:h.yaw,phase:P.kind==='follow-them'?'wait':'paused',ride:null});
+    if(point){arrivals.push({npc:h.npc,key:P.step,from:fromArea,point,controller:root.VoidGateTransit,lane:o.gateLane});continue;}
     log.push({npc:h.npc,step:P.step,from:fromArea,to:toArea,via:link?link.id:null,go:'stay',dist:+Math.hypot(h.x-me.x,h.z-me.z).toFixed(1),at:Date.now()});if(log.length>30)log.shift();continue;}
    const place=P.kind==='follow-them'?'ahead':'behind',inCab=h.ride==='in-cab'||h.phase==='in-cab';
    const at=riding?(sp?{x:sp.x,z:sp.z,yaw:sp.yaw}:null):R.arrival(link,toArea,place,sp);
@@ -83,7 +84,7 @@
  enterWalking=async function(id,options){
   let arrivals=[];try{arrivals=decide(id,options||{})||[];}catch(e){console.warn('[escort across]',e);}
   const result=await prev.apply(this,arguments);
-  try{const areas=here();for(const a of arrivals)if(areas.includes(a.point.area))LC()?.arriveSocial?.(a.npc,a.key,a.from,a.point);LC()?.replan?.();}catch(e){console.warn('[escort arrival]',e);}
+  try{const areas=here();for(const a of arrivals)if(areas.includes(a.point.area))a.controller.deferExchange(a.lane,()=>{if(here().includes(a.point.area)){LC()?.arriveSocial?.(a.npc,a.key,a.from,a.point);LC()?.replan?.();}});LC()?.replan?.();}catch(e){console.warn('[escort arrival]',e);}
   return result;
  };
  root.VoidEscortAcross={log:()=>log.slice(),target,here,present};

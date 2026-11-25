@@ -164,7 +164,12 @@
   else if(d>gap){const p=tr.pts;let i=Math.min(st.ti||0,p.length-1);while(i<p.length-1&&dist(p[i],st)<.35)i++;st.ti=i;
    // straight to the player when the trail's next crumb is further than the player (a trail that loops back)
    const t=p[i]&&dist(p[i],me)<d?p[i]:me,want=(st.meV||0)+(d-gap)*SPEED.gain,cap=cat?(d>SPEED.catDashOver?SPEED.catDash:SPEED.catTrot):SPEED.max;
-   st.speed=Math.max(0,Math.min(cap,Math.max(want,Math.min(cap,cat?SPEED.catWalk:SPEED.walk)*Math.min(1,(d-gap)/.6))));st.clip=st.speed>SPEED.runAbove?'run':'walk';stepTo(st,t,st.speed,dt);if(dist(me,st)<gap)face(st,me,dt);}
+   st.speed=Math.max(0,Math.min(cap,Math.max(want,Math.min(cap,cat?SPEED.catWalk:SPEED.walk)*Math.min(1,(d-gap)/.6))));st.clip=st.speed>SPEED.runAbove?'run':'walk';const fromX=st.x,fromZ=st.z;stepTo(st,t,st.speed,dt);
+   // A social follower can approach the scanner, but only the completed exchange moves it off its source walk grid.
+   if(inp.social&&inp.area&&AR()?.areaOf({x:fromX,z:fromZ},inp.area)===inp.area&&AR().areaOf(st,inp.area)!==inp.area){
+    st.x=fromX;st.z=fromZ;st.speed=0;st.clip='idle';
+   }
+   if(dist(me,st)<gap)face(st,me,dt);}
   else face(st,me,dt);
   if(inp.to&&!inp.door&&!inp.noDone&&dist(me,inp.to)<=LIMIT.arrive&&dist(st,inp.to)<=LIMIT.arrive+gap+1){go('done');}
   return ev;}
