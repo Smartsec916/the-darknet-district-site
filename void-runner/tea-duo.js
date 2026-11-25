@@ -195,14 +195,30 @@
  /* the clips the figures rely on, on both rigs (crowd.js) */
  const CLIPS_NEEDED=['idle','talk','sit','sit-enter','sit-exit'];
  const CLIPS_ALL=[...new Set([...CLIPS_NEEDED,...STAND_CLIPS,...SEAT_CLIPS,'walk'])];
- const pure={GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,groupSeats,greetingPoint,chooseGuest,allLines,lineInfo,visit,mulberry32,
+ // Degrees relative to the actor. Fade attention at the doorway, behind the
+ // shoulders and at very close range where a bearing becomes unstable.
+ function gazeGoal(x,y,z,faceYaw=0,facePitch=0){
+  const flat=Math.hypot(x,z),distance=Math.hypot(flat,y);
+  if(!Number.isFinite(distance))return {yaw:0,pitch:0};
+  const degrees=180/Math.PI, bearing=Math.atan2(x,z)*degrees;
+  const fade=n=>{n=Math.min(1,Math.max(0,n));return n*n*(3-2*n);};
+  const weight=fade((7-distance)/2)*fade((130-Math.abs(bearing))/40)*fade((flat-.1)/.3);
+  const limit=(n,max)=>Math.max(-max,Math.min(max,n));
+  return {yaw:weight*limit(limit(bearing,55)-faceYaw,48),
+   pitch:weight*limit(limit(Math.atan2(y,flat)*degrees,25)-facePitch,22)};
+ }
+ function gazeStep(value,goal,dt){
+  const seconds=Math.max(0,Math.min(.1,dt)),delta=(goal-value)*(-Math.expm1(-4*seconds));
+  return value+Math.sign(delta)*Math.min(Math.abs(delta),85*seconds);
+ }
+ const pure={gazeGoal,gazeStep,GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,groupSeats,greetingPoint,chooseGuest,allLines,lineInfo,visit,mulberry32,
   OPEN,BACK,CLOSE,MIDDLE,INVITES,ACT_OF,STANDS,ROLE,ACTS,POSES,ACTIONS,BONES,ease,CLIPS_NEEDED,CLIPS_ALL,CLIP_OF,STAND_CLIPS,SEAT_CLIPS,LONG_QUIET,EPISODES,episode,quietIn,QUIET,REPLY_YES,REPLY_NO,AFTER_YES,AFTER_NO,TOUCH,HANDS};
  if(node){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
 
  // ---------------- the browser part ----------------
- const figs=new Map();let loading=null,missing=false,told=false,sceneRef=null,duo=null,rec=null,memory=null,current=null,obs=null,visiting=false,lastSpeaker=null,lastT=0;
+ const figs=new Map();let loading=null,missing=false,told=false,sceneRef=null,duo=null,rec=null,memory=null,current=null,obs=null,beforeObs=null,visiting=false,lastSpeaker=null,lastT=0;
  const NEAR=[ROOM,TEA];
  let arrival=null,invitation=null,activity=null,playerSeat=null,panel=null,owner=null,ownerReady=0;
 
@@ -210,7 +226,7 @@
  const placeOf=w=>{try{return UG().placeAt(w.x,w.z);}catch{return null;}};
  const clock=()=>performance.now()/1000,D2R=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a),clampAbs=(x,m)=>Math.max(-m,Math.min(m,x));
  const WALK_SPEED=.65;   // metres a second: the stride of the walk clip (measured: its foot travels 0.71 m in half a cycle of 1.1 s)
- function drop(){try{if(obs&&sceneRef)sceneRef.onAfterAnimationsObservable.remove(obs);}catch{}obs=null;for(const f of figs.values()){try{f.ctrl?.dispose?.();f.node.dispose();}catch{}}figs.clear();sceneRef=null;rec=null;duo=null;visiting=false;}
+ function drop(){try{if(sceneRef){sceneRef.onAfterAnimationsObservable.remove(obs);sceneRef.onBeforeAnimationsObservable.remove(beforeObs);}}catch{}obs=null;beforeObs=null;for(const f of figs.values()){try{f.ctrl?.dispose?.();f.node.dispose();}catch{}}figs.clear();sceneRef=null;rec=null;duo=null;visiting=false;}
  // the figure's bones by name, parents first
  function bonesOf(made){const all=made.getChildTransformNodes(false),out=[];for(const key of BONES){const n=all.find(t=>new RegExp('(^|[^A-Za-z])'+key+'$').test(t.name));if(n)out.push({key,bone:n,depth:(()=>{let d=0;for(let p=n.parent;p;p=p.parent)d++;return d;})()});}return out.sort((a,b)=>a.depth-b.depth);}
  async function ensure(scene){
@@ -232,11 +248,24 @@
     // feet (or, seated, the origin) on the floor: the lift from the bind-pose bounds, once, as an absolute height on the visual child
     asset.position.y=0;nd.computeWorldMatrix(true);asset.computeWorldMatrix(true);const bb=made.getHierarchyBoundingVectors(true);asset.position.y=floorLift(bb.min.y,bb.max.y,pl.y);
     const fx=Math.sin(pl.yaw),fz=Math.cos(pl.yaw),t=clock();
-    figs.set(id,{id,node:nd,asset,made,ctrl,pl,has,clip:pl.pose==='sit'?'sit':'idle-f',order:bonesOf(made),lock:null,tail:0,post:pl.pose==='sit'?'sit':'stand',want:pl.pose==='sit'?'sit':'stand',tr:null,acts:[],lookY:0,
+    const order=bonesOf(made),head=order.find(b=>b.key==='Head')?.bone;
+    let faceAxis=null;
+    if(head){
+     const forward=B.Vector3.TransformNormal(new B.Vector3(0,0,1),nd.getWorldMatrix());
+     faceAxis=B.Vector3.TransformNormal(forward,head.computeWorldMatrix(true).clone().invert()).normalize();
+    }
+    figs.set(id,{id,node:nd,asset,made,ctrl,pl,has,clip:pl.pose==='sit'?'sit':'idle-f',order,head,faceAxis,baseRotations:new Map(),lock:null,tail:0,post:pl.pose==='sit'?'sit':'stand',want:pl.pose==='sit'?'sit':'stand',tr:null,acts:[],lookY:0,lookPitch:0,
      ph:Math.random()*6.3,idleAt:t+rnd(2,5),epAt:t+quietIn(Math.random),ep:null,walk:null,accent:null,doClip:null,
      home:pl,homeStand:{x:pl.x+fx*standOffset(id),z:pl.z+fz*standOffset(id)},spot:spot?{x:spot.x,z:spot.z}:null});
    }
-   sceneRef=scene;obs=scene.onAfterAnimationsObservable.add(frame);
+   sceneRef=scene;
+   beforeObs=scene.onBeforeAnimationsObservable.add(()=>{
+    for(const f of figs.values()){
+     for(const [bone,base] of f.baseRotations)bone.rotationQuaternion.copyFrom(base);
+     f.baseRotations.clear();
+    }
+   });
+   obs=scene.onAfterAnimationsObservable.add(frame);
   })().finally(()=>{loading=null;});}
  function play(f,name){if(f.clip===name||!f.has(name))return;f.clip=name;try{f.ctrl.play(name);}catch{}}
  const feetMid=f=>{f.node.computeWorldMatrix(true);let x=0,z=0,n=0;for(const k of ['LeftFoot','RightFoot']){const b=f.order.find(o=>o.key===k);if(!b)continue;b.bone.computeWorldMatrix(true);const p=b.bone.getAbsolutePosition();x+=p.x;z+=p.z;n++;}return n?[x/n,z/n]:null;};
@@ -322,12 +351,40 @@
  }
  // the guest's place in the figure's own frame (x to its right, z the way it faces)
  function localOf(f,x,y,z){const B=root.BABYLON;f.node.computeWorldMatrix(true);const inv=f.node.getWorldMatrix().clone().invert();return B.Vector3.TransformCoordinates(new B.Vector3(x,Number.isFinite(y)?y:f.pl.y+1.7,z),inv);}
+ function headPosition(f){
+  return f?.head?.computeWorldMatrix(true).getTranslation();
+ }
+ function guestEyes(guest,seated){
+  if(!guest||placeOf(guest)!==ROOM)return null;
+  return {x:guest.x,y:Number.isFinite(guest.y)?guest.y:UG().Y+(seated?1.03:1.68),z:guest.z};
+ }
+ function track(f,target,pose,dt){
+  if(!f.head||!f.faceAxis)return;
+  let goal={yaw:0,pitch:0};
+  if(target){
+   const B=root.BABYLON,h=headPosition(f),inv=f.node.getWorldMatrix().clone().invert();
+   const offset=B.Vector3.TransformNormal(new B.Vector3(target.x-h.x,target.y-h.y,target.z-h.z),inv);
+   const worldFace=B.Vector3.TransformNormal(f.faceAxis,f.head.getWorldMatrix());
+   const face=B.Vector3.TransformNormal(worldFace,inv).normalize();
+   goal=gazeGoal(offset.x,offset.y,offset.z,Math.atan2(face.x,face.z)/D2R,Math.asin(Math.max(-1,Math.min(1,face.y)))/D2R);
+  }
+  f.lookY=gazeStep(f.lookY,goal.yaw,dt);
+  f.lookPitch=gazeStep(f.lookPitch,goal.pitch,dt);
+  // Give deliberate glances first call on the available head turn.
+  const gestureTurn=['Head','Neck'].reduce((sum,key)=>sum+(pose[key]||[]).reduce((v,[a,n])=>v+(a==='y'?n:0),0),0);
+  const yaw=clampAbs(gestureTurn+f.lookY,65)-gestureTurn;
+  for(const [key,share] of [['Head',.65],['Neck',.35]]){
+   (pose[key]||=[]).push(['y',yaw*share],['x',-f.lookPitch*share]);
+  }
+ }
  function applyPose(f,pose){
   const B=root.BABYLON;f.node.computeWorldMatrix(true);const NW=f.node.getWorldMatrix(),ax={x:B.Vector3.TransformNormal(new B.Vector3(1,0,0),NW).normalize(),y:B.Vector3.TransformNormal(new B.Vector3(0,1,0),NW).normalize(),z:B.Vector3.TransformNormal(new B.Vector3(0,0,1),NW).normalize()};
   for(const {key,bone} of f.order){bone.computeWorldMatrix(true);const spec=pose[key];if(!spec||!bone.parent)continue;
    const W=bone.getWorldMatrix().clone(),p=W.getTranslation();let R=B.Matrix.Identity();for(const [a,deg] of spec)R=R.multiply(B.Matrix.RotationAxis(ax[a],deg*D2R));
    const Wp=W.multiply(B.Matrix.Translation(-p.x,-p.y,-p.z)).multiply(R).multiply(B.Matrix.Translation(p.x,p.y,p.z)),L=Wp.multiply(bone.parent.getWorldMatrix().clone().invert()),q=new B.Quaternion();
-   L.decompose(new B.Vector3(),q,new B.Vector3());bone.rotationQuaternion=q;bone.computeWorldMatrix(true);}
+   L.decompose(new B.Vector3(),q,new B.Vector3());
+   if(!f.baseRotations.has(bone))f.baseRotations.set(bone,bone.rotationQuaternion?.clone()||B.Quaternion.FromEulerVector(bone.rotation));
+   bone.rotationQuaternion=q;bone.computeWorldMatrix(true);}
  }
  let observedLine=null,observedOwner=null;
  function spectator(w){
@@ -338,12 +395,16 @@
   const mp=root.VoidRemotePlayers,shared=mp.teaState;
   if(shared?.owner!==observedOwner){stopSpeech();observedLine=null;observedOwner=shared?.owner;}
   const s=shared?.state;if(!s)return;
+  const guest=mp.peers?.find(p=>p.id===shared.owner&&p.under),speaker=s.line?.split('-')[0];
   MEMBERS.forEach((id,i)=>{const f=figs.get(id),at=s.actors[i];if(!f||!at)return;
    const factor=Math.min(1,dt*10);f.node.position.x+=(at[0]-f.node.position.x)*factor;f.node.position.z+=(at[1]-f.node.position.z)*factor;
    turnTo(f,at[2],10,dt);play(f,at[3]);
    f.post=at[3]==='sit'||at[3]==='sit-talk'?'sit':'stand';f.want=f.post;
    const gesture=at[4],pose=gesture&&Object.hasOwn(POSES,gesture[0])&&POSES[gesture[0]];
-   if(pose){const u=gesture[1];applyPose(f,pose.at(u,u*pose.dur,gesture[2],ease(u),{}));}
+   const u=gesture?.[1]||0,overlay=pose?pose.at(u,u*pose.dur,gesture[2],ease(u),{}):{};
+   const other=speaker&&speaker!==id?figs.get(speaker):null;
+   track(f,other?headPosition(other):guestEyes(guest,s.seated),overlay,dt);
+   applyPose(f,overlay);
   });
   if(s.line!==observedLine){if(observedLine)stopSpeech();observedLine=s.line;
    if(s.line&&!isBlocked()){const who=s.line.split('-')[0],entry=allLines(who).find(l=>l.id===s.line);
@@ -363,16 +424,18 @@
     if(f.ep)episodeStep(f,t);
     if(f.returnHome&&standing(f)){f.returnHome=false;f.want='sit';}
     posture(f,t,dt,speaking,g);
-    const target=talking&&!speaking&&other?other.node.position:focus;
-    const gl=localOf(f,target.x,speaking||!talking?target.y:target.y+1.48,target.z),bearing=Math.atan2(gl.x,gl.z)/D2R,dist=Math.hypot(gl.x,gl.z);
+    const eyes=talking&&!speaking&&other?headPosition(other):guestEyes(focus,!!playerSeat);
+    const target=eyes||focus;
+    const gl=localOf(f,target.x,target.y,target.z),bearing=Math.atan2(gl.x,gl.z)/D2R,dist=Math.hypot(gl.x,gl.z);
     // standing, she turns toward the guest (within 70 degrees of where she faced, all round at her spot); seated she looks round with her head only
     if(f.post==='stand'&&!f.walk&&f.want==='stand'){const at=f.spot&&Math.hypot(f.node.position.x-f.spot.x,f.node.position.z-f.spot.z)<.4;turnTo(f,f.node.rotation.y+clampAbs(bearing,at?180:70)*D2R*(dist<6?1:0),3,dt);}
     else if(f.post==='sit')turnTo(f,f.pl.yaw,6,dt);
-    if(f.post==='rising'||f.post==='sitting'||f.tail)continue;
+    if(f.post==='rising'||f.post==='sitting'||f.tail){
+     const pose={};track(f,eyes,pose,dt);applyPose(f,pose);continue;
+    }
     // base: breathing and the head following the guest
-    const lookWant=dist<7&&Math.abs(bearing)<115?clampAbs(bearing*.6,34):0;f.lookY+=(lookWant-f.lookY)*Math.min(1,3*dt);
     const br=Math.sin((t+f.ph)*1.45),br2=Math.sin((t+f.ph)*.55+1);
-    const pose={Chest:[['x',1.6*br]],Spine:[['x',.9*br],['z',1.6*br2]],Head:[['y',f.lookY*.7+2*br2],['x',.9*Math.sin((t+f.ph)*1.45+1)]],Neck:[['y',f.lookY*.3]],LeftUpperArm:[['z',-.8*br]],RightUpperArm:[['z',.8*br]]};
+    const pose={Chest:[['x',1.6*br]],Spine:[['x',.9*br],['z',1.6*br2]],Head:[['y',2*br2],['x',.9*Math.sin((t+f.ph)*1.45+1)]],LeftUpperArm:[['z',-.8*br]],RightUpperArm:[['z',.8*br]]};
     // the quiet movements, one after another with random gaps (they never move in step: their timers are their own)
     if(!f.acts.length&&t>=f.idleAt&&f.post!=='rising'){const kind=QUIET[Math.floor(Math.random()*QUIET.length)],s=Math.random()<.5?-1:1;let a=null;
      if(kind==='look'){const pick=Math.random(),pg=other&&other.node.isEnabled()?localOf(f,other.node.position.x,f.pl.y+1.5,other.node.position.z):null,pb=pg?Math.atan2(pg.x,pg.z)/D2R:0;
@@ -380,7 +443,7 @@
      f.acts.push({id:kind,t0:t,dur:POSES[kind].dur,s,a});f.idleAt=t+POSES[kind].dur+rnd(.4,3.2);}
     const keep=[];
     for(const a of f.acts){const P=POSES[a.id];if(!P||t>a.t0+a.dur)continue;keep.push(a);if(t<a.t0)continue;const u=(t-a.t0)/a.dur,e=ease(u),add=P.at(u,t-a.t0,a.s,e,a.a);for(const [k,v] of Object.entries(add))pose[k]=(pose[k]||[]).concat(v);}
-    f.acts=keep;applyPose(f,pose);}
+    f.acts=keep;track(f,eyes,pose,dt);applyPose(f,pose);}
   }catch(e){if(!frame.warned){frame.warned=true;console.warn('[VOID//RUNNER] Nomi and Se7en frame',e);}}
  }
  // a line is starting: who stands or sits, and what each does while it is said
