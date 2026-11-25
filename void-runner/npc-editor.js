@@ -113,7 +113,7 @@
   r.append(startCard());
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'NPCs'});const main=el('div','','me-main');cols.append(side,main);r.append(cols);
   side.append(hint(HELP.list));const q=el('input','','',{'aria-label':'Find an NPC',placeholder:'Find (name or id)','data-npc-search':'1'});q.value=ui.search;q.oninput=()=>{ui.search=q.value;listInto(list);};side.append(q,hint(HELP.search));
-  side.append(btn('+ IMPORT MODEL',()=>importPick(),'',{'data-npc-import':'1',title:HELP.import}));
+  side.append(btn('Add NPC from file',()=>importPick(),'',{'data-npc-import':'1',title:HELP.import}));
   const list=el('div','','npc-list');side.append(list);listInto(list);
   if(ui.make){makeView(main,pv);}else{const all=entries();const e=all.find(x=>x.id===ui.id)||all.find(x=>x.group==='move')||all[0];if(e){ui.id=e.id;detail(main,e,pv);}}
   host.scrollTop=keep;setTimeout(guideNow,0);}
@@ -668,8 +668,9 @@
   if(prepared&&library.sha256!==prepared.sha256)throw Error('The prepared model checksum differs from the manifest.');
   try{if(prepared){const db_=await db();try{await new Promise((resolve,reject)=>{const tx=db_.transaction(ST,'readwrite');tx.objectStore(ST).add(rec);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);});}finally{db_.close();}}else await dbPut(rec);await loadImports();}catch(err){status='Could not save the local import: '+err.message;draw();return null;}
   if(prepared)return rec;
+  ui.make=null;ui.search='';ui.start=false;
   ui.id='import:'+rec.id;
-  status='Imported '+file.name+' privately. Press SHOW 3D PREVIEW to check its model and animations.';
+  status=rec.name+' was added to the NPC list in this browser. Select Show 3D preview to check the model and animations.';
   root.VoidEditorGuide?.focusNext();draw();return rec;
  }
  async function saveRec(rec){await dbPut(rec);imports=imports.map(item=>item.id===rec.id?rec:item);}
