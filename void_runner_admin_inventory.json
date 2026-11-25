@@ -59782,7 +59782,7 @@
       "spawn"
     ]
   },
-  "revision": "38a6b0c10e086a67",
+  "revision": "c6f1b670b6c00332",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80959,7 +80959,7 @@
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "69f61462fea7535c3ff21a9a694ebbc416e2339e6c65f623707a3cdf1f9ea518",
-    "void-runner/npc-escort-across.js": "9c616beffa326093171382a968259a3867c7b772e4295bcbf957044c31d03e4e",
+    "void-runner/npc-escort-across.js": "1868ddb6152f7439c3c57f24d3152691d510771b2122e462ad269e57ca1ec184",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "777b2182d9dd75c54ac98ed26154bcba465e6c91686e6e7a35fb0f281bd55ccc",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
