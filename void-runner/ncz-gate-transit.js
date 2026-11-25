@@ -84,6 +84,7 @@
      arrival), after(gates) (road-taxi.js puts the cab and the rider back), still()}. Resolves true when the cab is on the other side with its door ahead open. */
   async function ride(o){
    if(busy)return false;const g=gates(),lane=Q.lane(o.lane);if(!g||!lane)return false;const G=Q.gate(lane.gate),entry=Q.endOf(G,o.from),exit=Q.other(entry);
+   const rider=d.walker(),origin={quarter:o.from,spawn:[rider.x,1.7,rider.z],yaw:rider.yaw};
    busy=true;lastLane=lane.key;let shown=false;
    try{
     set('ENTRY_DOOR_CLOSING');g.doors.hold(lane.doors[entry].id,false);
@@ -92,7 +93,15 @@
     set('EXCHANGE');shown=true;
     await exchange({lane:lane.key,to:o.to,spawn:o.spawn,yaw:o.yaw,exitDoor:o.to.scene?null:lane.doors[exit].id,hold:true,after:o.after});shown=false;
     d.save?.();complete();return true;
-   }catch(error){set('RECOVERY');d.warn?.(error);if(shown)try{await d.overlay.hide();}catch{}return false;}
+   }catch(error){
+    set('RECOVERY');d.warn?.(error);
+    if(shown){
+     try{await d.enterWalking(d.streetKey(),{...origin,silent:true});}catch(e){d.warn?.(e);}
+     try{await d.overlay.hide();}catch{}
+    }
+    const back=gates();back?.scan(lane.key,false);back?.doors.secure(false);back?.doors.release(lane.doors[entry].id);
+    return false;
+   }
    finally{deferred.length=0;busy=false;coolUntil=now()+1500;}
   }
   /* Coming back from a place beyond a gate (the Corporate District, the Temple). by: 'foot' (the player appears in the gate's foot lane) or 'cab' (in the bay,
