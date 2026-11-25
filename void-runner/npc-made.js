@@ -70,7 +70,7 @@
  function slug(name){return String(name||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/^[^a-z]+/,'').slice(0,34).replace(/-+$/,'');}
  function idFor(name,taken=new Set()){const has=x=>taken instanceof Set?taken.has(x):!!(taken&&taken[x]);let b=slug(name);if(b.length<2)b='giver';let id=b,n=2;while(has(id)){id=b+'-'+n;n++;}return id;}
  /* Every model a giver can be made from: the game's NPC and crowd files that can stand (an idle clip). The street cat is moved by its own code, so it is not offered. */
- const LICENSED=()=>(NPL()&&NPL().LICENSED)||/^(vr-companion-.+|studio-warrior|npc-dax)$/;
+ const LICENSED=()=>(NPL()&&NPL().LICENSED)||/^(vr-companion-.+|studio-warrior|npc-dax|npc-upload-[0-9a-f]{32})$/;
  const pretty=a=>a.replace(/^npc-|^vr-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
  function models(){const C=CROWD()||{},clips=C.clips||{},street=C.street||{},out=[];
   for(const [asset,list] of Object.entries(clips)){if(asset==='npc-street-cat'||asset.startsWith('local-model-')||!Array.isArray(list)||!list.includes('idle'))continue;const lic=LICENSED().test(asset);
@@ -80,7 +80,7 @@
  const modelOf=a=>models().find(m=>m.asset===a)||null;
  /* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */
  function teaResident(asset){const duo=node?req('./tea-duo.js'):root.VoidTeaDuo;return Object.values(duo?.PEOPLE||{}).find(p=>p.model===asset);}
- function fileOf(asset){if(CROWD()?.prepared?.some(p=>p.asset===asset))return 'assets/models/crowd/'+asset+'.vrpak';const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
+ function fileOf(asset){if(/^npc-upload-[a-f0-9]{32}$/.test(asset)||CROWD()?.prepared?.some(p=>p.asset===asset))return 'assets/models/crowd/'+asset+'.vrpak';const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
  /* Every item a giver can carry: personal gear, a hacking device when the game has one, ship modules and ship gear. show: how it is seen on them, or null (data only). */
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');
@@ -141,7 +141,7 @@
   let m=null;for(const t of trees||[])for(const x of (t&&t.missions)||[])if(x&&x.id===w.mission)m=x;if(!m)return true;const k=(m.objectives||[]).findIndex(o=>o&&o.id===w.step);if(k<0)return true;
   return (m.objectives||[]).slice(0,k).every(o=>r.objectives&&r.objectives[o.id]===true);}
  /* For the admin inventory (the server's copy): every model with what a made character on it may do (npc-paths.js / npc-gestures.js / npc-escort.js, worked out once per model). */
- function inventory(){const X=NPX(),out={limits:LIMIT,devices:Object.keys(DEVICES),items:Object.fromEntries(items().map(i=>[i.id,{name:i.name,show:i.show}])),ships:ships().map(s=>s.id),models:{}};
+ function inventory(only=null){const X=NPX(),out={limits:LIMIT,devices:Object.keys(DEVICES),items:Object.fromEntries(items().map(i=>[i.id,{name:i.name,show:i.show}])),ships:ships().map(s=>s.id),models:{}};
   const NG=req('./npc-gestures.js'),E=req('./npc-escort.js'),before=X.madeNow();
   // Store each donor's identical clip list once across the model inventory.
   out.animationLists=[];const listIndices=new Map();
@@ -151,7 +151,7 @@
   }
   const K='made-model-check',one=(m,adult)=>{X.setMade({[K]:{name:'Made',model:m.asset,...(adult?{adult:true}:{})}});const mv=X.inventory().movable[K];
    return {movable:mv?{actions:mv.actions,animationLists:motionLists(mv.anims),pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
-  for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
+  for(const m of models()){if(only&&!only.has(m.asset))continue;const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
  function deletionReferences(draft,id){
   const uses=value=>value===id||!!value&&typeof value==='object'&&Object.values(value).some(uses);

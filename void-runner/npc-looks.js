@@ -21,7 +21,7 @@
  'use strict';
  const ID=/^[a-z0-9][a-z0-9-]{0,23}$/,ASSET=/^[a-z][a-z0-9-]{0,40}$/,PART=/^[A-Za-z0-9 _.:-]{1,80}$/,HEX=/^#[0-9a-f]{6}$/i,TAGS=/<[^>]*>|[\x00-\x1f]/;
  const LIMIT={assets:60,looks:8,name:40,hide:24,colours:16,hue:180,sat:[0,2],bright:[.4,1.6]};
- const LICENSED=/^(vr-companion-.+|studio-warrior|npc-dax)$/,STREET=[];
+ const LICENSED=/^(vr-companion-.+|studio-warrior|npc-dax|npc-upload-[0-9a-f]{32})$/,STREET=[];
  const GEAR={'gear-visor':{label:'Visor',parts:['visor']},'gear-collar':{label:'Tech collar',parts:['collar']},'gear-shoulders':{label:'Shoulder plates',parts:['pauldron_L','pauldron_R']},'gear-chest':{label:'Chest light',parts:['chest_line']}};   // character-assembler.js GEAR, the catalog's labels
  const HAIR={short01:{label:'Short crop',hatOk:true},short02:{label:'Short swept',hatOk:true},short03:{label:'Short tousled',hatOk:true},short04:{label:'Short neat',hatOk:true},bob01:{label:'Bob',hatOk:false},bob02:{label:'Bob layered',hatOk:false},braid01:{label:'Braid',hatOk:false},long01:{label:'Long',hatOk:false},ponytail01:{label:'Ponytail',hatOk:false}};   // character-appearance.js CATALOG.hair (a test keeps them equal)
  // ---- what a mesh is, from its name (and its material's name when the mesh name says nothing, e.g. Cube.001)

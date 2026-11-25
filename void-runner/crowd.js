@@ -80,6 +80,11 @@
  const FLOOR_MOVES=['kneel','cross','knees'].flatMap(p=>['floor-'+p+'-down','floor-'+p+'-up']).concat(['cross','knees'].flatMap(p=>['floor-'+p+'-down-hi','floor-'+p+'-up-hi']));
  for(const k of Object.keys(clips))if(!NO_FLOOR.test(k))clips[k]=[...clips[k],...FLOOR,...FLOOR_MOVES];
  for(const entry of prepared)clips[entry.asset]=entry.clips.slice();
+ function registerPublishedModel(asset,names){
+  if(!/^npc-upload-[a-f0-9]{32}$/.test(asset)||!Array.isArray(names)||!names.includes('idle'))return;
+  clips[asset]=names.slice();
+ }
+ for(const [asset,names] of Object.entries(/* published NPC models */{}))registerPublishedModel(asset,names);
  const pool=role=>Object.keys(street).filter(id=>street[id].roles.includes(role));
  const pools={mixed:pool('mixed'),corporate:pool('corporate'),club:pool('club'),cook:pool('cook'),outskirts:pool('outskirts'),drunk:pool('drunk'),district:pool('district'),vendor:pool('vendor'),busker:pool('busker')};
  // The old anonymous looks and who now stands in their place (code that still names an old look, a crowd member of an old build, a saved id: swap(look)).
@@ -242,6 +247,6 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,prepared,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
+ const api={registerPublishedModel,casts,staff,clips,prepared,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

@@ -12,7 +12,8 @@ test('companion import stores the original transfer privately and exports a repa
  assert.match(source,/if\(companionExport\)download\(rec\.sourceFileName,companionExport\)/);
  assert.match(source,/data-npc-companion-profile/);
  assert.match(source,/missingVoiceLines/);
- assert.match(source,/LOCAL TEST ONLY/);
+ assert.match(source,/Local import draft/);
+ assert.match(source,/PUBLISH NPC TO GAME/);
 });
 test('companion script loading stays behind the developer-only import UI',()=>{
  assert.match(source,/async function ensureCompanionImporter/);
