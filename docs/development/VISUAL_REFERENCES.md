@@ -82,7 +82,7 @@ They stay passive unless the player acts, for example by breaking in. If the pla
 3. Hot pink neon.
 4. Pink light bars.
 
-Shared in all four: hex windows, small screens, and wall panels. The occupants are tattooed punk/goth women who look tired after a shift. Hair is a bob, a ponytail, or long. They wear boots, and fishnets or stockings, and the rest of their clothes stay on.
+Shared in all four: hex windows, small screens, and wall panels. The occupants are tattooed punk/goth women who look tired after a shift. Hair is a bob, a ponytail, or long. They wear boots, and fishnets or stockings.
 
 **Pod flow he described, not built by this note.** Walk over from the bar, reserve a pod for an 8 hour or a 12 hour shift, then get out. Recorded here so the later pass has it. The room is unchanged until he says otherwise.
 

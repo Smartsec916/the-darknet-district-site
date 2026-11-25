@@ -1257,6 +1257,13 @@
   playTree(id,step){return play('tree:'+id,step||null);},playStart,fresh,blocksKit,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,voiceSummary,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
+  async publishImportedNpc(edit){
+   const live=await call('developer/live-content');
+   if(!live?.enabled)throw Error('World publishing is unavailable.');
+   if(edit.clips.length)await VI().upload(call,edit.clips);
+   const result=await call('developer/live-content/publish',{expected:live.version||0,importedNpc:edit});
+   await refreshServer();return result;
+  },
   async publishInteraction(id,value){if(!server.live?.enabled)throw Error('Publishing is unavailable.');const expected=server.live.version||0;if(value?.clips?.length)await VI().upload(call,value.clips);const rec=await call('developer/live-content/publish',{expected,interaction:{npc:id,value}});await refreshServer();return rec;},
   addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
