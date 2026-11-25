@@ -59345,7 +59345,7 @@
       "spawn"
     ]
   },
-  "revision": "90ed1193231bd3c7",
+  "revision": "89417c43ffad0d19",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75922,7 +75922,7 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1261,
+      "line": 1268,
       "text": "addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;",
       "kind": "source-reference"
     },
@@ -77530,56 +77530,62 @@
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 871,
+      "line": 898,
+      "text": "clips.push({who:id,text:voice.record.text,hash:audio.hash,type:audio.type,duration:audio.duration,bytes:audio.bytes});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 908,
       "text": "companion:rec.companion?{id:rec.companion.id,about:rec.companion.about,personality:rec.companion.personality,dialogue:rec.companion.dialogue,dialogueLineCount:rec.companion.dialogueLineCount,recordedLineCount:rec.companion.recordedLineCount,missingVoiceLines:rec.companion.missingVoiceLines,originalPackage:rec.sourceFileName,voiceAndMotionFiles:'Included only in original .vrcompanion transfer'}:null,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 896,
+      "line": 933,
       "text": "if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time=\"from:'+k+'\"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 897,
+      "line": 934,
       "text": "p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point=\"'+i+'\"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green ground'});});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 898,
+      "line": 935,
       "text": "if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 899,
+      "line": 936,
       "text": "return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play=\"'+CSS.escape(e.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 900,
+      "line": 937,
       "text": "if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 902,
+      "line": 939,
       "text": "if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 903,
+      "line": 940,
       "text": "if(!L.source)needs.push({sel:'[data-npc-lic=\"source\"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic=\"type\"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai=\"true\"]',text:'answer “No AI licence?”'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 904,
-      "text": "return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}",
+      "line": 941,
+      "text": "return Gd.show(sc,needs,{done:{sel:'[data-npc-publish-import]',text:'PUBLISH NPC TO GAME'},box:sc.querySelector('[data-npc-licence]')});}",
       "kind": "source-reference"
     },
     {
@@ -80375,7 +80381,7 @@
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
     "void-runner/crosswalks.js": "69acf44a540a6ba7314d68bf38fa74ad93482ca993629675eae3ca0d8a9a1d60",
-    "void-runner/crowd.js": "26cded3dae8c1b25a0392c202a6cd4cf3bdd41f92032cc8834612366d4217cb4",
+    "void-runner/crowd.js": "810a2ad7840051ffa51196526dd7e9f3ee73d654f82331dd5c141cf9013a039d",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
     "void-runner/cult-room.js": "e4c485f0586d02c2aae26b5bfb4940f4e8abc434726aa42e9044734565431a1c",
@@ -80467,7 +80473,7 @@
     "void-runner/mission-blocks.js": "1af9c0a679b9b1503b92760f1110decd16cf68f5719cabfa320bbab98d94364a",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "5658e8f5d3987512b56312f2cacf7e9f78949b34441a3d526c530fde0c5fba5c",
+    "void-runner/mission-editor.js": "91dd6458400e81067684c452cb2c5dfb8276113101688e0eab00baf7f78595fc",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -80515,14 +80521,14 @@
     "void-runner/npc-behaviour.js": "da2a6aa446947446d3a8c57c4653f01ac82ea1c276452ffb56b8d1f9da9ada32",
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "36ebe6e71cbc415b31b6f4ba14e05300a5ac069d85f74608481ed9471896bf43",
+    "void-runner/npc-editor.js": "e1f5b6ead4cf41c6b8255faa20a8c6eaf9165263ceb349f5f93f98cdf32e5258",
     "void-runner/npc-escort-across.js": "84f2e986ad922dd6a23820a53c09decf9a8829faaa70c18644f125ba6a40d925",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "777b2182d9dd75c54ac98ed26154bcba465e6c91686e6e7a35fb0f281bd55ccc",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
-    "void-runner/npc-looks.js": "3a77ae4ba8ef731094dadcf4143346af636d9814efcdd10962528aa61a35a4dd",
-    "void-runner/npc-made.js": "f714e6f855b1026906e5ca7f83bb008f4416ac4b9c36029afaf62cc8315ddd6a",
+    "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
+    "void-runner/npc-made.js": "0dec29e8a559e6416e42c67b887e6c97df55229d03a4b957f39dba3a1afc3895",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "526a50a260e06fc817eabae24141a916a7e916aa81f5ae5e4fd766b52e7e1da1",
     "void-runner/npc-preview.js": "25ea09154441b533d8c50515afb122204739fde372b62c33eb9cb72dcc6a6ee9",

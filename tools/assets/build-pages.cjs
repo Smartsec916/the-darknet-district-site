@@ -52,6 +52,35 @@ function build(licensed,out,key){
  let added=0;const root=path.join(licensed,'void-runner');
  if(fs.existsSync(root))for(const f of walk(root)){const rel=path.relative(licensed,f).split(path.sep).join('/');if(!publishable(rel))continue;
   const to=path.join(out,rel);if(fs.existsSync(to))throw Error('Licensed file would replace a tracked file: '+rel);copy(f,to);added++;}
+ // Match local imports to the exact model bytes players will receive, including private models.
+ const modelHashes={},uploaded={};
+ const crowdDir=path.join(out,'void-runner/assets/models/crowd');
+ if(fs.existsSync(crowdDir))for(const f of fs.readdirSync(crowdDir).sort()){
+  if(!/\.(glb|vrpak)$/.test(f))continue;
+  const data=fs.readFileSync(path.join(crowdDir,f));
+  const raw=f.endsWith('.vrpak')?unscramble(data):data;
+  const hash=crypto.createHash('sha256').update(raw).digest('hex');
+  const asset=f.replace(/\.(glb|vrpak)$/,'');
+  (modelHashes[hash]||=[]).push(asset);
+  if(asset.startsWith('npc-upload-')){
+   if(asset!=='npc-upload-'+hash.slice(0,32)||!f.endsWith('.vrpak'))throw Error('Published NPC hash mismatch');
+   const json=require('../../void-runner/npc-paths.js').importDocument(raw,'.glb');
+   uploaded[asset]=json.animations.map(a=>a.name).filter(n=>typeof n==='string');
+   require('../../void-runner/crowd.js').registerPublishedModel(asset,uploaded[asset]);
+  }
+ }
+ const indexPath=path.join(out,'void-runner/npc-publish-models.json');
+ fs.mkdirSync(path.dirname(indexPath),{recursive:true});
+ const index=JSON.stringify(modelHashes);fs.writeFileSync(indexPath,index);bytes+=Buffer.byteLength(index);files++;
+ if(Object.keys(uploaded).length){
+  const file=path.join(out,'void-runner/crowd.js'),old=fs.readFileSync(file,'utf8'),marker='/* published NPC models */{}';
+  if(!old.includes(marker))throw Error('Published NPC registry marker missing');
+  const next=old.replace(marker,()=>JSON.stringify(uploaded));fs.writeFileSync(file,next);bytes+=Buffer.byteLength(next)-Buffer.byteLength(old);
+ }
+ const made=require('../../void-runner/npc-made.js');
+ const caps=Object.keys(uploaded).length?made.inventory(new Set(Object.keys(uploaded))):{models:{},animationLists:[]};
+ const models=JSON.stringify({clips:uploaded,models:caps.models,animationLists:caps.animationLists});
+ fs.writeFileSync(path.join(out,'void-runner/npc-publish-capabilities.json'),models);bytes+=Buffer.byteLength(models);files++;
  let sealed=0;
  for(const f of walk(out))if(/\.(vrpak|vrtex)$/.test(f)){const buf=fs.readFileSync(f);if(buf.readUInt32LE(0)!==PACKED)continue;
   const next=seal(unscramble(buf),key);bytes+=next.length-buf.length;fs.writeFileSync(f,next);sealed++;}

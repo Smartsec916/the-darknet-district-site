@@ -40,7 +40,7 @@
   import:'Load a .glb, self-contained .gltf or Companion Studio .vrcompanion package from your computer to try the character on The Avenue. Companion packages keep their personality and recorded voices in a private draft. Import stores the model in this browser.',
   check:'What the game needs from a street NPC. Red: refused (over a hard limit). Amber: allowed, but someone should reduce it before it goes in the game.',
   licence:'Required before it can be sent: where the model is from, its licence, and whether that licence forbids AI tools (No AI). A licensed or unknown model never goes into the public files by itself.',
-  addToGame:'Downloads the model and its integration package. For a .vrcompanion import it also includes an updated companion transfer with the current personality, voices and separate motion files. Send all files to Claude or Codex for licensed asset integration; this button does not publish.',
+  addToGame:'Download a backup of this model and its integration data. Companion backups include personality, recordings and separate motion files.',
   crowd:'An anonymous street figure: the street picks people from this pool, so there is no single person to move yet.',
   looks:'Change how they look without touching the model file: hide an accessory, recolour their clothes, add pieces from the character creator (only on figures built like the creator’s), and save it as a named look. A look belongs to the model: everyone the game draws with this model can wear it. Every change is part of your DRAFT (UNDO works); PLAY THIS DRAFT shows it in the street.',
   lookPick:'Which saved look you are changing. “As made” is the model exactly as it is in the file (it cannot be changed). + NEW LOOK starts a new one from “as made”.',
@@ -819,18 +819,20 @@
    if(!L.type)missing.push('Enter the licence type.');
    if(typeof L.noAI!=='boolean')missing.push('Choose Yes or No for the No AI licence question.');
    exportButton.disabled=missing.length>0;
+   publishButton.disabled=missing.length>0||!rec.placement;
+   publishButton.title=missing.join(' ')||(!rec.placement?'Choose the world placement above.':'Publish this NPC at the selected placement.');
    exportButton.title=packageHint.textContent=missing.join(' ');
   }
   const nm=el('section','','me-check');const ni=el('input','','',{'aria-label':'Name of the model','data-npc-import-name':rec.id,maxlength:rec.companion?'40':'60'});ni.value=rec.name||'';ni.onchange=()=>{rec.name=ni.value.trim().slice(0,rec.companion?40:60);if(rec.companion)rec.companion.name=rec.name;refreshPackage();persistEdit();listInto(host.querySelector('.npc-list'));};
   const l=el('label','','me-field');l.append(el('span','Name'),ni,hint('What you call it (shown in the list and in the package).'));nm.append(l);main.append(nm);
   const refused=verdict&&!verdict.ok;
   // placement (local test)
-  const clips=(rec.info&&rec.info.clips)||[],bx=el('section','','me-check',{'data-npc-place':'import:'+rec.id});bx.append(el('h4','Where it stands in the test'),hint('Put it on The Avenue’s north pavement for a local test: STAY HERE at a spot doing its own clips, or a ROUTE of points. Only in a throwaway test session in this browser.'));
+  const clips=(rec.info&&rec.info.clips)||[],bx=el('section','','me-check',{'data-npc-place':'import:'+rec.id});bx.append(el('h4','Placement on The Avenue'),hint('Choose a spot or route on the north pavement. Preview locally, then publish this placement when ready.'));
   if(refused)bx.append(el('p','Resolve the failed checklist items before trying this model.','me-bad'));
   else{const p=rec.placement,mode=p?p.mode:'none',modes=el('div','','me-row');
-   for(const [m_,n] of [['stay','STAY HERE'],['path','ROUTE']])modes.append(btn(n,()=>{rec.placement=m_==='stay'?{mode:'stay',x:p&&p.x||100,z:p&&p.z||-6.4,yaw:p&&Number.isFinite(p.yaw)?p.yaw:Math.PI,actions:[clips.find(c=>/idle/.test(c))||clips[0]||'wait']}:{mode:'path',points:p&&p.points||[]};persistEdit();draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));bx.append(modes);
+   for(const [m_,n] of [['stay','STAY HERE'],['path','ROUTE']])modes.append(btn(n,()=>{rec.placement=m_==='stay'?{mode:'stay',x:p&&p.x||100,z:p&&p.z||-6.4,yaw:p&&Number.isFinite(p.yaw)?p.yaw:Math.PI,actions:[(clips.includes('idle')?'idle':clips.find(c=>/idle/.test(c)))||clips[0]||'wait']}:{mode:'path',points:p&&p.points||[]};persistEdit();draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));bx.append(modes);
    if(p){const markers=p.mode==='stay'?[{id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#7fe0ff',label:rec.name,drag:true,facing:true}]:[];
-    const put=(x,z,i)=>{const s_={x:Math.round(Math.max(X().AVENUE_NORTH.x0,Math.min(X().AVENUE_NORTH.x1,x))*10)/10,z:Math.round(Math.max(X().AVENUE_NORTH.z0,Math.min(X().AVENUE_NORTH.z1,z))*10)/10};if(p.mode==='stay')Object.assign(p,s_);else if(i==null)p.points.push({...s_,action:clips[0]||'wait',seconds:5});else Object.assign(p.points[i],s_);persistEdit();draw();};
+    const put=(x,z,i)=>{const s_={x:Math.round(Math.max(X().AVENUE_NORTH.x0,Math.min(X().AVENUE_NORTH.x1,x))*10)/10,z:Math.round(Math.max(X().AVENUE_NORTH.z0,Math.min(X().AVENUE_NORTH.z1,z))*10)/10};if(p.mode==='stay')Object.assign(p,s_);else if(i==null)p.points.push({...s_,action:'wait',seconds:5});else Object.assign(p.points[i],s_);persistEdit();draw();};
     const map=root.VoidNPCMap.create({npc:null,markers,route:p.mode==='path'?p.points:[],selected:'stay',onPick:(x,z)=>put(x,z),onDrag:(m,x,z)=>put(x,z),onFacing:(m,yaw)=>{p.yaw=yaw;persistEdit();draw();},onPoint:p.mode==='path'?(i,x,z)=>put(x,z,i):null});map.el.dataset.npcMap='import';bx.append(map.el);
     const opts=['wait',...clips];if(p.mode==='stay'){const s_=el('select','','',{'aria-label':'Clip it plays','data-npc-import-clip':'1'});for(const c of opts)s_.append(new Option(c,c));s_.value=p.actions[0];s_.onchange=()=>{p.actions=[s_.value];persistEdit();};const r=el('div','','me-row');r.append(el('b','Plays'),s_,hint('One of the clips in its own file.'));bx.append(r);}
     else p.points.forEach((q,i)=>{const r=el('div','','me-row',{'data-npc-point':String(i)}),s_=el('select','','',{'aria-label':'Clip at point '+(i+1)});for(const c of opts)s_.append(new Option(c,c));s_.value=q.action;s_.onchange=()=>{q.action=s_.value;persistEdit();};
@@ -846,7 +848,7 @@
   lic.append(f('Where it is from','source','e.g. made in Meshy by me / CGTrader item 12345 / Sketchfab link'),f('Licence type','type','e.g. my own work / Royalty Free / CC-BY 4.0'));
   const ai=el('div','','me-row',{'data-npc-lic':'noAI'});ai.append(el('b','No AI licence?'));for(const [v,n] of [[true,'YES (No AI)'],[false,'NO']])ai.append(btn(n,()=>{L.noAI=v;persistEdit();draw();},L.noAI===v?'on':'',{'data-npc-noai':String(v),'aria-pressed':String(L.noAI===v)}));ai.append(hint('Yes if its licence forbids AI tools or AI training. Then it is only ever processed on your PC (Blender), never with Meshy or any AI tool.'));lic.append(ai);
   const packageHint=el('p','','me-warn',{role:'status'});
-  const exportButton=btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',async()=>{
+  const exportButton=btn('DOWNLOAD BACKUP',async()=>{
    try{
     let companionExport=null;
     if(rec.transferBlob){
@@ -860,10 +862,45 @@
    }catch(err){status='Cannot export companion package: '+err.message;}
    draw();
   },'me-play',{'data-npc-add-to-game':rec.id});
+  const publishNote=el('p','','me-status',{role:'status'});
+  const publishButton=btn('PUBLISH NPC TO GAME',async()=>{
+   if(!DTX()?.authorized){publishNote.textContent='Sign in to Developer Tools to publish.';return;}
+   const problems=X().importPlanProblems(rec.placement,clips);
+   if(problems.length){publishNote.textContent=problems.join(' ');return;}
+   if(!root.confirm('Publish '+rec.name+' on The Avenue at the selected placement for all players?'))return;
+   publishButton.disabled=true;
+   try{
+    publishNote.textContent='Checking the deployed model…';
+    const result=await publishImport(structuredClone(rec),progress=>publishNote.textContent=progress);
+    publishNote.textContent='Published '+rec.name+' in world version '+result.version+'. Players will see this NPC when they next load the game.';
+   }catch(error){publishNote.textContent=error.message;}
+   finally{refreshPackage();}
+  },'me-publish',{'data-npc-publish-import':rec.id});
   refreshPackage();
-  const r=el('div','','me-row me-actions');r.append(exportButton,hint(HELP.addToGame));lic.append(packageHint,r);
+  const r=el('div','','me-row me-actions');r.append(publishButton,exportButton,hint(HELP.addToGame));lic.append(packageHint,r,publishNote);
   lic.append(btn('Delete this model (from this browser)',async()=>{if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
   main.append(lic);}
+ async function publishImport(rec,progress){
+  const {deployedModel}=await import('./npc-publish.mjs');
+  const model=await deployedModel(rec,progress);
+  const id=rec.id,character={name:rec.name,model},clips=[];
+  if(rec.companion){
+   const c=rec.companion;
+   await ensureCompanionImporter();
+   character.companionProfile=root.VoidVRCompanionStudio.profile(c);
+   for(const key of ['worldBehavior','relationships','residence'])if(c[key])character[key]=c[key];
+   const V=root.VoidVoiceImports;
+   for(const voice of c.voices||[]){
+    progress('Preparing recording '+(clips.length+1)+' of '+c.voices.length+'…');
+    const audio=await V.prepare(new File([voice.blob],voice.record.name||'companion-audio',{type:voice.record.type}));
+    if(!audio.ok)throw Error(audio.why);
+    if(!await V.store(audio.hash,audio.type,audio.data,audio.duration))throw Error('Could not store the companion recording.');
+    clips.push({who:id,text:voice.record.text,hash:audio.hash,type:audio.type,duration:audio.duration,bytes:audio.bytes});
+   }
+  }
+  progress('Publishing this NPC and its placement…');
+  return S().publishImportedNpc({id,character,placement:rec.placement,clips});
+ }
  function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
   model:{triangles:I.triangles|0,bytes:rec.bytes|0,textures:I.textures||[],joints:(I.bones||[]).length,bones:(I.bones||[]).slice(0,80),clips:I.clips||[],height:Number.isFinite(I.height)?Math.round(I.height*100)/100:null},
   allowOverTriangleLimit:rec.allowOverTriangleLimit===true,
@@ -901,7 +938,7 @@
    if(r.info&&!X().importCheck(r.info,r.allowOverTriangleLimit).ok){Gd.clear(sc);return null;}
    if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});
    if(!L.source)needs.push({sel:'[data-npc-lic="source"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic="type"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai="true"]',text:'answer “No AI licence?”'});
-   return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}
+   return Gd.show(sc,needs,{done:{sel:'[data-npc-publish-import]',text:'PUBLISH NPC TO GAME'},box:sc.querySelector('[data-npc-licence]')});}
   Gd.clear(sc);return null;}
  root.VoidNPCEditor={startMake:()=>{startMake();if(host&&!host.hidden&&DTX()?.tab==='npcs')draw();},make:()=>ui.make,render,draw,guideNow,importFile,packageOf,spawn,get ui(){return ui;},get imports(){return imports;},lookOf,entries,HELP,spawned:null};
 })(globalThis);
