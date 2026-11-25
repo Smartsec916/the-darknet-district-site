@@ -30,8 +30,25 @@
   {id:'ac-cuddle-kiss-f',title:'Cuddle and kiss (her part)',category:'together',seconds:19,loop:false,root:'free',group:'cuddle-kiss',part:1,partner:'missing'},
   {id:'ac-sit-cuddle-hug-f',title:'Seated cuddle and hug (her part)',category:'together',seconds:12,loop:false,root:'free',needs:'seat',group:'sit-cuddle-hug',part:1,partner:'missing'}
  ]};
- const FILES={actorcore:'assets/models/anim/anim-actorcore.vrpak'};
- const SOURCES={actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
+ CLIPS.sexyzips=[["forceddoggyM",9.117],
+  ["forceddoggyF",11.133],
+  ["floorpoundM",4.917],
+  ["floorpoundF",4.85],
+  ["doggyM",6.733],
+  ["doggyF",6.733],
+  ["CommitmentF",14.383],
+  ["TiedB2M",6.733],
+  ["StandogM",6.733],
+  ["StandogF",6.733],
+  ["SpankM",1.05],
+  ["SpankF",1.05],
+  ["TiedBF",6.733],
+  ["TiedBM",6.733],
+  ["Femalemasturbation",7.35],
+  ["OysterF",8.067],
+  ["OysterM",8.067]].map(([title,seconds])=>({id:'sz-'+title.toLowerCase(),title,seconds,category:'adult',root:'free',loop:false}));
+ const FILES={sexyzips:'assets/models/anim/anim-sexyzips.vrpak',actorcore:'assets/models/anim/anim-actorcore.vrpak'};
+ const SOURCES={sexyzips:{name:'SexyZips.zip',licence:'Free use, per project owner',skeleton:'Retargeted humanoid'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
  const bare=n=>String(n||'').split(':').pop();
  const all=()=>Object.entries(CLIPS).flatMap(([lib,list])=>list.map(c=>({...c,library:lib})));
  const clip=id=>all().find(c=>c.id===id)||null;
@@ -71,13 +88,14 @@
   loaded.set(key,{scene,promise});return promise;}
  /* Give a figure the library's clips. node: the figure's root (its bones are transform nodes under it); look: its look id (for VoidCrowd.clips);
     only: clip ids wanted (default: all). Returns the ids added. Safe to call twice. */
- async function apply(node,look,{library='actorcore',only=null,scene=null,catalog=true}={}){
+ async function apply(node,look,{library='actorcore',only=null,scene=null,catalog=true,targetFile=null}={}){
+  if(library==='sexyzips'||(library.startsWith('crowd:')&&!/\.gltf$/i.test(targetFile?.name||'')))return (await import('./rig-workshop.mjs')).bindSharedMotions(node,look,only,library.startsWith('crowd:')?library.slice(6):null,targetFile);
   const sc=scene||node.getScene(),B=root.BABYLON,L=await load(library,sc);if(!L||node.isDisposed())return [];
   const bones=new Map();for(const t of node.getDescendants(false))if(t.rotationQuaternion!==undefined&&t.getClassName?.()==='TransformNode'){const b=bare(t.name);if(!bones.has(b))bones.set(b,t);}
   if(!compatible([...bones.keys()]))return [];
   // the figure's own rest pose (its skeleton's bind-time local rotations; the bones themselves are already posed by a clip)
   const rest={};for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const b of sk.bones){const k=bare(b.name);if(rest[k])continue;const q=new B.Quaternion();b.getRestMatrix().decompose(undefined,q);rest[k]=q.asArray();}}
-  if(localFiles.has(library)&&!CORE.every(k=>Array.isArray(L.rest[k])&&Array.isArray(rest[k])))return [];
+  if((localFiles.has(library)||library==='sexyzips')&&!CORE.every(k=>Array.isArray(L.rest[k])&&Array.isArray(rest[k])))return [];
   if(Object.keys(rest).length&&!restMatches(L.rest,rest)){node.metadata=node.metadata||{};node.metadata.animLibraryRefused=Math.round(restOffset(L.rest,rest));return [];}   // degrees off, for the browser test
   const hips=bones.get('Hips'),scale=hips&&L.hipsRest?(hips.position.length()||1)/(L.hipsRest.length()||1):1,meta=node.metadata=node.metadata||{},list=meta.animationGroups=meta.animationGroups||[],added=[];
   for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.group||c.id)||(c.clip?L.groups.get(c.clip)||[...L.groups.values()].find(g=>g.name.replace(/\.\d{3}$/,'')===c.clip):null);if(!src)continue;if(localFiles.has(library)&&src.targetedAnimations.some(ta=>!bones.has(bare(ta.target.name))))continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
@@ -89,7 +107,7 @@
     g.addTargetedAnimation(a,target);}
    if(!g.targetedAnimations.length){g.dispose();continue;}
    g.normalize(src.from,src.to);g.enableBlending=true;g.blendingSpeed=.045;g.loopAnimation=c.loop!==false;list.push(g);added.push(c.id);}
-  const clips=root.VoidCrowd?.clips;if(catalog&&clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
+  const clips=root.VoidCrowd?.clips;if(catalog&&library!=='sexyzips'&&clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
   meta.animLibrary=[...(meta.animLibrary||[]),...added.filter(id=>!(meta.animLibrary||[]).includes(id))];
   return added;}
  /* Another model file as a source of clips (Developer Tools > NPCs > Add animation, 18 Nov 2026): a public crowd file on a compatible rig. lib 'crowd:<asset>'; clips

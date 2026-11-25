@@ -38,7 +38,7 @@
   // THE TEA ROOM HOST (the owner, 20 Nov 2026: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): a
   // character of the game drawn by the made-giver runtime (npc-made.js BUILTIN: builtin, made), always at his post behind the tea station of the underground tea room
   // (`home`: a spot of ncz-underground.js spots(); his own routine). The NPCs tab can move him like anyone here. Placeholder name; no lines of his own.
-  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',area:'city',quarter:'underground',device:false,sit:false,youthful:false,combatAnimations:true,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
+  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',adultPerformer:true,area:'city',quarter:'underground',device:false,sit:false,youthful:false,combatAnimations:true,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
  // Ordinary, non-sexual shared clips verified against the current public rig index (24 joints, rest offset <=25°).
  // Keep these exact allowlists so a missing index never widens the permission to untested assets.
  // Combat is an ordinary gameplay capability, independent of age-sensitive source and venue rules.
@@ -105,25 +105,33 @@
   ['V1 / device',/phone|device|selfie|scroll|menu/],['work',/work|wipe|pickup|interact|cook|smoke|drink|repair/],['combat / action',/aim|shoot|hit|duck|punch|fight|vr-/],['other',/./]];
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
  /* Every clip the game has, for NPC id, with whether she can use it: {id, title, source, category, status ('own' | 'shared' | 'library' | 'no'), ok, why}. */
- function libraryOffer(id,idx=INDEX()){if(MOVABLE[id]&&MOVABLE[id].cat)return [];const M=MOVABLE[id],S=SP(),banned=(S&&S.BANNED)||/$^/,L=AL(),young=!!(M&&M.youthful),out=[];
-  const rule=(clipId,title,src)=>!M?'Only for NPCs the editor can move.':M.placementOnly?'Only her bundled motions are verified on this rig.':(banned.test(clipId)||banned.test(title||''))?'Not allowed for '+M.name+' (her content rule: casual street clips only).':young&&src&&ADULT.test(src)?'Not for '+M.name+': it comes from an adult-only model (companions, studios, clubs).':young&&YOUNG_NO.test(clipId)?'Not for '+M.name+' (no smoking, drinking or drunk clips for her).':MOVE_CLIP.test(String(clipId).split('/').pop())?'A walking or sit-down/stand-up clip: the game plays her own for that.':/^sit/.test(String(clipId).split('/').pop())?'A seated clip: she sits only through her own sit-down on a ledge (use “Sit on the ledge”).':/^floor-/.test(String(clipId).split('/').pop())?'A floor pose: use “Sit — pose: …” at a cushion, cot or bench (her own pose, when her file has it).':!combatAllowed(id,clipId,!!src)?'Not for '+M.name+' (combat animations not enabled or verified).':'';
-  if(L&&L.all)for(const c of L.all()){if(c.library!=='actorcore')continue;let why=rule(c.id,(c.title||'')+' '+(c.category||''),'');if(!why){if(c.needs)why='Needs a '+c.needs+' to play on (not a standing action yet).';else if(c.group||c.partner)why='A clip for two or more people together.';else if(c.root!=='inplace')why='Moves her about the room (not a standing action).';}
-   out.push({id:c.id,title:c.title,library:'actorcore',source:'animation library (ActorCore)',category:category(c.category+' '+c.id),status:why?'no':'library',ok:!why,why});}
-  const mine=M&&idx&&idx.files[M.asset],limit=(idx&&idx.restLimit)||(L&&L.REST_LIMIT)||25;
-  if(idx)for(const [asset,f] of Object.entries(idx.files)){if(M&&asset===M.asset)continue;
-   for(const c0 of f.clips||[]){const clip=Array.isArray(c0)?c0[0]:c0,cid=asset+'/'+clip;let why=rule(cid,clip,asset),status='shared';
-    if(!why){if(!f.public)why='A licensed model file (kept outside the public files): not used as a source here.';else if(!mine)why='Her own file is not in the index.';
-     else if(!f.mixamo||f.joints!==mine.joints)why='A different skeleton ('+f.joints+' joints, hers '+mine.joints+'): use “Request an animation” for an offline retarget.';
-     else{const off=L.restOffset(f.rest,mine.rest);if(off>limit)why='Her rig rests '+Math.round(off)+'° differently (the limit is '+limit+'°): use “Request an animation” for an offline retarget.';}}
+ function adultMotionTarget(id,asset){
+  const actor=MOVABLE[id];if(actor)return (actor.adult===true||actor.adultPerformer===true)&&!actor.youthful;
+  const made=node?require('./npc-made.js'):root.VoidMadeNPCs;
+  return ADULT.test(asset)||made?.teaResident?.(asset)?.adult===true;
+ }
+ function libraryOffer(id,idx=INDEX(),asset=MOVABLE[id]?.asset){
+  if(!asset||MOVABLE[id]?.cat||idx?.files?.[asset]?.humanoid===false)return [];
+  const L=AL(),out=[],adult=adultMotionTarget(id,asset);
+  for(const c of L?.all?.()||[]){
+   if(c.library!=='actorcore'&&c.library!=='sexyzips')continue;
+   if(c.library==='sexyzips'&&!adult)continue;
+   out.push({id:c.id,title:c.title,library:c.library,source:L.SOURCES[c.library].name,category:c.category,status:'library',ok:true,why:''});
+  }
+  const mine=idx?.files[asset];
+  if(idx)for(const [asset,f] of Object.entries(idx.files)){if(f===mine)continue;
+   for(const c0 of f.clips||[]){const clip=Array.isArray(c0)?c0[0]:c0,cid=asset+'/'+clip;let why='',status='shared';
+    if(!f.public)why='A licensed model file (kept outside the public files): not used as a source here.';else if(!mine)why='Her own file is not in the index.';
+     else if(f.humanoid===false||!f.joints||mine.public&&!mine.joints)why='A bound humanoid skeleton is required.';
     out.push({id:cid,title:clip+' (from '+asset.replace(/^npc-/,'')+')',library:'crowd:'+asset,source:asset,clip,category:category(clip),status:why?'no':status,ok:!why,why});}}
   return out;}
  /* Is an added clip id allowed without the index (the game's own check)? Its rules only: a library clip offered as above, or '<asset>/<clip>' of a known file and clip. */
- function animAllowed(id,a){if(MOVABLE[id]?.placementOnly)return 'only her bundled motions are verified on this rig';if(MOVABLE[id]&&MOVABLE[id].cat)return 'the cat is moved by its own code and plays no animation clips';const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
-  const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a||'');const M=MOVABLE[id],S=SP(),C=node?require('./crowd.js'):root.VoidCrowd;if(!m||!M)return 'unknown animation';
-  if((S&&S.BANNED||/$^/).test(a))return 'not allowed for her';if(M.youthful&&((ADULT.test(m[1]))||YOUNG_NO.test(m[2])))return 'not for her';if(MOVE_CLIP.test(m[2])||/^(sit|floor-)/.test(m[2]))return 'a walking, seated or transition clip';if(!combatAllowed(id,a))return 'combat animation not enabled or verified';if(!(C&&C.clips&&(C.clips[m[1]]||[]).includes(m[2])))return 'unknown animation';return '';}
+ function animAllowed(id,a){if(MOVABLE[id]&&MOVABLE[id].cat)return 'the cat is moved by its own code and plays no animation clips';const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
+  const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a||'');const M=MOVABLE[id],C=node?require('./crowd.js'):root.VoidCrowd;if(!m||!M)return 'unknown animation';
+  if(!(C&&C.clips&&(C.clips[m[1]]||[]).includes(m[2])))return 'unknown animation';return '';}
  /* Put added clips on a figure (the game): library clips, and clips of other public crowd files through the same runtime retarget. */
  function applyAnims(n,look,ids){const L=AL();if(!L||!L.apply||!ids||!ids.length)return Promise.resolve([]);const by=new Map();
-  for(const a of ids){const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a);const lib=m?'crowd:'+m[1]:'actorcore';if(m&&L.register)L.register(lib,'assets/models/crowd/'+m[1]+'.glb',[{id:a,clip:m[2]}]);if(!by.has(lib))by.set(lib,[]);by.get(lib).push(a);}
+  for(const a of ids){const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a);const lib=m?'crowd:'+m[1]:(L.clip(a)?.library||'actorcore');if(m&&L.register)L.register(lib,'assets/models/crowd/'+m[1]+'.glb',[{id:a,clip:m[2]}]);if(!by.has(lib))by.set(lib,[]);by.get(lib).push(a);}
   return Promise.all([...by].map(([library,only])=>Promise.resolve(L.apply(n,look,{library,only})).catch(()=>[]))).then(r=>r.flat());}
  /* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */
  const NO_AI=/^(vr-companion|studio-warrior|npc-dax|dax|ava|eva|yuki|dex)/i;
@@ -178,7 +186,7 @@
   if(!p||typeof p!=='object'||!['stay','path','original'].includes(p.mode))return [w+'unknown kind of placement (stay, path or her own routine).'];
   if(p.tier!=null&&!(p.tier===1||p.tier===2||p.tier===3))out.push(w+'the tier is 1, 2 or 3.');
   if(p.awareness!=null){if((p.tier||1)<2)out.push(w+'only a Tier 2 or Tier 3 character keeps a sight and hearing record.');for(const x of (AW()?AW().problems(p.awareness):['Awareness is not loaded.']))out.push(w+x);}
-  if(p.anims!=null){if(!Array.isArray(p.anims)||p.anims.length>8)out.push(w+'too many added animations (8 at most).');else for(const a of p.anims){const why=animAllowed(id,a);if(why)out.push(w+'the animation “'+a+'” cannot be added: '+why);}}
+  if(p.anims!=null){if(!Array.isArray(p.anims)||new Set(p.anims).size!==p.anims.length)out.push(w+'choose each added animation once.');else for(const a of p.anims){const why=animAllowed(id,a);if(why)out.push(w+'the animation “'+a+'” cannot be added: '+why);}}
   const ok=new Set(actionsFor(id,Array.isArray(p.anims)?p.anims:[]).map(a=>a.id));
   if(p.mode==='original'){if(!keysOk(p,['mode','anims','tier','awareness']))out.push(w+'“her own routine” has unknown fields.');return out;}
   if(p.mode==='stay'){if(!keysOk(p,['mode','x','z','yaw','actions','anims','tier','awareness']))return [w+'the stay has unknown fields.'];for(const x of spotProblems(id,p))out.push(w+x);
@@ -206,7 +214,7 @@
  function checkAll(npcs){if(npcs==null)return [];if(!npcs||typeof npcs!=='object'||Array.isArray(npcs)||Object.keys(npcs).length>20)return ['NPC placements have an unknown shape.'];
   const out=[];for(const [id,p] of Object.entries(npcs))out.push(...planProblems(id,p));return out;}
  /* Tidy a plan from the editor before it is checked or sent: rounded numbers, only known fields. */
- function clean(p){if(!p||typeof p!=='object')return null;const an=Array.isArray(p.anims)&&p.anims.length?{anims:p.anims.filter(a=>typeof a==='string').slice(0,8)}:{};
+ function clean(p){if(!p||typeof p!=='object')return null;const an=Array.isArray(p.anims)&&p.anims.length?{anims:[...new Set(p.anims.filter(a=>typeof a==='string'))]}:{};
   const sc=Array.isArray(p.schedule)&&p.schedule.length?{schedule:p.schedule.slice(0,LIMIT.blocks).map(cleanBlock).filter(Boolean)}:{};
   const tier=p.tier===2||p.tier===3?{tier:p.tier}:{},aw=p.awareness&&AW()?AW().clean(p.awareness):null,awareness=aw?{awareness:aw}:{};
   if(p.mode==='original')return an.anims||sc.schedule||tier.tier||awareness.awareness?{mode:'original',...an,...sc,...tier,...awareness}:null;
@@ -263,9 +271,10 @@
   for(const r of [...(json.buffers||[]),...(json.images||[])])if(r.uri!=null&&(typeof r.uri!=='string'||!/^data:/i.test(r.uri)))throw new Error('This model has external buffers or textures. Export a single self-contained GLB from Blender or Meshy.');
   return json;}
  /* Conservative automatic candidates for an as-yet unclassified imported NPC. Each still needs the runtime retarget test. */
- function importClips(info,idx=INDEX()){const L=AL();if(!L||!idx||!info||!info.rest||!L.compatible((info.bones||[]).map(L.bare))||!L.CORE.every(k=>Array.isArray(info.rest[k])))return [];
-  const result=[],banned=SP()?.BANNED||/$^/;for(const [asset,f] of Object.entries(idx.files||{})){if(!f.public||ADULT.test(asset)||!f.mixamo||f.joints!==info.bones.length||!L.CORE.every(k=>Array.isArray(f.rest?.[k]))||!L.restMatches(f.rest,info.rest))continue;
-   for(const c of f.clips||[]){const name=Array.isArray(c)?c[0]:c,id=asset+'/'+name;if(!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(id)||banned.test(id)||YOUNG_NO.test(id))continue;result.push({id,name,asset});}}
+ function importClips(info,idx=INDEX()){const L=AL();if(!L||!idx||!info)return [];
+  if(!info.compatibility?.ready&&(!L.compatible((info.bones||[]).map(L.bare))||!L.CORE.every(k=>Array.isArray(info.rest?.[k]))))return [];
+  const result=[];for(const [asset,f] of Object.entries(idx.files||{})){if(!f.public||!(f.humanoid??f.mixamo))continue;
+   for(const c of f.clips||[]){const name=Array.isArray(c)?c[0]:c,id=asset+'/'+name;if(!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(id))continue;result.push({id,name,asset});}}
   return result.sort((a,b)=>a.name.localeCompare(b.name)||a.asset.localeCompare(b.asset));}
  /* The checklist verdict for an imported file. info: {triangles, bytes, textures:[{name,w,h}], bones:[names], clips:[names], height}. */
  function importCheck(info,allowOverTriangleLimit=false){const out=[],add=(level,text)=>out.push({level,text}),t=info.triangles|0,mb=b=>(b/1048576).toFixed(1)+' MB';
@@ -321,6 +330,6 @@
      else if(from!==dest){const why=ESC()&&ESC().reachWhy?ESC().reachWhy(id,from,dest):'there is no way through.';if(why)out.push(bw+why);}}}
    if(b.mode!=='original'){const {from,to,name,cross,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={combatAllowed,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
+ const api={adultMotionTarget,combatAllowed,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

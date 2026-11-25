@@ -49,7 +49,7 @@ test('she is a VR-bedroom companion only: never a street, crowd, District or flo
  assert.ok(!CR.street['npc-luna']&&!CR.monks.includes('npc-luna'));for(const q of ['oldtown','avenue','outskirts','port','far-south',null])assert.ok(!CR.streetFigures(q,'high').includes('npc-luna'));
  assert.deepEqual(Object.keys(CR.models('neochinatown','high','all')).filter(k=>/luna/.test(k)),[],'never loaded with NeoChinatown or the District');
  for(const c of [...CR.FLOOR,...CR.FLOOR_MOVES])assert.ok(!CR.clips['npc-luna'].includes(c),'no floor pose '+c);
- const P=require(R('void-runner/npc-paths.js'));for(const id of ['grey-reverie','ethereal-lace']){const off=P.libraryOffer(id).filter(o=>o.source==='npc-luna');assert.ok(off.length,'listed');assert.ok(off.every(o=>!o.ok),'never offered to '+id);}
+ const P=require(R('void-runner/npc-paths.js'));for(const id of ['grey-reverie','ethereal-lace']){const off=P.libraryOffer(id).filter(o=>o.source==='npc-luna');assert.deepEqual(off,[],'retired character has no rig or clip offers');}
  const people=require(R('void-runner/district-people.js'));assert.ok(!JSON.stringify(people.NPCS||[]).includes('npc-luna'),'not a District resident');
 });
 

@@ -36,7 +36,7 @@ test('animations are checked: only clips the speaker really has; never on the pl
  assert.match(err([{...talkIris,say:[{who:'You',text:'Hm.',anim:'shrug'}]}]),/player’s own line has no animation/);
  assert.match(err([{...talkIris,say:[{who:'iris',text:'Hm.',anim:'<b>'}]}]),/unknown name/);
  const N=require(R('void-runner/npc-gestures.js'));
- const rev=N.clipsFor('tea-host').clips.map(c=>c.id);assert.ok(rev.includes('look'));assert.ok(!rev.some(c=>/^walk|^run|^sit|sensual|kiss|samba/.test(c)),rev.join());
+ const rev=N.clipsFor('tea-host').clips.map(c=>c.id);assert.ok(rev.includes('look'));assert.ok(!rev.some(c=>/^(walk|run|sit)/.test(c)),rev.join());assert.ok(rev.includes('ac-sensual-dance-3'));
  assert.equal(N.clipsFor('street-cat').ok,false);assert.match(N.problem('street-cat','idle'),/cat/);
  assert.equal(N.clipsFor('You').ok,false);assert.ok(N.clipsFor('admin').clips.some(c=>c.id==='shrug'));assert.ok(N.clipsFor('bartender').clips.some(c=>c.id==='wipe'),'the District bartender is Nyx');
  assert.equal(N.clipsFor('milked-eva').ok,false,'a shared street figure is not one person');

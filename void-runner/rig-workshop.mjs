@@ -1,7 +1,17 @@
 import * as motion from './rig-motion.mjs';
 const {GLB,Rig,map,inspect,clipOK,bake}=motion;
 const required=()=>globalThis.VoidVRCompanions?.requiredClips||GLB.basicNames;
-let library,runLibrary;
+let library,runLibrary,adultLibrary;
+async function adultMotions(){
+ if(!adultLibrary)adultLibrary=(async()=>{
+  const response=await fetch(new URL('assets/models/anim/anim-sexyzips.vrpak',import.meta.url));
+  if(!response.ok)throw Error('The adult motion pack could not be loaded.');
+  const buffer=await globalThis.VoidAssets.open(await response.arrayBuffer());
+  const doc=await open(new Blob([buffer]));
+  return {doc,rig:{mapping:doc.json.extras.humanoidMapping,joints:doc.json.skins[0].joints.map(index=>({index}))}};
+ })().catch(error=>{adultLibrary=null;throw error;});
+ return adultLibrary;
+}
 export async function open(file){
  const buffer=await file.arrayBuffer();
  try{return GLB.read(buffer);}catch(error){
@@ -35,6 +45,61 @@ async function running(){
 async function approved(){
  if(!library)library=(async()=>{const res=await fetch(new URL('assets/models/crowd/vr-companion-f.glb',import.meta.url));if(!res.ok)throw Error('Could not load companion animation library');const doc=await open(await res.blob()),rig=map(doc);if(!rig.ready)throw Error('Unmapped donor: '+JSON.stringify(rig.ambiguous));return {doc,rig};})().catch(e=>{library=null;throw e;});
  return library;
+}
+// Bind the motion pack to the actual character instance using its own rest pose.
+const sceneRigs=new WeakMap();
+export async function bindSharedMotions(node,look,names,asset=null,targetFile=null){
+ const B=globalThis.BABYLON;
+ let source;
+ if(asset){
+  if(!/^[a-z0-9-]+$/.test(asset))throw Error('Invalid motion source');
+  const response=await fetch(new URL('assets/models/crowd/'+asset+'.glb',import.meta.url));
+  if(!response.ok)throw Error('Motion source unavailable');
+  const doc=await open(await response.blob()),rig=inspect(doc,doc.json.extras?.voidHumanoidMapping||{});
+  if(!rig.ready)return [];
+  source={doc,rig};
+ }else source=await adultMotions();
+ if(node.isDisposed())return [];
+ let pending=sceneRigs.get(node);
+ if(!pending){
+  pending=(async()=>{
+   const file=globalThis.VoidMadeNPCs?.fileOf(look)||'assets/models/crowd/'+look+'.glb';
+   let blob=targetFile;
+   if(!blob){
+    const response=await fetch(new URL(file,import.meta.url));if(!response.ok)throw Error('Character file unavailable');
+    const buffer=await response.arrayBuffer();blob=new Blob([file.endsWith('.vrpak')?await globalThis.VoidAssets.open(buffer):buffer]);
+   }
+   const doc=await open(blob);
+   const rig=inspect(doc,doc.json.extras?.voidHumanoidMapping||{});if(!rig.ready)throw Error('Character needs humanoid mapping');
+   const targets=new Map();
+   for(const mesh of node.getChildMeshes(false))for(const bone of mesh.skeleton?.bones||[]){
+    const t=bone.getTransformNode();if(t)targets.set(t,t.name);
+   }
+   const joints=new Map();for(const i of Object.values(rig.mapping)){
+    const name=doc.json.nodes[i].name,match=[...targets].filter(([,n])=>n===name||n.endsWith('-'+name));if(match.length!==1)throw Error('Cannot bind joint '+name);joints.set(name,match[0][0]);
+   }
+   return {rig,doc:{json:{nodes:doc.json.nodes}},joints};
+  })();sceneRigs.set(node,pending);pending.catch(()=>sceneRigs.delete(node));
+ }
+ const target=await pending;if(node.isDisposed())return [];
+ const meta=node.metadata||={},groups=meta.animationGroups||=[],added=[];
+ for(const a of source.doc.json.animations){
+  const id=asset?asset+'/'+a.name.replace(/\.\d{3}$/,''):a.name;
+  if(names&&!names.includes(id))continue;
+  const name=look+'-'+id;if(groups.some(g=>g.name===name)){added.push(id);continue;}
+  if(!clipOK(source.doc,a,source.rig,a.name))continue;
+  const frames=bake(source.doc,source.rig,a,target.doc,target.rig),g=new B.AnimationGroup(name,node.getScene());
+  for(const [i,joint] of frames[0].joints.entries()){
+   const t=target.joints.get(joint.joint);
+   for(const [field,property,type,from] of [['rotation','rotationQuaternion',B.Animation.ANIMATIONTYPE_QUATERNION,B.Quaternion],['translation','position',B.Animation.ANIMATIONTYPE_VECTOR3,B.Vector3]]){
+    if(!joint[field])continue;
+    const track=new B.Animation(name+'-'+joint.joint,property,30,type,B.Animation.ANIMATIONLOOPMODE_CYCLE);
+    track.setKeys(frames.map(f=>({frame:f.time*30,value:from.FromArray(f.joints[i][field])})));g.addTargetedAnimation(track,t);
+   }
+  }
+  g.enableBlending=true;groups.push(g);node.onDisposeObservable.addOnce(()=>g.dispose());added.push(id);
+ }
+ return added;
 }
 const blobOf=doc=>new Blob([GLB.write(doc.json,doc.binary)],{type:'model/gltf-binary'});
 export async function check(file,overrides={}){
@@ -78,6 +143,9 @@ export function panel(host,{get,set,preview}){
  const box=document.createElement('section'),status=document.createElement('p'),controls=document.createElement('div'),details=document.createElement('details'),summary=document.createElement('summary');
  box.className='me-check';summary.textContent='Bone assignments and animation selection';details.append(summary,controls);status.setAttribute('role','status');
  let backup=null,overrides={},selected=null,last=null,busy=false;
+ const mature=document.createElement('input'),label=document.createElement('label');
+ mature.type='checkbox';mature.onchange=()=>{selected=null;controls.querySelectorAll('[data-motion-choice]').forEach(row=>row.remove());};
+ label.append(mature,' Include adult motion pack for this adult humanoid');box.append(label);
  function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=async()=>{if(busy)return;busy=true;try{await fn();}catch(e){status.textContent=e.message;}finally{busy=false;}};box.append(b);}
  async function display(){
   const file=get();if(!file){status.textContent='Choose a character model.';return;}if(last!==file){overrides={};backup=null;last=file;}
@@ -95,6 +163,7 @@ export function panel(host,{get,set,preview}){
  }
  async function available(all){
   const sources=[await approved()];if(!all)return sources;
+  if(mature.checked)sources.push(await adultMotions());
   const run=await running();sources.push({...run,doc:{...run.doc,json:{...run.doc.json,animations:run.doc.json.animations.filter(a=>a.name==='run')}}});
   for(const m of globalThis.VoidVRCompanionStudio?.exportableMotionSources?.()||[]){
    try{const doc=await open(m.blob),rig=map(doc);
@@ -118,7 +187,7 @@ export function panel(host,{get,set,preview}){
   await display();status.textContent+=' · '+(reports.join(' · ')||'All selected clips already present.');
  }
  button('Auto-Fix All',()=>apply(false));button('Add All Compatible Animations',()=>apply(true));
- button('Select animations',async()=>{const sources=await available(true);selected=new Set();for(const source of sources)for(const a of source.doc.json.animations){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=true;selected.add(a.name);input.onchange=()=>input.checked?selected.add(a.name):selected.delete(a.name);label.append(input,a.name);controls.append(label);}details.open=true;});
+ button('Select animations',async()=>{const sources=await available(true);controls.querySelectorAll('[data-motion-choice]').forEach(row=>row.remove());selected=new Set();for(const source of sources)for(const a of source.doc.json.animations){const label=document.createElement('label'),input=document.createElement('input');label.dataset.motionChoice=a.name;input.type='checkbox';input.checked=true;selected.add(a.name);input.onchange=()=>input.checked?selected.add(a.name):selected.delete(a.name);label.append(input,a.name);controls.append(label);}details.open=true;});
  button('Preview repaired character',async()=>{
   const file=get(),view=await preview(file);if(!view)return;
   box.querySelector('[data-rig-playback]')?.remove();

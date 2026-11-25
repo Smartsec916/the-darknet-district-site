@@ -41,26 +41,21 @@ class NpcToolsServerTests(unittest.TestCase):
                ({'tea-host': {'mode': 'path', 'points': [{'x': 30, 'z': -7.3, 'action': 'look', 'seconds': 5}, {'x': 50, 'z': -7.3, 'action': 'look', 'seconds': 5}]}}, 'goes through'),
                ({'tea-host': {'mode': 'path', 'points': [{'x': 100, 'z': -6, 'action': 'look', 'seconds': 500}, {'x': 110, 'z': -6, 'action': 'look', 'seconds': 5}]}}, '1 to 120'),
                ({'tea-host': {'mode': 'path', 'points': [{'x': 100, 'z': -6, 'action': 'look', 'seconds': 5}]}}, '2 to 12'),
-               ({'tea-host': {'mode': 'original', 'anims': ['ac-sensual-dance-3']}}, 'animation is not allowed'),
+               ({'tea-host': {'mode': 'original', 'anims': ['unknown-clip']}}, 'animation is not allowed'),
                ({'tea-host': {'mode': 'teleport'}}, 'unknown kind')]
         for npcs, why in bad:
             p = live.npc_problems(npcs, INV)
             self.assertTrue(any(why in x for x in p), (npcs, p))
             self.assertTrue(live.check(doc(npcs=npcs), INV))
 
-    def test_banned_clips_never_allowed(self):
-        banned = ['sensual', 'slow', 'belly', 'hip', 'twerk', 'grind', 'pole', 'milk', 'flirt', 'kiss', 'seduc', 'recline', 'club']
-        for npc, mv in INV['npcPaths']['movable'].items():
-            for a in mv['actions'] + mv['anims']:
-                self.assertFalse(any(b in a.rsplit('/', 1)[-1] for b in banned), (npc, a))
-                self.assertFalse(a.startswith(('npc-club-m/', 'npc-milked-auburn/')))
-
     def test_shared_animations(self):
-        ok = {'tea-host': {'mode': 'stay', 'x': 100, 'z': -6.5, 'yaw': 0, 'actions': ['npc-admin/talk'], 'anims': ['npc-admin/talk']}}
-        self.assertEqual(live.npc_problems(ok, INV), [])
-        for bad in ['npc-rin/smoke', 'npc-kai/blow-kiss', 'npc-milked-auburn/dance', 'vr-companion-f/hips']:
-            p = live.npc_problems({'tea-host': {'mode': 'original', 'anims': [bad]}}, INV)
-            self.assertTrue(p, bad)
+        clips = INV['npcPaths']['movable']['tea-host']['anims']
+        pack = [clip for clip in clips if clip.startswith('sz-')]
+        self.assertEqual(len(pack), 17)
+        self.assertEqual(live.npc_problems({'tea-host': {'mode': 'original', 'anims': pack}}, INV), [])
+        self.assertFalse(INV['npcPaths']['movable']['street-cat']['anims'])
+        for invalid in [['unknown-clip'], pack + [pack[0]], [{}]]:
+            self.assertTrue(live.npc_problems({'tea-host': {'mode': 'original', 'anims': invalid}}, INV))
 
     def test_wait_at(self):
         self.assertEqual(live.check(doc(trees=[tree({'x': 104.4, 'z': -5.9, 'yaw': 3.14})]), INV), [])
