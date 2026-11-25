@@ -94,6 +94,22 @@ class ItemTests(unittest.TestCase):
         self.assertEqual(result.status_code, 200, result.json)
         self.assertEqual(self.get('shop/state').json['keycards'], [held])
         self.assertTrue(self.post('keycards/move', pickup).json['duplicate'])
+        self.fund('outsider', 1000)
+        transfer = {'action': 'transfer', 'card': held['id'], 'recipient': 'outsider', 'nonce': self.nonce()}
+        self.assertEqual(self.post('keycards/move', transfer).status_code, 200)
+        self.assertTrue(self.post('keycards/move', transfer).json['duplicate'])
+        self.assertEqual(self.get('shop/state', 'outsider').json['keycards'], [held])
+        self.assertFalse(self.post('keycards/access', {'door': unit}).json['allowed'])
+        self.assertTrue(self.post('keycards/access', {'door': unit}, 'outsider').json['allowed'])
+
+        card['keycard']['discoverable'] = False
+        self.assertEqual(self.publish(catalog_data, expected=1).status_code, 200)
+        bought = self.buy(credits=925)
+        self.assertEqual(bought.status_code, 200, bought.json)
+        mystery = self.get('shop/state').json['keycards'][0]
+        self.assertNotIn('doors', mystery)
+        self.assertNotIn('privateNotes', mystery)
+        self.assertTrue(self.post('keycards/access', {'door': unit}).json['allowed'])
 
     def test_player_housing_grants_only_its_doors_and_releases_the_physical_card(self):
         self.fund('owner', 1000)

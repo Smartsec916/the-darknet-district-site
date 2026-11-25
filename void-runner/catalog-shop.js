@@ -62,6 +62,8 @@
   }
   function moveCard(card,actionName,fields){
    return operation(async()=>{
+    if(root.VoidDevTest?.active)throw Error('Exit the test session before moving a physical keycard.');
+    if(fields.door&&fields.door!==nearbyEntrance()?.id)throw Error('Return to this entrance before moving the keycard.');
     const r=receipt([actionName,card.id,fields.door||fields.recipient].join('/'));
     await game.request('keycards/move',{action:actionName,card:card.id,nonce:r.nonce,...fields});r.clear();
     await refresh();note.textContent='Keycard inventory updated.';
