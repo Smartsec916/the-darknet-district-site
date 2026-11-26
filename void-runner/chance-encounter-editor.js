@@ -168,7 +168,8 @@
    }
    if(g.dialogue?.length){
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);
-    if(g.id==='dropped-cardkey'){
+    const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));
+    if(editable){
      const position=element('select');position.setAttribute('aria-label','Insert new line');
      const fillPositions=()=>{
       position.replaceChildren(new Option('End of this conversation',''));
@@ -180,7 +181,7 @@
      field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],
       ...arrival.map(l=>[l.id,'After '+l.id+(l.text?' — '+l.text.slice(0,55):'')])],g.decisionAfter||'end',v=>{g.decisionAfter=v;mark();}));
      field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);
-     dialogue.append(element('p','Waiting lines play in order while the choices are open. A choice cancels the current repeat. Set the delay on each line, or clear the text to keep Lace silent.'));
+     dialogue.append(element('p','Checked speech and animations repeat in order between the first and last repeated actions. Each action can lead to a percentage branch. Unused percentage continues directly to the next action. A player choice ends the waiting playlist.'));
      const add=button('Add Lace line',()=>{
       const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};
       insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();
@@ -201,10 +202,38 @@
       }catch(e){issues.push(file.name+' — '+e.message);}
      }}finally{host.inert=false;bulk.value='';report.textContent=[imported+' imported',...issues].join(' · ');}
     };
-    const editable=g.id==='dropped-cardkey';
-    const ordered=editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue;
-    for(const line of ordered){
-     const row=element('fieldset');row.append(element('legend',line.id));dialogue.append(row);
+    const ordered=(editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue).filter(l=>!l.id.startsWith('branch_'));
+    const drawn=new Set();
+    function redraw(){mark();draw();}
+    function newAction(){
+     const id='branch_'+crypto.randomUUID().replaceAll('-','').slice(0,12);
+     g.dialogue.push({id,speaker:'lace',text:'',animation:'',delay:0,tags:''});return id;
+    }
+    function removeActions(ids){
+     const removed=new Set(ids);
+     for(const id of removed){
+      const line=g.dialogue.find(row=>row.id===id);
+      for(const branch of line?.branches||[])for(const child of branch.actions)removed.add(child);
+     }
+     g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));
+    }
+    function drawRow(line,parent,owner){
+     if(!line||drawn.has(line.id))return;
+     drawn.add(line.id);
+     const row=element('fieldset');row.append(element('legend',line.id));parent.append(row);
+     row.dataset.lineId=line.id;
+     if(owner){
+      const index=owner.actions.indexOf(line.id);
+      for(const [offset,label] of [[-1,'Move earlier'],[1,'Move later']]){
+       const other=index+offset,move=button(label,()=>{
+        [owner.actions[index],owner.actions[other]]=[owner.actions[other],owner.actions[index]];redraw();
+       });move.disabled=other<0||other>=owner.actions.length;row.append(move);
+      }
+      const remove=button('Remove action',()=>{
+       if(!confirm('Remove this action and its branches?'))return;
+       owner.actions.splice(index,1);removeActions([line.id]);redraw();
+      });remove.disabled=owner.actions.length===1;row.append(remove);
+     }
      const currentBranch=editable&&branchOf(line);
      if(currentBranch){
       row.dataset.lineId=line.id;
@@ -214,7 +243,7 @@
        if(g.decisionAfter===line.id)g.decisionAfter=siblings[index-1]?.id||'before';
        if(currentBranch==='wait')g.waitingDialogueConfigured=true;
        g.dialogue.splice(g.dialogue.indexOf(line),1);
-       line.id=nextLineId(g,destination);
+       delete line.playlistStart;delete line.playlistEnd;line.id=nextLineId(g,destination);
        insertLine(g,line,destination);redrawLine();
       }));
       for(const [step,label] of [[-1,'Move earlier'],[1,'Move later']]){
@@ -235,7 +264,37 @@
        if(key==='animation')control.setAttribute('list',motions.id);}
      for(const [key,label] of [['repeatSpeech','Repeat spoken line until canceled'],['repeatAnimation','Repeat animation until canceled']]){
       const toggle=element('input');toggle.type='checkbox';toggle.checked=line[key]===true;
-      toggle.onchange=()=>{line[key]=toggle.checked;mark();};field(row,label,toggle);
+      toggle.onchange=()=>{line[key]=toggle.checked;if(!line.repeatSpeech&&!line.repeatAnimation){delete line.playlistStart;delete line.playlistEnd;redraw();}else mark();};field(row,label,toggle);
+     }
+     if(currentBranch||owner){
+      const settings=element('details');settings.append(element('summary','Playlist bounds and percentage branches'));row.append(settings);
+      settings.open=!!(line.playlistStart||line.playlistEnd||line.branches?.length);
+      for(const [key,label] of [['playlistStart','First repeated action'],['playlistEnd','Last repeated action']]){
+       const check=element('input');check.type='checkbox';check.checked=!!line[key];
+       check.onchange=()=>{
+        if(check.checked&&!api.isRepeat(line)){check.checked=false;message.textContent='Enter a line or animation and select it to repeat first.';return;}
+        const group=owner?g.dialogue.filter(r=>owner.actions.includes(r.id)):Object.values(api.dialogueSections(g)).find(rows=>rows.includes(line));
+        for(const sibling of group||[])delete sibling[key];
+        if(check.checked)line[key]=true;redraw();
+       };field(settings,label,check);
+      }
+      const add=button('Add percentage branch',()=>{
+       const used=(line.branches||[]).reduce((sum,b)=>sum+b.chance,0);
+       (line.branches||=[]).push({chance:Math.max(0,Math.min(25,100-used)),passes:1,actions:[newAction()]});redraw();
+      });add.disabled=g.dialogue.length>=100;settings.append(add);
+      for(const [index,branch] of (line.branches||[]).entries()){
+       const lane=element('fieldset');lane.append(element('legend','Branch playlist '+(index+1)));settings.append(lane);
+       const probability=field(lane,'Chance (%)',input(branch.chance,v=>{branch.chance=v;mark();},'number'));
+       probability.min=0;probability.max=100;probability.step='any';
+       const passes=field(lane,'Playlist passes (0 = until canceled)',input(branch.passes??1,v=>{branch.passes=v;mark();},'number'));
+       passes.min=0;passes.max=100;passes.step=1;
+       for(const id of branch.actions)drawRow(g.dialogue.find(r=>r.id===id),lane,branch);
+       const addAction=button('Add branch action',()=>{branch.actions.push(newAction());redraw();});
+       addAction.disabled=g.dialogue.length>=100;lane.append(addAction,button('Remove branch',()=>{
+        if(!confirm('Remove this playlist and all its actions?'))return;
+        removeActions(branch.actions);line.branches.splice(index,1);redraw();
+       }));
+      }
      }
      const attach=async file=>{
       if(!line.text.trim())throw Error('Enter the spoken line first.');
@@ -277,6 +336,7 @@
       }catch(e){audio.textContent=e.message;}
      }),audio);
     }
+    for(const line of ordered)drawRow(line,dialogue,null);
    }
    const board=element('div');board.className='encounter-board';board.setAttribute('aria-label','Encounter connections');host.append(board);
    for(const n of g.nodes){

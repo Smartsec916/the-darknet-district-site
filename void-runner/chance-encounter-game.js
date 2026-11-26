@@ -46,6 +46,7 @@
    group.onAnimationGroupEndObservable.remove(observer);figure.returnToPose=null;
   }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
+  if(!loop&&clip.isStarted)clip.stop();
   clip.start(loop);
   if(!loop&&name==='sz-tiedbf-look-back-return'){
    const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
@@ -63,60 +64,66 @@
   signal?.throwIfAborted();return play(figure,name,loop);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
-  let rows=(run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_'));
-  if(section){
-   const after=run.graph.decisionAfter,idx=rows.findIndex(l=>l.id===after);
-   const cut=after==='before'?0:idx<0?rows.length:idx+1;
-   rows=section==='opening'?rows.slice(0,cut):rows.slice(cut);
-  }
-  for(const line of rows){
-   if(!line.text.trim()&&!line.animation)continue;
+  const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
+  const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];
+  async function action(line,signal,replay){
    signal.throwIfAborted();
-   await playDialogueRow(run,line,signal,caption);
-  }
- }
- async function playDialogueRow(run,line,parentSignal,caption){
-  const repeatSpeech=!!line.text.trim()&&line.repeatSpeech===true;
-  const repeatMotion=!!line.animation&&line.repeatAnimation===true&&!!run.lace;
-  const repeat=repeatSpeech||repeatMotion;
-  const controller=new AbortController(),signal=controller.signal;
-  const cancel=()=>controller.abort(),key=e=>{
-   if(e.code==='Backspace'&&!e.repeat){e.preventDefault();cancel();}
-  };
-  let button,clip;
-  parentSignal.addEventListener('abort',cancel,{once:true});
-  try{
-   if(line.delay)await delay(line.delay*1000,signal);
-   if(repeat){
-    button=document.createElement('button');button.textContent='Stop repeat · Backspace';
-    Object.assign(button.style,{position:'fixed',right:'2vw',top:'25vh',zIndex:76});
-    button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
+   const text=replay&&!line.repeatSpeech?'':line.text.trim();
+   const animation=replay&&!line.repeatAnimation?'':line.animation;
+   if(text||animation){
+    if(line.delay)await delay(line.delay*1000,signal);
+    const clip=animation&&run.lace?await assignedClip(run.lace,laceLook,animation,signal,false):null;
+    try{
+     if(text){
+      caption(line.speaker+' Â· '+text);
+      const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
+      const bus=root.VoidAudio?.bus('voice');
+      if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
+       const silence=()=>root.VoidVoiceClips.cancel();
+       signal.addEventListener('abort',silence,{once:true});
+       try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
+       finally{signal.removeEventListener('abort',silence);}
+      }else await delay(Math.max(1500,text.length*55),signal);
+     }
+     if(clip)await until(()=>!clip.isPlaying,signal);
+    }finally{if(clip&&signal.aborted)clip.stop();}
    }
-   if(line.animation&&run.lace)clip=await assignedClip(run.lace,laceLook,line.animation,signal,repeatMotion);
-   if(line.text.trim()){
-    do{
-     signal.throwIfAborted();caption(line.speaker+' · '+line.text);
-     const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
-     const bus=root.VoidAudio?.bus('voice');
-     if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
-      const silence=()=>root.VoidVoiceClips.cancel();
-      signal.addEventListener('abort',silence,{once:true});
-      try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
-      finally{signal.removeEventListener('abort',silence);}
-     }else await delay(Math.max(1500,line.text.length*55),signal);
-     if(repeatSpeech)await delay(Math.max(1000,(line.delay||0)*1000),signal);
-    }while(repeatSpeech);
-   }
-   if(repeatMotion)await until(()=>false,signal);
-   else if(clip&&!line.text.trim())await until(()=>!clip.isPlaying,signal);
-  }catch(error){
-   if(!signal.aborted)throw error;
-  }finally{
-   parentSignal.removeEventListener('abort',cancel);
-   document.removeEventListener('keydown',key,true);button?.remove();
-   if(clip&&(repeatMotion||signal.aborted))clip.stop();
+   signal.throwIfAborted();
+   const branch=api.chooseBranch(line);
+   if(branch)await sequence(branch.actions.map(id=>byId.get(id)),branch.passes??1,signal,true);
   }
-  parentSignal.throwIfAborted();
+  async function sequence(rows,passes,parentSignal,child=false){
+   const {before,cycle,after}=api.playlist(rows,child&&passes!==1);
+   for(const row of before)await action(row,parentSignal,false);
+   if(cycle.length){
+    const controller=new AbortController(),signal=controller.signal,cancel=()=>controller.abort();
+    const key=e=>{if(e.code==='Backspace'&&!e.repeat&&controls.at(-1)===button){e.preventDefault();cancel();}};
+    let button;
+    parentSignal.throwIfAborted();parentSignal.addEventListener('abort',cancel,{once:true});
+    if(passes!==1){
+     button=document.createElement('button');button.type='button';
+     button.textContent=child?'Return to parent playlist':'Stop repeat Â· Backspace';
+     Object.assign(button.style,{position:'fixed',right:'2vw',top:'calc(25vh + '+controls.length*3.1+'rem)',zIndex:76});
+     controls.push(button);button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
+    }
+    try{
+     const marked=cycle.filter(api.isRepeat);
+     for(let pass=0;passes===0||pass<passes;pass++){
+      signal.throwIfAborted();
+      for(const row of pass&&marked.length?marked:cycle)await action(row,signal,pass>0&&marked.length>0);
+      if(passes===0||pass+1<passes)await delay(250,signal);
+     }
+    }catch(error){if(!signal.aborted)throw error;}
+    finally{
+     parentSignal.removeEventListener('abort',cancel);
+     if(button){controls.splice(controls.indexOf(button),1);button.remove();document.removeEventListener('keydown',key,true);}
+    }
+    parentSignal.throwIfAborted();
+    if(child&&signal.aborted)return;
+   }
+   for(const row of after)await action(row,parentSignal,false);
+  }
+  await sequence(sections[section||prefix]||[],0,signal);
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);
@@ -294,6 +301,17 @@
    };
    recover().catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
   }
+  // Draw the spill on the road so it remains visible without post-processing on Low.
+  const b=B(),halo=b.MeshBuilder.CreateGround('dropped keycard glow',{width:.86,height:.86},scene);
+  halo.position.set(at.x,surface+.008,at.z);halo.isPickable=false;
+  const texture=new b.DynamicTexture('keycard glow falloff',64,scene,false),ctx=texture.getContext();
+  const gradient=ctx.createRadialGradient(32,32,0,32,32,32);
+  gradient.addColorStop(0,'rgba(153,255,251,.94)');gradient.addColorStop(.32,'rgba(59,245,231,.60)');gradient.addColorStop(1,'rgba(35,216,210,0)');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,64,64);texture.hasAlpha=true;texture.update();
+  const light=new b.StandardMaterial('keycard light spill',scene);
+  light.disableLighting=true;light.emissiveColor=b.Color3.White();light.diffuseTexture=texture;light.useAlphaFromDiffuseTexture=true;
+  light.disableDepthWrite=true;light.alphaMode=b.Engine.ALPHA_ADD;halo.material=light;
+  card.parent.onDisposeObservable.addOnce(()=>{halo.dispose();light.dispose();texture.dispose();});
   const rim=card.made.getChildMeshes().find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
