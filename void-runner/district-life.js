@@ -10,6 +10,9 @@
 (function(root){
  'use strict';
  const SPEED=1.25,ROUND=480;
+ // Store-local coordinates, alongside the middle survival case. Iris approaches
+ // from the staff side and Tacta from the sales floor, leaving the counter aisle open.
+ const STORE_VISIT={tacta:[15.55,47.2],iris:[15.55,48.3]};
  /* Each resident's own spot (where neochinatown.js stands them) and what they look toward there. */
  const HOMES={
   'crew-hall-talk1':{at:[-2.0,40.3],face:[-1.9,41.5],door:40.3},'crew-hall-talk2':{at:[-1.9,41.5],face:[-2.0,40.3],door:41.5},'crew-hall-talk3':{at:[2.0,38.4],face:[0,39.5],door:38.4},
@@ -94,7 +97,7 @@
   const checkpoint=N.toWorld(0,23),hallway=N.toWorld(0,27.5);
   street.push(checkpoint);
   const solids=N.layout('interior').solids.filter(s=>s.position[1]-s.size[1]/2<1.6&&s.position[1]+s.size[1]/2>.1);
-  const store=N.toWorld(12,46);
+  const store=N.toWorld(...STORE_VISIT.tacta);
   const interior=escort.gridRoute(vec(hallway),vec(store),solids,{grid:.25,radius:.3});
   if(!interior?.length||dist([interior.at(-1).x,interior.at(-1).z],store)>.12)return null;
   const result={street,interior:[checkpoint,hallway,...interior.map(p=>[p.x,p.z])]};
@@ -130,7 +133,7 @@
     const key=visitDay+'-'+index;
     if(elapsed>=0&&elapsed<duration){
      const [x,z]=paths.interior.at(-1);
-     return {area:'interior',phase:'visit',x,z,key,elapsed,remaining:duration-elapsed};
+     return {area:'interior',phase:'visit',x,z,yaw:Math.PI,key,elapsed,remaining:duration-elapsed};
     }
     const returning=elapsed>=duration;
     let t=returning?travel-(elapsed-duration):elapsed+travel;
@@ -226,13 +229,76 @@
   if(/sarcast|dry|deadpan/i.test(line.delivery||''))return 'shrug';
   return 'talk';
  }
+ // Distances are in Store metres. Ease into contact and release before either NPC walks away.
+ function greetingPose(visit){
+  const beats=[['hug',visit.elapsed-12,.78],['hands',visit.elapsed-32,.61],['kiss',20-visit.remaining,.93]];
+  for(const [kind,t,step] of beats){
+   if(t<=0||t>=7)continue;
+   const fraction=Math.min(1,t/2,(7-t)/2),weight=fraction*fraction*(3-2*fraction);
+   return {kind,weight,step:step*weight};
+  }
+  return null;
+ }
+ function contactArms(node){
+  const joints=node.getChildTransformNodes(false);
+  const arms=['Left','Right'].map(side=>['Arm','ForeArm','Hand'].map(part=>joints.find(j=>j.name.endsWith(':'+side+part))));
+  return arms.flat().every(j=>j?.rotationQuaternion)?arms:null;
+ }
+ function storeContact(holder){
+  const scene=holder.getScene(),saved=new Map();
+  let intent=null,source=null,pair=null;
+  const before=scene.onBeforeAnimationsObservable.add(()=>{
+   for(const [joint,q] of saved)if(!joint.isDisposed())joint.rotationQuaternion.copyFrom(q);
+   saved.clear();
+  });
+  const after=scene.onAfterAnimationsObservable.add(()=>{
+   if(!intent||!source||source.isDisposed())return;
+   const [a,b]=pair,point=j=>j.computeWorldMatrix(true).getTranslation();
+   const delta=point(a[0][0]).add(point(a[1][0])).subtract(point(b[0][0])).subtract(point(b[1][0])).scale(.5);
+   if(delta.length()>1.25)return;
+   for(const [index,own,other] of [[0,a,b],[1,b,a]]){
+    for(const [side,arm] of own.entries()){
+     if(intent.kind==='hands'&&side!==index)continue;
+     const opposite=other[1-side],shoulder=point(arm[0]),mate=point(opposite[0]);
+     const goal=shoulder.add(mate).scale(.5);
+     if(intent.kind==='hug')goal.copyFrom(mate).addInPlace(delta.scale(index===0?-.14:.14));
+     goal.y-=intent.kind==='hands'?.25:intent.kind==='kiss'?.2:.08;
+     for(const joint of arm.slice(0,2))saved.set(joint,joint.rotationQuaternion.clone());
+     root.VoidCrowd.reachHand(arm,goal,index===0?0:Math.PI);
+     for(const joint of arm.slice(0,2))root.BABYLON.Quaternion.SlerpToRef(saved.get(joint),joint.rotationQuaternion,intent.weight,joint.rotationQuaternion);
+    }
+   }
+  });
+  holder.onDisposeObservable.addOnce(()=>{
+   scene.onBeforeAnimationsObservable.remove(before);scene.onAfterAnimationsObservable.remove(after);
+  });
+  return pose=>{
+   intent=null;
+   if(!pose)return;
+   if(!source||source.isDisposed()||!pair||pair[0][0][0].isDisposed()){
+    source=scene.transformNodes.find(n=>n.metadata?.made==='tacta')||scene.meshes.find(n=>n.metadata?.made==='tacta');
+    const a=contactArms(holder),b=source&&contactArms(source);
+    pair=a&&b?[a,b]:null;
+   }
+   if(pair)intent=pose;
+   return !!intent;
+  };
+ }
  function shopVisit(iris){
-  let progress=0,clip='',recordings=[],duo=null,lastLine=null,currentStage='',sharedKey='',sharedScript=[],lastTick=null;
+  let progress=0,clip='',recordings=[],duo=null,lastLine=null,currentStage='',sharedKey='',sharedScript=[],lastTick=null,contactStep=0;
   root.VoidVoiceClips?.tactaExchanges?.then(lines=>{recordings=lines;});
-  const path=[iris.home,[15.1,48.6],[15.1,45.4],[13.1,45.4],[13.1,46]];
-  const metres=length(path);
+  const path=[iris.home,[STORE_VISIT.iris[0],iris.home[1]],STORE_VISIT.iris];
+  const metres=length(path),contact=storeContact(iris.holder);
+  let focus=null,guestHead=null;
+  iris.visitLook=()=>{
+   if(!focus)return null;
+   if(!guestHead||guestHead.isDisposed()){
+    guestHead=iris.holder.getScene().transformNodes.find(n=>n.name==='crowd:npc-tacta-mixamorig:Head');
+   }
+   return guestHead?.getAbsolutePosition()||{x:focus.x,y:1.6,z:focus.z};
+  };
   return {get away(){return progress>0;},tick(dt,staffBusy){
-   if(!iris.ready||staffBusy)return;
+   if(!iris.ready||staffBusy){contact(null);focus=null;return;}
    const v=root.VoidMadeNPCs?.tactaOuting?.();
    const visiting=v?.phase==='visit'&&root.VoidMadeNPCs?.live?.visible?.('tacta');
    const walking=typeof mode!=='undefined'&&mode==='walking';
@@ -243,14 +309,28 @@
    const next=shared&&lastTick===null?goal:progress<goal?Math.min(goal,progress+step*SPEED):Math.max(goal,progress-step*SPEED);
    lastTick=now;
    const moving=next!==progress,hadVisit=progress>0;
+   const pose=next===metres&&visiting&&available?greetingPose(v):null;
+   const touching=contact(pose);
+   focus=next===metres&&visiting&&available?v:null;
    if(moving||next>0){
     const pose=along(path,next),h=iris.holder,dir=next<progress?-1:1;
     h.position.x=pose.x;h.position.z=pose.z;
-    const yaw=next===0?Math.PI:moving?Math.atan2(dir*pose.dx,dir*pose.dz):-Math.PI/2;
+    const yaw=next===0?Math.PI:moving?Math.atan2(dir*pose.dx,dir*pose.dz):Math.PI;
     h.rotation.y+=Math.atan2(Math.sin(yaw-h.rotation.y),Math.cos(yaw-h.rotation.y))*Math.min(1,dt*6);
    }
+   const offset=touching?pose.step:0,stepping=Math.abs(offset-contactStep)>.04*dt;
+   if(touching)iris.holder.position.z-=offset;
+   if((hadVisit||next>0)&&typeof walkingLocation!=='undefined'){
+    const prompt=walkingLocation?.interactions?.find(i=>i.id==='district-iris');
+    if(prompt){
+     const [x,z]=root.VoidNeoChinatown.toWorld(...(next>0?
+      [iris.holder.position.x,iris.holder.position.z]:[12.5,46.2]));
+     prompt.position[0]=x;prompt.position[2]=z;
+    }
+   }
+   contactStep=offset;
    progress=next;
-   const wanted=moving?'walk':progress?visitGesture('iris'):'idle';
+   const wanted=moving||stepping?'walk':progress?visitGesture('iris'):'idle';
    if((hadVisit||progress)&&clip!==wanted){iris.play(wanted);clip=wanted;}
    const camera=iris.holder.getScene().activeCamera?.globalPosition;
    const nearby=!!camera&&visiting&&Math.hypot(camera.x-v.x,camera.z-v.z)<9;

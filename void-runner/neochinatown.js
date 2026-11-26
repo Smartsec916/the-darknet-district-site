@@ -1130,6 +1130,7 @@
       /* If the model is not there yet (a slow or interrupted download) the creator look stands in, and the model is tried again until it arrives: the owner, 15 Nov 2026,
          saw the old Admin and Iris because one failed attempt used to settle it for the whole visit. */
       const tryOwn=attempt=>A.ensureLook(own,scene).then(()=>{if(gone||ownShown)return;const node=root.VoidAssets.instance('crowd:'+own,holder);if(!node)throw Error('model not available');node.scaling.setAll(who.scale||1);const ctrl=root.VoidCrowd.animate(node,own,'idle'),old=made;ownShown=true;
+        if(id==='iris')root.VoidTeaDuo?.attachGaze(node,()=>staffActors.iris.visitLook?.()||null);
         made={play:c=>ctrl.play(c),dispose(){try{ctrl.dispose();}catch{}node.dispose();}};try{old?.dispose();}catch{}}).catch(()=>{if(gone||scene.isDisposed)return;if(!attempt)viaLook();if(attempt<8)setTimeout(()=>{if(!gone&&!scene.isDisposed&&!ownShown)tryOwn(attempt+1);},5000+attempt*3000);});
       if(own&&root.VoidAssets&&root.VoidCrowd?.clips?.[own])tryOwn(0);else viaLook();};
      if(state?.story?.flags?.adminOccupied!==true)staff('admin',[8,0,48.6],root.VoidDistrictPeople?.npc('admin')?.appearance||{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]});

@@ -111,30 +111,11 @@
   }
   if(p.kind==='district'||p.kind==='kiss')joinHands();
  }
- // Rotate in each joint's parent space so reflected glTF roots and different rest poses work.
- const point=n=>n.computeWorldMatrix(true).getTranslation();
- function aim(joint,tip,target){
-  const B=root.BABYLON,inv=joint.parent.computeWorldMatrix(true).clone().invert(),local=p=>B.Vector3.TransformCoordinates(p,inv).subtract(joint.position).normalize();
-  const from=local(point(tip)),to=local(target),axis=B.Vector3.Cross(from,to),s=axis.length();
-  if(s<.00001)return;
-  const q=B.Quaternion.RotationAxis(axis.scale(1/s),Math.atan2(s,B.Vector3.Dot(from,to)));
-  joint.rotationQuaternion.copyFrom(q.multiply(joint.rotationQuaternion));
- }
  function joinHands(){
   const a=figs.get('pixel'),b=figs.get('neon');if(!a?.arm||!b?.arm)return;
-  const goal=point(a.arm[0]).add(point(b.arm[0])).scale(.5);
+  const goal=a.arm[0].computeWorldMatrix(true).getTranslation().add(b.arm[0].computeWorldMatrix(true).getTranslation()).scale(.5);
   goal.y-=.37;
-  for(const f of [a,b]){
-   const [upper,lower,hand]=f.arm,shoulder=point(upper),elbow=point(lower),wrist=point(hand);
-   const toward=goal.subtract(shoulder),distance=toward.length(),axis=toward.normalize();
-   const upperLength=elbow.subtract(shoulder).length(),lowerLength=wrist.subtract(elbow).length();
-   const reach=Math.max(.01,Math.min(distance,upperLength+lowerLength-.001));
-   const along=(upperLength**2-lowerLength**2+reach**2)/(2*reach);
-   const back=new root.BABYLON.Vector3(-Math.sin(f.heading),-.6,-Math.cos(f.heading));
-   const bend=back.subtract(axis.scale(root.BABYLON.Vector3.Dot(axis,back))).normalize();
-   const targetElbow=shoulder.add(axis.scale(along)).add(bend.scale(Math.sqrt(Math.max(0,upperLength**2-along**2))));
-   aim(upper,lower,targetElbow);aim(lower,hand,goal);
-  }
+  for(const f of [a,b])root.VoidCrowd.reachHand(f.arm,goal,f.heading);
  }
  async function attach(target){
   loading=true;

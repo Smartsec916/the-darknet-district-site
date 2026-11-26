@@ -61128,7 +61128,7 @@
       "spawn"
     ]
   },
-  "revision": "38d5864389aecaf9",
+  "revision": "7d2888b64bf41391",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74201,19 +74201,31 @@
     },
     {
       "source": "void-runner/district-life.js",
-      "line": 265,
+      "line": 233,
+      "text": "function greetingPose(visit){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/district-life.js",
+      "line": 312,
+      "text": "const pose=next===metres&&visiting&&available?greetingPose(v):null;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/district-life.js",
+      "line": 345,
       "text": "function say(line){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/district-life.js",
-      "line": 278,
+      "line": 358,
       "text": "if(cue&&v.elapsed-cue.start<1.5&&cue.line!==lastLine&&!status?.active&&!document.hidden)say(cue.line);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/district-life.js",
-      "line": 301,
+      "line": 381,
       "text": "if(r.line)say(r.line);",
       "kind": "source-reference"
     },
@@ -78887,13 +78899,13 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1177,
+      "line": 1178,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1298,
+      "line": 1299,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -82244,7 +82256,7 @@
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
     "void-runner/crosswalks.js": "69acf44a540a6ba7314d68bf38fa74ad93482ca993629675eae3ca0d8a9a1d60",
-    "void-runner/crowd.js": "311780a5da5f43a2f34c1f256ad02c9ad0a549592f8a7893d80f08266cadecf1",
+    "void-runner/crowd.js": "0f5e6b731dc846062996e46ca76e631a20401ddbccf5a221905ec2d3e03f1bd1",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
     "void-runner/cult-room.js": "e4c485f0586d02c2aae26b5bfb4940f4e8abc434726aa42e9044734565431a1c",
@@ -82263,7 +82275,7 @@
     "void-runner/district-arcade.js": "d87ede7efe30433b77f2bd3db5ae0e44ce7e03714d56e37d5e9f784ca9586208",
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
-    "void-runner/district-life.js": "43f9aeb303d38467f0d5b7951c8afefb7a498c21ecff685a6c862c1612bc87ec",
+    "void-runner/district-life.js": "7390b585859ca7233be891738a7735bfa0cd88ba216acd2d3afcbf9f9b887989",
     "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
     "void-runner/district-people.js": "14bc80f15ded29f9dc47f4976387d7866bc6aed60322f2356e7b3865407012d7",
     "void-runner/district-rooms.js": "03178692e6f969a25be4447aa8197758da8ab527b9921d21e02a7e493fa0850c",
@@ -82377,7 +82389,7 @@
     "void-runner/ncz-street-pair.js": "bf31f9b97a84b58d05b9e80631aed093b868a8952f074a6d5db2b1f03003471f",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
-    "void-runner/neochinatown.js": "b2df31e83b4441a7366b359a2ed209c288c336c21fcca8c159f9d2582ba2a2ea",
+    "void-runner/neochinatown.js": "4ca1c699623dda3738efb5929b3d752e3895c2d80920ff72793ed77436124927",
     "void-runner/network.js": "5740953eccbbd9dd90568ebb040d3847bc02b0270c7f78c397c4239993395307",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
@@ -82394,7 +82406,7 @@
     "void-runner/npc-library.js": "e844f74f5cc952adea5b83494d9ab29b9d4344ff29fd283a6d6560a1a9f408b2",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
-    "void-runner/npc-made.js": "a9962a59fcf381c4b6e9728a138417e30741c70ac7c995b204b533a9a96897dc",
+    "void-runner/npc-made.js": "7a0c61335228a87f4033131116821c602cfeb943b0ad5d0724845f035bfd3a99",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "496e3f744ce890e386121ac77ea1bbe970c1d43ec7041bc8d800b03cad51d96c",
     "void-runner/npc-preview.js": "010794e80d91b5473cd453fa8e43a818c09eabdb14af18bc7e975de8720192c2",
@@ -82409,7 +82421,7 @@
     "void-runner/personal-device.js": "c8f0574cf46a07cab0de40b566c0cc4566ba4f8c9afb3a88647c0818f7262d1f",
     "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/pixel-neon.js": "d7163b1280bf39a734bab150f9a32e03ed893ee549045ec685ae68ade4983bbd",
+    "void-runner/pixel-neon.js": "4bb78c624da9721ca28b3d8f28bb07bf10915121f36ab17406e95943d2799602",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

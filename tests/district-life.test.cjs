@@ -24,6 +24,8 @@ test('Tacta walks from door 35 through the checkpoint, visits the Store, and ret
  assert.equal(paths.hall[0][0],A.geo('normal').HALL.slots[0].x);
  assert.deepEqual(paths.street[0],A.door('apt-road-n-34').front);
  assert.deepEqual(paths.street.at(-1),paths.interior[0]);
+ const [meetingX,meetingZ]=N.toWorld(15.55,47.2),[endX,endZ]=paths.interior.at(-1);
+ assert.ok(Math.hypot(endX-meetingX,endZ-meetingZ)<.001);
  for(const id of ['ar-customs','ar-main','ot-alley']){
   for(const end of C.get(id).ends)assert.ok(paths.street.some(p=>Math.hypot(p[0]-end[0],p[1]-end[1])<.01));
  }

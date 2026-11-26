@@ -305,7 +305,7 @@
    if(P?.outing){
     const target=P.outing,walking=target.phase==='walk';
     p.s.x=target.x;p.s.z=target.z;p.s.mode=walking?'walk':'stay';
-    const yaw=walking?target.yaw:-Math.PI/2;
+    const yaw=target.yaw??p.s.yaw;
     p.s.yaw+=Math.atan2(Math.sin(yaw-p.s.yaw),Math.cos(yaw-p.s.yaw))*Math.min(1,dt*5);
     const voice=root.VoidAudio?.voiceStatus;
     const expression=root.VoidDistrictLife.visitGesture(p.id);

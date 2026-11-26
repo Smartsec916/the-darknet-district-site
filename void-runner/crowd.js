@@ -248,6 +248,27 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={registerPublishedModel,casts,staff,clips,prepared,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
+ // Rotate in each joint's parent space so reflected glTF roots and different rest poses work.
+ const point=n=>n.computeWorldMatrix(true).getTranslation();
+ function aim(joint,tip,target){
+  const B=root.BABYLON,inv=joint.parent.computeWorldMatrix(true).clone().invert(),local=p=>B.Vector3.TransformCoordinates(p,inv).subtract(joint.position).normalize();
+  const from=local(point(tip)),to=local(target),axis=B.Vector3.Cross(from,to),s=axis.length();
+  if(s<.00001)return;
+  const q=B.Quaternion.RotationAxis(axis.scale(1/s),Math.atan2(s,B.Vector3.Dot(from,to)));
+  joint.rotationQuaternion.copyFrom(q.multiply(joint.rotationQuaternion));
+ }
+ function reachHand(arm,goal,heading){
+   const [upper,lower,hand]=arm,shoulder=point(upper),elbow=point(lower),wrist=point(hand);
+   const toward=goal.subtract(shoulder),distance=toward.length(),axis=toward.normalize();
+   const upperLength=elbow.subtract(shoulder).length(),lowerLength=wrist.subtract(elbow).length();
+   const reach=Math.max(.001,Math.abs(upperLength-lowerLength)+.001,Math.min(distance,upperLength+lowerLength-.001));
+   const along=(upperLength**2-lowerLength**2+reach**2)/(2*reach);
+   const back=new root.BABYLON.Vector3(-Math.sin(heading),-.6,-Math.cos(heading));
+   const bend=back.subtract(axis.scale(root.BABYLON.Vector3.Dot(axis,back))).normalize();
+   const targetElbow=shoulder.add(axis.scale(along)).add(bend.scale(Math.sqrt(Math.max(0,upperLength**2-along**2))));
+   aim(upper,lower,targetElbow);aim(lower,hand,goal);
+
+ }
+ const api={reachHand,registerPublishedModel,casts,staff,clips,prepared,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);
