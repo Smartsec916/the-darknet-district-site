@@ -39,3 +39,24 @@ test('the pair visit Hotel Headshots and only stop for a kiss off the hallway pa
  }
  assert.equal(spots.size,1);
 });
+
+test('Pixel enters the left VR booth while Neon reaches the bar, and both paths clear District solids',()=>{
+ const {activityPose}=require('../void-runner/pixel-neon.js'),city=require('../void-runner/neochinatown.js');
+ const route=makeRoute(life),solids=city.layout('interior').solids;
+ const poses=new Set();
+ for(let t=0;t<500;t+=.15){
+  const p=route(t);
+  for(const id of ['pixel','neon']){
+   const pose=activityPose(id,p,life);
+   if(!pose)continue;
+   const [x,z]=city.toWorld(pose.x,pose.z);
+   assert.ok(!solids.some(s=>s.position[1]-s.size[1]/2<1.6&&Math.abs(x-s.position[0])<s.size[0]/2+.21&&Math.abs(z-s.position[2])<s.size[2]/2+.21));
+   if(p.kind==='vr'&&p.elapsed>30&&p.remaining>30){
+    if(id==='neon')assert.ok(pose.bar);
+    else{assert.deepEqual([pose.x,pose.z],[-12.6,32.4]);poses.add(pose.clip);}
+   }
+   if(p.kind==='arcade'&&p.elapsed>3&&p.remaining>3)assert.equal(!!pose.controls,id==='neon');
+  }
+ }
+ assert.deepEqual([...poses].sort(),['idle','vr-aim','vr-duck','vr-shoot']);
+});

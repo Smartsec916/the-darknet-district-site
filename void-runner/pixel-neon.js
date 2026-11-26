@@ -5,7 +5,7 @@
  const names={pixel:'Pixel',neon:'Neon',bartender:'Bartender',admin:'Admin',iris:'Iris'};
  const stops=[
   {kind:'arcade',at:[-8.45,60.3],face:[-9.9,60.3],door:62,via:[[-3.4,62],[-6,62],[-6,60.3]],seconds:180},
-  {kind:'vr',at:[-5.4,32],face:[-12.6,32.4],door:32.4,via:[[-3.4,32.4]],seconds:50},
+  {kind:'vr',at:[-5.4,32],face:[-12.6,32.4],door:32.4,via:[[-3.4,32.4]],seconds:115},
   {kind:'bar',at:[10.6,36.9],face:[10,40],door:33.5,via:[[3.4,33.5],[10.6,34.6]],seconds:85},
   {kind:'store',at:[10.1,45.25],face:[10.1,48.6],door:45.6,via:[[3.4,45.6]],seconds:115}
  ];
@@ -48,6 +48,36 @@
    return {x:p.at[0],z:p.at[1],kind:p.kind,yaw,elapsed,remaining};
   };
  }
+ // Individual paths begin and end at the couple's shared formation. Pixel uses
+ // the opening at the end of the glass. Neon reaches the bar via the hallway.
+ function activityPose(id,p,life){
+  const side=id==='pixel'?1:-1;
+  const origin=[p.x+Math.cos(p.yaw)*side*.32,p.z-Math.sin(p.yaw)*side*.32];
+  if(p.kind!=='vr'&&p.kind!=='arcade')return null;
+  let path;
+  if(p.kind==='arcade'){
+   path=[origin,id==='neon'?[-9.03,60.3]:[-8.82,61.04]];
+  }else if(id==='pixel'){
+   path=[origin,[-6.4,30.2],[-7.3,28.95],[-8.5,28.62],[-9.7,28.62],[-12.6,32.4]];
+  }else{
+   path=[origin,[-3.4,32.4],[0,32.4],[0,33.5],[3.4,33.5],[10.6,34.6],[10.6,36.9]];
+  }
+  const length=life.length(path),wait=p.kind==='vr'&&id==='pixel'?13:0;
+  const distance=Math.max(0,Math.min(length,(Math.min(p.elapsed,p.remaining)-wait)*life.SPEED));
+  const q=life.along(path,distance),returning=p.elapsed>p.remaining;
+  if(distance<length){
+   const walking=distance>0;
+   return {x:q.x,z:q.z,yaw:walking?Math.atan2(q.dx,q.dz)+(returning?Math.PI:0):p.yaw,walking,distance:returning?length-distance:distance,clip:walking?'walk':'watch'};
+  }
+  if(p.kind==='arcade'){
+   const glance=id==='pixel'?(1+Math.tanh((Math.sin(p.elapsed*.53)-.72)*7))/2:0;
+   const lookX=-9.9+.87*glance,lookZ=60.3;
+   return {x:q.x,z:q.z,yaw:Math.atan2(lookX-q.x,lookZ-q.z),clip:id==='pixel'?'watch':'interact',controls:id==='neon'};
+  }
+  if(id==='neon')return {x:q.x,z:q.z,yaw:Math.atan2(10-q.x,40-q.z),clip:'idle',bar:true};
+  const t=(p.elapsed-wait-length/life.SPEED)%12;
+  return {x:q.x,z:q.z,yaw:Math.PI/2,clip:t<1?'idle':t<5?'vr-aim':t<7?'vr-shoot':t<10?'vr-duck':'idle'};
+ }
  function choose(exchanges,pose,adminNearby,lastPlayed,random=Math.random){
   const eligible=exchanges.filter(e=>e.locations.includes(pose.kind)&&(!e.requiresAdminNearby||adminNearby)&&
    e.lines.reduce((sum,l)=>sum+l.seconds+.8,1)<pose.remaining);
@@ -56,7 +86,7 @@
   const pool=eligible.filter(e=>(lastPlayed.get(e.id)||0)===oldest);
   return pool[Math.floor(random()*pool.length)];
  }
- if(typeof module==='object'&&module.exports){module.exports={makeRoute,choose,stops};return;}
+ if(typeof module==='object'&&module.exports){module.exports={makeRoute,choose,stops,activityPose};return;}
  const route=makeRoute(root.VoidDistrictLife),figs=new Map(),history=new Map();
  let availableAt=0,exchangeStart=0;
  let scene=null,observer=null,loading=false,retry=0,script=[],exchange=null,index=0,next=0,spoken=null,visit=null;
@@ -75,15 +105,18 @@
   if(!inside()||scene!==root.VoidBabylon?.scene||scene.isDisposed){drop();return;}
   const clock=performance.now()/1000,p=route(Date.now()/1000+(root.VoidDistrictLife.offset||0));
   const w=root.VoidNeoChinatown.toWorld(p.x,p.z),yaw=p.yaw+Math.PI;
-  const close=typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-w[0],walker.z-w[1])<6;
+  const solo=activityPose('neon',p,root.VoidDistrictLife);
+  const location=solo?.bar?root.VoidNeoChinatown.toWorld(solo.x,solo.z):w;
+  const venue=solo?.bar?'bar':p.kind;
+  const close=typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-location[0],walker.z-location[1])<6;
   const audible=close&&typeof mode!=='undefined'&&mode==='walking'&&!document.hidden&&!root.VoidArcade?.playing;
-  if(!audible||visit!==p.kind){if(exchange||spoken)silence();next=clock+1;visit=p.kind;}
+  if(!audible||visit!==venue){if(exchange||spoken)silence();next=clock+1;visit=venue;}
   const status=root.VoidAudio?.voiceStatus,own=spoken&&status?.id===spoken.speaker&&status?.text===spoken.text;
   if(audible&&status?.active&&!own){silence();next=clock+2;}
-  if(audible&&p.kind!=='kiss'&&clock>=next&&(exchange||clock>=availableAt)&&!status?.active&&script.length){
+  if(audible&&(p.kind!=='vr'||solo?.bar)&&p.kind!=='kiss'&&clock>=next&&(exchange||clock>=availableAt)&&!status?.active&&script.length){
    if(!exchange){
     const admin=p.kind==='store'&&typeof state!=='undefined'&&!state.story?.flags?.adminOccupied;
-    exchange=choose(script,p,admin,history);index=0;
+    exchange=choose(solo?.bar?script.filter(e=>e.lines.every(l=>l.speaker==='neon'||l.speaker==='bartender')):script,{...p,kind:venue,remaining:p.remaining-(solo?.bar?15:0)},admin,history);index=0;
     if(exchange){history.set(exchange.id,Date.now());exchangeStart=clock;}else next=clock+2;
    }
    if(exchange){
@@ -94,18 +127,31 @@
    }
   }
   for(const [id,f] of figs){
-   const walking=p.kind==='district',kissing=p.kind==='kiss',side=id==='pixel'?1:-1;
+   const pose=activityPose(id,p,root.VoidDistrictLife),walking=pose?pose.walking:p.kind==='district',kissing=p.kind==='kiss',side=id==='pixel'?1:-1;
    const approach=kissing?Math.min(1,p.elapsed,p.remaining):0;
    const ease=approach*approach*(3-2*approach);
    const lateral=side*(.32-.20*ease);
    f.node.position.x=w[0]+Math.cos(yaw)*lateral;f.node.position.z=w[1]-Math.sin(yaw)*lateral;
    f.heading=yaw-side*Math.PI/2*ease;
+   if(pose){
+    const pos=root.VoidNeoChinatown.toWorld(pose.x,pose.z);f.node.position.x=pos[0];f.node.position.z=pos[1];f.heading=pose.yaw+Math.PI;
+   }
    f.node.rotationQuaternion=root.BABYLON.Quaternion.RotationYawPitchRoll(f.heading,0,0);
    const talking=own&&status?.active&&spoken?.speaker===id;
-   const clip=walking?'walk':talking?'talk':p.kind==='arcade'&&id==='neon'?'interact':p.kind==='vr'?'watch':p.kind==='store'?'look':'idle';
+   const clip=walking?'walk':pose?.controls?'interact':talking?'talk':pose?.clip||(p.kind==='store'?'look':'idle');
    if(f.clip!==clip){f.ctrl.play(clip);f.clip=clip;if(walking)f.walk.pause();}
+   if(pose?.controls){
+    const cab=root.VoidNeoChinatown.arcade.find(c=>c.game==='hotel-headshots');
+    const beat=p.elapsed*4.6;
+    for(const [side,dx,h] of [['Left',-.16,1.145],['Right',.14,1.095]]){
+     const arm=f.hands[side];if(!arm)continue;
+     const [x,z]=root.VoidNeoChinatown.toWorld(cab.x+.42,cab.z+dx);
+     const press=side==='Right'?.023*Math.max(0,Math.sin(beat)):.008*Math.sin(beat*.53);
+     root.VoidCrowd.reachHand(arm,new root.BABYLON.Vector3(x,h-press,z),f.heading);
+    }
+   }
    if(walking){
-    const phase=(p.distance/people[id].stride+(side>0?.25:.75))%1;
+    const phase=((pose?.distance??p.distance)/people[id].stride+(side>0?.25:.75))%1;
     f.walk.goToFrame(f.walk.from+phase*(f.walk.to-f.walk.from));
    }
   }
@@ -138,7 +184,12 @@
     const side=id==='pixel'?'Left':'Right',bones=made.getDescendants();
     const arm=['Arm','ForeArm','Hand'].map(k=>bones.find(n=>n.name.endsWith(':'+side+k)));
     const ctrl=root.VoidCrowd.animate(made,model,'idle');walk.enableBlending=false;
-    figs.set(id,{node,ctrl,walk,arm:arm.every(n=>n?.rotationQuaternion)?arm:null,clip:'idle'});
+    const hands={};
+    for(const side of ['Left','Right']){
+     const chain=['Arm','ForeArm','Hand'].map(k=>bones.find(n=>n.name.endsWith(':'+side+k)));
+     if(chain.every(n=>n?.rotationQuaternion))hands[side]=chain;
+    }
+    figs.set(id,{node,ctrl,walk,hands,arm:arm.every(n=>n?.rotationQuaternion)?arm:null,clip:'idle'});
    }
    tick();observer=scene.onBeforeRenderObservable.add(tick);
   }catch(error){drop();retry=Date.now()+15000;console.warn('[District residents]',error.message);}
@@ -149,5 +200,8 @@
   if(scene&&(!inside()||scene!==root.VoidBabylon?.scene))drop();
   if(!scene&&!loading&&Date.now()>=retry&&inside()&&root.VoidBabylon?.scene&&root.VoidAssets)attach(root.VoidBabylon.scene);
  },1000);
- root.VoidPixelNeon={get ready(){return figs.size===2;},get activity(){return visit;}};
+ root.VoidPixelNeon={get ready(){return figs.size===2;},get boothVisit(){
+  if(!scene||!inside())return null;
+  const p=route(Date.now()/1000+(root.VoidDistrictLife.offset||0));return p.kind==='vr'?p:null;
+ },get activity(){return visit;}};
 })(globalThis);
