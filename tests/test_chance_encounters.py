@@ -31,6 +31,16 @@ class ChanceTests(unittest.TestCase):
         with self.assertRaises(encounters.DraftError):
             self.edit('publish',3)
 
+    def test_repeat_options_survive_publication_and_require_booleans(self):
+        line = self.graph['dialogue'][0]
+        line.update(repeatSpeech=True, repeatAnimation=False)
+        saved = self.edit('publish', 0)['live']['dialogue'][0]
+        self.assertIs(saved['repeatSpeech'], True)
+        self.assertIs(saved['repeatAnimation'], False)
+        line['repeatAnimation'] = 'false'
+        with self.assertRaises(encounters.DraftError):
+            self.edit('publish', 1)
+
     def test_authorized_run_issues_one_pickup_for_registered_residence(self):
         self.edit('publish',0)
         door='apt-road-n-27'

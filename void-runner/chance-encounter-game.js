@@ -41,14 +41,26 @@
   const all=figure.made.metadata.animationGroups||[];
   const clip=all.find(g=>g.name.toLowerCase().endsWith('-'+name));
   if(!clip)throw Error('The assigned animation is unavailable: '+name);
+  if(figure.returnToPose){
+   const {group,observer}=figure.returnToPose;
+   group.onAnimationGroupEndObservable.remove(observer);figure.returnToPose=null;
+  }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
-  clip.start(loop);return clip;
+  clip.start(loop);
+  if(!loop&&name==='sz-tiedbf-look-back-return'){
+   const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
+    figure.returnToPose=null;
+    if(!figure.parent.isDisposed())play(figure,'sz-tiedbf');
+   });
+   figure.returnToPose={group:clip,observer};
+  }
+  return clip;
  }
- async function assignedClip(figure,look,name,signal){
+ async function assignedClip(figure,look,name,signal,loop=true){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
    await root.VoidAnimLibrary.apply(figure.made,look,{only:[name],catalog:false});
   }
-  signal?.throwIfAborted();return play(figure,name);
+  signal?.throwIfAborted();return play(figure,name,loop);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
   let rows=(run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_'));
@@ -57,19 +69,54 @@
    const cut=after==='before'?0:idx<0?rows.length:idx+1;
    rows=section==='opening'?rows.slice(0,cut):rows.slice(cut);
   }
-  for(const line of rows.filter(l=>l.text.trim())){
-   if(line.delay)await delay(line.delay*1000,signal);
-   signal.throwIfAborted();caption(line.speaker+' Â· '+line.text);
-   if(line.animation&&run.lace)await assignedClip(run.lace,laceLook,line.animation,signal);
-   const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
-   const bus=root.VoidAudio?.bus('voice');
-   if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
-    const cancel=()=>root.VoidVoiceClips.cancel();
-    signal.addEventListener('abort',cancel,{once:true});
-    try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
-    finally{signal.removeEventListener('abort',cancel);}
-   }else await delay(Math.max(1500,line.text.length*55),signal);
+  for(const line of rows){
+   if(!line.text.trim()&&!line.animation)continue;
+   signal.throwIfAborted();
+   await playDialogueRow(run,line,signal,caption);
   }
+ }
+ async function playDialogueRow(run,line,parentSignal,caption){
+  const repeatSpeech=!!line.text.trim()&&line.repeatSpeech===true;
+  const repeatMotion=!!line.animation&&line.repeatAnimation===true&&!!run.lace;
+  const repeat=repeatSpeech||repeatMotion;
+  const controller=new AbortController(),signal=controller.signal;
+  const cancel=()=>controller.abort(),key=e=>{
+   if(e.code==='Backspace'&&!e.repeat){e.preventDefault();cancel();}
+  };
+  let button,clip;
+  parentSignal.addEventListener('abort',cancel,{once:true});
+  try{
+   if(line.delay)await delay(line.delay*1000,signal);
+   if(repeat){
+    button=document.createElement('button');button.textContent='Stop repeat · Backspace';
+    Object.assign(button.style,{position:'fixed',right:'2vw',top:'25vh',zIndex:76});
+    button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
+   }
+   if(line.animation&&run.lace)clip=await assignedClip(run.lace,laceLook,line.animation,signal,repeatMotion);
+   if(line.text.trim()){
+    do{
+     signal.throwIfAborted();caption(line.speaker+' · '+line.text);
+     const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
+     const bus=root.VoidAudio?.bus('voice');
+     if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
+      const silence=()=>root.VoidVoiceClips.cancel();
+      signal.addEventListener('abort',silence,{once:true});
+      try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
+      finally{signal.removeEventListener('abort',silence);}
+     }else await delay(Math.max(1500,line.text.length*55),signal);
+     if(repeatSpeech)await delay(Math.max(1000,(line.delay||0)*1000),signal);
+    }while(repeatSpeech);
+   }
+   if(repeatMotion)await until(()=>false,signal);
+   else if(clip&&!line.text.trim())await until(()=>!clip.isPlaying,signal);
+  }catch(error){
+   if(!signal.aborted)throw error;
+  }finally{
+   parentSignal.removeEventListener('abort',cancel);
+   document.removeEventListener('keydown',key,true);button?.remove();
+   if(clip&&(repeatMotion||signal.aborted))clip.stop();
+  }
+  parentSignal.throwIfAborted();
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);
@@ -194,10 +241,10 @@
   if(bus){
    const ctx=bus.context,now=ctx.currentTime,body=ctx.createOscillator(),volume=ctx.createGain();
    body.type='triangle';body.frequency.setValueAtTime(143,now);body.frequency.exponentialRampToValueAtTime(42,now+.14);
-   volume.gain.setValueAtTime(.001,now);volume.gain.exponentialRampToValueAtTime(.54,now+.008);
-   volume.gain.exponentialRampToValueAtTime(.001,now+.19);
+   volume.gain.setValueAtTime(.001,now);volume.gain.exponentialRampToValueAtTime(.92,now+.008);
+   volume.gain.exponentialRampToValueAtTime(.001,now+.30);
    body.connect(volume);volume.connect(bus.node);body.onended=()=>{body.disconnect();volume.disconnect();};
-   body.start(now);body.stop(now+.20);
+   body.start(now);body.stop(now+.31);
   }
   playVoice(run,run.impactVoice);
   const event=root.VoidCrowdReact?.spectacle({...run.plan.hit,radius:12,duration:6,kind:'taxi-impact',filmCap:0});
@@ -227,6 +274,7 @@
   const scene=root.VoidBabylon.scene,ray=new (B().Ray)(new (B().Vector3)(at.x,.65,at.z),B().Vector3.Down(),1.2);
   const ground=scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&/sidewalk|paving|asphalt|road|city-ground/i.test(m.material?.name||m.name));
   const surface=ground?.hit?ground.pickedPoint.y:0;
+  card.parent.scaling.setAll(2);
   const start=performance.now();
   do{
    const t=(performance.now()-start)/1000,p=root.VoidChanceCrossing.cardPose(plan,t);
@@ -246,13 +294,12 @@
    };
    recover().catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
   }
-  card.parent.scaling.setAll(1.6);
   const rim=card.made.getChildMeshes().find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
    const scene=card.parent.getScene();
    const pulse=scene.onBeforeRenderObservable.add(()=>{
-    const glow=.25+.22*Math.sin(performance.now()*.004);edge.emissiveColor.set(.08*glow,.8*glow,glow);
+    const glow=.82+.16*Math.sin(performance.now()*.004);edge.emissiveColor.set(.20*glow,.92*glow,glow);
    });
    card.parent.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(pulse);edge.dispose();});
   }
@@ -274,7 +321,7 @@
   try{
    await until(()=>{
     const visible=focus();host.hidden=!visible;
-    for(const mesh of meshes){mesh.renderOutline=visible;if(visible){mesh.outlineWidth=.002;mesh.outlineColor=new (B().Color3)(1,.8,.15);}}
+    for(const mesh of meshes){mesh.renderOutline=visible;if(visible){mesh.outlineWidth=.004;mesh.outlineColor=new (B().Color3)(1,.8,.15);}}
     return taken;
    },run.signal);
    if(!run.private){
@@ -303,7 +350,7 @@
   }
   return null;
  }
- function addWristRope(figure){
+ function addWristRope(figure,ceiling){
   const left=joint(figure,'lefthand'),right=joint(figure,'righthand');
   if(!left||!right)return;
   const scene=figure.parent.getScene(),b=B(),rope=new b.TransformNode('encounter-rope',scene);
@@ -316,24 +363,59 @@
   const path=[b.Vector3.Zero(),new b.Vector3(.01,-.03,0),new b.Vector3(.03,0,0)];
   const span=b.MeshBuilder.CreateTube('visible wrist cord',{path,radius:.007,tessellation:6,updatable:true},scene);
   span.parent=rope;span.material=material;span.isPickable=false;
+  left.computeWorldMatrix(true);right.computeWorldMatrix(true);
+  const mount=b.Vector3.Center(left.getAbsolutePosition(),right.getAbsolutePosition());
+  mount.y=ceiling;
+  const metal=new b.StandardMaterial('screw eye steel',scene);
+  metal.diffuseColor=new b.Color3(.52,.53,.5);metal.emissiveColor=new b.Color3(.13,.13,.12);
+  const fixture=new b.TransformNode('encounter ceiling anchor',scene);fixture.position.copyFrom(mount);
+  const eye=b.MeshBuilder.CreateTorus('screw eye',{diameter:.14,thickness:.025,tessellation:28},scene);
+  eye.rotation.x=Math.PI/2;eye.position.y=-.14;
+  const stem=b.MeshBuilder.CreateCylinder('screw eye stem',{height:.085,diameter:.032},scene);stem.position.y=-.041;
+  const washer=b.MeshBuilder.CreateCylinder('screw eye washer',{height:.016,diameter:.105},scene);washer.position.y=-.009;
+  for(const mesh of [eye,stem,washer]){mesh.parent=fixture;mesh.material=metal;mesh.isPickable=false;}
+  figure.parent.onDisposeObservable.addOnce(()=>{fixture.dispose();metal.dispose();});
+  const leadPath=[mount.clone(),mount.clone(),mount.add(new b.Vector3(0,-.2,0))];
+  const lead=b.MeshBuilder.CreateTube('wrist to screw eye rope',{path:leadPath,radius:.014,tessellation:10,updatable:true},scene);
+  lead.material=material;lead.isPickable=false;lead.parent=rope;
   const obs=scene.onBeforeRenderObservable.add(()=>{
    for(const [i,hand] of [left,right].entries()){hand.computeWorldMatrix(true);cuffs[i].position.copyFrom(hand.getAbsolutePosition());}
    path[0].copyFrom(cuffs[0].position);path[2].copyFrom(cuffs[1].position);
    b.Vector3.LerpToRef(path[0],path[2],.5,path[1]);path[1].y-=.035;
    b.MeshBuilder.CreateTube('visible wrist cord',{path,instance:span},scene);
+   leadPath[0].copyFrom(path[1]);b.Vector3.LerpToRef(leadPath[0],leadPath[2],.5,leadPath[1]);
+   leadPath[1].x+=.012;
+   b.MeshBuilder.CreateTube('wrist to screw eye rope',{path:leadPath,instance:lead},scene);
   });
   rope.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(obs);material.dispose();});
   figure.parent.onDisposeObservable.addOnce(()=>{if(!rope.isDisposed())rope.dispose();});
   return rope;
  }
- function groundPose(figure,floor){
+ function groundPose(figure,floor,bedEdge,bedHeight){
   let bottom=Infinity;
   for(const mesh of figure.made.getChildMeshes()){
    if(!mesh.skeleton||!mesh.getTotalVertices())continue;
    mesh.computeWorldMatrix(true);mesh.skeleton.prepare(true);mesh.refreshBoundingInfo(true);
    bottom=Math.min(bottom,mesh.getBoundingInfo().boundingBox.minimumWorld.y);
   }
-  if(Number.isFinite(bottom))figure.parent.position.y+=floor-bottom;
+  if(!Number.isFinite(bottom))return;
+  if(Number.isFinite(bedEdge)){
+   // Measure the posed shoes in world space. The rig origin can be well behind the feet.
+   const point=new (B().Vector3)();
+   let nearest=-Infinity;
+   for(const mesh of figure.made.getChildMeshes()){
+    if(!mesh.skeleton||!mesh.getTotalVertices())continue;
+    const vertices=mesh.getPositionData(true,true),matrix=mesh.getWorldMatrix();
+    for(let i=0;vertices&&i<vertices.length;i+=3){
+     B().Vector3.TransformCoordinatesFromFloatsToRef(vertices[i],vertices[i+1],vertices[i+2],matrix,point);
+     if(point.y<=bottom+bedHeight+.04){
+      nearest=Math.max(nearest,point.x);
+     }
+    }
+   }
+   if(Number.isFinite(nearest))figure.parent.position.x+=bedEdge-.08-nearest;
+  }
+  figure.parent.position.y+=floor-bottom;
  }
  async function flat(run,jump){
   const a=address(run);preloadLace(run);
@@ -347,16 +429,20 @@
   run.lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
   const placement=run.graph.placement,anchor=root.VoidApartments.world([placement.x,placement.y,placement.z]);
   // Older drafts used the original default position half a metre from the bed.
+  const room=root.VoidApartments.geo(a.door.style);
+  let bedEdge;
   if(placement.x===1.5&&placement.z===-.8){
-   const bed=root.VoidApartments.geo(a.door.style).FURN.bed;
-   anchor[0]+=bed[0]-.24-placement.x;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
+   const bed=room.FURN.bed;
+   bedEdge=anchor[0]+bed[0]-placement.x;
+   anchor[0]=bedEdge-.04;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
   }
   standing(run.lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
   run.lace.parent.scaling.setAll(placement.scale);
-  const posed=await assignedClip(run.lace,laceLook,placement.clip);
+  const transition=['sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip);
+  const posed=await assignedClip(run.lace,laceLook,placement.clip,run.signal,!transition);
   posed.goToFrame(posed.from);
-  groundPose(run.lace,anchor[1]);
-  if(placement.clip==='sz-tiedbf')run.rope=addWristRope(run.lace);
+  groundPose(run.lace,anchor[1],bedEdge,room.FURN.bed[4]);
+  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace,root.VoidApartments.world([0,room.CEIL,0])[1]);
   await lines(run,'arrival','opening');
  }
  async function releaseLace(run){
@@ -378,6 +464,15 @@
  async function roleplay(run){
   if(!run.lace)await flat(run,true);
   if(await prompt(run,'Temporarily play Kadeâ€™s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
+  if(run.rope){
+   const rope=run.rope,meshes=rope.getChildMeshes(),start=performance.now();
+   await until(()=>{
+    const opacity=Math.max(0,1-(performance.now()-start)/400);
+    for(const mesh of meshes)mesh.visibility=opacity;
+    return opacity===0;
+   },run.signal);
+   rope.dispose();run.rope=null;
+  }
   const sceneController=new AbortController(),phase={...run,controller:sceneController,signal:sceneController.signal,owned:new Set()};
   const cancel=()=>sceneController.abort(new DOMException('Roleplay ended','AbortError'));
   run.signal.addEventListener('abort',cancel,{once:true});

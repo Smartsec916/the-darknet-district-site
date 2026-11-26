@@ -136,7 +136,7 @@ test('every animation in the game is indexed from the real files; Reverie and La
  assert.ok(Object.keys(I.files).length>50);
  {const ok=P.libraryOffer('tea-host').filter(x=>x.ok);for(const x of ok)assert.equal(P.animAllowed('tea-host',x.id),'');}   // the tea room host's model (the old street cook) rests differently from most rigs: fewer shared clips
  assert.deepEqual(I.files['npc-dax'],{public:false,clips:CR().clips['npc-dax']},'Only the licensed model’s verified native clip names appear in the public index');
- assert.equal(P.libraryOffer('dax').filter(o=>o.library==='sexyzips'&&o.ok).length,17,'Adult rigs can request all tracks; playback verifies the actual rig');
+ assert.equal(P.libraryOffer('dax').filter(o=>o.library==='sexyzips'&&o.ok).length,19,'Adult rigs can request all tracks; playback verifies the actual rig');
  assert.equal(P.animAllowed('dax','npc-rin/laugh'),'');
  for(const id of ['npc-grey-reverie','npc-ethereal-lace'])assert.equal(I.files[id],undefined);
 });
