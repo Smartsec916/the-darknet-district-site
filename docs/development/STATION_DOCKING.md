@@ -1,6 +1,6 @@
 # Docking and departure at stations (26 Nov 2026)
 
-Branch `claude/station-graphics-overhaul`, build `2026-11-26-station-docking-1`. One shared system for all seven stations (Meridian, Kepler,
+Branch `claude/station-graphics-overhaul`, build `2026-11-26-station-docking-2`. One shared system for all seven stations (Meridian, Kepler,
 Rusthaven, the Foundry, the Belt Anchorage, the Vigil, Holdfast). Manual flight, combat, the jump, missions and the planets' landings are unchanged.
 
 ## Before (measured, `docs/development/station-graphics/docking-before.mp4`)

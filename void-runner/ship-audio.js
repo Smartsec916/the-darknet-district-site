@@ -412,7 +412,7 @@
     const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
     return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
   }
-  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false, key = token + 1) {
+  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false, key = token + 1, placement = null) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
     voiceLine = {id,text,ordinary,key};
@@ -423,13 +423,26 @@
         speaking = true;
         mix();
         const current = token;
+        let voiceBus=buses?.voice;
+        const links=[];
+        if(placement&&voiceBus){
+          const gain=context.createGain();
+          gain.gain.value=placement.volume;
+          links.push(gain);
+          const pan=context.createStereoPanner?.();
+          if(pan){
+            links.push(pan);pan.pan.value=placement.pan;gain.connect(pan);pan.connect(voiceBus);
+          }else gain.connect(voiceBus);
+          voiceBus=gain;
+        }
         Promise.resolve(voiceProvider.speak({
           characterId: id,
           text, ordinary,
           profile: p,
           volume: settings.master * settings.voice,
-          bus: buses?.voice
-        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary, key);}).finally(() => {
+          bus: voiceBus
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary, key,placement);}).finally(() => {
+          for(const link of links)link.disconnect();
           if (token === current) {
             speaking = false;
             mix();
@@ -447,7 +460,7 @@
       if (!voices.length && !waitedForVoices) {
         voicePending = true;
         const current = token;
-        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key); }, 1000);
+        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key,placement); }, 1000);
         return true;
       }
       const selected = selectVoice(id);
@@ -457,7 +470,7 @@
       u.lang = u.voice?.lang || 'en-US';
       u.pitch = p.pitch;
       u.rate = p.rate;
-      u.volume = settings.master * studioMix.master * settings.voice * studioMix.dialogue * p.volume;
+      u.volume = settings.master * studioMix.master * settings.voice * studioMix.dialogue * p.volume * (placement?.volume??1);
       speaking = true;
       mix();
       const current = token;
@@ -522,6 +535,12 @@
     tick,
     update,
     speak,
+    speakNearby(id,text,position,listener){
+      const offset={x:position.x-listener.x,y:0,z:position.z-listener.z};
+      const ear=spatial(offset,{r:{x:Math.cos(listener.yaw),y:0,z:-Math.sin(listener.yaw)}});
+      ear.volume=1/(1+(Math.hypot(offset.x,offset.z)/4)**2);
+      return speak(id,text,false,false,true,undefined,ear);
+    },
     cancel,
     suspend,
     setVoiceProvider(provider) {
