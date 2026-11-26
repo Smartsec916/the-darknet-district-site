@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "97dfc6d0e498be01",
+  "revision": "8c5442ef9f14c956",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74546,13 +74546,13 @@
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 70,
+      "line": 71,
       "text": "if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 71,
+      "line": 72,
       "text": "return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};",
       "kind": "source-reference"
     },
@@ -83039,9 +83039,9 @@
     "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "86a7506ea93bf3581447a5849bc1d2bf5734a17ec3659dac38db7898eb058c7d",
-    "void-runner/chance-encounter-game.js": "77a5817844ebb39be95ff059fed7dfbc98624e542aecc5967385e740fcb9b3a0",
-    "void-runner/chance-encounter.js": "ff1adbb4e752fbeb47f30c617fc319797081870501ce17728c6c3baa50219723",
+    "void-runner/chance-encounter-editor.js": "996c481c55976d0548e6a5df4281a04a3f296b61a54fd0bab9c3e9df326c4f48",
+    "void-runner/chance-encounter-game.js": "b1d070f183de7a513a9b5c9d6e308adb68253ca7f383bfd92e94dbf209e44952",
+    "void-runner/chance-encounter.js": "f98e4d4620ec95721c905b0195c8044cffea3c5473a6e07ee77f81b341bdc14f",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
