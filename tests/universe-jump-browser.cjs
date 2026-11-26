@@ -30,12 +30,14 @@ const base = process.argv[2] || 'http://127.0.0.1:5201';
       await page.waitForFunction(id => VoidDevTest.active && state.location === id &&
         (VoidUniverse.locations[id].type === 'arrival' ? mode === 'play' && flight?.route?.phase === 'align' :
           mode === 'walking' && !!walkingLocation && !!walker), id, {timeout:150000});
-      const result = await page.evaluate(() => ({save:localStorage.getItem(SAVE_KEY), scene:walkingLocation?.id,
+      const result = await page.evaluate(() => ({save:localStorage.getItem(SAVE_KEY), scene:walkingLocation?.id || walkingLocation?.kind,
         quarter:walkingLocation?.quarter,credits:state.credits,weapon:state.progression.personal.weapon,launcher:state.creditGear.includes('launcher')}));
       assert.equal(result.save, before);assert.equal(result.credits,10000);assert.equal(result.weapon,'ward-pistol');assert.ok(result.launcher);
       if (id === 'earth') assert.equal(result.quarter, site === 'settlement' ? 'oldtown' : 'port');
       console.log(target, result.scene || 'open space', result.quarter || '');
-      await page.reload();
+      await Promise.all([page.waitForNavigation(), page.locator('#dev-test-banner button').click()]);
+      await page.waitForFunction(() => globalThis.VoidStartup?.started, null, {timeout:120000});
+      assert.equal(await page.evaluate(() => localStorage.getItem(SAVE_KEY)), before);
     }
     console.log(entries.length + ' destination buttons passed.');
   } finally { await browser.close(); }

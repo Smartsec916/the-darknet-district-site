@@ -276,7 +276,7 @@ workshopOpening=async function(){if(VoidMissions.closed(state))return districtSt
 // Remove disconnected SOL prototype entry points. All travel uses Campaign.flight + VoidWarp.
 navigation=function(){announce('Choose a route marker after boarding your ship.');};
 const worldChoose=C.chooseDestination;
-function setFlightDestination(id){if(!worldChoose(state,id))return;const next=C.flight(state);if(!next)return;current=next;flight.route=VoidWarp.create(state.location,id,null,next.enemies>0);flight.route.phase='align';flight.nav={x:flight.route.vector.x*140,y:flight.route.vector.y*140,z:flight.route.vector.z*140};state.travel=flight.route;spawned=resolved=0;elapsed=0;preparedDestination=null;save();$('route-name').textContent=C.stations[id].name.toUpperCase();}
+function setFlightDestination(id){if(!worldChoose(state,id))return;const next=C.flight(state);if(!next)return;current=next;flight.route=VoidWarp.create(state.location,next.destination,null,next.enemies>0);flight.route.phase='align';flight.nav={x:flight.route.vector.x*140,y:flight.route.vector.y*140,z:flight.route.vector.z*140};state.travel=flight.route;spawned=resolved=0;elapsed=0;preparedDestination=null;save();$('route-name').textContent=C.stations[next.destination].name.toUpperCase();}
 // Boarding with no accepted job enters normal flight with a selectable local route.
 const originalFlight=C.flight;
 

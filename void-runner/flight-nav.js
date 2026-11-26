@@ -56,15 +56,15 @@
     +(sel?'<em class="fn-tag fn-blue">■ NAV TARGET</em>':'')+((m&&e.kind==='warp')||hereMission?'<em class="fn-tag fn-yellow">◆ MISSION'+(hereMission?' · '+esc(hereMission.title):m?' · '+esc(m.mission):'')+'</em>':'')+'</button>';};
   const inSys=list.filter(e=>e.kind!=='warp'&&e.direct),warps=list.filter(e=>e.kind==='warp'),far=list.filter(e=>!e.direct);
   const pilots=root.VoidRemotePlayers?.arrivalPilots||[];
+  const placeStatus=id=>s.location===id?' · you are here':s.universe.discoveredLocations.includes(id)?'':' · locked';
   const universe=Object.entries(U.systems).map(([key,region])=>{
    const local=key===U.system(s.location),accessible=local||list.some(e=>e.id===region.arrival);
    const bodies=Object.values(U.planets).filter(p=>p.system===key);
    const lines=bodies.map(p=>{
-    const known=s.universe.discoveredLocations.includes(p.pad)||s.location===p.pad;
-    return '<li>◉ '+esc(p.name)+(p.provisional?' (provisional)':'')+'<ul><li>'+esc(p.settlement)+' · '+esc(p.facility)+(known?'':' · locked')+'</li><li>▣ '+esc(nameOf(U,p.orbital))+'</li></ul></li>';
+    return '<li>◉ '+esc(p.name)+(p.provisional?' (provisional)':'')+'<ul><li>⌑ '+esc(p.settlement)+' · '+esc(p.facility)+placeStatus(p.pad)+'</li><li>▣ '+esc(nameOf(U,p.orbital))+placeStatus(p.orbital)+'</li></ul></li>';
    }).join('');
-   const other=Object.entries(U.locations).filter(([,p])=>p.system===key&&!p.parentPlanet&&p.type!=='arrival').map(([id,p])=>'<li>'+esc(nameOf(U,id))+' · '+esc(p.type)+'</li>').join('');
-   return '<details'+(local?' open':'')+'><summary>✧ '+esc(region.name)+' · '+esc(region.ownerFaction||'Independent')+(local?' · here':accessible?'':' · locked')+'</summary><p>'+esc(region.name)+' arrival · open space</p><ul>'+lines+other+'</ul></details>';
+   const other=Object.entries(U.locations).filter(([,p])=>p.system===key&&!p.parentPlanet&&p.type!=='arrival').map(([id,p])=>'<li>'+(p.type==='anchorage'?'◇ ':'▣ ')+esc(nameOf(U,id))+' · '+esc(p.type)+placeStatus(id)+'</li>').join('');
+   return '<details'+(local?' open':'')+'><summary>◎ '+esc(region.name)+' · '+esc(region.ownerFaction||'Independent')+(local?' · here':accessible?'':' · locked')+'</summary><p>✧ '+esc(region.name)+' arrival · open space'+(s.location===region.arrival?' · you are here':'')+'</p><ul>'+lines+other+'</ul></details>';
   }).join('');
   return (pilots.length?'<p>Other pilots at this arrival point · '+pilots.map(esc).join(', ')+'</p>':'')+'<details><summary>Universe map</summary>'+universe+'</details><div class="pd-note">FLIGHT NAVIGATION · '+esc(here.toUpperCase())+' · choose a place: its marker gets a <b style="color:'+BLUE+'">blue ■ square</b>. A mission in another system marks its warp marker with a <b style="color:'+YELLOW+'">yellow ◆ square</b>. Fly into a marker to set course.</div>'
    +(navMode==='route'?'<div class="pd-note" data-nav-mode="route">ROUTE ONLY · the markers on the way to your mission, and the way home. Other locations are added when you receive their nav data.</div>':navMode==='known'?'<div class="pd-note" data-nav-mode="known">KNOWN PLACES · the places you have already found. Other locations are added when you receive their nav data.</div>':'<div class="pd-note" data-nav-mode="full">ALL LOCATIONS · nav data received.</div>')

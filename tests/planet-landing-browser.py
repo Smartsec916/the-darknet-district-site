@@ -1,6 +1,6 @@
 """Planet descents, take-offs and the way home in the real game (Chromium, software GL, offline). planet-landing.js.
 
-A. A pilot (District campaign, Kestrel granted, coordinates) flies Meridian -> Tessaly Belt Anchorage (the warp to Tessaly) -> NeoChinatown: the descent plays
+A. A pilot (District campaign, Kestrel granted, coordinates) flies Meridian -> Tessaly Arrival -> Tessaly Belt Anchorage -> NeoChinatown: the descent plays
    (frames saved), hands over to the Port pad (street, quarter port, next to the ship).
 B. Boarding at the Port: the ascent plays (frames saved), then the existing flight: mode play, the route reaches 'align' (the take-off trigger the Mission 012 /
    beginner steps read), the arrival at Vantor plays its descent and lands in the Vantor terminal.
@@ -64,6 +64,10 @@ def main():
         if 'A' in ONLY or 'B' in ONLY:
             # ---- A: Meridian -> Tessaly Belt -> NeoChinatown
             page.evaluate("async()=>{" + PILOT + "d.location='meridian';d.progression.checkpoint={location:'meridian'};VoidUniverse.visit(d);state=d;C.chooseDestination(state,'sol-belt');save();await launch();}")
+            page.wait_for_function("mode==='play'&&flight.route&&flight.route.destination==='sol-arrival'")
+            page.evaluate(FINISH)
+            page.wait_for_function("mode==='play'&&state.location==='sol-arrival'&&flight.route.phase==='align'")
+            page.evaluate("()=>setFlightDestination('sol-belt')")
             page.wait_for_function("mode==='play'&&flight.route&&flight.route.destination==='sol-belt'")
             page.evaluate(FINISH)
             page.wait_for_function("mode==='walking'&&!!walkingLocation&&state.location==='sol-belt'", timeout=900000)

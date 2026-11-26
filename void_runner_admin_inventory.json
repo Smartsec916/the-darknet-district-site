@@ -61673,7 +61673,7 @@
       "spawn"
     ]
   },
-  "revision": "06a6f7cb33a4b487",
+  "revision": "e472e4e9e0176547",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83266,7 +83266,7 @@
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-fx.js": "a39f921f115b6e0ec2830ed4a4b4dd150428654b6d5022b4ecadcfcd56bd8b97",
     "void-runner/flight-hud.js": "aaa74c9d9960fd6267d0c081d247b9cc875a122f40ad553752ad3940ff9f189a",
-    "void-runner/flight-nav.js": "299cd9492a8bee80166d742caa2768d8b4cff20436c380ba32cf97e6fa92cbc7",
+    "void-runner/flight-nav.js": "f570e3bfc8a384c70a72d57ba808d54628f12914cee7e4129ac3f8863fca6eaa",
     "void-runner/flight-physics.js": "b996699897bb5197930c37c4e397b701b0b1ee028f9b00d474137b7e4a40a40c",
     "void-runner/flight-presentation.js": "5c7772fdbf1e4dff9539c8ac30fbb3220f0cc3964751457003a323089d1609d2",
     "void-runner/flight-runtime-integration.js": "f2afb02e6cd1c98868de7276202ffe4f7ece0e54ba34e98ad5864abc442d44de",
@@ -83462,7 +83462,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "9252ef8b98dc7c4f26ee12dac1189301e466ed90a67565d12b12aa6995713232",
-    "void-runner/world-integration.js": "9d26a4ca5a49b42ecfb3f15ce1f3e0b8818230d7e97a92d0d9c5807a1305e5f8",
+    "void-runner/world-integration.js": "601b6792e79a9685c8684f059924984dbb14f7e794d325c53b70f3b588b570fd",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "65ce71e34220ac5640678aa939c595b5233bd9a353a4ca58e1d758f30955d2c4",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
