@@ -595,12 +595,12 @@
     for(let i=0;i<5;i++)box('holdfast-hall-lamp',[1.6,.1,.45],[-12+i*6,5.85,26],amber,node);
   }
   function stationModel(id, parent, exterior=false,layoutDef=null) {
-    if(VoidStationLayouts.meridianClass.includes(id)&&exterior){const imported=id==='meridian'&&VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const built=VoidMeridian.build(scene,parent,{name:VoidStationLayouts.labels[id]});globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
+    if(VoidStationLayouts.meridianClass.includes(id)&&exterior){const imported=id==='meridian'&&VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const kitOn=!!root.VoidStationKit?.ready(),built=VoidMeridian.build(scene,parent,{name:VoidStationLayouts.labels[id],kit:kitOn});if(!(kitOn&&VoidStationKit.dressExterior({scene,parent:built,id,quality})))globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
     for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?windowGlass():p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
     if(def.rooms){ // every station shares Meridian's design; only the hull lettering differs
-      const exterior=VoidMeridian.build(scene,node,{occupied:true,name:VoidStationLayouts.labels[id]});globalThis.VoidMeridianKitbash?.dress(scene,exterior,'kit:',{occupied:true});node.metadata={layout:id,exterior};return node;
+      const kitOn=!!root.VoidStationKit?.ready(),exterior=VoidMeridian.build(scene,node,{occupied:true,name:VoidStationLayouts.labels[id],kit:kitOn});if(!(kitOn&&VoidStationKit.dressExterior({scene,parent:exterior,id,occupied:true,quality})))globalThis.VoidMeridianKitbash?.dress(scene,exterior,'kit:',{occupied:true});node.metadata={layout:id,exterior};return node;
     }
     // Open physical aperture at z=-26; split pressure doors slide into the jambs.
     const doors=[-1,1].map(side=>box('hangar-door',[9.8,7,.35],[side*15,3.5,-26],metal,node));
@@ -680,7 +680,8 @@
     root.VoidKestrel?.register(VoidAssets,quality);
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
-    crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.rooms&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
+    const kitReady=!!(def.rooms&&await root.VoidStationKit?.fetchAll(task)),kitProps=kitReady&&quality!=='low'&&await root.VoidStationKit.fetchProps('interior',task); // the modelled station kit (station-kit.js); the older dressing below is the fallback
+    crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.rooms&&!kitReady&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];waitingCrowd=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot,{landed:true});ship.position.set(-7,2,-9);ship.scaling.setAll(2);landBoarding(def);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
@@ -693,10 +694,11 @@
     // Hangar / Maintenance is a real console: install, remove and configure equipment here (the outfitter only sells).
     for(const item of def.interactions.filter(i=>i.action==='maintenance'))maintenanceTerminal(item.position,roomRoot);
     // Props first: the fit-out then batches the remaining static pieces, skipping the hidden ones.
-    placeProps(def,roomRoot);
+    placeProps(kitReady?{...def,props:(def.props||[]).filter(p=>!['supplies','outfitter','hangar-cargo'].includes(p.group)&&!(kitProps&&p.group==='bar-stools'))}:def,roomRoot); // the kit models the shelves, the counter and the cargo itself
+    const kitNode=kitReady?root.VoidStationKit.dressInterior({scene,parent:roomRoot,def,quality}):null;
     if(def.rooms){fitoutMeridian(roomRoot);if(def.id==='meridian')planet.position.set(340,-65,140);
       // Interior dressing from the reference sheet (meridian-interior-kit.js): visual only, after the fit-out so it is never merged.
-      globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
+      if(!kitNode)globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
     const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(-3,7,-9),scene);fill.parent=roomRoot;fill.diffuse=new BABYLON.Color3(1,.8,.76);fill.specular=new BABYLON.Color3(.5,.4,.38);fill.intensity=1.5;fill.range=34;fill.falloffType=BABYLON.Light.FALLOFF_STANDARD; // brighter, slightly red (the owner, 2026-10-23); range falloff so the PBR wall panels 15 m out still catch it
     // These routes are station-relative and visible through the observation apertures.
@@ -723,27 +725,27 @@
   function fitoutMeridian(parent){
     const b=B(),steel=material('brushed-steel','#454e55'),warm=material('lamp-warm','#ffd39a',true),rubber=material('rubber','#232a30'),copper=material('copper','#967053');
     const F=room?.furniture||VoidMeridianInterior.layout().furniture;
-    scene.getLightByName('ambient').intensity=.22;scene.getLightByName('sun').intensity=.28;
+    scene.getLightByName('ambient').intensity=.22;scene.getLightByName('sun').intensity=.28;const kitOn=!!parent.metadata?.stationKit; // kitOn: station-kit.js models the ceilings, lights, ribs, frames and the terminal
     const R=room?.rooms||VoidMeridianInterior.rooms,C=R.corridor,H=R.hall;
     // Red light strips along the hangar's side walls, high and at the deck edge, for a slight red cast (no extra lights).
     {const G=R.hangar,red=material('hangar-red-strip','#ff3a2c',true),glowRed=material('hangar-red-soft','#7a1612',true);
-     for(const x of [G.x0+.42,G.x1-.42]){box('hangar-red-strip',[.06,.08,G.z1-G.z0-2],[x,G.h-1.4,(G.z0+G.z1)/2],red,parent);box('hangar-red-strip',[.06,.05,G.z1-G.z0-2],[x,.12,(G.z0+G.z1)/2],red,parent);box('hangar-red-wash',[.03,1.2,G.z1-G.z0-2],[x+(x<0?.02:-.02),G.h-2.1,(G.z0+G.z1)/2],glowRed,parent);}}
+     if(!kitOn)for(const x of [G.x0+.42,G.x1-.42]){box('hangar-red-strip',[.06,.08,G.z1-G.z0-2],[x,G.h-1.4,(G.z0+G.z1)/2],red,parent);box('hangar-red-strip',[.06,.05,G.z1-G.z0-2],[x,.12,(G.z0+G.z1)/2],red,parent);box('hangar-red-wash',[.03,1.2,G.z1-G.z0-2],[x+(x<0?.02:-.02),G.h-2.1,(G.z0+G.z1)/2],glowRed,parent);}}
     function pipe(x,y,z,length){const m=b.MeshBuilder.CreateCylinder('service-pipe',{diameter:.13,height:length,tessellation:10},scene);m.parent=parent;m.position.set(x,y,z);m.rotation.x=Math.PI/2;m.material=copper;}
     function luminaire(x,y,z,along='x'){const w=along==='x'?[1.8,.22,.45]:[.45,.22,1.8],d=along==='x'?[1.5,.04,.3]:[.3,.04,1.5];box('luminaire-housing',w,[x,y,z],steel,parent);box('warm-diffuser',d,[x,y-.14,z],warm,parent);}
     // The corridor: a line of ceiling lights, service pipes, ribs on both walls and deck joints. Ribs skip the doorways.
-    for(let z=C.z0+2;z<C.z1;z+=4){luminaire(0,C.h-.12,z,'z');for(const s of [-1,1]){pipe(s*1.55,C.h-.3,z,4);box('floor-expansion-joint',[C.x1-C.x0,.018,.04],[0,.027,z+2],rubber,parent);}}
-    for(let z=C.z0+1;z<C.z1;z+=2.4)for(const x of [C.x0+.1,C.x1-.1]){if(x<0&&(z>10.2&&z<13.8||z>25.2&&z<30.8))continue;box('corridor-rib',[.14,C.h-.1,.2],[x,(C.h-.1)/2,z],steel,parent);}
-    for(const z of F.portholes){box('porthole-frame',[.12,1.12,1.62],[C.x1-.05,1.75,z],steel,parent);box('porthole-lamp',[.06,.08,1],[C.x1-.08,2.45,z],warm,parent);}
+    if(!kitOn)for(let z=C.z0+2;z<C.z1;z+=4){luminaire(0,C.h-.12,z,'z');for(const s of [-1,1]){pipe(s*1.55,C.h-.3,z,4);box('floor-expansion-joint',[C.x1-C.x0,.018,.04],[0,.027,z+2],rubber,parent);}}
+    if(!kitOn)for(let z=C.z0+1;z<C.z1;z+=2.4)for(const x of [C.x0+.1,C.x1-.1]){if(x<0&&(z>10.2&&z<13.8||z>25.2&&z<30.8))continue;box('corridor-rib',[.14,C.h-.1,.2],[x,(C.h-.1)/2,z],steel,parent);}
+    if(!kitOn)for(const z of F.portholes){box('porthole-frame',[.12,1.12,1.62],[C.x1-.05,1.75,z],steel,parent);box('porthole-lamp',[.06,.08,1],[C.x1-.08,2.45,z],warm,parent);}
     // Living area and store: luminaires across each room.
-    for(const r of [R.living,R.store])for(let z=r.z0+3;z<r.z1-1;z+=5)for(let x=r.x0+3;x<r.x1-1;x+=5)luminaire(x,r.h-.12,z);
+    if(!kitOn)for(const r of [R.living,R.store])for(let z=r.z0+3;z<r.z1-1;z+=5)for(let x=r.x0+3;x<r.x1-1;x+=5)luminaire(x,r.h-.12,z);
     // The hall: two rows of lights, pipes along the bar wall, amber lamps on the solid wall, deck joints.
-    for(let z=H.z0+3;z<H.z1-1;z+=4){for(const x of [-6,6])luminaire(x,H.h-.25,z);pipe(H.x0+.8,H.h-.35,z,4);box('pressure-frame',[.22,H.h-.5,.25],[H.x0+.2,(H.h-.5)/2,z],steel,parent);box('amber-wall-lamp',[.12,1.3,.15],[H.x0+.32,2.8,z],warm,parent);
+    if(!kitOn)for(let z=H.z0+3;z<H.z1-1;z+=4){for(const x of [-6,6])luminaire(x,H.h-.25,z);pipe(H.x0+.8,H.h-.35,z,4);box('pressure-frame',[.22,H.h-.5,.25],[H.x0+.2,(H.h-.5)/2,z],steel,parent);box('amber-wall-lamp',[.12,1.3,.15],[H.x0+.32,2.8,z],warm,parent);
      for(const x of [-12,-6,0,6,12])box('floor-expansion-joint',[.04,.018,4],[x,.027,z],rubber,parent);}
     for(const [x,z]of F.lights){const light=new b.PointLight('warm-crew-light',new b.Vector3(x,Math.min(4.6,(x>R.corridor.x0&&x<R.corridor.x1&&z<C.z1||z<R.hall.z0?C.h:H.h)-.5),z),scene);light.parent=parent;light.diffuse=new b.Color3(1,.68,.35);light.intensity=1.5;light.range=z<R.hall.z0?14:22;}
-    for(const {x,z} of F.tables){const lamp=b.MeshBuilder.CreateCylinder('table-lamp',{diameterTop:.16,diameterBottom:.32,height:.24,tessellation:12},scene);lamp.parent=parent;lamp.position.set(x,1.12,z);lamp.material=warm;box('table-light-base',[.12,.16,.12],[x,.92,z],steel,parent);for(const s of [-1,1]){box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z-.24],steel,parent);box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z+.24],steel,parent);}}
-    {const front=F.bar.x+.64,n=Math.floor(F.bar.length/3.4);for(let i=0;i<n;i++){const z=F.bar.z-F.bar.length/2+1.7+i*3.4;box('bar-service-panel',[.045,.76,3.1],[front,.65,z],steel,parent);box('bar-underlight',[.04,.035,3],[front+.05,1.04,z],warm,parent);}}
+    for(const {x,z} of F.tables){const lamp=b.MeshBuilder.CreateCylinder('table-lamp',{diameterTop:.16,diameterBottom:.32,height:.24,tessellation:12},scene);lamp.parent=parent;lamp.position.set(x,1.12,z);lamp.material=warm;box('table-light-base',[.12,.16,.12],[x,.92,z],steel,parent);if(!kitOn)for(const s of [-1,1]){box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z-.24],steel,parent);box('chair-metal-leg',[.08,.48,.08],[x+s*1.6,.24,z+.24],steel,parent);}}
+    if(!kitOn){const front=F.bar.x+.64,n=Math.floor(F.bar.length/3.4);for(let i=0;i<n;i++){const z=F.bar.z-F.bar.length/2+1.7+i*3.4;box('bar-service-panel',[.045,.76,3.1],[front,.65,z],steel,parent);box('bar-underlight',[.04,.035,3],[front+.05,1.04,z],warm,parent);}}
     // The mission terminal on the corridor's outer wall.
-    {const T=F.terminal;box('crew-terminal',[.15,.7,1],[T.x-.08,1.3,T.z],steel,parent);box('terminal-display',[.04,.45,.8],[T.x-.17,1.4,T.z],material('screen','#74bba8',true),parent);box('terminal-stand',[.2,1,.18],[T.x-.05,.5,T.z],steel,parent);}
+    if(!kitOn){const T=F.terminal;box('crew-terminal',[.15,.7,1],[T.x-.08,1.3,T.z],steel,parent);box('terminal-display',[.04,.45,.8],[T.x-.17,1.4,T.z],material('screen','#74bba8',true),parent);box('terminal-stand',[.2,1,.18],[T.x-.05,.5,T.z],steel,parent);}
     parent.metadata={...parent.metadata,art:globalThis.VoidMeridianArt?.enhance({B:b,scene,parent,box,material,quality})};
     for(const m of parent.getChildMeshes())if(m.material)m.material.maxSimultaneousLights=8;
     // Static fittings share material batches; NPCs, signs and doors keep individual nodes.
@@ -792,6 +794,8 @@
       return;
     }
     release();
+    // The modelled station kit (station-kit.js) for every Meridian-class hull; the older cladding stays as the fallback.
+    const stationKit=VoidStationLayouts.meridianClass.includes(id)&&!!(await root.VoidStationKit?.fetchAll(task));if(stationKit&&quality!=='low')await root.VoidStationKit.fetchProps('exterior',task);task.check();
     const b = B();
     spaceRoot = new b.TransformNode('space-' + id, scene);
     activeLocation = id;
@@ -802,7 +806,7 @@
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       // Meridian's hull cladding (meridian-kitbash.js), so every scene that shows Meridian clads it.
-      ...(VoidStationLayouts.meridianClass.includes(id)&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
+      ...(VoidStationLayouts.meridianClass.includes(id)&&!stationKit&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
       ...((VoidAssets.models.stations[id]||(id==='meridian'&&VoidMeridian.model.src?VoidMeridian.model:null)) ? {
         ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model
       } : {})
@@ -1206,6 +1210,7 @@
     if(def.vr&&root.VoidVR){vrHandle=await root.VoidVR.buildWorld(def,{scene,parent:roomRoot,quality,task,camera,characterModel,assets:VoidAssets});
       await task.wait('scene',()=>scene.whenReadyAsync(),'vr');diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;}
     if(def.kind==='derelict'){
+      if(await root.VoidStationKit?.fetchAll(task)&&quality!=='low')await root.VoidStationKit.fetchProps('interior',task); // wall plating, crates and service gear (station-kit.js); optional
       await task.wait('assets',()=>VoidAssets.prepare(scene,kestrel,task),'derelict models');
       derelictHandle=VoidDerelictStation.build({scene,parent:roomRoot,quality,shipModel});
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
