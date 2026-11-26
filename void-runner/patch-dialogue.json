@@ -1,0 +1,1195 @@
+[
+  {
+    "id": "patch-proximity-greetings",
+    "stage": "proximity-greetings",
+    "lines": [
+      {
+        "id": "patch-proximity-greetings-1",
+        "speaker": "patch",
+        "text": "Yo. Need something?",
+        "delivery": "[casual]",
+        "seconds": 1.76
+      },
+      {
+        "id": "patch-proximity-greetings-2",
+        "speaker": "patch",
+        "text": "Hey. You looking for a little something?",
+        "delivery": "[quietly]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-proximity-greetings-3",
+        "speaker": "patch",
+        "text": "Got some good shit today.",
+        "delivery": "[casual]",
+        "seconds": 1.92
+      },
+      {
+        "id": "patch-proximity-greetings-4",
+        "speaker": "patch",
+        "text": "What's up? You buying?",
+        "delivery": "[impatient]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-proximity-greetings-5",
+        "speaker": "patch",
+        "text": "You look like you could use a boost.",
+        "delivery": "[amused]",
+        "seconds": 2.48
+      },
+      {
+        "id": "patch-proximity-greetings-6",
+        "speaker": "patch",
+        "text": "Hey, stranger. Check out what I've got.",
+        "delivery": "[quietly]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-proximity-greetings-7",
+        "speaker": "patch",
+        "text": "Looking for something the stores don't carry?",
+        "delivery": "[whispers]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-proximity-greetings-8",
+        "speaker": "patch",
+        "text": "Whatever's wrong with you, I've probably got something for it.",
+        "delivery": "[chuckles]",
+        "seconds": 4.32
+      },
+      {
+        "id": "patch-proximity-greetings-9",
+        "speaker": "patch",
+        "text": "You need a fix? Talk to Patch.",
+        "delivery": "[casual]",
+        "seconds": 2.24
+      },
+      {
+        "id": "patch-proximity-greetings-10",
+        "speaker": "patch",
+        "text": "Come here. Got something you might like.",
+        "delivery": "[quietly]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-proximity-greetings-11",
+        "speaker": "patch",
+        "text": "Don't just stand there looking suspicious.",
+        "delivery": "[annoyed]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-proximity-greetings-12",
+        "speaker": "patch",
+        "text": "You a customer or a fucking tourist?",
+        "delivery": "[sarcastic]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-proximity-greetings-13",
+        "speaker": "patch",
+        "text": "Got some fresh merchandise. Take a look.",
+        "delivery": "[casual]",
+        "seconds": 2.48
+      },
+      {
+        "id": "patch-proximity-greetings-14",
+        "speaker": "patch",
+        "text": "Feeling a little slow today?",
+        "delivery": "[amused]",
+        "seconds": 2.24
+      },
+      {
+        "id": "patch-proximity-greetings-15",
+        "speaker": "patch",
+        "text": "You look like shit. I can help with that.",
+        "delivery": "[chuckles]",
+        "seconds": 3.76
+      },
+      {
+        "id": "patch-proximity-greetings-16",
+        "speaker": "patch",
+        "text": "Everything's for sale. Except my freedom.",
+        "delivery": "[deadpan]",
+        "seconds": 3.04
+      },
+      {
+        "id": "patch-proximity-greetings-17",
+        "speaker": "patch",
+        "text": "You got credits? Then we've got business.",
+        "delivery": "[casual]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-proximity-greetings-18",
+        "speaker": "patch",
+        "text": "Need an upgrade without the corporate bullshit?",
+        "delivery": "[sarcastic]",
+        "seconds": 2.96
+      },
+      {
+        "id": "patch-proximity-greetings-19",
+        "speaker": "patch",
+        "text": "Psst. Over here.",
+        "delivery": "[quietly]",
+        "seconds": 1.84
+      },
+      {
+        "id": "patch-proximity-greetings-20",
+        "speaker": "patch",
+        "text": "Got something that'll make your day more interesting.",
+        "delivery": "[casual]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-proximity-greetings-21",
+        "speaker": "patch",
+        "text": "You looking for me?",
+        "delivery": "[suspicious]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-proximity-greetings-22",
+        "speaker": "patch",
+        "text": "Relax. I'm selling merchandise, not religion.",
+        "delivery": "[chuckles]",
+        "seconds": 4.4
+      },
+      {
+        "id": "patch-proximity-greetings-23",
+        "speaker": "patch",
+        "text": "What's your problem? Maybe I've got a fix.",
+        "delivery": "[casual]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-proximity-greetings-24",
+        "speaker": "patch",
+        "text": "Well? You want something or not?",
+        "delivery": "[impatient]",
+        "seconds": 2.24
+      }
+    ]
+  },
+  {
+    "id": "patch-browsing-merchandise",
+    "stage": "browsing-merchandise",
+    "lines": [
+      {
+        "id": "patch-browsing-merchandise-1",
+        "speaker": "patch",
+        "text": "Take your pick.",
+        "delivery": "[casual]",
+        "seconds": 1.12
+      },
+      {
+        "id": "patch-browsing-merchandise-2",
+        "speaker": "patch",
+        "text": "Everything's right there.",
+        "delivery": "[casual]",
+        "seconds": 1.6
+      },
+      {
+        "id": "patch-browsing-merchandise-3",
+        "speaker": "patch",
+        "text": "Good shit ain't cheap.",
+        "delivery": "[deadpan]",
+        "seconds": 2.08
+      },
+      {
+        "id": "patch-browsing-merchandise-4",
+        "speaker": "patch",
+        "text": "Read the label. Assuming there is one.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.36
+      },
+      {
+        "id": "patch-browsing-merchandise-5",
+        "speaker": "patch",
+        "text": "Something catch your eye?",
+        "delivery": "[casual]",
+        "seconds": 1.52
+      },
+      {
+        "id": "patch-browsing-merchandise-6",
+        "speaker": "patch",
+        "text": "Corporate stores won't sell you this stuff.",
+        "delivery": "[amused]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-browsing-merchandise-7",
+        "speaker": "patch",
+        "text": "Don't ask where I got it.",
+        "delivery": "[quietly]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-browsing-merchandise-8",
+        "speaker": "patch",
+        "text": "No corporate markup. You're welcome.",
+        "delivery": "[chuckles]",
+        "seconds": 3.28
+      },
+      {
+        "id": "patch-browsing-merchandise-9",
+        "speaker": "patch",
+        "text": "Some of this shit is experimental.",
+        "delivery": "[casual]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-browsing-merchandise-10",
+        "speaker": "patch",
+        "text": "Side effects? Yeah, probably.",
+        "delivery": "[deadpan]",
+        "seconds": 2.96
+      },
+      {
+        "id": "patch-browsing-merchandise-11",
+        "speaker": "patch",
+        "text": "Hey, nobody's forcing you.",
+        "delivery": "[scoffs]",
+        "seconds": 2.8
+      },
+      {
+        "id": "patch-browsing-merchandise-12",
+        "speaker": "patch",
+        "text": "You want fancy packaging? Go shopping somewhere else.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.44
+      },
+      {
+        "id": "patch-browsing-merchandise-13",
+        "speaker": "patch",
+        "text": "Take your time. Just not all fucking day.",
+        "delivery": "[impatient]",
+        "seconds": 3.28
+      },
+      {
+        "id": "patch-browsing-merchandise-14",
+        "speaker": "patch",
+        "text": "Customer satisfaction ain't exactly my department.",
+        "delivery": "[chuckles]",
+        "seconds": 4.24
+      },
+      {
+        "id": "patch-browsing-merchandise-15",
+        "speaker": "patch",
+        "text": "Different stuff for different problems.",
+        "delivery": "[casual]",
+        "seconds": 2.48
+      },
+      {
+        "id": "patch-browsing-merchandise-16",
+        "speaker": "patch",
+        "text": "What? You expecting a warranty?",
+        "delivery": "[sarcastic]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-browsing-merchandise-17",
+        "speaker": "patch",
+        "text": "No loyalty points. No corporate bullshit.",
+        "delivery": "[deadpan]",
+        "seconds": 3.52
+      },
+      {
+        "id": "patch-browsing-merchandise-18",
+        "speaker": "patch",
+        "text": "Best selection in this particular shitty alley.",
+        "delivery": "[amused]",
+        "seconds": 3.44
+      }
+    ]
+  },
+  {
+    "id": "patch-successful-purchases",
+    "stage": "successful-purchases",
+    "lines": [
+      {
+        "id": "patch-successful-purchases-1",
+        "speaker": "patch",
+        "text": "Pleasure doing business.",
+        "delivery": "[casual]",
+        "seconds": 1.52
+      },
+      {
+        "id": "patch-successful-purchases-2",
+        "speaker": "patch",
+        "text": "Good choice.",
+        "delivery": "[approving]",
+        "seconds": 1.36
+      },
+      {
+        "id": "patch-successful-purchases-3",
+        "speaker": "patch",
+        "text": "Enjoy the ride.",
+        "delivery": "[amused]",
+        "seconds": 1.76
+      },
+      {
+        "id": "patch-successful-purchases-4",
+        "speaker": "patch",
+        "text": "Have fun with that.",
+        "delivery": "[chuckles]",
+        "seconds": 2.32
+      },
+      {
+        "id": "patch-successful-purchases-5",
+        "speaker": "patch",
+        "text": "Appreciate the credits.",
+        "delivery": "[casual]",
+        "seconds": 1.6
+      },
+      {
+        "id": "patch-successful-purchases-6",
+        "speaker": "patch",
+        "text": "Come back when you need more.",
+        "delivery": "[casual]",
+        "seconds": 1.6
+      },
+      {
+        "id": "patch-successful-purchases-7",
+        "speaker": "patch",
+        "text": "That's some good shit right there.",
+        "delivery": "[approving]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-successful-purchases-8",
+        "speaker": "patch",
+        "text": "Don't blame me if you start seeing things.",
+        "delivery": "[chuckles]",
+        "seconds": 3.28
+      },
+      {
+        "id": "patch-successful-purchases-9",
+        "speaker": "patch",
+        "text": "Try not to do anything stupid.",
+        "delivery": "[deadpan]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-successful-purchases-10",
+        "speaker": "patch",
+        "text": "You're officially my favorite customer. Until the next one.",
+        "delivery": "[amused]",
+        "seconds": 4.08
+      },
+      {
+        "id": "patch-successful-purchases-11",
+        "speaker": "patch",
+        "text": "All yours.",
+        "delivery": "[casual]",
+        "seconds": 1.2
+      },
+      {
+        "id": "patch-successful-purchases-12",
+        "speaker": "patch",
+        "text": "Another satisfied questionable life choice.",
+        "delivery": "[chuckles]",
+        "seconds": 3.92
+      },
+      {
+        "id": "patch-successful-purchases-13",
+        "speaker": "patch",
+        "text": "Thanks for keeping me employed.",
+        "delivery": "[casual]",
+        "seconds": 1.92
+      },
+      {
+        "id": "patch-successful-purchases-14",
+        "speaker": "patch",
+        "text": "See? Shopping can be fun.",
+        "delivery": "[amused]",
+        "seconds": 2.48
+      }
+    ]
+  },
+  {
+    "id": "patch-insufficient-funds",
+    "stage": "insufficient-funds",
+    "lines": [
+      {
+        "id": "patch-insufficient-funds-1",
+        "speaker": "patch",
+        "text": "You're short.",
+        "delivery": "[deadpan]",
+        "seconds": 1.36
+      },
+      {
+        "id": "patch-insufficient-funds-2",
+        "speaker": "patch",
+        "text": "No credits, no merchandise.",
+        "delivery": "[casual]",
+        "seconds": 2.32
+      },
+      {
+        "id": "patch-insufficient-funds-3",
+        "speaker": "patch",
+        "text": "What do I look like, a charity?",
+        "delivery": "[sarcastic]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-insufficient-funds-4",
+        "speaker": "patch",
+        "text": "Come back when you've got money.",
+        "delivery": "[impatient]",
+        "seconds": 1.76
+      },
+      {
+        "id": "patch-insufficient-funds-5",
+        "speaker": "patch",
+        "text": "Nice try.",
+        "delivery": "[scoffs]",
+        "seconds": 1.6
+      },
+      {
+        "id": "patch-insufficient-funds-6",
+        "speaker": "patch",
+        "text": "I don't do fucking payment plans.",
+        "delivery": "[annoyed]",
+        "seconds": 2.24
+      },
+      {
+        "id": "patch-insufficient-funds-7",
+        "speaker": "patch",
+        "text": "You can look for free. That's about it.",
+        "delivery": "[deadpan]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-insufficient-funds-8",
+        "speaker": "patch",
+        "text": "I'm broke too, buddy. Get in line.",
+        "delivery": "[sarcastic]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-insufficient-funds-9",
+        "speaker": "patch",
+        "text": "That's adorable. You're still broke.",
+        "delivery": "[chuckles]",
+        "seconds": 3.52
+      },
+      {
+        "id": "patch-insufficient-funds-10",
+        "speaker": "patch",
+        "text": "Credits, man. That's how this works.",
+        "delivery": "[sighs]",
+        "seconds": 3.68
+      },
+      {
+        "id": "patch-insufficient-funds-11",
+        "speaker": "patch",
+        "text": "Your charming personality ain't currency.",
+        "delivery": "[deadpan]",
+        "seconds": 3.04
+      },
+      {
+        "id": "patch-insufficient-funds-12",
+        "speaker": "patch",
+        "text": "Maybe ask a corpo for a loan. Good luck with that.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.68
+      }
+    ]
+  },
+  {
+    "id": "patch-player-leaves-without-buying",
+    "stage": "player-leaves-without-buying",
+    "lines": [
+      {
+        "id": "patch-player-leaves-without-buying-1",
+        "speaker": "patch",
+        "text": "Suit yourself.",
+        "delivery": "[casual]",
+        "seconds": 1.36
+      },
+      {
+        "id": "patch-player-leaves-without-buying-2",
+        "speaker": "patch",
+        "text": "Your loss.",
+        "delivery": "[deadpan]",
+        "seconds": 1.36
+      },
+      {
+        "id": "patch-player-leaves-without-buying-3",
+        "speaker": "patch",
+        "text": "Yeah, whatever.",
+        "delivery": "[annoyed]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-player-leaves-without-buying-4",
+        "speaker": "patch",
+        "text": "I'll be here.",
+        "delivery": "[casual]",
+        "seconds": 1.12
+      },
+      {
+        "id": "patch-player-leaves-without-buying-5",
+        "speaker": "patch",
+        "text": "Don't waste my time next time.",
+        "delivery": "[impatient]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-player-leaves-without-buying-6",
+        "speaker": "patch",
+        "text": "Window shopping in an alley. That's a new one.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.36
+      },
+      {
+        "id": "patch-player-leaves-without-buying-7",
+        "speaker": "patch",
+        "text": "Come back when you're serious.",
+        "delivery": "[casual]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-player-leaves-without-buying-8",
+        "speaker": "patch",
+        "text": "Stay out of trouble. Or don't.",
+        "delivery": "[chuckles]",
+        "seconds": 3.68
+      },
+      {
+        "id": "patch-player-leaves-without-buying-9",
+        "speaker": "patch",
+        "text": "Another fucking browser.",
+        "delivery": "[sighs]",
+        "seconds": 3.12
+      },
+      {
+        "id": "patch-player-leaves-without-buying-10",
+        "speaker": "patch",
+        "text": "Great conversation. Very profitable.",
+        "delivery": "[deadpan]",
+        "seconds": 2.88
+      },
+      {
+        "id": "patch-player-leaves-without-buying-11",
+        "speaker": "patch",
+        "text": "Thanks for absolutely nothing.",
+        "delivery": "[sarcastic]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-player-leaves-without-buying-12",
+        "speaker": "patch",
+        "text": "Catch you later.",
+        "delivery": "[casual]",
+        "seconds": 1.12
+      }
+    ]
+  },
+  {
+    "id": "patch-ambient-remarks",
+    "stage": "ambient-remarks",
+    "lines": [
+      {
+        "id": "patch-ambient-remarks-1",
+        "speaker": "patch",
+        "text": "Fucking corpos.",
+        "delivery": "[muttering]",
+        "seconds": 1.92
+      },
+      {
+        "id": "patch-ambient-remarks-2",
+        "speaker": "patch",
+        "text": "Whole city's gone to shit.",
+        "delivery": "[sighs]",
+        "seconds": 3.2
+      },
+      {
+        "id": "patch-ambient-remarks-3",
+        "speaker": "patch",
+        "text": "Another beautiful day in this dump.",
+        "delivery": "[sarcastic]",
+        "seconds": 2.96
+      },
+      {
+        "id": "patch-ambient-remarks-4",
+        "speaker": "patch",
+        "text": "Corporate assholes get richer. Nothing changes.",
+        "delivery": "[annoyed]",
+        "seconds": 3.44
+      },
+      {
+        "id": "patch-ambient-remarks-5",
+        "speaker": "patch",
+        "text": "Should've charged that last guy more.",
+        "delivery": "[muttering]",
+        "seconds": 2.48
+      },
+      {
+        "id": "patch-ambient-remarks-6",
+        "speaker": "patch",
+        "text": "Rent's a fucking scam.",
+        "delivery": "[annoyed]",
+        "seconds": 2.08
+      },
+      {
+        "id": "patch-ambient-remarks-7",
+        "speaker": "patch",
+        "text": "Everybody wants something for nothing.",
+        "delivery": "[sighs]",
+        "seconds": 3.52
+      },
+      {
+        "id": "patch-ambient-remarks-8",
+        "speaker": "patch",
+        "text": "NULL's gonna be loud tonight.",
+        "delivery": "[casual]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-ambient-remarks-9",
+        "speaker": "patch",
+        "text": "Wonder who's getting arrested tonight.",
+        "delivery": "[amused]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-ambient-remarks-10",
+        "speaker": "patch",
+        "text": "At least I'm my own boss.",
+        "delivery": "[casual]",
+        "seconds": 1.92
+      },
+      {
+        "id": "patch-ambient-remarks-11",
+        "speaker": "patch",
+        "text": "Corpos call it medicine when they sell it.",
+        "delivery": "[scoffs]",
+        "seconds": 3.28
+      },
+      {
+        "id": "patch-ambient-remarks-12",
+        "speaker": "patch",
+        "text": "Everybody's broken. I just sell temporary fixes.",
+        "delivery": "[deadpan]",
+        "seconds": 3.6
+      },
+      {
+        "id": "patch-ambient-remarks-13",
+        "speaker": "patch",
+        "text": "Should've brought a chair.",
+        "delivery": "[muttering]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-ambient-remarks-14",
+        "speaker": "patch",
+        "text": "Standing here all day is bullshit.",
+        "delivery": "[sighs]",
+        "seconds": 3.6
+      },
+      {
+        "id": "patch-ambient-remarks-15",
+        "speaker": "patch",
+        "text": "NeoChinatown. Come for the lights, stay because you're broke.",
+        "delivery": "[sarcastic]",
+        "seconds": 4.56
+      },
+      {
+        "id": "patch-ambient-remarks-16",
+        "speaker": "patch",
+        "text": "Another corporate advertisement. Fuck off.",
+        "delivery": "[annoyed]",
+        "seconds": 3.44
+      },
+      {
+        "id": "patch-ambient-remarks-17",
+        "speaker": "patch",
+        "text": "Even the rats around here probably pay rent.",
+        "delivery": "[chuckles]",
+        "seconds": 3.6
+      },
+      {
+        "id": "patch-ambient-remarks-18",
+        "speaker": "patch",
+        "text": "Need something to eat.",
+        "delivery": "[muttering]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-ambient-remarks-19",
+        "speaker": "patch",
+        "text": "The city's fucked. Business is good.",
+        "delivery": "[deadpan]",
+        "seconds": 2.88
+      },
+      {
+        "id": "patch-ambient-remarks-20",
+        "speaker": "patch",
+        "text": "Corporate healthcare. That's a fucking joke.",
+        "delivery": "[scoffs]",
+        "seconds": 3.68
+      }
+    ]
+  },
+  {
+    "id": "patch-repeat-customers",
+    "stage": "repeat-customers",
+    "lines": [
+      {
+        "id": "patch-repeat-customers-1",
+        "speaker": "patch",
+        "text": "Back already?",
+        "delivery": "[amused]",
+        "seconds": 1.6
+      },
+      {
+        "id": "patch-repeat-customers-2",
+        "speaker": "patch",
+        "text": "Hey, I remember you.",
+        "delivery": "[casual]",
+        "seconds": 2.08
+      },
+      {
+        "id": "patch-repeat-customers-3",
+        "speaker": "patch",
+        "text": "Running low?",
+        "delivery": "[chuckles]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-repeat-customers-4",
+        "speaker": "patch",
+        "text": "My favorite bad influence.",
+        "delivery": "[amused]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-repeat-customers-5",
+        "speaker": "patch",
+        "text": "Guess you liked the merchandise.",
+        "delivery": "[casual]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-repeat-customers-6",
+        "speaker": "patch",
+        "text": "What's it gonna be this time?",
+        "delivery": "[casual]",
+        "seconds": 1.84
+      },
+      {
+        "id": "patch-repeat-customers-7",
+        "speaker": "patch",
+        "text": "Same as before, or feeling adventurous?",
+        "delivery": "[amused]",
+        "seconds": 3.44
+      },
+      {
+        "id": "patch-repeat-customers-8",
+        "speaker": "patch",
+        "text": "Keeping me in business, huh?",
+        "delivery": "[chuckles]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-repeat-customers-9",
+        "speaker": "patch",
+        "text": "Look who it is.",
+        "delivery": "[casual]",
+        "seconds": 1.52
+      },
+      {
+        "id": "patch-repeat-customers-10",
+        "speaker": "patch",
+        "text": "Missed me that much?",
+        "delivery": "[sarcastic]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-repeat-customers-11",
+        "speaker": "patch",
+        "text": "You're practically a regular now.",
+        "delivery": "[amused]",
+        "seconds": 2.32
+      },
+      {
+        "id": "patch-repeat-customers-12",
+        "speaker": "patch",
+        "text": "At this rate, you're paying my rent.",
+        "delivery": "[chuckles]",
+        "seconds": 3.04
+      }
+    ]
+  },
+  {
+    "id": "patch-encountered-while-walking",
+    "stage": "encountered-while-walking",
+    "lines": [
+      {
+        "id": "patch-encountered-while-walking-1",
+        "speaker": "patch",
+        "text": "Not working right now, man.",
+        "delivery": "[casual]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-encountered-while-walking-2",
+        "speaker": "patch",
+        "text": "Catch me by NULL later.",
+        "delivery": "[casual]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-encountered-while-walking-3",
+        "speaker": "patch",
+        "text": "I'm on a fucking break.",
+        "delivery": "[annoyed]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-encountered-while-walking-4",
+        "speaker": "patch",
+        "text": "Can't a guy get something to eat?",
+        "delivery": "[sighs]",
+        "seconds": 3.28
+      },
+      {
+        "id": "patch-encountered-while-walking-5",
+        "speaker": "patch",
+        "text": "Shop's closed. Come back later.",
+        "delivery": "[casual]",
+        "seconds": 2.24
+      },
+      {
+        "id": "patch-encountered-while-walking-6",
+        "speaker": "patch",
+        "text": "Yeah, yeah. You know where to find me.",
+        "delivery": "[impatient]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-encountered-while-walking-7",
+        "speaker": "patch",
+        "text": "Off the clock, buddy.",
+        "delivery": "[casual]",
+        "seconds": 1.44
+      },
+      {
+        "id": "patch-encountered-while-walking-8",
+        "speaker": "patch",
+        "text": "Even shady bastards need sleep.",
+        "delivery": "[chuckles]",
+        "seconds": 3.2
+      },
+      {
+        "id": "patch-encountered-while-walking-9",
+        "speaker": "patch",
+        "text": "Heading home.",
+        "delivery": "[casual]",
+        "seconds": 1.12
+      },
+      {
+        "id": "patch-encountered-while-walking-10",
+        "speaker": "patch",
+        "text": "What? You following me now?",
+        "delivery": "[annoyed]",
+        "seconds": 2.32
+      },
+      {
+        "id": "patch-encountered-while-walking-11",
+        "speaker": "patch",
+        "text": "Not here, man. Catch me later.",
+        "delivery": "[quietly]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-encountered-while-walking-12",
+        "speaker": "patch",
+        "text": "Believe it or not, I've got a life.",
+        "delivery": "[deadpan]",
+        "seconds": 2.64
+      }
+    ]
+  },
+  {
+    "id": "patch-leaving-his-vendor-location",
+    "stage": "leaving-his-vendor-location",
+    "lines": [
+      {
+        "id": "patch-leaving-his-vendor-location-1",
+        "speaker": "patch",
+        "text": "That's enough bullshit for one day.",
+        "delivery": "[sighs]",
+        "seconds": 3.2
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-2",
+        "speaker": "patch",
+        "text": "Time to head home.",
+        "delivery": "[casual]",
+        "seconds": 1.44
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-3",
+        "speaker": "patch",
+        "text": "My feet are fucking killing me.",
+        "delivery": "[annoyed]",
+        "seconds": 2.48
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-4",
+        "speaker": "patch",
+        "text": "Not a bad haul today.",
+        "delivery": "[satisfied]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-5",
+        "speaker": "patch",
+        "text": "I'm done. See you around.",
+        "delivery": "[casual]",
+        "seconds": 2
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-6",
+        "speaker": "patch",
+        "text": "Shop's closed, people.",
+        "delivery": "[casual]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-7",
+        "speaker": "patch",
+        "text": "Fuck it. I'm taking a break.",
+        "delivery": "[sighs]",
+        "seconds": 3.2
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-8",
+        "speaker": "patch",
+        "text": "Time to get some sleep.",
+        "delivery": "[tired]",
+        "seconds": 2.16
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-9",
+        "speaker": "patch",
+        "text": "Made rent. That's something.",
+        "delivery": "[chuckles]",
+        "seconds": 3.28
+      },
+      {
+        "id": "patch-leaving-his-vendor-location-10",
+        "speaker": "patch",
+        "text": "Another day, another pile of bullshit.",
+        "delivery": "[tired]",
+        "seconds": 3.52
+      }
+    ]
+  },
+  {
+    "id": "patch-at-his-apartment",
+    "stage": "at-his-apartment",
+    "lines": [
+      {
+        "id": "patch-at-his-apartment-1",
+        "speaker": "patch",
+        "text": "How the hell did you find my apartment?",
+        "delivery": "[suspicious]",
+        "seconds": 2.8
+      },
+      {
+        "id": "patch-at-his-apartment-2",
+        "speaker": "patch",
+        "text": "I don't do business at home.",
+        "delivery": "[serious]",
+        "seconds": 2.16
+      },
+      {
+        "id": "patch-at-his-apartment-3",
+        "speaker": "patch",
+        "text": "You better have a good reason for being here.",
+        "delivery": "[annoyed]",
+        "seconds": 2.64
+      },
+      {
+        "id": "patch-at-his-apartment-4",
+        "speaker": "patch",
+        "text": "Catch me in the alley later.",
+        "delivery": "[casual]",
+        "seconds": 1.68
+      },
+      {
+        "id": "patch-at-his-apartment-5",
+        "speaker": "patch",
+        "text": "This is my place, not a fucking store.",
+        "delivery": "[annoyed]",
+        "seconds": 2.96
+      },
+      {
+        "id": "patch-at-his-apartment-6",
+        "speaker": "patch",
+        "text": "Everybody needs a little privacy, man.",
+        "delivery": "[sighs]",
+        "seconds": 3.36
+      },
+      {
+        "id": "patch-at-his-apartment-7",
+        "speaker": "patch",
+        "text": "What, you expecting room service?",
+        "delivery": "[sarcastic]",
+        "seconds": 2.72
+      },
+      {
+        "id": "patch-at-his-apartment-8",
+        "speaker": "patch",
+        "text": "Can I help you with something?",
+        "delivery": "[impatient]",
+        "seconds": 1.76
+      },
+      {
+        "id": "patch-at-his-apartment-9",
+        "speaker": "patch",
+        "text": "Yeah, it's a dump. Rent's still ridiculous.",
+        "delivery": "[deadpan]",
+        "seconds": 3.76
+      },
+      {
+        "id": "patch-at-his-apartment-10",
+        "speaker": "patch",
+        "text": "Don't touch my shit.",
+        "delivery": "[annoyed]",
+        "seconds": 1.76
+      },
+      {
+        "id": "patch-at-his-apartment-11",
+        "speaker": "patch",
+        "text": "I'm trying to relax here.",
+        "delivery": "[tired]",
+        "seconds": 2.4
+      },
+      {
+        "id": "patch-at-his-apartment-12",
+        "speaker": "patch",
+        "text": "Come back when I'm working.",
+        "delivery": "[casual]",
+        "seconds": 1.6
+      }
+    ]
+  },
+  {
+    "id": "patch-anti-corporate-remarks",
+    "stage": "anti-corporate-remarks",
+    "lines": [
+      {
+        "id": "patch-anti-corporate-remarks-1",
+        "speaker": "patch",
+        "text": "Corpos sell the same shit with prettier packaging.",
+        "delivery": "[scoffs]",
+        "seconds": 3.84
+      },
+      {
+        "id": "patch-anti-corporate-remarks-2",
+        "speaker": "patch",
+        "text": "Corporate-approved? Must be expensive.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.12
+      },
+      {
+        "id": "patch-anti-corporate-remarks-3",
+        "speaker": "patch",
+        "text": "They own half the city and still want more.",
+        "delivery": "[annoyed]",
+        "seconds": 3.04
+      },
+      {
+        "id": "patch-anti-corporate-remarks-4",
+        "speaker": "patch",
+        "text": "I'm an unlicensed entrepreneur. Sounds better, right?",
+        "delivery": "[chuckles]",
+        "seconds": 4.48
+      },
+      {
+        "id": "patch-anti-corporate-remarks-5",
+        "speaker": "patch",
+        "text": "When I do it, it's illegal. When they do it, it's innovation.",
+        "delivery": "[deadpan]",
+        "seconds": 4.48
+      },
+      {
+        "id": "patch-anti-corporate-remarks-6",
+        "speaker": "patch",
+        "text": "Nothing says freedom like a monthly subscription.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.44
+      },
+      {
+        "id": "patch-anti-corporate-remarks-7",
+        "speaker": "patch",
+        "text": "Fuck their advertisements.",
+        "delivery": "[annoyed]",
+        "seconds": 2.08
+      },
+      {
+        "id": "patch-anti-corporate-remarks-8",
+        "speaker": "patch",
+        "text": "Corporate ethics. Two words that don't belong together.",
+        "delivery": "[scoffs]",
+        "seconds": 4.4
+      },
+      {
+        "id": "patch-anti-corporate-remarks-9",
+        "speaker": "patch",
+        "text": "At least I don't pretend I'm saving the world.",
+        "delivery": "[amused]",
+        "seconds": 2.96
+      },
+      {
+        "id": "patch-anti-corporate-remarks-10",
+        "speaker": "patch",
+        "text": "They'd charge you for breathing if they could.",
+        "delivery": "[deadpan]",
+        "seconds": 2.56
+      },
+      {
+        "id": "patch-anti-corporate-remarks-11",
+        "speaker": "patch",
+        "text": "Support your local questionable business.",
+        "delivery": "[sarcastic]",
+        "seconds": 3.04
+      },
+      {
+        "id": "patch-anti-corporate-remarks-12",
+        "speaker": "patch",
+        "text": "No shareholders. Just me and my terrible financial decisions.",
+        "delivery": "[chuckles]",
+        "seconds": 5.44
+      },
+      {
+        "id": "patch-anti-corporate-remarks-13",
+        "speaker": "patch",
+        "text": "Whole fucking city works for somebody upstairs.",
+        "delivery": "[annoyed]",
+        "seconds": 3.36
+      },
+      {
+        "id": "patch-anti-corporate-remarks-14",
+        "speaker": "patch",
+        "text": "I answer to myself. That's worth something.",
+        "delivery": "[casual]",
+        "seconds": 2.96
+      },
+      {
+        "id": "patch-anti-corporate-remarks-15",
+        "speaker": "patch",
+        "text": "The difference between me and a corpo? I'm honest about wanting your money.",
+        "delivery": "[deadpan]",
+        "seconds": 4.56
+      }
+    ]
+  }
+]
