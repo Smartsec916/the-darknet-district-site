@@ -25,7 +25,7 @@ def validate_new_npc_units(before, after, players):
     if any(unit.split('/')[1] in newly_reserved for unit in players):
         raise DraftError('A new mission entrance is assigned to player housing. Choose another entrance.', 409)
     for unit, occupants in npc_units(after).items():
-        if occupants - previous.get(unit, set()) and (len(occupants) > 1 or unit in players):
+        if occupants - previous.get(unit, set()) and (len(occupants) > 1 or unit in players or unit.split('/')[1] in reserved):
             raise DraftError('The apartment is assigned or its entrance is reserved. Choose an available unit.', 409)
 
 

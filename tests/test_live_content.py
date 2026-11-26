@@ -122,6 +122,19 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(self.get('live-content', token=None).json['content'], dict(previous, **ordinary))
         self.assertEqual(live._ordinary_world(dict(previous, **ordinary)), dict(format=live.FORMAT, version=1, **ordinary))
 
+    def test_resident_only_publish_preserves_other_content_and_protects_units(self):
+        previous = content()
+        self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': previous}).status_code, 200)
+        home = {'door': 'apt-road-n-34', 'slot': 0, 'mode': 'always', 'from': '08:00', 'to': '22:00'}
+        character = {'name': 'Tacta', 'model': 'npc-tacta', 'residence': home}
+        edit = {'id': 'tacta', 'character': character, 'placement': None}
+        result = self.post('live-content/publish', {'expected': 1, 'worldNpc': edit})
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(previous, characters={'tacta': character}))
+        self.assertEqual(live._ordinary_world(result.json['content'])['characters']['tacta'], character)
+        occupied = dict(edit, id='neighbor', character=dict(character, name='Neighbor'))
+        self.assertEqual(self.post('live-content/publish', {'expected': 2, 'worldNpc': occupied}).status_code, 409)
+
     def test_dax_routine_publish_and_clear_without_a_mission(self):
         stay = {'mode': 'stay', 'x': 125.3, 'z': -96.4, 'yaw': 0, 'actions': ['shadow']}
         route = {'mode': 'path', 'points': [
