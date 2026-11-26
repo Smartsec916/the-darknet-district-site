@@ -443,8 +443,28 @@ def card_access(db, uid, target, now=None, minute=None):
     if not valid_card_door(target):
         raise DraftError('Choose a registered door.')
     player = timed_inventory(db, uid, minute)
+    resolve_residential_cards(db, player['cards'].values())
     return any(card_allows(card, uid, target, time.time() if now is None else now, player.get('connectedClock', {}).get('total', 0))
                for card in player['cards'].values())
+
+
+def resolve_residential_cards(db, cards):
+    """Follow the live residence assignment. An unassigned resident grants no access."""
+    cards = [card for card in cards if card.get('residenceOwner')]
+    if not cards:
+        return
+    import void_runner_live_content as world
+    version = (world._state_ref(db).get().to_dict() or {}).get('live')
+    record = (world._version_ref(db, version).get().to_dict() or {}) if version else {}
+    chars = (record.get('content') or {}).get('characters') or {}
+    for card in cards:
+        home = chars.get(card['residenceOwner'], {}).get('residence') or {}
+        door, slot = home.get('door'), home.get('slot')
+        target = f'residence/{door}/{slot}'
+        card['doors'] = [door, target] if type(slot) is int and valid_card_door(target) else []
+        if card['doors']:
+            address = inventory()['apartments']['doors'][door]
+            card['address'] = {'streetNumber':address['number'], 'apartmentNumber':slot + (1 if address['family'] == 'container' else 101)}
 
 
 def move_card(db, uid, body, minute=None):
@@ -479,13 +499,13 @@ def move_card(db, uid, body, minute=None):
         player = _clean_player(ref.get(transaction=tx).to_dict())
         if action == 'pickup':
             position = body.get('position')
-            entrance = inventory()['apartments']['doors'][door]
+            drop = drop_ref.get(transaction=tx).to_dict() or {}
+            entrance = drop.get('position') or inventory()['apartments']['doors'][door]
             if (not _only(position, ['area', 'quarter', 'x', 'z'])
                     or position.get('area') != 'street' or position.get('quarter') != entrance['quarter']
                     or not all(_num(position.get(axis), -100000, 100000) for axis in ('x', 'z'))
-                    or sum((position[axis] - entrance[axis])**2 for axis in ('x', 'z')) >= 25):
-                raise DraftError('Stand beside this street entrance to pick up the keycard.', 403)
-            drop = drop_ref.get(transaction=tx).to_dict() or {}
+                    or sum((position[axis] - entrance[axis])**2 for axis in ('x', 'z')) >= drop.get('range', 5)**2):
+                raise DraftError('Stand beside the dropped keycard to pick it up.', 403)
             card = drop.get('card')
             if not card or drop.get('door') != door or not card.get('pickup'):
                 raise DraftError('This card is unavailable here.', 409)
@@ -493,6 +513,12 @@ def move_card(db, uid, body, minute=None):
                 raise DraftError('Only the original holder can reclaim this card.', 403)
             tick_inventory(db, uid, player, tx, minute, card)
             _receive_card(player, card)
+            if drop.get('runRef'):
+                run_ref = db.collection('vr_encounter_runs').document(drop['runRef'])
+                run = run_ref.get(transaction=tx).to_dict() or {}
+                if run.get('stage') != 'dropped' or (run.get('drop') or {}).get('id') != card_id:
+                    raise DraftError('The encounter pickup has already been claimed.', 409)
+                tx.set(run_ref, dict(run, stage='collected'))
             tx.delete(drop_ref)
         else:
             tick_inventory(db, uid, player, tx, minute)
@@ -526,7 +552,10 @@ def dropped_cards(db, uid, door):
         raise DraftError('Choose a registered street entrance.')
     result = []
     for doc in db.collection('vr_keycard_drops').where('door', '==', door).limit(64).stream():
-        card = doc.to_dict()['card']
+        drop = doc.to_dict()
+        if drop.get('position'):
+            continue
+        card = drop['card']
         if card['pickup'] and (card['transferable'] or card['issuedTo'] == _tag(uid)):
             result.append({k:card[k] for k in ('id', 'name', 'icon')})
     return result
@@ -1064,6 +1093,7 @@ def player_state(db, uid, now=None, minute=None, session=None):
     now = now or time.time()
     content = live(db)['content']
     p = timed_inventory(db, uid, minute, session)
+    resolve_residential_cards(db, p['cards'].values())
     clock = p.get('connectedClock', {})
     for card in p['cards'].values():
         if 'connectedUntil' in card:
