@@ -640,5 +640,28 @@
   }
  },true);
  setInterval(tick,250);
- root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};
+ // Apply the same limited head and neck rotation to another humanoid without
+ // baking over its animation. Each instance owns its observers and base pose.
+ function attachGaze(node,getTarget){
+  const B=root.BABYLON,scene=node.getScene(),order=bonesOf(node).filter(b=>b.key==='Head'||b.key==='Neck');
+  const head=order.find(b=>b.key==='Head')?.bone;
+  if(!head)return null;
+  const forward=B.Vector3.TransformNormal(new B.Vector3(0,0,1),node.computeWorldMatrix(true));
+  const f={node,head,order,lookY:0,lookPitch:0,baseRotations:new Map(),
+   faceAxis:B.Vector3.TransformNormal(forward,head.computeWorldMatrix(true).clone().invert()).normalize()};
+  const before=scene.onBeforeAnimationsObservable.add(()=>{
+   for(const [bone,base] of f.baseRotations)bone.rotationQuaternion.copyFrom(base);
+   f.baseRotations.clear();
+  });
+  const after=scene.onAfterAnimationsObservable.add(()=>{
+   if(!node.isEnabled())return;
+   const target=getTarget();if(!target&&Math.abs(f.lookY)+Math.abs(f.lookPitch)<.02)return;
+   const pose={};track(f,target,pose,Math.min(.1,scene.getEngine().getDeltaTime()/1000));applyPose(f,pose);
+  });
+  node.onDisposeObservable.addOnce(()=>{
+   scene.onBeforeAnimationsObservable.remove(before);scene.onAfterAnimationsObservable.remove(after);
+  });
+  return head;
+ }
+ root.VoidTeaDuo={...pure,attachGaze,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,playerStep,standPlayer,leaveSeat,get seated(){return !!playerSeat;},get activity(){return activity?.kind||null;},get rounds(){return duo?duo.rounds:0;}};
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -10,6 +10,9 @@
 (function(root){
  'use strict';
  const SPEED=1.25,ROUND=480;
+ // Store-local coordinates, alongside the middle survival case. Iris approaches
+ // from the staff side and Tacta from the sales floor, leaving the counter aisle open.
+ const STORE_VISIT={tacta:[15.55,47.2],iris:[15.55,48.3]};
  /* Each resident's own spot (where neochinatown.js stands them) and what they look toward there. */
  const HOMES={
   'crew-hall-talk1':{at:[-2.0,40.3],face:[-1.9,41.5],door:40.3},'crew-hall-talk2':{at:[-1.9,41.5],face:[-2.0,40.3],door:41.5},'crew-hall-talk3':{at:[2.0,38.4],face:[0,39.5],door:38.4},
@@ -58,7 +61,129 @@
   const a=along(s.path,(t-s.start)*SPEED);return {home:false,kind:'walk',x:a.x,z:a.z,yaw:Math.atan2(a.dx,a.dz),what:null,clips:['walk'],mask:false,label:s.to<0?null:PLACES[s.to].label};}
  /* Residents whose own spot is at the bar: about half of them wear a mask there too (fixed per person, so it does not flicker). */
  const homeMask=id=>id==='crew-bar1';
- const pure={SPEED,ROUND,HOMES,WHO,PLACES,CLIPS,route,length,along,round,at,homeMask};
+ // Arrival is expressed in campaign minutes after midnight. Duration is measured
+ // in seconds of active play, like the other District resident activities.
+ function tactaVisits(day){
+  const windows=[8,12,17];
+  if(rnd(day,2101)<.5)windows.push(21);
+  return windows.map((hour,index)=>({
+   arrival:hour*60+Math.floor(120*rnd(day,2110+index)),
+   seconds:180+Math.floor(241*rnd(day,2120+index))
+  }));
+ }
+ function tactaRoute(home,N,crosswalks,escort,apartments,slot=0){
+  if(home?.quarter!=='oldtown'||!home.front)return null;
+  const vec=([x,z])=>({x,z});
+  const street=[home.front];
+  function approach(destination){
+   const segment=escort.walkRoute(vec(street.at(-1)),vec(destination),'oldtown');
+   if(!segment)return false;
+   for(const point of segment)street.push([point.x,point.z]);
+   return true;
+  }
+  function cross(id,from){
+   const ends=crosswalks.get(id).ends;
+   if(!approach(ends[from]))return false;
+   street.push(ends[1-from]);
+   return true;
+  }
+  // Port Customs interrupts the north pavement. Use the opposite pavement
+  // until Main Street, then cross Main Street at the District alley.
+  if(home.street==='road'&&home.side==='n'&&home.x<40.5){
+   if(!cross('ar-customs',1)||!cross('ar-main',0))return null;
+  }
+  if(home.front[0]<54&&!cross('ot-alley',0))return null;
+  if(!approach(N.toWorld(0,17)))return null;
+  const checkpoint=N.toWorld(0,23),hallway=N.toWorld(0,27.5);
+  street.push(checkpoint);
+  const solids=N.layout('interior').solids.filter(s=>s.position[1]-s.size[1]/2<1.6&&s.position[1]+s.size[1]/2>.1);
+  const store=N.toWorld(...STORE_VISIT.tacta);
+  const interior=escort.gridRoute(vec(hallway),vec(store),solids,{grid:.25,radius:.3});
+  if(!interior?.length||dist([interior.at(-1).x,interior.at(-1).z],store)>.12)return null;
+  const result={street,interior:[checkpoint,hallway,...interior.map(p=>[p.x,p.z])]};
+  if(apartments){
+   const geo=apartments.geo(home.style),spot=apartments.residenceSpot(home.style,0),unit=geo.HALL.slots[slot];
+   const flat=apartments.layout('flat',home.style),exit=flat.interactions.find(i=>i.action==='apt-exit');
+   if(!unit||!spot||!exit)return null;
+   const [ox,oz]=apartments.ORIGIN;
+   const room=escort.gridRoute({x:ox+spot[0],z:oz+spot[1]},{x:exit.position[0],z:exit.position[2]},flat.solids,{grid:.18,radius:.22});
+   if(!room?.length)return null;
+   result.flat=[spot,...room.map(p=>[p.x-ox,p.z-oz])];
+   result.hall=[[unit.x,unit.z*.78],[unit.x,0],[geo.hallExit[0],geo.hallExit[2]]];
+  }
+  return result;
+ }
+ const visitDays=new Map(),routeTimes=new WeakMap();
+ function tactaAt(day,minute,paths,rate,visitMinutes){
+  if(!routeTimes.has(paths))routeTimes.set(paths,['flat','hall','street','interior'].map(area=>length(paths[area]||[])/SPEED));
+  const [flatTime,hallTime,streetTime,interiorTime]=routeTimes.get(paths),scanTime=4;
+  const travel=flatTime+hallTime+streetTime+scanTime+interiorTime;
+  // Late visits can extend past midnight. Look back one day so a reload
+  // between goodbye and the apartment door resumes her return journey.
+  for(const visitDay of [day-1,day]){
+   if(visitDay<1)continue;
+   if(!visitDays.has(visitDay)){
+    if(visitDays.size>=4)visitDays.delete(visitDays.keys().next().value);
+    visitDays.set(visitDay,tactaVisits(visitDay));
+   }
+   for(const [index,visit] of visitDays.get(visitDay).entries()){
+    const duration=visitMinutes==null?visit.seconds:visitMinutes*60;
+    const elapsed=((day-visitDay)*1440+minute-visit.arrival)*60/rate;
+    if(elapsed < -travel || elapsed>=duration+travel)continue;
+    const key=visitDay+'-'+index;
+    if(elapsed>=0&&elapsed<duration){
+     const [x,z]=paths.interior.at(-1);
+     return {area:'interior',phase:'visit',x,z,yaw:Math.PI,key,elapsed,remaining:duration-elapsed};
+    }
+    const returning=elapsed>=duration;
+    let t=returning?travel-(elapsed-duration):elapsed+travel;
+    for(const [area,span] of [['flat',flatTime],['hall',hallTime]]){
+     if(t<span){
+      const p=along(paths[area],t*SPEED);
+      return {area,phase:'walk',x:p.x,z:p.z,key,returning,yaw:Math.atan2(p.dx,p.dz)+(returning?Math.PI:0)};
+     }
+     t-=span;
+    }
+    const area=t<streetTime?'street':'interior';
+    if(t>=streetTime&&t<streetTime+scanTime){
+     const [x,z]=paths.street.at(-1);
+     return {area:'checkpoint',phase:'scan',x,z,key,returning};
+    }
+    const p=along(paths[area],(area==='street'?t:t-streetTime-scanTime)*SPEED);
+    return {area,phase:'walk',x:p.x,z:p.z,yaw:Math.atan2(p.dx,p.dz)+(returning?Math.PI:0),key,returning};
+   }
+  }
+  return null;
+ }
+ function visitDialogue(key,seconds,recordings,walkSeconds=0){
+  const [day,visit]=key.split('-').map(Number),used=new Set(),timeline=[];
+  function select(stage){
+   const pool=recordings.filter(e=>e.stage===stage&&!used.has(e.id));
+   return pool[Math.floor(rnd(day,visit*100+used.size)*pool.length)];
+  }
+  const duration=e=>e.lines.reduce((n,l)=>n+l.seconds+.75,0);
+  function add(exchange,start){
+   used.add(exchange.id);
+   for(const line of exchange.lines){
+    timeline.push({line,start,end:start+line.seconds});
+    start+=line.seconds+.75;
+   }
+   return start;
+  }
+  const hello=select('arrival'),bye=select('goodbye');
+  if(!hello||!bye)return timeline;
+  const goodbyeAt=seconds-duration(bye)-walkSeconds-2;
+  let t=add(hello,Math.max(8,walkSeconds+1));
+  while(t<goodbyeAt){
+   t+=14+10*rnd(day,used.size+visit);
+   const next=select('visit');
+   if(!next||t+duration(next)+2>goodbyeAt)break;
+   t=add(next,t);
+  }
+  if(timeline.at(-1).end<goodbyeAt)add(bye,goodbyeAt);
+  return timeline;
+ }
+ const pure={SPEED,ROUND,HOMES,WHO,PLACES,CLIPS,route,length,along,round,at,homeMask,tactaVisits,tactaRoute,tactaAt,visitDialogue};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -96,5 +221,165 @@
    mask(f,s.kind==='stay'&&s.mask);}}
  setInterval(()=>{const scene=root.VoidBabylon?.scene;if(sceneRef&&(scene!==sceneRef||!interior()))drop();
   if(!sceneRef&&scene&&interior()&&root.VoidCrowd?.controller){sceneRef=scene;lastScan=0;observer=scene.onBeforeRenderObservable.add(step);}},1000);
- root.VoidDistrictLife={...pure,offset:0,get driven(){return [...figs.values()].filter(f=>f.driven).map(f=>f.id);},get masked(){return [...figs.values()].filter(f=>f.mask&&!f.mask.isDisposed()).map(f=>f.id);},get figures(){return [...figs.keys()];}};
+ let visitMemory,activeVisitLine=null;
+ function visitGesture(speaker){
+  const audio=root.VoidAudio?.voiceStatus,line=activeVisitLine;
+  if(!audio?.active||line?.speaker!==speaker||audio.text!==line.text)return 'idle';
+  if(/laugh|giggl/i.test(line.delivery||''))return 'laugh';
+  if(/sarcast|dry|deadpan/i.test(line.delivery||''))return 'shrug';
+  return 'talk';
+ }
+ // Distances are in Store metres. Ease into contact and release before either NPC walks away.
+ function greetingPose(visit){
+  const beats=[['hug',visit.elapsed-12,.78],['hands',visit.elapsed-32,.61],['kiss',20-visit.remaining,.93]];
+  for(const [kind,t,step] of beats){
+   if(t<=0||t>=7)continue;
+   const fraction=Math.min(1,t/2,(7-t)/2),weight=fraction*fraction*(3-2*fraction);
+   return {kind,weight,step:step*weight};
+  }
+  return null;
+ }
+ function contactArms(node){
+  const joints=node.getChildTransformNodes(false);
+  const arms=['Left','Right'].map(side=>['Arm','ForeArm','Hand'].map(part=>joints.find(j=>j.name.endsWith(':'+side+part))));
+  return arms.flat().every(j=>j?.rotationQuaternion)?arms:null;
+ }
+ function storeContact(holder){
+  const scene=holder.getScene(),saved=new Map();
+  let intent=null,source=null,pair=null;
+  const before=scene.onBeforeAnimationsObservable.add(()=>{
+   for(const [joint,q] of saved)if(!joint.isDisposed())joint.rotationQuaternion.copyFrom(q);
+   saved.clear();
+  });
+  const after=scene.onAfterAnimationsObservable.add(()=>{
+   if(!intent||!source||source.isDisposed())return;
+   const [a,b]=pair,point=j=>j.computeWorldMatrix(true).getTranslation();
+   const delta=point(a[0][0]).add(point(a[1][0])).subtract(point(b[0][0])).subtract(point(b[1][0])).scale(.5);
+   if(delta.length()>1.25)return;
+   for(const [index,own,other] of [[0,a,b],[1,b,a]]){
+    for(const [side,arm] of own.entries()){
+     if(intent.kind==='hands'&&side!==index)continue;
+     const opposite=other[1-side],shoulder=point(arm[0]),mate=point(opposite[0]);
+     const goal=shoulder.add(mate).scale(.5);
+     if(intent.kind==='hug')goal.copyFrom(mate).addInPlace(delta.scale(index===0?-.14:.14));
+     goal.y-=intent.kind==='hands'?.25:intent.kind==='kiss'?.2:.08;
+     for(const joint of arm.slice(0,2))saved.set(joint,joint.rotationQuaternion.clone());
+     root.VoidCrowd.reachHand(arm,goal,index===0?0:Math.PI);
+     for(const joint of arm.slice(0,2))root.BABYLON.Quaternion.SlerpToRef(saved.get(joint),joint.rotationQuaternion,intent.weight,joint.rotationQuaternion);
+    }
+   }
+  });
+  holder.onDisposeObservable.addOnce(()=>{
+   scene.onBeforeAnimationsObservable.remove(before);scene.onAfterAnimationsObservable.remove(after);
+  });
+  return pose=>{
+   intent=null;
+   if(!pose)return;
+   if(!source||source.isDisposed()||!pair||pair[0][0][0].isDisposed()){
+    source=scene.transformNodes.find(n=>n.metadata?.made==='tacta')||scene.meshes.find(n=>n.metadata?.made==='tacta');
+    const a=contactArms(holder),b=source&&contactArms(source);
+    pair=a&&b?[a,b]:null;
+   }
+   if(pair)intent=pose;
+   return !!intent;
+  };
+ }
+ function shopVisit(iris){
+  let progress=0,clip='',recordings=[],duo=null,lastLine=null,currentStage='',sharedKey='',sharedScript=[],lastTick=null,contactStep=0;
+  root.VoidVoiceClips?.tactaExchanges?.then(lines=>{recordings=lines;});
+  const path=[iris.home,[STORE_VISIT.iris[0],iris.home[1]],STORE_VISIT.iris];
+  const metres=length(path),contact=storeContact(iris.holder);
+  let focus=null,guestHead=null;
+  iris.visitLook=()=>{
+   if(!focus)return null;
+   if(!guestHead||guestHead.isDisposed()){
+    guestHead=iris.holder.getScene().transformNodes.find(n=>n.name==='crowd:npc-tacta-mixamorig:Head');
+   }
+   return guestHead?.getAbsolutePosition()||{x:focus.x,y:1.6,z:focus.z};
+  };
+  return {get away(){return progress>0;},tick(dt,staffBusy){
+   if(!iris.ready||staffBusy){contact(null);focus=null;return;}
+   const v=root.VoidMadeNPCs?.tactaOuting?.();
+   const visiting=v?.phase==='visit'&&root.VoidMadeNPCs?.live?.visible?.('tacta');
+   const walking=typeof mode!=='undefined'&&mode==='walking';
+   const available=walking&&!root.VoidWarFlyingScanner?.installed;
+   const shared=Number.isFinite(root.VoidRemotePlayers?.serverNow?.());
+   const goal=visiting&&available?(shared?Math.min(metres,v.elapsed*SPEED,v.remaining*SPEED):metres):0;
+   const now=performance.now(),step=shared&&lastTick!==null?Math.min(1,(now-lastTick)/1000):dt;
+   const next=shared&&lastTick===null?goal:progress<goal?Math.min(goal,progress+step*SPEED):Math.max(goal,progress-step*SPEED);
+   lastTick=now;
+   const moving=next!==progress,hadVisit=progress>0;
+   const pose=next===metres&&visiting&&available?greetingPose(v):null;
+   const touching=contact(pose);
+   focus=next===metres&&visiting&&available?v:null;
+   if(moving||next>0){
+    const pose=along(path,next),h=iris.holder,dir=next<progress?-1:1;
+    h.position.x=pose.x;h.position.z=pose.z;
+    const yaw=next===0?Math.PI:moving?Math.atan2(dir*pose.dx,dir*pose.dz):Math.PI;
+    h.rotation.y+=Math.atan2(Math.sin(yaw-h.rotation.y),Math.cos(yaw-h.rotation.y))*Math.min(1,dt*6);
+   }
+   const offset=touching?pose.step:0,stepping=Math.abs(offset-contactStep)>.04*dt;
+   if(touching)iris.holder.position.z-=offset;
+   if((hadVisit||next>0)&&typeof walkingLocation!=='undefined'){
+    const prompt=walkingLocation?.interactions?.find(i=>i.id==='district-iris');
+    if(prompt){
+     const [x,z]=root.VoidNeoChinatown.toWorld(...(next>0?
+      [iris.holder.position.x,iris.holder.position.z]:[12.5,46.2]));
+     prompt.position[0]=x;prompt.position[2]=z;
+    }
+   }
+   contactStep=offset;
+   progress=next;
+   const wanted=moving||stepping?'walk':progress?visitGesture('iris'):'idle';
+   if((hadVisit||progress)&&clip!==wanted){iris.play(wanted);clip=wanted;}
+   const camera=iris.holder.getScene().activeCamera?.globalPosition;
+   const nearby=!!camera&&visiting&&Math.hypot(camera.x-v.x,camera.z-v.z)<9;
+   const audio=root.VoidAudio,status=audio?.voiceStatus;
+   const own=lastLine&&status?.id===lastLine.speaker&&status.text===lastLine.text;
+   const inside=available&&nearby&&progress===metres;
+   const stage=visiting?(v.remaining<32?'goodbye':v.elapsed<45?'arrival':'visit'):'';
+   if(!inside){
+    if(own&&status.active)audio.cancel();
+    return;
+   }
+   function say(line){
+    lastLine=line;activeVisitLine=line;
+    const {speaker,text}=line;
+    if(typeof announce==='function')announce((speaker==='iris'?'Iris':'Tacta')+' · '+text);
+    const source=speaker==='iris'?iris.holder.getAbsolutePosition():v;
+    if(typeof walker!=='undefined'&&walker)audio?.speakNearby(speaker,text,source,walker);
+   }
+   if(shared){
+    if(sharedKey!==v.key&&recordings.length){
+     sharedScript=visitDialogue(v.key,v.elapsed+v.remaining,recordings,metres/SPEED);
+     sharedKey=v.key;
+    }
+    const cue=sharedScript.find(c=>v.elapsed>=c.start&&v.elapsed<c.end);
+    if(cue&&v.elapsed-cue.start<1.5&&cue.line!==lastLine&&!status?.active&&!document.hidden)say(cue.line);
+    return;
+   }
+   if(visitMemory?.key!==v.key){
+    visitMemory={key:v.key,used:new Set(),duo:null,stage:''};
+   }
+   duo=visitMemory.duo;currentStage=visitMemory.stage;
+   const script=round=>{
+    const pool=recordings.filter(e=>e.stage===stage&&!visitMemory.used.has(e.id));
+    const [day,index]=v.key.split('-').map(Number);
+    const exchange=pool[Math.floor(rnd(day,100*index+round)*pool.length)];
+    if(!exchange)return [];
+    visitMemory.used.add(exchange.id);
+    return exchange.lines;
+   };
+   if(stage!==currentStage&&!duo?.waiting&&!duo?.queue?.length){duo=null;currentStage=stage;}
+   const r=root.VoidAdvancedInteractions?.roomDuoStep(duo,{inside,present:inside&&recordings.length>0,
+    blocked:!walking||document.hidden||!!(status?.active&&!own),playing:!!(own&&status.active),
+    now:performance.now(),members:['tacta','iris'],script:()=>script(0),cooldownMs:0,
+    refill:stage==='visit'?{gap:()=>16000,script,max:8}:null});
+   if(!r)return;
+   duo=r.state;visitMemory.duo=duo;visitMemory.stage=currentStage;
+   if(r.cancel&&own&&status.active)audio.cancel();
+   if(r.line)say(r.line);
+  }};
+ }
+ root.VoidDistrictLife={...pure,shopVisit,visitGesture,offset:0,get driven(){return [...figs.values()].filter(f=>f.driven).map(f=>f.id);},get masked(){return [...figs.values()].filter(f=>f.mask&&!f.mask.isDisposed()).map(f=>f.id);},get figures(){return [...figs.keys()];}};
 })(typeof globalThis!=='undefined'?globalThis:this);

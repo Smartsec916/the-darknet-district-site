@@ -139,16 +139,27 @@
   let standInLate=[];const standInMerge=()=>{};
 
   if(hall)(G.container?buildCHall:buildHall)();else (G.container?buildCFlat:buildFlat)();
+  if(!hall&&def.residents?.includes('tacta')){
+   // A portable repair dock with two removable sensor cartridges on her table.
+   // Reuse the room's materials so these pieces merge with the existing furniture.
+   const [x,,,z,h]=(G.container?G.FURN:A.FURN).table;
+   const cx=x+.22,cz=z-.18;
+   bx(dark,[.33,.032,.21],[cx,h+.016,cz]);
+   for(const offset of [-.065,.065]){
+    bx(metal,[.085,.028,.135],[cx+offset,h+.046,cz]);
+    bx(S.lamp,[.024,.004,.012],[cx+offset,h+.062,cz+.045]);
+   }
+  }
   const merged=merge();
   if(!hall&&def.lightsOff===true)setLights(false);   // the mission's "lights start: off"
   // ---- lights on / off ----
   function setLights(on){lightsOn=!!on;for(const l of realLights)l.intensity=on?l.metadata.on:0;for(const m of fixtureMats){if(!m.metadata.base)m.metadata.base=m.emissiveColor.clone();m.emissiveColor=on?m.metadata.base.clone():m.metadata.base.scale(.05);}
    if(amb)amb.intensity=on?MOOD.ai:MOOD.ai*.38;}
-  const residents=!hall&&def.residents?.length?root.VoidMadeNPCs?.startResidents?.({scene,parent:node,def}):null;
+  const residents=(hall?def.street&&root.VoidLiveContent?.env?.characters?.tacta?.residence?.door===def.street:def.residents?.length)?root.VoidMadeNPCs?.startResidents?.({scene,parent:node,def}):null;
   let clock=0;
   function tick(time,player){const dt=Math.min(.1,Math.max(0,clock?time-clock:0));clock=time;
    residents?.tick();const p=player||(typeof walker!=='undefined'?walker:null);
-   for(const d of doors){if(p&&d.auto!==false){const dx=(A.ORIGIN[0]+d.at[0])-p.x,dz=(A.ORIGIN[1]+d.at[1])-p.z;d.near(dx*dx+dz*dz<(d.range||1.7)**2);}d.tick(dt);}
+   for(const d of doors){if(p&&d.auto!==false){const dx=(A.ORIGIN[0]+d.at[0])-p.x,dz=(A.ORIGIN[1]+d.at[1])-p.z;d.near(dx*dx+dz*dz<(d.range||1.7)**2||residents?.walkingNear(d.at[0],d.at[1],d.range||1.7));}d.tick(dt);}
    for(const k of Object.values(interactive))k.tick?.(dt);
    if(flicker&&lightsOn){flicker.t-=dt;if(flicker.t<=0){flicker.on=!flicker.on;flicker.t=flicker.on?.4+rand()*4:.03+rand()*.12;const k=flicker.on?1:.15,md=flicker.mat.metadata;if(!md.base)md.base=flicker.mat.emissiveColor.clone();flicker.mat.emissiveColor=md.base.scale(k);if(flicker.light)flicker.light.intensity=flicker.light.metadata.on*(flicker.on?1:.35);}}}
   function disposeAll(){disposed=true;residents?.dispose();for(const k of Object.values(interactive))try{k.dispose?.();}catch{}for(const d of doors)d.mesh?.dispose?.();for(const c of containers)try{c.dispose();}catch{}for(const n of props)try{n.dispose(false,false);}catch{}node.dispose(false,true);for(const x of own)try{x.dispose();}catch{}

@@ -90,7 +90,7 @@
  // Their device, drawn by npc-device.js (the one path by which it draws a player): the cuff and hologram (V1, V2) or the eye (V3 // Shadow), only while the hub says it is open.
  function mark(node,p){node.metadata={...(node.metadata||{}),remoteDevice:{id:p.id,tier:()=>p.dev,force:()=>root.VoidNPCDevice?.remotePose?.(p.dev,p.devPose)||null}};return node;}
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
- let teaState=null;
+ let teaState=null,serverClock=null;
  const npcTurns=new Map();
  function clearPeers(){teaState=null;npcTurns.clear();for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
@@ -133,7 +133,7 @@
   }
   if(m.t==='error'&&m.reason==='unknown room'){refusedRoom=joinedRoom;return;}   // this hub does not carry this place: it is played alone, and other places still connect
   if(m.t==='voice-token'||m.t==='voice-refused'){const w=voiceWaiting;voiceWaiting=null;if(w){clearTimeout(w.timer);m.t==='voice-token'&&/^wss:\/\//.test(String(m.url))?w.resolve({url:m.url,token:m.token,room:m.room,identity:m.identity,expires:m.expires}):w.reject(new Error(m.reason||'Voice is not available.'));}return;}
-  if(m.t==='welcome'){renewFor=null;diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={teaRoom:!!m.features?.teaRoom,npcDialogue:!!m.features?.npcDialogue,trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+  if(m.t==='welcome'){serverClock={local:performance.now(),server:Number.isFinite(m.serverTime)?m.serverTime:Date.now()};renewFor=null;diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={teaRoom:!!m.features?.teaRoom,npcDialogue:!!m.features?.npcDialogue,trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
   else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
@@ -262,6 +262,7 @@
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   get teaState(){return teaState;},
+  serverNow(){return wantOn&&serverClock?serverClock.server+performance.now()-serverClock.local:null;},
   teaPose(data){if(ws?.readyState===1&&status==='in'&&features.teaRoom&&teaState?.owner===selfId)ws.send(JSON.stringify({...data,t:'tea-pose'}));},
   npcTurn(group,cooldown){
    if(status!=='in'||!features.npcDialogue||ws?.readyState!==1)return null;
