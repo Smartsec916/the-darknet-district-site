@@ -61673,7 +61673,7 @@
       "spawn"
     ]
   },
-  "revision": "61c1f101d91a0f43",
+  "revision": "7808c35c908a1f42",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83482,7 +83482,7 @@
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
-    "void-runner/unified-controls.js": "6a529693c61d3b164f6617d9e700b5b28ac1bd9343bb989486f8086d31116bfa",
+    "void-runner/unified-controls.js": "0a4513e89596f4dc68e4b7dab4a30d62599afee859a1e6eb0393fcdbc12a6f3c",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
     "void-runner/universe.js": "20a842f3fcc7ee6f8d05f2ae246b45d6be4bc5b1a404de16e92bd4129fe7277a",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
