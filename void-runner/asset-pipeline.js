@@ -278,7 +278,7 @@
   // The loaded container for an id (for builders that place many copies themselves), or null.
   function container(id){return containers.get(id)?.container||null;}
   const api = {
-    models,unload,container,requestModel,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
+    models,unload,container,requestModel,loadContainer,loadPlugin,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
     leadInEnd,leadOutStart,trimLeadIn,keepTrim,
     unpack,

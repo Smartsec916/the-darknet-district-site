@@ -3,7 +3,7 @@ const R=f=>path.join(__dirname,'..',f),S=require(R('void-runner/consumable-spec.
 test('the shipped seed is valid and matches the JSON the server reads',()=>{assert.deepEqual(C.problems(C.seed()),[]);assert.deepEqual(JSON.parse(fs.readFileSync(R('void-runner/consumable-seed.json'),'utf8')),C.seed());});
 test('every effect type builds a valid default effect',()=>{for(const t of Object.keys(S.effects)){assert.deepEqual(C.effectProblems(C.newEffect(t),t),[],t);}});
 test('out of range, unknown and unsupported values are refused',()=>{
- const e=C.newEffect('motionTrails');assert.ok(C.effectProblems({...e,intensity:2},'x').length);assert.ok(C.effectProblems({...e,params:{...e.params,length:5}},'x').length);
+ const e=C.newEffect('motionTrails');assert.deepEqual(C.effectProblems({...e,intensity:3},'x'),[]);assert.ok(C.effectProblems({...e,intensity:3.01},'x').length);assert.ok(C.effectProblems({...C.newEffect('audioVolume'),intensity:1.01},'x').length);assert.ok(C.effectProblems({...e,params:{...e.params,length:5}},'x').length);
  assert.ok(C.effectProblems({...e,extra:1},'x').length);assert.ok(C.effectProblems({...e,fadeIn:60,fadeOut:60,duration:30},'x').length);
  assert.ok(C.modifierProblems({stat:'meleeEffectiveness',amount:.1,delay:0,duration:5},'m')[0].includes('not available'));
  assert.ok(C.modifierProblems({stat:'walkSpeed',amount:.9,delay:0,duration:5},'m').length);assert.deepEqual(C.modifierProblems({stat:'walkSpeed',amount:.2,delay:0,duration:5},'m'),[]);});

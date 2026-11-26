@@ -87,7 +87,8 @@ def effect_problems(e, at):
         out.append(n + 'bad effect id')
     for k in ['intensity', 'delay', 'duration', 'fadeIn', 'fadeOut', 'speed']:
         c = SPEC['common'][k]
-        if not _num(e.get(k), c['min'], c['max']):
+        maximum = SPEC['intensityLimits'][d['group']] if k == 'intensity' else c['max']
+        if not _num(e.get(k), c['min'], maximum):
             out.append(n + k + ' out of range')
     if all(_num(e.get(k), 0, 1e9) for k in ['fadeIn', 'fadeOut', 'duration']) and e['fadeIn'] + e['fadeOut'] > e['duration'] + 1e-9:
         out.append(n + 'fades are longer than the effect')
@@ -98,7 +99,7 @@ def effect_problems(e, at):
         out.append(n + 'parameters are missing')
     else:
         out += [n + 'unknown parameter ' + k for k in p if k not in d['params']]
-        out += [n + k + ' out of range' for k, s in d['params'].items() if not _num(p.get(k), s['min'], s['max'])]
+        out += [n + k + ' out of range' for k, s in d['params'].items() if (k in p or not s.get('optional')) and not _num(p.get(k), s['min'], s['max'])]
     return out
 
 
