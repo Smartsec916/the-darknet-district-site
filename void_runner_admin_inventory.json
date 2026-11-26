@@ -61665,7 +61665,7 @@
       "spawn"
     ]
   },
-  "revision": "6d5976ec88845b4b",
+  "revision": "5125e698bdfac9af",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83052,7 +83052,7 @@
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
     "void-runner/chance-encounter-editor.js": "05e451e2d70a2d40f81f4d62cb609007eb2463bc23f9a474c28ee192e3292af2",
-    "void-runner/chance-encounter-game.js": "71e5dbc8a49a3eb27ffb86043825c5dc9211143b0ccdeb2454c4813eb2768417",
+    "void-runner/chance-encounter-game.js": "93bf2bf4a76eb5775f8527155819607391b93ee7538d49ee69300718889997a3",
     "void-runner/chance-encounter.js": "f98e4d4620ec95721c905b0195c8044cffea3c5473a6e07ee77f81b341bdc14f",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
