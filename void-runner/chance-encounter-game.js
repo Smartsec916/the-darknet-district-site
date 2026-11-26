@@ -44,11 +44,11 @@
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
   clip.start(loop);return clip;
  }
- async function assignedClip(figure,look,name,signal){
+ async function assignedClip(figure,look,name,signal,loop=true){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
    await root.VoidAnimLibrary.apply(figure.made,look,{only:[name],catalog:false});
   }
-  signal?.throwIfAborted();return play(figure,name);
+  signal?.throwIfAborted();return play(figure,name,loop);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
   let rows=(run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_'));
@@ -57,19 +57,54 @@
    const cut=after==='before'?0:idx<0?rows.length:idx+1;
    rows=section==='opening'?rows.slice(0,cut):rows.slice(cut);
   }
-  for(const line of rows.filter(l=>l.text.trim())){
-   if(line.delay)await delay(line.delay*1000,signal);
-   signal.throwIfAborted();caption(line.speaker+' Â· '+line.text);
-   if(line.animation&&run.lace)await assignedClip(run.lace,laceLook,line.animation,signal);
-   const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
-   const bus=root.VoidAudio?.bus('voice');
-   if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
-    const cancel=()=>root.VoidVoiceClips.cancel();
-    signal.addEventListener('abort',cancel,{once:true});
-    try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
-    finally{signal.removeEventListener('abort',cancel);}
-   }else await delay(Math.max(1500,line.text.length*55),signal);
+  for(const line of rows){
+   if(!line.text.trim()&&!line.animation)continue;
+   signal.throwIfAborted();
+   await playDialogueRow(run,line,signal,caption);
   }
+ }
+ async function playDialogueRow(run,line,parentSignal,caption){
+  const repeatSpeech=!!line.text.trim()&&line.repeatSpeech===true;
+  const repeatMotion=!!line.animation&&line.repeatAnimation===true&&!!run.lace;
+  const repeat=repeatSpeech||repeatMotion;
+  const controller=new AbortController(),signal=controller.signal;
+  const cancel=()=>controller.abort(),key=e=>{
+   if(e.code==='Backspace'&&!e.repeat){e.preventDefault();cancel();}
+  };
+  let button,clip;
+  parentSignal.addEventListener('abort',cancel,{once:true});
+  try{
+   if(line.delay)await delay(line.delay*1000,signal);
+   if(repeat){
+    button=document.createElement('button');button.textContent='Stop repeat · Backspace';
+    Object.assign(button.style,{position:'fixed',right:'2vw',top:'25vh',zIndex:76});
+    button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
+   }
+   if(line.animation&&run.lace)clip=await assignedClip(run.lace,laceLook,line.animation,signal,repeatMotion);
+   if(line.text.trim()){
+    do{
+     signal.throwIfAborted();caption(line.speaker+' · '+line.text);
+     const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
+     const bus=root.VoidAudio?.bus('voice');
+     if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
+      const silence=()=>root.VoidVoiceClips.cancel();
+      signal.addEventListener('abort',silence,{once:true});
+      try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
+      finally{signal.removeEventListener('abort',silence);}
+     }else await delay(Math.max(1500,line.text.length*55),signal);
+     if(repeatSpeech)await delay(Math.max(1000,(line.delay||0)*1000),signal);
+    }while(repeatSpeech);
+   }
+   if(repeatMotion)await until(()=>false,signal);
+   else if(clip&&!line.text.trim())await until(()=>!clip.isPlaying,signal);
+  }catch(error){
+   if(!signal.aborted)throw error;
+  }finally{
+   parentSignal.removeEventListener('abort',cancel);
+   document.removeEventListener('keydown',key,true);button?.remove();
+   if(clip&&(repeatMotion||signal.aborted))clip.stop();
+  }
+  parentSignal.throwIfAborted();
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);

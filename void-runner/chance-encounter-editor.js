@@ -175,7 +175,7 @@
      field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],
       ...arrival.map(l=>[l.id,'After '+l.id+(l.text?' — '+l.text.slice(0,55):'')])],g.decisionAfter||'end',v=>{g.decisionAfter=v;mark();}));
      field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);
-     dialogue.append(element('p','Waiting lines play once in order while the choices are open. Set the delay on each line, or clear the text to keep Lace silent.'));
+     dialogue.append(element('p','Waiting lines play in order while the choices are open. A choice cancels the current repeat. Set the delay on each line, or clear the text to keep Lace silent.'));
      const add=button('Add Lace line',()=>{
       const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};
       insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();
@@ -227,6 +227,10 @@
        if(key==='text'||key==='speaker'){delete line.recording;audio.textContent='No recording';}
        line[key]=v;mark();
       },key==='delay'?'number':'text'));
+     for(const [key,label] of [['repeatSpeech','Repeat spoken line until canceled'],['repeatAnimation','Repeat animation until canceled']]){
+      const toggle=element('input');toggle.type='checkbox';toggle.checked=line[key]===true;
+      toggle.onchange=()=>{line[key]=toggle.checked;mark();};field(row,label,toggle);
+     }
      const attach=async file=>{
       if(!line.text.trim())throw Error('Enter the spoken line first.');
       const who=line.speaker,text=line.text,I=root.VoidVoiceImports,p=await I.prepare(file);
