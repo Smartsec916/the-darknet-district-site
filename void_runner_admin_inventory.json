@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "b4d009399dfc82e7",
+  "revision": "cc29a83cd359b93e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79430,19 +79430,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1028,
+      "line": 1030,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1198,
+      "line": 1200,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1319,
+      "line": 1321,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -82988,7 +82988,7 @@
     "void-runner/ncz-street-pair.js": "bf31f9b97a84b58d05b9e80631aed093b868a8952f074a6d5db2b1f03003471f",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
-    "void-runner/neochinatown.js": "57417a28c0091577effda8e0997032bda6f19e81501c5e0860f8de5f4b6a5e29",
+    "void-runner/neochinatown.js": "cd61e6cf2345a675a0c1378e892d20fce0428e28cf3f9909da6bab5ae368a53f",
     "void-runner/network.js": "5740953eccbbd9dd90568ebb040d3847bc02b0270c7f78c397c4239993395307",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
