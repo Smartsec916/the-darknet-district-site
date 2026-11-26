@@ -17,6 +17,9 @@
   }
   return result;
  }
+ const startTriggers={interval:'Nearby percentage roll',near:'Walking near an NPC',place:'Entering a place',leave:'Leaving a place','pod-exit':'Exiting a Sleeping Pod',
+  'after-mission':'After a mission is completed','game-time':'After in-game time following a mission',flag:'A story flag is set'};
+ const isVisitTrigger=kind=>['near','place','leave','pod-exit'].includes(kind);
  const isRepeat=row=>!!((row.repeatSpeech&&row.text?.trim())||(row.repeatAnimation&&row.animation));
  function playlist(rows,repeatAll=false){
   const selected=rows.filter(isRepeat);
@@ -78,6 +81,13 @@
  }
  function validate(encounter){
   const errors=dialogueProblems(encounter||{}),nodes=encounter?.nodes;
+  const trigger=encounter?.conditions?.startTrigger;
+  if(trigger!==undefined){
+   if(!trigger||!Object.hasOwn(startTriggers,trigger.kind))errors.push('Choose a supported encounter start trigger.');
+   else if(!['interval','pod-exit'].includes(trigger.kind)&&(typeof trigger.target!=='string'||!trigger.target.trim()||trigger.target.length>100))errors.push('Choose the place, mission or flag for the start trigger.');
+   if(trigger?.kind==='near'&&(!Number.isFinite(trigger.distance)||trigger.distance<1||trigger.distance>30))errors.push('Choose a distance from 1 to 30 metres.');
+   if(trigger?.kind==='game-time'&&(!Number.isInteger(trigger.minutes)||trigger.minutes<1||trigger.minutes>10080))errors.push('Choose 1 to 10080 in-game minutes after mission completion.');
+  }
   if(!Array.isArray(nodes)||!nodes.length||nodes.length>128)return ['An encounter needs 1 to 128 nodes.'];
   const byId=new Map();
   for(const node of nodes){
@@ -141,7 +151,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,validate,createRun,withWaitingDialogue,dialogueSections,playlist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);

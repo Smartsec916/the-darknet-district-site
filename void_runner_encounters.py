@@ -69,6 +69,29 @@ def validate_playlists(dialogue, decision):
         raise DraftError('A branch playlist has no reachable parent.')
 
 
+def start_trigger_ready(trigger, event, campaign, record):
+    kind = trigger.get('kind', 'interval')
+    save = campaign.get('save') or {}
+    flags = (save.get('story') or {}).get('flags') or {}
+    target = trigger.get('target')
+    if kind in ('near', 'place', 'leave', 'pod-exit'):
+        return (isinstance(event, dict) and event.get('kind') == kind
+                and event.get('target') == target and isinstance(event.get('token'), str)
+                and re.fullmatch('[a-f0-9-]{36}', event['token']) is not None
+                and event['token'] not in record.get('recentStartEvents', []))
+    if kind == 'flag':
+        return flags.get(target) is True
+    if kind in ('after-mission', 'game-time'):
+        mission = ((save.get('universe') or {}).get('missions') or {}).get(target) or {}
+        if mission.get('completed') is not True:
+            return False
+        if kind == 'game-time':
+            stamp = flags.get('gc_' + target[:60])
+            return type(stamp) is int and items.saved_minute(campaign) - stamp >= trigger['minutes']
+        return True
+    return kind == 'interval'
+
+
 def validate(graph):
     if not isinstance(graph, dict) or len(json.dumps(graph).encode()) > 65536:
         raise DraftError('Encounter exceeds the 64 KB limit.')
@@ -81,6 +104,18 @@ def validate(graph):
         raise DraftError('Choose a probability from 0 to 100 and a positive interval in seconds.')
     if not identifier(conditions.get('quarter')) or not _num(conditions.get('radius', 20), 1, 200):
         raise DraftError('Choose the quarter and activation distance.')
+    trigger = conditions.get('startTrigger', {'kind': 'interval'})
+    if not isinstance(trigger, dict) or trigger.get('kind') not in ('interval', 'near', 'place', 'leave', 'after-mission', 'game-time', 'flag', 'pod-exit'):
+        raise DraftError('Choose a supported encounter start trigger.')
+    kind = trigger['kind']
+    if kind not in ('interval', 'pod-exit') and not (_plain(trigger.get('target'), 100) and trigger['target'].strip()):
+        raise DraftError('Choose the place, mission or flag for the start trigger.')
+    if 'alsoRandom' in trigger and type(trigger['alsoRandom']) is not bool:
+        raise DraftError('Choose whether nearby percentage rolls also apply.')
+    if kind == 'near' and not _num(trigger.get('distance'), 1, 30):
+        raise DraftError('Choose a distance from 1 to 30 metres.')
+    if kind == 'game-time' and not _int(trigger.get('minutes'), 1, 10080):
+        raise DraftError('Choose 1 to 10080 in-game minutes after mission completion.')
     for field, limit in [('cooldownSeconds', 31536000), ('dailyLimit', 1000), ('expiresSeconds', 31536000)]:
         if not _int(conditions.get(field, 0), 0, limit):
             raise DraftError('Check '+field+'.')
@@ -340,6 +375,10 @@ def opportunity(db, uid, body):
         if now < record.get('next', 0):
             return {'active':False, 'next':record['next']}
         campaign = db.collection('vr_players').document(items._tag(uid)).get(transaction=tx).to_dict() or {}
+        trigger = cond.get('startTrigger', {})
+        event = body.get('startEvent')
+        if not (trigger.get('alsoRandom') is True and event is None) and not start_trigger_ready(trigger, event, campaign, record):
+            return {'active': False}
         minute = items.saved_minute(campaign)
         day, tod = divmod(minute,1440)
         after,before = cond.get('fromMinute',0),cond.get('toMinute',0)
@@ -365,13 +404,16 @@ def opportunity(db, uid, body):
         if cond.get('dailyLimit') and count>=cond['dailyLimit']:
             return {'active':False}
         record['next'] = now + cond['intervalSeconds']
+        event_trigger = event is not None and trigger.get('kind') in ('near', 'place', 'leave', 'pod-exit')
+        if event_trigger:
+            record['recentStartEvents'] = [*record.get('recentStartEvents', [])[-31:], event['token']]
         active = roll < cond['chance']
         if active:
             record.pop('drop',None)
             record.update(stage='activated', run=secrets.token_hex(16), started=now, finished=False,
                           day=day,count=count+1,next=now+max(cond['intervalSeconds'],cond.get('cooldownSeconds',0)))
         tx.set(ref, record)
-        return {'active':active, 'next':record['next'], **({'run':record['run'],'stage':'activated'} if active else {})}
+        return {'active':active, 'rolled':True, 'next':record['next'], **({'run':record['run'],'stage':'activated'} if active else {})}
     return activate(db.transaction())
 
 

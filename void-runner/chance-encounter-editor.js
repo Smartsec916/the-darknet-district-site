@@ -25,7 +25,7 @@
  }
  function field(host,label,input){
   const l=element('label',label+' ');
-  l.append(input);host.append(l);return input;
+  input.setAttribute('aria-label',label);l.append(input);host.append(l);return input;
  }
  function select(options,value,change){
   const s=element('select');
@@ -112,6 +112,34 @@
    const props=element('div');props.className='dev-fields';host.append(props);
    field(props,'Name',input(g.name,v=>{g.name=v;mark();}));
    const on=element('input');on.type='checkbox';on.checked=g.enabled;on.onchange=()=>{g.enabled=on.checked;mark();};field(props,'Enabled',on);
+   const trigger=g.conditions.startTrigger||{kind:'interval'};
+   field(props,'Start trigger',select(Object.entries(api.startTriggers),trigger.kind,kind=>{
+    if(kind==='interval')delete g.conditions.startTrigger;
+    else g.conditions.startTrigger={kind,...(kind==='game-time'?{minutes:60}:kind==='near'?{distance:5}:{})};
+    mark();draw();
+   }));
+   if(['place','leave','after-mission','game-time'].includes(trigger.kind)){
+    const place=['place','leave'].includes(trigger.kind);
+    const entries=place?(root.VoidPlaces?.options()||[]).filter(p=>p.selectable).map(p=>[p.id,p.label]):
+     (root.VoidLiveContent?.env?.trees||[]).flatMap(t=>t.missions.map(m=>[m.id,m.name||m.title||m.id]));
+    if(!place)for(const [id,m] of Object.entries(root.VoidLiveContent?.env?.shipped?.registry||{}))if(!entries.some(([key])=>key===id))entries.push([id,m.name||m.title||id]);
+    if(trigger.target&&!entries.some(([key])=>key===trigger.target))entries.push([trigger.target,trigger.target]);
+    field(props,place?'Trigger place':'Trigger mission',select([['','Choose…'],...entries],trigger.target||'',v=>{trigger.target=v;mark();}));
+   }
+   if(trigger.kind==='near'){
+    const npcs=(root.VoidLiveContent?.env?.givers||[]).filter(g=>g.targets?.length).map(g=>[g.id,g.name||g.id]);
+    if(trigger.target&&!npcs.some(([key])=>key===trigger.target))npcs.push([trigger.target,trigger.target]);
+    field(props,'Trigger NPC',select([['','Choose…'],...npcs],trigger.target||'',v=>{trigger.target=v;mark();}));
+    field(props,'Approach distance (metres)',input(trigger.distance,v=>{trigger.distance=v;mark();},'number'));
+   }
+   if(trigger.kind!=='interval'){
+    const ambient=element('input');ambient.type='checkbox';ambient.checked=trigger.alsoRandom===true;
+    ambient.onchange=()=>{trigger.alsoRandom=ambient.checked;mark();draw();};field(props,'Also allow nearby percentage rolls without this trigger',ambient);
+   }
+   if(trigger.kind==='flag')field(props,'Story flag ID',input(trigger.target,v=>{trigger.target=v.trim();mark();}));
+   if(trigger.kind==='game-time')field(props,'In-game minutes after completion',input(trigger.minutes,v=>{trigger.minutes=v;mark();},'number'));
+   if(api.isVisitTrigger(trigger.kind))props.append(element('small','The latest matching visit is held until you reach the activation radius during this session, then rolled once. The interval sets the minimum time between rolls.'));
+   else if(trigger.kind!=='interval')props.append(element('small','Once your saved campaign meets this condition, the encounter rolls its percentage at the configured interval inside the activation radius.'));
    field(props,'Chance (%)',input(g.conditions.chance,v=>{g.conditions.chance=v;mark();},'number'));
    field(props,'Opportunity interval (seconds)',input(g.conditions.intervalSeconds,v=>{g.conditions.intervalSeconds=v;mark();},'number'));
    const conditions=element('details');conditions.append(element('summary','Eligibility and repeat visits'));host.append(conditions);
