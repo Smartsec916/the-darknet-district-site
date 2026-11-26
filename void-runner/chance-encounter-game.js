@@ -92,7 +92,7 @@
  function panel(run){
   if(!run.panel){
    run.panel=document.createElement('aside');run.panel.id='chance-interaction';
-   Object.assign(run.panel.style,{position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',padding:'14px',background:'#0a1921',color:'#e1eeec'});
+   Object.assign(run.panel.style,{position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',padding:'14px',color:'#e1eeec'});
    document.body.append(run.panel);
   }
   return run.panel;
@@ -283,7 +283,7 @@
  async function pickupReceipt(run){
   const a=address(run),host=panel(run);
   const wait=prompt(run,'You picked up '+run.cardName+'.',['Continue']);
-  host.style.maxWidth='24rem';host.style.border='1px solid #47d9cc';host.style.boxShadow='0 8px 30px #0009';host.setAttribute('role','dialog');host.setAttribute('aria-label','Keycard picked up');
+  host.style.maxWidth='24rem';host.style.boxShadow='0 8px 30px #0009';host.setAttribute('role','dialog');host.setAttribute('aria-label','Keycard picked up');
   const description=document.createElement('p');description.textContent=run.cardDescription||'A residential access card belonging to Kade Mercer and Lace.';
   const addressLine=document.createElement('p');addressLine.textContent='Street Door '+a.door.number+' — Apartment '+a.number;
   host.insertBefore(description,host.lastChild);host.insertBefore(addressLine,host.lastChild);
