@@ -3557,13 +3557,24 @@ def _residence_access_ok(a, inv):
         return v in ('v1', 'v2', 'v3')
     return m == 'mission' and isinstance(v, str) and bool(re.fullmatch(r'[a-z][a-z0-9-]{1,59}', v))
 
+def _vendor_shift_ok(s):
+    if not _keys(s, ['open','breakStart','breakEnd','close','x','z','yaw','greetingCooldown']):
+        return False
+    if not all(type(s.get(k)) is int and 0 <= s[k] < 1440 for k in ('open','breakStart','breakEnd','close')):
+        return False
+    return (s['open'] < s['breakStart'] < s['breakEnd'] and (s['close'] < s['open'] or s['close'] > s['breakEnd'])
+            and all(type(s.get(k)) in (int,float) and -512 <= s[k] <= 512 for k in ('x','z'))
+            and type(s.get('yaw')) in (int,float) and abs(s['yaw']) <= 6.283186
+            and type(s.get('greetingCooldown')) in (int,float) and 1 <= s['greetingCooldown'] <= 3600)
+
 def _residence_ok(r, inv):
-    if not _keys(r, ['door', 'slot', 'mode', 'from', 'to', 'streetAccess', 'apartmentAccess', 'visitMinutes']) or not isinstance(r.get('door'), str):
+    if not _keys(r, ['door', 'slot', 'mode', 'from', 'to', 'streetAccess', 'apartmentAccess', 'visitMinutes', 'vendorShift']) or not isinstance(r.get('door'), str):
         return False
     d = (inv.get('apartments', {}).get('doors') or {}).get(r['door']) or {}
     if d.get('family', 'city') not in ('city', 'container') or d.get('style') not in ('normal', 'rundown', 'luxury', 'container-rundown', 'container-regular'):
         return False
     return (type(r.get('slot')) is int and 0 <= r['slot'] < (4 if d.get('family') == 'container' else 10)
+            and ('vendorShift' not in r or _vendor_shift_ok(r['vendorShift']))
             and ('visitMinutes' not in r or type(r['visitMinutes']) is int and 1 <= r['visitMinutes'] <= 10)
             and r.get('mode') in ('always', 'schedule') and all(isinstance(r.get(k), str) and re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d', r[k]) for k in ('from', 'to'))
             and (r['mode'] == 'always' or r['from'] != r['to'])

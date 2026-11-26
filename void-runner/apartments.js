@@ -400,7 +400,8 @@
  // The admin inventory: what the server checks a published mission against.
  function inventory(){return {hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
- const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
+ const PATCH_SHIFT={open:600,breakStart:840,breakEnd:900,close:120,x:49.8,z:-79.9,yaw:Math.PI*.5,greetingCooldown:60};
+ const api={PATCH_SHIFT,DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
   HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,pickupPosition,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
   readAddressRegistry,interiorDoors,editorDoorPoint,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
  if(node){module.exports=api;return;}

@@ -150,12 +150,19 @@
     bx(S.lamp,[.024,.004,.012],[cx+offset,h+.062,cz+.045]);
    }
   }
+  if(!hall&&def.residents?.includes('patch')){
+   const [x,,,z,h]=(G.container?G.FURN:A.FURN).table;
+   for(const dx of [.16,.38]){
+    bx(metal,[.15,.06,.12],[x+dx,h+.03,z-.2]);
+    bx(dark,[.14,.013,.11],[x+dx+.025,h+.066,z-.18]);
+   }
+  }
   const merged=merge();
   if(!hall&&def.lightsOff===true)setLights(false);   // the mission's "lights start: off"
   // ---- lights on / off ----
   function setLights(on){lightsOn=!!on;for(const l of realLights)l.intensity=on?l.metadata.on:0;for(const m of fixtureMats){if(!m.metadata.base)m.metadata.base=m.emissiveColor.clone();m.emissiveColor=on?m.metadata.base.clone():m.metadata.base.scale(.05);}
    if(amb)amb.intensity=on?MOOD.ai:MOOD.ai*.38;}
-  const residents=(hall?def.street&&root.VoidLiveContent?.env?.characters?.tacta?.residence?.door===def.street:def.residents?.length)?root.VoidMadeNPCs?.startResidents?.({scene,parent:node,def}):null;
+  const residents=(hall?def.street&&['tacta','patch'].some(id=>root.VoidLiveContent?.env?.characters?.[id]?.residence?.door===def.street):def.residents?.length)?root.VoidMadeNPCs?.startResidents?.({scene,parent:node,def}):null;
   let clock=0;
   function tick(time,player){const dt=Math.min(.1,Math.max(0,clock?time-clock:0));clock=time;
    residents?.tick();const p=player||(typeof walker!=='undefined'?walker:null);

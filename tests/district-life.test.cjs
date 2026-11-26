@@ -86,3 +86,15 @@ test('every resident route stays clear of the current District solids',()=>{
   }
  }
 });
+
+test('Patch travels from door 35 apartment 102 to the alley and goes home between shifts',()=>{
+ const A=require('../void-runner/apartments.js'),C=require('../void-runner/crosswalks.js'),E=require('../void-runner/npc-escort.js');
+ const shift=L.PATCH_SHIFT,route=L.patchRoute(A.door('apt-road-n-34'),shift,E,A,C,1);
+ assert.deepEqual(route.street.at(-1),[shift.x,shift.z]);
+ const at=minute=>L.patchAt(1440+minute,route,shift,12);
+ for(const minute of [60,720,1080])assert.equal(at(minute).phase,'sell');
+ for(const minute of [360,870])assert.equal(at(minute),null);
+ const travel=new Set();
+ for(let t=530;t<=920;t+=.05){const p=at(t);if(p?.phase==='walk')travel.add(p.area+(p.returning?'-return':'-out'));}
+ assert.deepEqual([...travel].sort(),['flat-out','flat-return','hall-out','hall-return','street-out','street-return']);
+});

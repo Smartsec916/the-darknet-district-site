@@ -137,6 +137,62 @@
           }
         ]
       }
+    },
+    {
+      "id": "wirewake",
+      "name": "Wirewake",
+      "description": "Sprint reserve recovery increases by 25% for 75 seconds.",
+      "category": "stimulants",
+      "subcategory": "",
+      "kind": "consumable",
+      "icon": "⚡",
+      "model": null,
+      "animation": "drink",
+      "price": 45,
+      "stack": 5,
+      "weight": 0.1,
+      "rarity": "common",
+      "status": "published",
+      "cooldown": 0,
+      "consumable": {
+        "effects": [],
+        "modifiers": [
+          {
+            "stat": "staminaRegen",
+            "amount": 0.25,
+            "delay": 0,
+            "duration": 75
+          }
+        ]
+      }
+    },
+    {
+      "id": "hardcase",
+      "name": "Hardcase",
+      "description": "Damage resistance increases by 20% for 45 seconds.",
+      "category": "stimulants",
+      "subcategory": "",
+      "kind": "consumable",
+      "icon": "⚡",
+      "model": null,
+      "animation": "drink",
+      "price": 65,
+      "stack": 5,
+      "weight": 0.1,
+      "rarity": "common",
+      "status": "published",
+      "cooldown": 0,
+      "consumable": {
+        "effects": [],
+        "modifiers": [
+          {
+            "stat": "damageResist",
+            "amount": 0.2,
+            "delay": 0,
+            "duration": 45
+          }
+        ]
+      }
     }
   ],
   "vendors": [
@@ -483,6 +539,63 @@
             "mode": "interval",
             "every": 300,
             "amount": 4
+          },
+          "available": true
+        }
+      ]
+    },
+    {
+      "entity": "npc-patch",
+      "name": "Patch",
+      "kind": "npc",
+      "location": "Old Town · Alley south of NULL",
+      "id": "npc-patch",
+      "entries": [
+        {
+          "item": "wirewake",
+          "price": 45,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 1
+          },
+          "available": true
+        },
+        {
+          "item": "hardcase",
+          "price": 65,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 1
+          },
+          "available": true
+        },
+        {
+          "item": "street-tint",
+          "price": 15,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 1
+          },
+          "available": true
+        },
+        {
+          "item": "sprint-tonic",
+          "price": 40,
+          "stock": 10,
+          "maxStock": 10,
+          "restock": {
+            "mode": "interval",
+            "every": 300,
+            "amount": 1
           },
           "available": true
         }

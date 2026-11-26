@@ -101,6 +101,10 @@
   const interior=escort.gridRoute(vec(hallway),vec(store),solids,{grid:.25,radius:.3});
   if(!interior?.length||dist([interior.at(-1).x,interior.at(-1).z],store)>.12)return null;
   const result={street,interior:[checkpoint,hallway,...interior.map(p=>[p.x,p.z])]};
+  return apartmentPath(result,home,apartments,escort,slot);
+ }
+ function apartmentPath(result,home,apartments,escort,slot){
+  const vec=([x,z])=>({x,z});
   if(apartments){
    const geo=apartments.geo(home.style),spot=apartments.residenceSpot(home.style,0),unit=geo.HALL.slots[slot];
    const flat=apartments.layout('flat',home.style),exit=flat.interactions.find(i=>i.action==='apt-exit');
@@ -112,6 +116,54 @@
    result.hall=[[unit.x,unit.z*.78],[unit.x,0],[geo.hallExit[0],geo.hallExit[2]]];
   }
   return result;
+ }
+ const PATCH_SHIFT=(typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments).PATCH_SHIFT;
+ function patchRoute(home,shift,escort,apartments,crosswalks,slot){
+  if(!home?.front||home.quarter!=='oldtown')return null;
+  const street=[home.front],way=(p)=>({x:p[0],z:p[1]});
+  function approach(dest){
+   const section=escort.walkRoute(way(street.at(-1)),way(dest),'oldtown');
+   if(!section?.length||Math.hypot(section.at(-1).x-dest[0],section.at(-1).z-dest[1])>.12)return false;
+   for(const p of section)street.push([p.x,p.z]);
+   return true;
+  }
+  if(home.street==='road'&&home.side==='n'&&home.x<40.5){
+   const ends=crosswalks.get('ar-customs').ends;
+   if(!approach(ends[1]))return null;
+   street.push(ends[0]);
+   const main=crosswalks.get('ar-main').ends;
+   if(!approach(main[0]))return null;
+   // Stay on the west side of Main Street, where the vendor's alley opens.
+   street.push(main[1]);
+  }
+  if(!approach([52.4,-79.2])||!approach([shift.x,shift.z]))return null;
+  return apartmentPath({street},home,apartments,escort,slot);
+ }
+ function patchAt(minute,paths,shift=PATCH_SHIFT,rate=12){
+  if(!paths||!Number.isFinite(minute))return null;
+  const day=Math.floor(minute/1440),walk=paths.flat||[],hall=paths.hall||[],street=paths.street;
+  const sections=[['flat',walk],['hall',hall],['street',street]],seconds=sections.map(([,p])=>length(p)/SPEED);
+  const travel=seconds.reduce((sum,t)=>sum+t,0);
+  for(const d of [day-1,day,day+1]){
+   const jitter=i=>Math.round((rnd(d+1024,i)-.5)*6);
+   for(const [slot,a,b] of [[0,shift.open,shift.breakStart],[1,shift.breakEnd,shift.close]]){
+    const from=d*1440+a+jitter(slot*2),to=d*1440+b+(b<=a?1440:0)+jitter(slot*2+1);
+    const elapsed=(minute-from)*60/rate,remaining=(to-minute)*60/rate;
+    if(elapsed < -travel||remaining < -travel)continue;
+    const key=d+'-'+slot;
+    if(elapsed>=0&&remaining>0)return {area:'street',phase:'sell',key,x:shift.x,z:shift.z,yaw:shift.yaw};
+    const returning=remaining<=0;
+    let t=returning?travel+remaining:elapsed+travel;
+    for(const [i,[area,path]] of sections.entries()){
+     if(t<=seconds[i]||i===2){
+      const p=along(path,Math.max(0,t)*SPEED);
+      return {area,phase:'walk',key,returning,x:p.x,z:p.z,yaw:Math.atan2(p.dx,p.dz)+(returning?Math.PI:0)};
+     }
+     t-=seconds[i];
+    }
+   }
+  }
+  return null;
  }
  const visitDays=new Map(),routeTimes=new WeakMap();
  function tactaAt(day,minute,paths,rate,visitMinutes){
@@ -183,7 +235,7 @@
   if(timeline.at(-1).end<goodbyeAt)add(bye,goodbyeAt);
   return timeline;
  }
- const pure={SPEED,ROUND,HOMES,WHO,PLACES,CLIPS,route,length,along,round,at,homeMask,tactaVisits,tactaRoute,tactaAt,visitDialogue};
+ const pure={SPEED,ROUND,HOMES,WHO,PLACES,CLIPS,route,length,along,round,at,homeMask,tactaVisits,tactaRoute,tactaAt,visitDialogue,PATCH_SHIFT,patchRoute,patchAt};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 

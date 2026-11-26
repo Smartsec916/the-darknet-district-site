@@ -22,9 +22,49 @@
   active=s;const key=s.id+'/'+next.i;if(lastStep===key)return;lastStep=key;root.VoidLiveContent?.replan?.();
   if(next.step?.line&&typeof announce==='function')announce(s.npc+' · '+next.step.line);
  }
+ const pools = new Map();
+ function playerKey(field){
+  return 'vr-patch:'+ (root.VoidAccount?.user?.uid || 'local') + ':' + field;
+ }
+ function recall(field){try{return Number(root.localStorage?.getItem(playerKey(field)))||0;}catch{return 0;}}
+ function remember(field,value){try{root.localStorage?.setItem(playerKey(field),String(value));}catch{}}
+ function vendorNearby(){
+  if(typeof walker==='undefined'||!walker||typeof walkingLocation==='undefined'||walkingLocation?.area!=='street')return false;
+  const post=root.VoidMadeNPCs?.patchOuting?.();
+  return post?.phase==='sell'&&Math.hypot(walker.x-post.x,walker.z-post.z)<=1.22;
+ }
+ function line(category){
+  const lines=pools.get(category);
+  if(!lines?.length)return null;
+  return lines[Math.floor(Math.random()*lines.length)].text;
+ }
+ function remark(category){
+  const text=line(category),audio=root.VoidAudio;
+  if(!text||!vendorNearby()||audio?.voiceStatus?.active)return false;
+  const post=root.VoidMadeNPCs.patchOuting();
+  if(typeof announce==='function')announce('Patch · '+text);
+  audio?.speakNearby('patch',text,post,walker);
+  return true;
+ }
+ function greet(cooldown){
+  if(Date.now()<recall('greeted')+cooldown*1000)return;
+  if(remark(recall('customer')?'repeat-customers':'proximity-greetings'))remember('greeted',Date.now());
+ }
+ function shopEvent(id,event){
+  if(id!=='npc-patch')return;
+  if(event==='successful-purchases')remember('customer',1);
+  remark(event);
+ }
+ function conversation(id){
+  if(id!=='patch')return null;
+  const post=root.VoidMadeNPCs?.patchOuting?.();
+  const category=!post?'at-his-apartment':post.phase==='walk'?(post.returning?'leaving-his-vendor-location':'encountered-while-walking'):Math.random()<.5?'anti-corporate-remarks':'ambient-remarks';
+  return line(category);
+ }
+ function available(id){return sales.has(id)&&(id!=='patch'||vendorNearby());}
  function offer(ids,normal){
-  const id=ids.find(x=>sales.has(x)),v=sales.get(id);if(!v||!root.talkChoice)return false;
-  return !!root.talkChoice([{who:v.name,text:v.rules?.message||'What can I help you with?',ambient:true,silent:true}],[
+  const id=ids.find(available),v=sales.get(id);if(!v||!root.talkChoice)return false;
+  return !!root.talkChoice([{who:id==='patch'?id:v.name,text:(id==='patch'&&line('browsing-merchandise'))||v.rules?.message||'What can I help you with?',ambient:true,silent:id!=='patch'}],[
    {label:'Talk',run:normal},{label:'Browse products and services',run:()=>{if(typeof resumeWalking==='function')resumeWalking();root.VoidCatalogShop.open(v.id);}},
    {label:'Leave',leave:true,run:()=>{if(typeof resumeWalking==='function')resumeWalking();}}],'');
  }
@@ -37,6 +77,11 @@
   return {key:'service:'+active.id+':'+now.i,area:root.VoidNPCAreas?.areaOf(point)||authored.area,why:'service',mode:'stay',x:point.x,z:point.z,yaw:point.yaw||0,
    actions:[now.step.clip||point.action||'idle'],npc:id};
  }
- const api={index,stage,get kiosks(){return kiosks;},has:ids=>ids.some(id=>sales.has(id)),offer,plan,pose,get active(){return active;}};if(typeof module!=='undefined')module.exports=api;else root.VoidNPCServices=api;
- if(root.document)setInterval(sync,350);
+ const api={index,stage,get kiosks(){return kiosks;},has:ids=>ids.some(available),greet,shopEvent,conversation,offer,plan,pose,get active(){return active;}};if(typeof module!=='undefined')module.exports=api;else root.VoidNPCServices=api;
+ if(root.document){
+  const getLines=()=>{if(!root.VoidVoiceClips?.patchLines){setTimeout(getLines,350);return;}root.VoidVoiceClips.patchLines.then(groups=>{
+   for(const group of groups||[])pools.set(group.stage,group.lines);
+  });};getLines();
+  setInterval(sync,350);
+ }
 })(globalThis);

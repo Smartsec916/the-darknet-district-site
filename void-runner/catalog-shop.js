@@ -15,7 +15,8 @@
   const campaign=()=>typeof state==='undefined'?null:state;
   const same=()=>uid&&account?.user?.uid===uid&&dialog.open;
   function action(host,label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;host.append(b);return b;}
-  function close(){dialog.close();dialog.remove();if(panel===dialog)panel=null;}
+  let purchased=false;
+  function close(){if(!purchased)root.VoidNPCServices?.shopEvent?.(vendor,'player-leaves-without-buying');dialog.close();dialog.remove();if(panel===dialog)panel=null;}
   dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
   const fmt=n=>Number.isFinite(n)?n.toLocaleString():'—';
   function receipt(key){
@@ -46,8 +47,9 @@
     if(!account.cloud||account.cloud.credits!==credits)throw Error('Save the current campaign before buying.');
     const r=receipt([vendor,entry.item,qty,credits,revision].join('/'));
     let result;try{result=await game.request('shop/purchase',{vendor,item:entry.item,qty,credits,revision,nonce:r.nonce});}
-    catch(e){if(e.status>=400&&e.status<500)r.clear();throw e;}
+    catch(e){if(e.status>=400&&e.status<500)r.clear();if(e.status===402)root.VoidNPCServices?.shopEvent?.(vendor,'insufficient-funds');throw e;}
     if(!same())return;
+    purchased=true;if(!result.duplicate)root.VoidNPCServices?.shopEvent?.(vendor,'successful-purchases');
     if(campaign()===current&&Number.isFinite(current.credits)){
      current.credits=Math.max(0,current.credits+result.credits-credits);if(typeof save==='function')save();
     }
