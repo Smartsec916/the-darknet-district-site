@@ -27,3 +27,15 @@ test('Admin proximity, venue and recency determine eligible conversations',()=>{
  assert.equal(choose(data.filter(e=>e.requiresAdminNearby),pose,false,history),null);
  assert.equal(choose(data,{...pose,remaining:.5},true,history),null);
 });
+
+test('the pair visit Hotel Headshots and only stop for a kiss off the hallway path',()=>{
+ const route=makeRoute(life),city=require('../void-runner/neochinatown.js');
+ const cab=city.arcade.find(c=>c.game==='hotel-headshots');
+ assert.equal(route(0).z,cab.z);
+ const spots=new Set();
+ for(let t=0;t<2000;t+=.25){
+  const p=route(t);
+  if(p.kind==='kiss'){assert.ok(Math.abs(p.x)>1);spots.add(p.x+','+p.z);}
+ }
+ assert.equal(spots.size,1);
+});

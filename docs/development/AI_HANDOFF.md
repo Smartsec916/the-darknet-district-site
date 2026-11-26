@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 25 Nov 2026 - MetaShift and the District arcade pair
+
+MetaShift occupies the first cabinet and Hotel Headshots occupies the second. Resident routines reserve the Hotel cabinet for Pixel and Neon. Their pair route uses the shared wall clock, measured walk strides, paired hand placement, and a side-of-hall stop every third circuit. MetaShift source and the shipped static bundle are in metashift. Rebuild there with npm ci and npm run build.
+
 ## 25 Nov 2026 - Imported world NPC editing
 
 Lace remains ready to assign under her permanent import ID. Her sealed model has 108 clips, including four owner-supplied motions verified with Babylon skinning. Explicit publication opens the regular NPC editor. World NPC changes and ordinary dialogue use separate versioned updates. No apartment, mission, or world placement was assigned as part of this release.

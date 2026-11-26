@@ -1,0 +1,13 @@
+{
+  "name": "metashift",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --format=esm --target=es2022 --minify --outfile=app/game.js"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

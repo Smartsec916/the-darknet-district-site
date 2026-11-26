@@ -18,9 +18,9 @@ test('about half of the people at the bar wear an oxygen mask, and nobody wears 
  let bar=0,mask=0;for(const id of L.WHO)for(let t=0;t<L.ROUND*400;t+=20){const s=L.at(id,T0+t);if(s.home||s.kind!=='stay')continue;if(s.what==='bar'){bar++;if(s.mask)mask++;}else assert.equal(s.mask,false);}
  assert.ok(mask/bar>.3&&mask/bar<.7,'share '+mask/bar);
 });
-test('the arcade spots stand in front of all five cabinets, playable or not; the game hands the figures over',()=>{
- const N=require('../void-runner/neochinatown.js'),cabs=L.PLACES.filter(p=>p.kind==='arcade');assert.equal(cabs.length,N.arcade.length);
- N.arcade.forEach((c,i)=>{assert.ok(Math.abs(cabs[i].at[1]-c.z)<.01);assert.ok(cabs[i].at[0]>c.x&&cabs[i].face[0]<=c.x+.01);});
+test('the arcade spots stand in front of the four cabinets available to other residents; the game hands the figures over',()=>{
+ const N=require('../void-runner/neochinatown.js'),cabs=L.PLACES.filter(p=>p.kind==='arcade');const available=N.arcade.filter(c=>c.game!=='hotel-headshots');assert.equal(cabs.length,available.length);
+ available.forEach((c,i)=>{assert.ok(Math.abs(cabs[i].at[1]-c.z)<.01);assert.ok(cabs[i].at[0]>c.x&&cabs[i].face[0]<=c.x+.01);});
  assert.ok(fs.readFileSync('void-runner/babylon-renderer.js','utf8').includes('metadata?.life'));assert.ok(fs.readFileSync('void-runner/crowd.js','utf8').includes('controller:node=>'));
  assert.ok(fs.readFileSync('void-runner.html','utf8').includes('void-runner/district-life.js'));
 });
