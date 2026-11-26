@@ -35,7 +35,7 @@
   const record=()=>records.get(id),graph=()=>working;
   const mark=()=>{dirty=true;message.textContent='Unsaved draft';};
   const message=element('p');message.setAttribute('role','status');
-  function choose(key){id=key;working=structuredClone(record()?.draft);selected=graph()?.start;dirty=false;status='';draw();}
+  function choose(key){id=key;working=api.withWaitingDialogue(structuredClone(record()?.draft));selected=graph()?.start;dirty=false;status='';draw();}
   function newGraph(duplicate){
    if(dirty&&!confirm('Discard the unsaved changes?'))return;
    const key='enc-'+crypto.randomUUID().slice(0,12);
@@ -66,7 +66,7 @@
     if(!current())return;
     records.set(id,saved);dirty=false;
     if(action==='delete')id=[...records.values()].find(v=>!v.deleted)?.id;
-    working=structuredClone(record()?.draft);if(action==='delete')selected=working?.start;
+    working=api.withWaitingDialogue(structuredClone(record()?.draft));if(action==='delete')selected=working?.start;
     status=action==='publish'?'Published revision '+saved.revision:action==='save'?'Saved draft':'Encounter deleted';draw();
    }catch(e){message.textContent=e.message;}finally{busy=false;host.inert=false;}
   }
@@ -135,7 +135,7 @@
     for(const [key,label] of [['x','East / west'],['y','Floor offset'],['z','North / south'],['yaw','Facing (radians)'],['scale','Character scale']])
      field(placement,label,input(g.placement[key],v=>{g.placement[key]=v;mark();},'number'));
     field(placement,'Apartment animation',input(g.placement.clip,v=>{g.placement.clip=v;mark();}));
-    field(placement,'Optional Kade animation',input(g.roleplayClip,v=>{g.roleplayClip=v;mark();}));
+    field(placement,'Player first-person animation',input(g.roleplayClip,v=>{g.roleplayClip=v;mark();}));
     const room=g.nodes.find(n=>n.kind==='location');
     if(room)placement.append(button('Preview in apartment',()=>launch(room.id)));
    }
@@ -151,11 +151,12 @@
    if(g.dialogue?.length){
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);
     if(g.id==='dropped-cardkey'){
-     const branch=select([['arrival','Arrival'],['free','Free Lace'],['be_kade','Be Kade']],'arrival',()=>{});
+     const branch=select([['arrival','Arrival'],['wait','While waiting for a decision'],['free','Free Lace'],['be_kade','Be Kade']],'arrival',()=>{});
      const arrival=g.dialogue.filter(l=>l.id.startsWith('lace_arrival_'));
      field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],
       ...arrival.map(l=>[l.id,'After '+l.id+(l.text?' — '+l.text.slice(0,55):'')])],g.decisionAfter||'end',v=>{g.decisionAfter=v;mark();}));
      field(dialogue,'Conversation',branch);
+     dialogue.append(element('p','Waiting lines play once in order while the choices are open. Set the delay on each line, or clear the text to keep Lace silent.'));
      dialogue.append(button('Add Lace line',()=>{
       const prefix='lace_'+branch.value+'_';let n=1;
       while(g.dialogue.some(l=>l.id===prefix+String(n).padStart(2,'0')))n++;
@@ -178,7 +179,7 @@
     for(const line of g.dialogue){
      const row=element('fieldset');row.append(element('legend',line.id));dialogue.append(row);
      const audio=element('output',line.recording?'Recorded':'No recording');
-     for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['tags','Delivery tags'],['delay','Delay (seconds)'],['animation','Animation']])
+     for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['tags','Delivery tags'],['delay',line.id.startsWith('lace_wait_')?'Wait before this line (seconds)':'Delay (seconds)'],['animation','Animation']])
       field(row,label,input(line[key],v=>{
        if(key==='text'||key==='speaker'){delete line.recording;audio.textContent='No recording';}
        line[key]=v;mark();
@@ -268,7 +269,7 @@
    if(!records.has(returned)&&restore.revision===0)records.set(returned,{id:returned,draft:restore.graph,revision:0});
    const saved=records.get(returned);
    if(saved&&!saved.deleted&&saved.revision===restore.revision){
-    choose(returned);working=restore.graph;selected=restore.selected||working.start;dirty=true;draw();return;
+    choose(returned);working=api.withWaitingDialogue(restore.graph);selected=restore.selected||working.start;dirty=true;draw();return;
    }
   }
   choose(records.has(returned)?returned:id);

@@ -44,13 +44,13 @@
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
   clip.start(loop);return clip;
  }
- async function assignedClip(figure,look,name){
+ async function assignedClip(figure,look,name,signal){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
    await root.VoidAnimLibrary.apply(figure.made,look,{only:[name],catalog:false});
   }
-  return play(figure,name);
+  signal?.throwIfAborted();return play(figure,name);
  }
- async function lines(run,prefix,section){
+ async function lines(run,prefix,section,signal=run.signal,caption=announce){
   let rows=(run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_'));
   if(section){
    const after=run.graph.decisionAfter,idx=rows.findIndex(l=>l.id===after);
@@ -58,17 +58,17 @@
    rows=section==='opening'?rows.slice(0,cut):rows.slice(cut);
   }
   for(const line of rows.filter(l=>l.text.trim())){
-   if(line.delay)await delay(line.delay*1000,run.signal);
-   run.signal.throwIfAborted();announce(line.speaker+' · '+line.text);
-   if(line.animation&&run.lace)await assignedClip(run.lace,laceLook,line.animation);
+   if(line.delay)await delay(line.delay*1000,signal);
+   signal.throwIfAborted();caption(line.speaker+' · '+line.text);
+   if(line.animation&&run.lace)await assignedClip(run.lace,laceLook,line.animation,signal);
    const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
    const bus=root.VoidAudio?.bus('voice');
    if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
     const cancel=()=>root.VoidVoiceClips.cancel();
-    run.signal.addEventListener('abort',cancel,{once:true});
+    signal.addEventListener('abort',cancel,{once:true});
     try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
-    finally{run.signal.removeEventListener('abort',cancel);}
-   }else await delay(Math.max(1500,line.text.length*55),run.signal);
+    finally{signal.removeEventListener('abort',cancel);}
+   }else await delay(Math.max(1500,line.text.length*55),signal);
   }
  }
  function standing(figure,pose){
@@ -92,17 +92,17 @@
  function panel(run){
   if(!run.panel){
    run.panel=document.createElement('aside');run.panel.id='chance-interaction';
-   Object.assign(run.panel.style,{position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',padding:'14px',background:'#0a1921',color:'#e1eeec'});
+   Object.assign(run.panel.style,{position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',padding:'14px',color:'#e1eeec'});
    document.body.append(run.panel);
   }
   return run.panel;
  }
- function prompt(run,text,choices,onLeave){
+ function prompt(run,text,choices,onLeave,waiting=false){
   const host=panel(run);host.hidden=false;host.replaceChildren();
   const line=document.createElement('p');line.textContent=text;host.append(line);
   return new Promise((resolve,reject)=>{
-   let locationTimer;
-   const cleanup=()=>{clearInterval(locationTimer);document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',cancel);};
+   let locationTimer,waitController;
+   const cleanup=()=>{waitController?.abort();clearInterval(locationTimer);document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',cancel);};
    const select=label=>{cleanup();host.hidden=true;resolve(label);};
    const keys=e=>{
     if(e.repeat||e.target?.matches?.('input,textarea,select'))return;
@@ -116,6 +116,12 @@
    if(onLeave){
     const apartment=walkingLocation?.inst;
     locationTimer=setInterval(()=>{if(walkingLocation?.inst!==apartment||walkingLocation?.part!=='flat')select(onLeave);},100);
+   }
+   if(waiting){
+    waitController=new AbortController();
+    const subtitle=document.createElement('p');subtitle.setAttribute('role','status');subtitle.hidden=true;host.append(subtitle);
+    lines(run,'wait',null,waitController.signal,text=>{subtitle.textContent=text;subtitle.hidden=false;})
+     .catch(error=>{if(!waitController.signal.aborted)console.warn('Encounter waiting dialogue:',error);});
    }
    for(const label of choices){
     const b=document.createElement('button');b.type='button';b.textContent=(choices.indexOf(label)+1)+' · '+label;host.append(b);
@@ -283,7 +289,7 @@
  async function pickupReceipt(run){
   const a=address(run),host=panel(run);
   const wait=prompt(run,'You picked up '+run.cardName+'.',['Continue']);
-  host.style.maxWidth='24rem';host.style.border='1px solid #47d9cc';host.style.boxShadow='0 8px 30px #0009';host.setAttribute('role','dialog');host.setAttribute('aria-label','Keycard picked up');
+  host.style.maxWidth='24rem';host.style.boxShadow='0 8px 30px #0009';host.setAttribute('role','dialog');host.setAttribute('aria-label','Keycard picked up');
   const description=document.createElement('p');description.textContent=run.cardDescription||'A residential access card belonging to Kade Mercer and Lace.';
   const addressLine=document.createElement('p');addressLine.textContent='Street Door '+a.door.number+' — Apartment '+a.number;
   host.insertBefore(description,host.lastChild);host.insertBefore(addressLine,host.lastChild);
@@ -378,13 +384,13 @@
   try{
    const animate=async()=>{
     const figure=await model(phase,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
+    // Keep the POV rig invisible even while its animation pack is loading.
+    for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
     const p=run.lace.parent.position;standing(figure,{x:p.x-.77,y:0,z:p.z,yaw:Math.PI/2});
     await assignedClip(figure,kadeLook,run.graph.roleplayClip);
     phase.signal.throwIfAborted();
     const head=joint(figure,'head');
     if(!head)throw Error('The player animation rig is missing its head joint.');
-    // The rig drives the player's viewpoint. Free look still uses normal walking input.
-    for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
     const w=walker;
     run.pov={w,head,inst:walkingLocation.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
     head.computeWorldMatrix(true);const eye=head.getAbsolutePosition();
@@ -414,7 +420,7 @@
    if(node.kind==='choice'){
     if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}
     const exit=run.lace&&node.edges.find(e=>run.graph.nodes.some(n=>n.id===e.to&&n.kind==='end'&&n.id==='leave'));
-    choice=await prompt(run,node.name,node.edges.map(e=>e.label),exit?.label);
+    choice=await prompt(run,node.name,node.edges.map(e=>e.label),exit?.label,!!run.lace&&node.speaker==='lace');
     if(run.lace&&node.speaker==='lace'&&choice!==exit?.label)await lines(run,'arrival','remaining');
    }
    if(node.kind==='animation'){
@@ -435,7 +441,7 @@
  }
  async function begin(graph,start,privateTest,token){
   stop();const controller=new AbortController();
-  const run={graph,private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
+  const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
   running=run;
   try{await runGraph(run,start);}finally{if(running===run)stop();}
  }

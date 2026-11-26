@@ -44,3 +44,16 @@ test('dangling links, accidental cycles and duplicate choice labels block public
   const draft=structuredClone(seed);breakGraph(draft);assert.ok(engine.validate(draft).length);
  }
 });
+
+test('existing Dropped Cardkey graphs gain one editable waiting line and can keep it silent',()=>{
+ const graph=engine.withWaitingDialogue(seed);
+ const line=graph.dialogue.find(row=>row.id==='lace_wait_01');
+ assert.equal(line.delay,12);
+ assert.equal(line.speaker,'lace');
+ assert.ok(line.text);
+ assert.equal(seed.dialogue.some(row=>row.id===line.id),false);
+ line.text='';
+ assert.equal(engine.withWaitingDialogue(graph),graph);
+ const other={...seed,id:'another-encounter'};
+ assert.equal(engine.withWaitingDialogue(other),other);
+});

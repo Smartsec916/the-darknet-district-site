@@ -84,7 +84,18 @@ test('authenticated sockets share one linked NPC turn, isolate rooms and release
   assert.equal(book.activeByPeer.size,0);
   now=6800;
   a=await connect(hub,w.accounts.fox);
+  const reconnected=hub.hub.peers.get('uid-fox');
   ready(a,'pair');
+  // The next turn must collect listeners even after reconnect. Wait for each
+  // ready frame to be processed before advancing the controlled dialogue clock.
+  await until(()=>book.groups.get(key)?.ready.get(reconnected)===6800,'reconnected listener queued');
+  assert.equal(book.groups.get(key).collectUntil,7400);
+  assert.equal(book.activeByPeer.has(reconnected),false);
+  now=7200;ready(a,'pair');
+  await until(()=>book.groups.get(key)?.ready.get(reconnected)===7200,'listener refreshed before grant');
+  assert.equal(book.activeByPeer.has(reconnected),false);
+  assert.equal(a.of('npc-turn').length,0);
+  now=7400;ready(a,'pair');
   const fresh=await until(()=>a.of('npc-turn')[0],'new connection granted a fresh turn');
   assert.equal(fresh.turn,1);
   assert.notEqual(fresh.token,firstA.token);
