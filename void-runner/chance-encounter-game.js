@@ -194,10 +194,10 @@
   if(bus){
    const ctx=bus.context,now=ctx.currentTime,body=ctx.createOscillator(),volume=ctx.createGain();
    body.type='triangle';body.frequency.setValueAtTime(143,now);body.frequency.exponentialRampToValueAtTime(42,now+.14);
-   volume.gain.setValueAtTime(.001,now);volume.gain.exponentialRampToValueAtTime(.54,now+.008);
-   volume.gain.exponentialRampToValueAtTime(.001,now+.19);
+   volume.gain.setValueAtTime(.001,now);volume.gain.exponentialRampToValueAtTime(.92,now+.008);
+   volume.gain.exponentialRampToValueAtTime(.001,now+.30);
    body.connect(volume);volume.connect(bus.node);body.onended=()=>{body.disconnect();volume.disconnect();};
-   body.start(now);body.stop(now+.20);
+   body.start(now);body.stop(now+.31);
   }
   playVoice(run,run.impactVoice);
   const event=root.VoidCrowdReact?.spectacle({...run.plan.hit,radius:12,duration:6,kind:'taxi-impact',filmCap:0});
@@ -227,6 +227,7 @@
   const scene=root.VoidBabylon.scene,ray=new (B().Ray)(new (B().Vector3)(at.x,.65,at.z),B().Vector3.Down(),1.2);
   const ground=scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&/sidewalk|paving|asphalt|road|city-ground/i.test(m.material?.name||m.name));
   const surface=ground?.hit?ground.pickedPoint.y:0;
+  card.parent.scaling.setAll(2);
   const start=performance.now();
   do{
    const t=(performance.now()-start)/1000,p=root.VoidChanceCrossing.cardPose(plan,t);
@@ -246,13 +247,12 @@
    };
    recover().catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
   }
-  card.parent.scaling.setAll(1.6);
   const rim=card.made.getChildMeshes().find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
    const scene=card.parent.getScene();
    const pulse=scene.onBeforeRenderObservable.add(()=>{
-    const glow=.25+.22*Math.sin(performance.now()*.004);edge.emissiveColor.set(.08*glow,.8*glow,glow);
+    const glow=.82+.16*Math.sin(performance.now()*.004);edge.emissiveColor.set(.20*glow,.92*glow,glow);
    });
    card.parent.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(pulse);edge.dispose();});
   }
@@ -274,7 +274,7 @@
   try{
    await until(()=>{
     const visible=focus();host.hidden=!visible;
-    for(const mesh of meshes){mesh.renderOutline=visible;if(visible){mesh.outlineWidth=.002;mesh.outlineColor=new (B().Color3)(1,.8,.15);}}
+    for(const mesh of meshes){mesh.renderOutline=visible;if(visible){mesh.outlineWidth=.004;mesh.outlineColor=new (B().Color3)(1,.8,.15);}}
     return taken;
    },run.signal);
    if(!run.private){
@@ -326,14 +326,33 @@
   figure.parent.onDisposeObservable.addOnce(()=>{if(!rope.isDisposed())rope.dispose();});
   return rope;
  }
- function groundPose(figure,floor){
+ function groundPose(figure,floor,bedEdge){
   let bottom=Infinity;
   for(const mesh of figure.made.getChildMeshes()){
    if(!mesh.skeleton||!mesh.getTotalVertices())continue;
    mesh.computeWorldMatrix(true);mesh.skeleton.prepare(true);mesh.refreshBoundingInfo(true);
    bottom=Math.min(bottom,mesh.getBoundingInfo().boundingBox.minimumWorld.y);
   }
-  if(Number.isFinite(bottom))figure.parent.position.y+=floor-bottom;
+  if(!Number.isFinite(bottom))return;
+  if(Number.isFinite(bedEdge)){
+   // Measure the posed shoes in world space. The rig origin can be well behind the feet.
+   const feet=['leftfoot','rightfoot'].map(name=>joint(figure,name)).filter(Boolean)
+    .map(node=>{node.computeWorldMatrix(true);return node.getAbsolutePosition();});
+   const point=new (B().Vector3)();
+   let nearest=-Infinity;
+   for(const mesh of figure.made.getChildMeshes()){
+    if(!mesh.skeleton||!mesh.getTotalVertices())continue;
+    const vertices=mesh.getPositionData(true,true),matrix=mesh.getWorldMatrix();
+    for(let i=0;vertices&&i<vertices.length;i+=3){
+     B().Vector3.TransformCoordinatesFromFloatsToRef(vertices[i],vertices[i+1],vertices[i+2],matrix,point);
+     if(point.y<=bottom+.14&&(!feet.length||feet.some(f=>Math.hypot(point.x-f.x,point.z-f.z)<.32))){
+      nearest=Math.max(nearest,point.x);
+     }
+    }
+   }
+   if(Number.isFinite(nearest))figure.parent.position.x+=bedEdge-.015-nearest;
+  }
+  figure.parent.position.y+=floor-bottom;
  }
  async function flat(run,jump){
   const a=address(run);preloadLace(run);
@@ -347,15 +366,17 @@
   run.lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
   const placement=run.graph.placement,anchor=root.VoidApartments.world([placement.x,placement.y,placement.z]);
   // Older drafts used the original default position half a metre from the bed.
+  let bedEdge;
   if(placement.x===1.5&&placement.z===-.8){
    const bed=root.VoidApartments.geo(a.door.style).FURN.bed;
-   anchor[0]+=bed[0]-.24-placement.x;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
+   bedEdge=anchor[0]+bed[0]-placement.x;
+   anchor[0]=bedEdge-.04;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
   }
   standing(run.lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
   run.lace.parent.scaling.setAll(placement.scale);
   const posed=await assignedClip(run.lace,laceLook,placement.clip);
   posed.goToFrame(posed.from);
-  groundPose(run.lace,anchor[1]);
+  groundPose(run.lace,anchor[1],bedEdge);
   if(placement.clip==='sz-tiedbf')run.rope=addWristRope(run.lace);
   await lines(run,'arrival','opening');
  }
