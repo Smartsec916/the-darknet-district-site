@@ -57,3 +57,22 @@ test('existing Dropped Cardkey graphs gain one editable waiting line and can kee
  const other={...seed,id:'another-encounter'};
  assert.equal(engine.withWaitingDialogue(other),other);
 });
+
+test('playlist bounds, branch odds, nested passes and return paths',()=>{
+ const graph=structuredClone(seed);
+ const rows=graph.dialogue.slice(0,3);
+ for(const row of rows){row.text=row.id;row.repeatSpeech=true;}
+ rows[1].playlistStart=true;rows[2].playlistEnd=true;
+ const {before,cycle,after}=engine.playlist(rows);
+ assert.deepEqual(before,[rows[0]]);assert.deepEqual(cycle,rows.slice(1));assert.deepEqual(after,[]);
+ const action=id=>({id,text:id,speaker:'lace'});
+ graph.dialogue.push(action('branch_first'),action('branch_second'),action('branch_nested'));
+ rows[1].branches=[{chance:25,actions:['branch_first'],passes:2},{chance:50,actions:['branch_second']}];
+ graph.dialogue.at(-3).branches=[{chance:100,actions:['branch_nested'],passes:0}];
+ assert.deepEqual(engine.validate(graph),[]);
+ assert.equal(engine.chooseBranch(rows[1],0).actions[0],'branch_first');
+ assert.equal(engine.chooseBranch(rows[1],.25).actions[0],'branch_second');
+ assert.equal(engine.chooseBranch(rows[1],.75),null);
+ graph.dialogue.at(-1).branches=[{chance:100,actions:['branch_first']}];
+ assert.ok(engine.validate(graph).length);
+});

@@ -46,6 +46,7 @@
    group.onAnimationGroupEndObservable.remove(observer);figure.returnToPose=null;
   }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
+  if(!loop&&clip.isStarted)clip.stop();
   clip.start(loop);
   if(!loop&&name==='sz-tiedbf-look-back-return'){
    const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
@@ -63,60 +64,66 @@
   signal?.throwIfAborted();return play(figure,name,loop);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
-  let rows=(run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_'));
-  if(section){
-   const after=run.graph.decisionAfter,idx=rows.findIndex(l=>l.id===after);
-   const cut=after==='before'?0:idx<0?rows.length:idx+1;
-   rows=section==='opening'?rows.slice(0,cut):rows.slice(cut);
-  }
-  for(const line of rows){
-   if(!line.text.trim()&&!line.animation)continue;
+  const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
+  const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];
+  async function action(line,signal,replay){
    signal.throwIfAborted();
-   await playDialogueRow(run,line,signal,caption);
-  }
- }
- async function playDialogueRow(run,line,parentSignal,caption){
-  const repeatSpeech=!!line.text.trim()&&line.repeatSpeech===true;
-  const repeatMotion=!!line.animation&&line.repeatAnimation===true&&!!run.lace;
-  const repeat=repeatSpeech||repeatMotion;
-  const controller=new AbortController(),signal=controller.signal;
-  const cancel=()=>controller.abort(),key=e=>{
-   if(e.code==='Backspace'&&!e.repeat){e.preventDefault();cancel();}
-  };
-  let button,clip;
-  parentSignal.addEventListener('abort',cancel,{once:true});
-  try{
-   if(line.delay)await delay(line.delay*1000,signal);
-   if(repeat){
-    button=document.createElement('button');button.textContent='Stop repeat · Backspace';
-    Object.assign(button.style,{position:'fixed',right:'2vw',top:'25vh',zIndex:76});
-    button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
+   const text=replay&&!line.repeatSpeech?'':line.text.trim();
+   const animation=replay&&!line.repeatAnimation?'':line.animation;
+   if(text||animation){
+    if(line.delay)await delay(line.delay*1000,signal);
+    const clip=animation&&run.lace?await assignedClip(run.lace,laceLook,animation,signal,false):null;
+    try{
+     if(text){
+      caption(line.speaker+' Â· '+text);
+      const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
+      const bus=root.VoidAudio?.bus('voice');
+      if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
+       const silence=()=>root.VoidVoiceClips.cancel();
+       signal.addEventListener('abort',silence,{once:true});
+       try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
+       finally{signal.removeEventListener('abort',silence);}
+      }else await delay(Math.max(1500,text.length*55),signal);
+     }
+     if(clip)await until(()=>!clip.isPlaying,signal);
+    }finally{if(clip&&signal.aborted)clip.stop();}
    }
-   if(line.animation&&run.lace)clip=await assignedClip(run.lace,laceLook,line.animation,signal,repeatMotion);
-   if(line.text.trim()){
-    do{
-     signal.throwIfAborted();caption(line.speaker+' · '+line.text);
-     const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
-     const bus=root.VoidAudio?.bus('voice');
-     if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
-      const silence=()=>root.VoidVoiceClips.cancel();
-      signal.addEventListener('abort',silence,{once:true});
-      try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
-      finally{signal.removeEventListener('abort',silence);}
-     }else await delay(Math.max(1500,line.text.length*55),signal);
-     if(repeatSpeech)await delay(Math.max(1000,(line.delay||0)*1000),signal);
-    }while(repeatSpeech);
-   }
-   if(repeatMotion)await until(()=>false,signal);
-   else if(clip&&!line.text.trim())await until(()=>!clip.isPlaying,signal);
-  }catch(error){
-   if(!signal.aborted)throw error;
-  }finally{
-   parentSignal.removeEventListener('abort',cancel);
-   document.removeEventListener('keydown',key,true);button?.remove();
-   if(clip&&(repeatMotion||signal.aborted))clip.stop();
+   signal.throwIfAborted();
+   const branch=api.chooseBranch(line);
+   if(branch)await sequence(branch.actions.map(id=>byId.get(id)),branch.passes??1,signal,true);
   }
-  parentSignal.throwIfAborted();
+  async function sequence(rows,passes,parentSignal,child=false){
+   const {before,cycle,after}=api.playlist(rows,child&&passes!==1);
+   for(const row of before)await action(row,parentSignal,false);
+   if(cycle.length){
+    const controller=new AbortController(),signal=controller.signal,cancel=()=>controller.abort();
+    const key=e=>{if(e.code==='Backspace'&&!e.repeat&&controls.at(-1)===button){e.preventDefault();cancel();}};
+    let button;
+    parentSignal.throwIfAborted();parentSignal.addEventListener('abort',cancel,{once:true});
+    if(passes!==1){
+     button=document.createElement('button');button.type='button';
+     button.textContent=child?'Return to parent playlist':'Stop repeat Â· Backspace';
+     Object.assign(button.style,{position:'fixed',right:'2vw',top:'calc(25vh + '+controls.length*3.1+'rem)',zIndex:76});
+     controls.push(button);button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
+    }
+    try{
+     const marked=cycle.filter(api.isRepeat);
+     for(let pass=0;passes===0||pass<passes;pass++){
+      signal.throwIfAborted();
+      for(const row of pass&&marked.length?marked:cycle)await action(row,signal,pass>0&&marked.length>0);
+      if(passes===0||pass+1<passes)await delay(250,signal);
+     }
+    }catch(error){if(!signal.aborted)throw error;}
+    finally{
+     parentSignal.removeEventListener('abort',cancel);
+     if(button){controls.splice(controls.indexOf(button),1);button.remove();document.removeEventListener('keydown',key,true);}
+    }
+    parentSignal.throwIfAborted();
+    if(child&&signal.aborted)return;
+   }
+   for(const row of after)await action(row,parentSignal,false);
+  }
+  await sequence(sections[section||prefix]||[],0,signal);
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);
@@ -294,6 +301,17 @@
    };
    recover().catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
   }
+  // Draw the spill on the road so it remains visible without post-processing on Low.
+  const b=B(),halo=b.MeshBuilder.CreateGround('dropped keycard glow',{width:.86,height:.86},scene);
+  halo.position.set(at.x,surface+.008,at.z);halo.isPickable=false;
+  const texture=new b.DynamicTexture('keycard glow falloff',64,scene,false),ctx=texture.getContext();
+  const gradient=ctx.createRadialGradient(32,32,0,32,32,32);
+  gradient.addColorStop(0,'rgba(153,255,251,.94)');gradient.addColorStop(.32,'rgba(59,245,231,.60)');gradient.addColorStop(1,'rgba(35,216,210,0)');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,64,64);texture.hasAlpha=true;texture.update();
+  const light=new b.StandardMaterial('keycard light spill',scene);
+  light.disableLighting=true;light.emissiveColor=b.Color3.White();light.diffuseTexture=texture;light.useAlphaFromDiffuseTexture=true;
+  light.disableDepthWrite=true;light.alphaMode=b.Engine.ALPHA_ADD;halo.material=light;
+  card.parent.onDisposeObservable.addOnce(()=>{halo.dispose();light.dispose();texture.dispose();});
   const rim=card.made.getChildMeshes().find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
@@ -350,7 +368,7 @@
   }
   return null;
  }
- function addWristRope(figure,ceiling){
+ function addWristRope(figure,room,style){
   const left=joint(figure,'lefthand'),right=joint(figure,'righthand');
   if(!left||!right)return;
   const scene=figure.parent.getScene(),b=B(),rope=new b.TransformNode('encounter-rope',scene);
@@ -365,17 +383,55 @@
   span.parent=rope;span.material=material;span.isPickable=false;
   left.computeWorldMatrix(true);right.computeWorldMatrix(true);
   const mount=b.Vector3.Center(left.getAbsolutePosition(),right.getAbsolutePosition());
-  mount.y=ceiling;
+  mount.y=root.VoidApartments.world([0,room.CEIL,0])[1];
   const metal=new b.StandardMaterial('screw eye steel',scene);
   metal.diffuseColor=new b.Color3(.52,.53,.5);metal.emissiveColor=new b.Color3(.13,.13,.12);
-  const fixture=new b.TransformNode('encounter ceiling anchor',scene);fixture.position.copyFrom(mount);
-  const eye=b.MeshBuilder.CreateTorus('screw eye',{diameter:.14,thickness:.025,tessellation:28},scene);
-  eye.rotation.x=Math.PI/2;eye.position.y=-.14;
-  const stem=b.MeshBuilder.CreateCylinder('screw eye stem',{height:.085,diameter:.032},scene);stem.position.y=-.041;
-  const washer=b.MeshBuilder.CreateCylinder('screw eye washer',{height:.016,diameter:.105},scene);washer.position.y=-.009;
-  for(const mesh of [eye,stem,washer]){mesh.parent=fixture;mesh.material=metal;mesh.isPickable=false;}
-  figure.parent.onDisposeObservable.addOnce(()=>{fixture.dispose();metal.dispose();});
-  const leadPath=[mount.clone(),mount.clone(),mount.add(new b.Vector3(0,-.2,0))];
+  // The fixed length and knot belong to the room. Only the free length follows Lace.
+  const fixed=new b.TransformNode('encounter mounted cord',scene);
+  function screwEye(name,position){
+   const fitting=new b.TransformNode(name+' mounting',scene);fitting.parent=fixed;fitting.position.copyFrom(position);
+   const eye=b.MeshBuilder.CreateTorus(name,{diameter:.14,thickness:.025,tessellation:28},scene);
+   eye.rotation.x=Math.PI/2;eye.position.y=-.14;
+   const stem=b.MeshBuilder.CreateCylinder(name+' stem',{height:.085,diameter:.032},scene);stem.position.y=-.041;
+   const washer=b.MeshBuilder.CreateCylinder(name+' washer',{height:.016,diameter:.105},scene);washer.position.y=-.009;
+   for(const mesh of [eye,stem,washer]){mesh.parent=fitting;mesh.material=metal;mesh.isPickable=false;}
+   return fitting;
+  }
+  screwEye('screw eye',mount);
+  const [x0,x1,z0,z1]=room.FURN.bed;
+  const wallSide=room.container;
+  const face=wallSide?[x1-.37,.92,z1-.05]:[x1-.06,.91,z0+.32];
+  const boardPoint=b.Vector3.FromArray(root.VoidApartments.world(face));
+  const boardEye=screwEye('headboard screw eye',boardPoint);
+  if(wallSide)boardEye.rotation.x=Math.PI/2;
+  else boardEye.rotation.z=-Math.PI/2;
+  if(style.includes('rundown')){
+   // Pallet beds lack a back panel. Seat the mounting plate on the bed frame.
+   const plank=b.MeshBuilder.CreateBox('encounter bed back panel',{width:wallSide?x1-x0:.06,height:1,depth:wallSide?.05:z1-z0},scene);
+   plank.position.copyFromFloats(...root.VoidApartments.world(wallSide?[(x0+x1)/2,.53,z1-.025]:[x1-.03,.53,(z0+z1)/2]));
+   plank.parent=fixed;plank.material=metal;plank.isPickable=false;
+  }
+  const matrix=boardEye.computeWorldMatrix(true);
+  const atRing=(x,y,z)=>b.Vector3.TransformCoordinates(new b.Vector3(x,y,z),matrix);
+  const overhead=mount.add(new b.Vector3(0,-.20,0)),tie=atRing(0,-.21,0);
+  const middle=b.Vector3.Center(overhead,tie);middle.y-=.09;
+  const bend=overhead.add(new b.Vector3(.045,.005,.025));
+  const laid=b.Curve3.CreateCatmullRomSpline([overhead,bend,middle,tie],8).getPoints();
+  const fixedCord=(name,points,radius)=>{
+   const tube=b.MeshBuilder.CreateTube(name,{path:points,radius,tessellation:10,cap:b.Mesh.CAP_ALL},scene);
+   tube.parent=fixed;tube.material=material;tube.isPickable=false;
+  };
+  fixedCord('ceiling to headboard cord',laid,.014);
+  const knot=[tie];
+  for(let i=0;i<=44;i++){
+   const t=i/44,angle=t*Math.PI*4.5;
+   knot.push(atRing(t*.055-.025,-.205+Math.cos(angle)*.024,Math.sin(angle)*.028));
+  }
+  const end=knot.at(-1);
+  knot.push(end.add(new b.Vector3(-.018,-.05,.025)),end.add(new b.Vector3(-.02,-.12,.03)));
+  fixedCord('headboard cord knot and tail',knot,.012);
+  figure.parent.onDisposeObservable.addOnce(()=>{fixed.dispose();metal.dispose();material.dispose();});
+  const leadPath=[mount.clone(),mount.clone(),overhead.clone()];
   const lead=b.MeshBuilder.CreateTube('wrist to screw eye rope',{path:leadPath,radius:.014,tessellation:10,updatable:true},scene);
   lead.material=material;lead.isPickable=false;lead.parent=rope;
   const obs=scene.onBeforeRenderObservable.add(()=>{
@@ -387,7 +443,7 @@
    leadPath[1].x+=.012;
    b.MeshBuilder.CreateTube('wrist to screw eye rope',{path:leadPath,instance:lead},scene);
   });
-  rope.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(obs);material.dispose();});
+  rope.onDisposeObservable.addOnce(()=>scene.onBeforeRenderObservable.remove(obs));
   figure.parent.onDisposeObservable.addOnce(()=>{if(!rope.isDisposed())rope.dispose();});
   return rope;
  }
@@ -442,7 +498,7 @@
   const posed=await assignedClip(run.lace,laceLook,placement.clip,run.signal,!transition);
   posed.goToFrame(posed.from);
   groundPose(run.lace,anchor[1],bedEdge,room.FURN.bed[4]);
-  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace,root.VoidApartments.world([0,room.CEIL,0])[1]);
+  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace,room,a.door.style);
   await lines(run,'arrival','opening');
  }
  async function releaseLace(run){

@@ -17,6 +17,25 @@ class ChanceTests(unittest.TestCase):
         self.graph['conditions']['chance'] = 100
         self.uid = 'owner'
 
+    def test_nested_playlists_validate_odds_and_ownership(self):
+        row = self.graph['dialogue'][0]
+        a = dict(id='branch_a', text='a', speaker='lace')
+        b = dict(id='branch_b', text='b', speaker='lace')
+        self.graph['dialogue'].extend([a, b])
+        row['branches'] = [dict(chance=75, passes=2, actions=[a['id']])]
+        a['branches'] = [dict(chance=100, passes=0, actions=[b['id']])]
+        encounters.validate(self.graph)
+        row['branches'][0]['chance'] = 101
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+        row['branches'][0]['chance'] = 25
+        b['branches'] = [dict(chance=100, actions=[a['id']])]
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+        row['branches'] = []
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+
     def edit(self, action, revision):
         return encounters.edit(self.db,self.uid,dict(id=self.graph['id'],graph=self.graph,action=action,revision=revision))
 
