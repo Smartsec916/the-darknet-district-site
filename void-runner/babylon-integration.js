@@ -168,7 +168,7 @@ function trafficPort(phase) {
     : {port:'origin', landing:departureStation, out:{x:0,y:0,z:1}, apron:stationApron};
   if (phase === 'arrived') return r.destination === 'vesper'
     ? {port:'destination', landing:{x:-12, y:Math.max(3, 45 - (approachTime || 0) * 40), z:-25}, out:{x:0,y:-1,z:0}, quiet:true, follow:true}
-    : {port:'destination', landing:{x:0, y:4, z:120 - 105 * Math.min(1, (approachTime || 0) / VoidWarp.config.approachSeconds)}, out:{x:0,y:0,z:-1}, apron:stationApron, follow:true};
+    : {port:'destination', landing:globalThis.VoidDockingFlight?.stationPose(r,1) || {x:0, y:4, z:120 - 105 * Math.min(1, (approachTime || 0) / VoidWarp.config.approachSeconds)}, out:{x:0,y:0,z:-1}, apron:stationApron, follow:true};
   return {};
 }
 const migrationArrive = arrive;

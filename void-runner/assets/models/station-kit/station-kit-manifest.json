@@ -1,7 +1,7 @@
 {
  "pieces": {
   "wall_low": {
-   "triangles": 682,
+   "triangles": 522,
    "materials": [
     "st_wall",
     "st_gunmetal",
@@ -139,7 +139,7 @@
    ]
   },
   "wall_top": {
-   "triangles": 394,
+   "triangles": 338,
    "materials": [
     "st_gunmetal",
     "st_steel",
@@ -179,7 +179,7 @@
    ]
   },
   "pilaster_36": {
-   "triangles": 410,
+   "triangles": 290,
    "materials": [
     "st_gunmetal",
     "st_steel",
@@ -198,7 +198,7 @@
    ]
   },
   "pilaster_50": {
-   "triangles": 494,
+   "triangles": 334,
    "materials": [
     "st_gunmetal",
     "st_steel",
@@ -217,7 +217,7 @@
    ]
   },
   "hangar_panel_a": {
-   "triangles": 660,
+   "triangles": 340,
    "materials": [
     "st_hull",
     "st_gunmetal",
@@ -256,7 +256,7 @@
    ]
   },
   "hangar_rib": {
-   "triangles": 920,
+   "triangles": 720,
    "materials": [
     "st_gunmetal",
     "st_steel",
@@ -1156,6 +1156,44 @@
     0.09
    ]
   },
+  "dock_clamp": {
+   "triangles": 352,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -0.55,
+    0.0,
+    -0.5
+   ],
+   "max": [
+    0.55,
+    3.24,
+    0.583
+   ]
+  },
+  "guide_light": {
+   "triangles": 46,
+   "materials": [
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -0.32,
+    0.0,
+    -0.14
+   ],
+   "max": [
+    0.32,
+    0.062,
+    0.14
+   ]
+  },
   "greeble_a": {
    "triangles": 152,
    "materials": [
@@ -1215,7 +1253,7 @@
   }
  },
  "file": "station-kit.glb",
- "bytes": 2267544,
+ "bytes": 2243468,
  "materials": [
   "st_hull",
   "st_wall",

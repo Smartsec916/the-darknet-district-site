@@ -64,5 +64,17 @@
   people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+(names[character]||character.toUpperCase()),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));
   return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id==='vigil'?'THE VIGIL / RECEIVING':id==='holdfast'?'HOLDFAST / SUPPLY YARD':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};
  }
- const api={layout,palettes,appearances,meridianClass,labels};if(typeof module!=='undefined')module.exports=api;else root.VoidStationLayouts=api;
+ /* Docking and departure (docking.js, docking-flight.js). Speeds in m/s, accelerations in m/s2, rotation in rad/s, distances in metres, times in seconds.
+    `defaults` apply everywhere; a station or a ship overrides only what differs. A hull's own flight figures (ships.js) also scale thrust and turning.
+      approachSpeed          the fastest it closes on the station            finalSpeed       the speed through the mouth and onto the pad
+      finalDistance          how far outside the mouth the final speed starts departureSpeed   the limit inside and just outside the hangar
+      maxAcceleration / maxDeceleration   thrust limits                       maxRotationSpeed how fast it may turn itself
+      alignmentTolerance     how straight (radians) before the clamps close   thrusterIntensity how bright the manoeuvring jets are
+      safeDepartureDistance  how far past the mouth before the main engine    cameraSmoothing  the view's lag, seconds
+      transitionSeconds      how long the clamps take                         startDistance    where the approach begins, from the pad */
+ const docking={defaults:{approachSpeed:34,finalSpeed:5,finalDistance:9,departureSpeed:7,maxAcceleration:9,maxDeceleration:11,maxRotationSpeed:.6,alignmentTolerance:.012,thrusterIntensity:1,safeDepartureDistance:15,cameraSmoothing:.35,transitionSeconds:1.2,startDistance:130},
+  stations:{meridian:{},kepler:{},rusthaven:{thrusterIntensity:1.15,transitionSeconds:1.35},foundry:{departureSpeed:6,thrusterIntensity:1.2},'sol-belt':{approachSpeed:30,startDistance:120},
+   vigil:{approachSpeed:30,finalSpeed:4,alignmentTolerance:.008,thrusterIntensity:.7,transitionSeconds:1.5},holdfast:{approachSpeed:38,thrusterIntensity:1.25,transitionSeconds:1}},
+  ships:{starter:{},ship2:{thrusterIntensity:.9},ship3:{thrusterIntensity:.75,cameraSmoothing:.28}}};
+ const api={layout,palettes,appearances,meridianClass,labels,docking};if(typeof module!=='undefined')module.exports=api;else root.VoidStationLayouts=api;
 })(globalThis);

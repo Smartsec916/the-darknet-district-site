@@ -199,8 +199,7 @@ def wall_low(p, W=2.0):
     p.box((-h, -.11, 0), (h, 0, .16), 'st_dark', bevel=.015)                                 # kick plate
     p.front(-h, h, .16, .2, -.045, 'rubber')
     for a, b in ((-h + .03, -.02), (.02, h - .03)):
-        p.panel(a, b, .22, .94, -.04, proud=.06, mat='st_wall', frame='st_gunmetal', border=.05)
-        p.bolts(corners(a, b, .22, .94, -.1, .025), r=.012)
+        p.panel(a, b, .22, .94, -.04, proud=.06, mat='st_wall', frame='st_gunmetal', border=.05)      # (no modelled fasteners: the most numerous wall piece)
     p.box((-h, -.13, .97), (h, 0, 1.1), 'st_steel', bevel=.02)                               # rail
     p.box((-h, -.15, 1.0), (h, -.13, 1.07), 'st_accent', bevel=.006)
 
@@ -283,8 +282,8 @@ def wall_top(p, W=2.0, H=1.0):
     p.box((-h, -.3, .26), (h, -.06, .34), 'st_trim', bevel=0, region='cable')
     for x in (-h + .25, h - .25):
         p.beam((x, -.3, .22), (x, -.02, .02), .04, .04, 'st_gunmetal')
-    p.pipe([(-h, -.14, .62), (h, -.14, .62)], .055, 'st_steel', flange=1.0)
-    p.pipe([(-h, -.1, .82), (h, -.1, .82)], .035, 'st_accent', seg=8)
+    p.pipe([(-h, -.14, .62), (h, -.14, .62)], .055, 'st_steel', seg=6, flange=2.0)
+    p.pipe([(-h, -.1, .82), (h, -.1, .82)], .035, 'st_accent', seg=5)
     for x in (-h + .5, h - .5):
         p.box((x - .03, -.21, .5), (x + .03, 0, .9), 'st_gunmetal', bevel=.008)
     p.box((-h + .15, -.3, .12), (h - .15, -.1, .22), 'st_gunmetal', bevel=.012)              # light housing under the tray
@@ -312,7 +311,6 @@ def pilaster(p, H=3.6, w=.3, d=.22):
     z = .6
     while z < H - .4:
         p.box((-w / 2, -d - .012, z), (w / 2, -d, z + .1), 'st_steel', bevel=.004)
-        p.bolts([(-w / 2 + .06, -d - .012, z + .05), (w / 2 - .06, -d - .012, z + .05)], r=.014)
         z += 1.0
     p.front(-w / 2, w / 2, .24, .5, -d - .002, 'hazard')
 
@@ -322,7 +320,6 @@ def hangar_panel_a(p, W=4.0, H=5.4):
     _backing(p, W, H)
     for (a, b, c, d) in ((-h + .05, -.03, .05, H / 2 - .03), (.03, h - .05, .05, H / 2 - .03), (-h + .05, -.03, H / 2 + .03, H - .05), (.03, h - .05, H / 2 + .03, H - .05)):
         p.box((a, -.1, c), (b, -.04, d), 'st_hull', bevel=.02)
-        p.bolts(corners(a, b, c, d, -.1, .1), r=.022)
     for a, b in (((-h + .1, 0), (h - .1, H)), ((-h + .1, H), (h - .1, 0))):                      # cross brace
         p.beam((a[0], -.16, a[1] + (.2 if a[1] == 0 else -.2)), (b[0], -.16, b[1] + (-.2 if b[1] == H else .2)), .12, .06, 'st_gunmetal')
     p.box((-.22, -.2, H / 2 - .22), (.22, -.13, H / 2 + .22), 'st_steel', bevel=.02)
@@ -366,7 +363,7 @@ def hangar_rib(p, H=9.0, w=.7, d=.5):
         for s in (-1, 1):
             p.beam((s * .06, -d + .07, z - .35), (s * .06, -.07, z), .03, .5, 'st_steel')     # gusset
         p.box((-w / 2, -d - .015, z), (w / 2, -d, z + .16), 'st_steel', bevel=.005)
-        p.bolts([(x, -d - .015, z + .08) for x in (-.24, -.08, .08, .24)], r=.02)
+        p.bolts([(x, -d - .015, z + .08) for x in (-.2, .2)], r=.02)
         z += 1.5
     p.box((-.3, -d - .22, 6.1), (.3, -d, 6.4), 'st_dark', bevel=.03)                          # work light
     p.quad([(-.26, -d - .2, 6.1), (.26, -d - .2, 6.1), (.26, -d - .02, 6.1), (-.26, -d - .02, 6.1)][::-1], 'st_light')
@@ -1054,6 +1051,28 @@ def greeble(p, variant='a'):
         p.front(-.5, -.1, .1, .4, -.252, 'screen_b')
 
 
+def dock_clamp(p):
+    """A docking clamp arm: a deck shoe, an arm hinged at the deck and a padded jaw. Built open (upright), its hinge on the origin's x axis: the game
+    turns it about that axis to close it on a hull. One piece per node, so it can move."""
+    p.box((-.55, -.5, 0), (.55, .5, .22), 'st_dark', bevel=.04)
+    p.up(-.5, .5, -.45, .45, .222, 'hazard')
+    p.cyl((-.42, 0, .32), (.42, 0, .32), .17, 'st_steel', 12)                       # hinge
+    for x in (-.3, .3):
+        p.box((x - .07, -.14, .3), (x + .07, .14, 2.9), 'st_gunmetal', bevel=.02)   # arm
+        p.beam((x, -.14, .5), (x, .55, 1.5), .06, .08, 'st_steel')                  # actuator
+    p.box((-.37, -.1, 1.2), (.37, .1, 1.45), 'st_accent', bevel=.02)
+    p.box((-.4, -.16, 2.9), (.4, .5, 3.2), 'st_gunmetal', bevel=.04)                # jaw
+    p.box((-.36, .5, 2.86), (.36, .58, 3.24), 'st_dark', bevel=.02)                 # pad
+    p.front(-.3, .3, 3.0, 3.1, -.162, None, mat='st_light')
+    p.pipe([(.42, -.2, .3), (.42, -.2, 2.6)], .025, 'st_dark', seg=5)
+
+
+def guide_light(p):
+    """A flush deck approach light: a low housing and a lens. Its lens material is swapped by the game for one of three, which run toward the pad."""
+    p.box((-.32, -.14, 0), (.32, .14, .06), 'st_dark', bevel=.015)
+    p.up(-.26, .26, -.09, .09, .062, None, mat='st_light')
+
+
 PIECES = {
     'wall_low': wall_low, 'wall_mid_a': wall_mid_a, 'wall_mid_b': wall_mid_b, 'wall_mid_c': wall_mid_c, 'wall_mid_d': wall_mid_d, 'wall_mid_e': wall_mid_e, 'wall_mid_port': wall_mid_port,
     'wall_top': wall_top, 'wall_clere': wall_clere, 'pilaster_36': lambda p: pilaster(p, 3.6), 'pilaster_50': lambda p: pilaster(p, 5.0),
@@ -1067,7 +1086,7 @@ PIECES = {
     'hull_a': lambda p: hull(p, 'a'), 'hull_b': lambda p: hull(p, 'b'), 'hull_c': lambda p: hull(p, 'c'), 'hull_d': lambda p: hull(p, 'd'), 'hull_e': lambda p: hull(p, 'e'),
     'hull_coping': hull_coping, 'roof_plate': roof_plate, 'roof_unit_a': lambda p: roof_unit(p, 'a'), 'roof_unit_b': lambda p: roof_unit(p, 'b'), 'roof_unit_c': lambda p: roof_unit(p, 'c'),
     'truss': truss, 'solar': solar, 'tank': tank, 'collar': collar, 'mast': mast, 'dish': dish, 'mouth_frame': mouth_frame, 'thruster': thruster, 'radiator': radiator,
-    'greeble_a': lambda p: greeble(p, 'a'), 'greeble_b': lambda p: greeble(p, 'b'), 'greeble_c': lambda p: greeble(p, 'c'),
+    'dock_clamp': dock_clamp, 'guide_light': guide_light, 'greeble_a': lambda p: greeble(p, 'a'), 'greeble_b': lambda p: greeble(p, 'b'), 'greeble_c': lambda p: greeble(p, 'c'),
 }
 
 

@@ -111,7 +111,7 @@
   }
   const dirt=1-L.grime*.35;
   pbr('st_hull',{set:'st_hull',color:space?L.hull:L.wall,k:(space?2.3:1.05)*dirt,bump:1.1});
-  pbr('st_hull_dark',{set:'st_hull',color:L.hull,k:1.15*dirt,bump:1.1});pbr('st_hull_paint',{set:'st_hull',color:L.accent,k:2.6*dirt,bump:1.1}); // replacement plates and painted plates on the outer hull // inside (the hangar's big plates) it takes the dark wall tone
+  pbr('st_hull_dark',{set:'st_hull',color:L.hull,k:1.15*dirt,bump:1.1});pbr('st_hull_in',{set:'st_hull',color:L.wall,k:1.1*dirt,bump:1.1});pbr('st_hull_paint',{set:'st_hull',color:L.accent,k:2.6*dirt,bump:1.1}); // replacement plates and painted plates on the outer hull // inside (the hangar's big plates) it takes the dark wall tone
   pbr('st_wall',{set:'st_wall',color:L.wall,k:.85*dirt});
   pbr('st_deck',{set:'st_deck',color:L.deck,k:1.25*dirt,bump:1.2});
   pbr('st_tank',{set:'st_wall',color:space?'#dcdccf':'#8f9088',k:space?1.15:1});
@@ -130,6 +130,7 @@
    const tex=(url,linear)=>once(url,()=>{const t=new B.Texture(url,scene,false,true,B.Texture.TRILINEAR_SAMPLINGMODE);t.anisotropicFilteringLevel=4;if(linear)t.gammaSpace=false;return t;});
    m.albedoTexture=tex(pics.color);if(pics.normal){m.bumpTexture=tex(pics.normal,true);}
    if(pics.orm){m.metallicTexture=tex(pics.orm,true);m.useRoughnessFromMetallicTextureGreen=true;m.useRoughnessFromMetallicTextureAlpha=false;m.useMetallnessFromMetallicTextureBlue=true;}else{m.roughness=.6;m.metallic=.3;}}
+  for(let i=0;i<3;i++){const g=pbr('st_guide_'+i,{color:'#000000',rough:.4,metal:0,emissive:new B.Color3(0,0,0)});g.disableLighting=true;}   // approach lights: three groups that run toward the pad (docking gear)
   const lamp=pbr('st_light',{color:'#000000',rough:.4,metal:0,emissive:hex(B,L.light,space?1.5:.8)});lamp.disableLighting=true;
   let live=true;return {materials:out,dispose(){if(!live)return;live=false;for(const m of owned)m.dispose(false,false);if(--pool.refs<=0){for(const t of pool.map.values())t.dispose();texturePools.delete(scene);}}};
  }
@@ -145,7 +146,7 @@
   const n=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];},cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
   const X=n(dir);let Z=cross(X,up);if(Math.hypot(Z[0],Z[1],Z[2])<1e-4)Z=cross(X,[0,0,1]);Z=n(Z);const Y=cross(Z,X);return [X,Y,Z];
  }
- function bake(scene,parent,placements,mats,name='station-kit',lamps=null){
+ function bake(scene,parent,placements,mats,name='station-kit',lamps=null,fixed=false){   // fixed: the parent never moves (a room), so the meshes' world matrices can be frozen
   const B=root.BABYLON,node=new B.TransformNode(name,scene);node.parent=parent;
   const groups=new Map();let triangles=0,pieces=0;
   for(const pl of placements){const parts=kit[pl.key];if(!parts)continue;pieces++;
@@ -161,7 +162,7 @@
   for(const g of groups.values()){const material=mats[g.material];if(!material||!g.count)continue;
    const mesh=new B.Mesh(name+'-'+g.zone+'-'+g.material,scene),data=new B.VertexData();data.positions=new Float32Array(g.positions);data.normals=new Float32Array(g.normals);data.uvs=new Float32Array(g.uvs);data.indices=g.count>65535?new Uint32Array(g.indices):new Uint16Array(g.indices);
    data.applyToMesh(mesh,false);if(lamps)mesh.setVerticesData('bakedLight',light(g,lamps),false,3);mesh.material=material;mesh.parent=node;mesh.isPickable=false;mesh.checkCollisions=false;mesh.metadata={stationKit:true,zone:g.zone};
-   if(material.alpha>=1)mesh.freezeWorldMatrix?.();meshes.push(mesh);}
+   if(fixed&&material.alpha>=1)mesh.freezeWorldMatrix?.();meshes.push(mesh);}
   node.metadata={stationKit:true,pieces,triangles,draws:meshes.length};return node;
  }
 
@@ -281,7 +282,7 @@
   if(!kit||!def?.rooms)return null;
   try{
    const set=materials(scene,def.id,quality),plan=interiorPlan(def).filter(p=>kit[p.key]&&(quality!=='low'||!/^(prop_|crate|drum|floor_grate|pilaster|hangar_ceil|porthole)/.test(p.key)));
-   const node=bake(scene,parent,plan,set.materials,'station-kit-interior',interiorLamps(def));
+   const node=bake(scene,parent,plan,set.materials,'station-kit-interior',interiorLamps(def),true);
    const hide=new Set(HIDDEN);for(const m of parent.getChildMeshes(true))if(hide.has(m.name))m.setEnabled(false);
    // Medium and High multiply the finished picture by 0.3 everywhere except the VR simulations (babylon-renderer.js sharpen.colorAmount; vr-core.js
    // puts it to 1 while a simulation runs; docs/development/VR_SESSIONS.md). Raising the exposure to make up for it (as Milked does) leaves white capped
@@ -306,7 +307,8 @@
    const cols=Math.max(1,Math.round(length/4)),rows=Math.max(1,Math.round(height/2)),cw=length/cols,rh=height/rows,yaw=yawFor[n],ax=n[1]==='x';
    for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){const t=-length/2+cw*(k+.5),y=c[1]-height/2+rh*r,v=rnd();
     const key=windows&&r>0&&r<rows-1+(rows<3?1:0)&&v<.62?(v<.3?'hull_d':'hull_e'):v<.5?'hull_a':v<.68?'hull_c':v<.84?'hull_b':'hull_a';
-    const w2=rnd();put(key,zone,ax?[c[0],y,c[2]+t]:[c[0]+t,y,c[2]],{yaw,s:[cw/4,rh/2,1],...(w2<.24?{swap:{st_hull:'st_hull_dark'}}:w2>.95?{swap:{st_hull:'st_hull_paint'}}:{})});
+    const w2=rnd(),inner=/-in$/.test(zone);     // a hangar's inside is the dark tone of the room the player then walks into
+    put(key,zone,ax?[c[0],y,c[2]+t]:[c[0]+t,y,c[2]],{yaw,s:[cw/4,rh/2,1],...(inner?{swap:{st_hull:w2>.9?'st_hull_paint':'st_hull_in'}}:w2<.24?{swap:{st_hull:'st_hull_dark'}}:w2>.95?{swap:{st_hull:'st_hull_paint'}}:{})});
     if(v>.93&&rh>1.6)put(['greeble_a','greeble_b','greeble_c'][Math.floor(rnd()*3)],zone+'-detail',ax?[c[0]+(n[0]==='+'?.1:-.1),y+.2,c[2]+t]:[c[0]+t,y+.2,c[2]+(n[0]==='+'?.1:-.1)],{yaw});}
   }
   function roof(zone,c,w,d,units,under=false){
@@ -331,7 +333,7 @@
   for(const g of design.hangars){const zone=g.id,own=occupied&&g.id==='H01';
    if(!own){clad(zone,[g.x,g.h/2-.2,g.z],[g.w+1.7,g.h+1.5,g.d+.8],{front:false,units:4});
     put('unit_deck',zone,[g.x,.02,g.z],{s:[g.w-1,1,g.d-1]});
-    face(zone+'-in',[g.x+g.w/2-.42,g.h/2,g.z],g.d-1,g.h,'-x');face(zone+'-in',[g.x-g.w/2+.42,g.h/2,g.z],g.d-1,g.h,'+x');face(zone+'-in',[g.x,g.h/2,g.z+g.d/2-.37],g.w-1,g.h,'-z');put('pad_ring',zone,[g.x,.03,g.z+2]);
+    face(zone+'-in',[g.x+g.w/2-.42,g.h/2,g.z],g.d-1,g.h,'-x');face(zone+'-in',[g.x-g.w/2+.42,g.h/2,g.z],g.d-1,g.h,'+x');face(zone+'-in',[g.x,g.h/2,g.z+g.d/2-.37],g.w-1,g.h,'-z');put('pad_ring',zone,[g.x,.03,g.z-4]);     // under the docking point
     for(let z=-g.d/2+5;z<g.d/2;z+=8)put('hangar_truss',zone,[g.x,g.h-.45,g.z+z],{s:[(g.w-1)/36,1,1]});
     for(const s of [-1,1])for(let z=-g.d/2+4;z<g.d/2-2;z+=8)put('hangar_rib',zone,[g.x+s*(g.w/2-.42),0,g.z+z],{yaw:yawFor[s>0?'-x':'+x'],s:[1,(g.h-.5)/9,1]});
     for(const [key,x,z,yaw] of [['crate_a',-13,8,0],['crate_b',-13.5,5.5,1.57],['crate_a',12.5,9,.3],['drum',11,9.5,0],['prop_container',13.5,3,-1.57],['prop_loader',9,-2,2.2]])put(key,zone,[g.x+x,0,g.z+z],{yaw});}
@@ -374,14 +376,35 @@
   try{
    const set=materials(scene,id,quality,{space:true}),full=exteriorPlan(root.VoidMeridian.design,{occupied}),exteriorLamps=full.lamps,plan=full.filter(p=>kit[p.key]&&(quality!=='low'||!/-detail$/.test(p.zone)&&!p.key.startsWith('prop_'))
     // from inside the station only the outer faces can be seen (through the windows and the hangar mouth): roofs, undersides and the other hangars' insides are left out
-    &&!(occupied&&(/-(detail|in)$/.test(p.zone)||/^(roof_plate|unit_deck|pad_ring|hangar_truss|hangar_rib|crate_|drum|prop_container|prop_loader|prop_generator)/.test(p.key))));
+    &&!(occupied&&(/-(detail|in)$/.test(p.zone)||/^H0[23]/.test(p.zone)||/^(roof_plate|unit_deck|pad_ring|hangar_truss|hangar_rib|crate_|drum|prop_container|prop_loader|prop_generator)/.test(p.key))));
    const node=bake(scene,parent,plan,set.materials,'station-kit-exterior',exteriorLamps);
    // Small fittings are dropped beyond 900 m, where they are smaller than a pixel.
-   for(const m of node.getChildMeshes())if(/-detail$/.test(m.metadata?.zone||''))m.addLODLevel(900,null);
-   node.onDisposeObservable.addOnce(()=>set.dispose());node.metadata={...node.metadata,identity:id};return node;
+   for(const m of node.getChildMeshes()){const z=m.metadata?.zone||'';if(/-detail$/.test(z))m.addLODLevel(900,null);else if(/-in$/.test(z))m.addLODLevel(650,null);}   // and a hangar's inside beyond 650 m
+   node.onDisposeObservable.addOnce(()=>set.dispose());node.metadata={...node.metadata,identity:id};
+   if(!occupied)node.metadata.docking=dockingGear(scene,node,set.materials,root.VoidMeridian.design.hangars[0],quality);
+   return node;
   }catch(error){console.warn('[VOID station kit] exterior dressing failed.',error.message);return null;}
  }
 
+ /* The moving parts of the hangar a ship docks in (H01): four clamp arms round the pad that close on the hull as it stops, and approach lights in
+    the deck that run from the mouth to the pad (amber while a ship is coming in, steady green once it is held, white as it leaves).
+    docking-flight.js calls update({time, clamp: 0 open..1 closed, state}) each frame of a flight. */
+ function dockingGear(scene,parent,mats,g,quality){
+  const B=root.BABYLON,pad=[g.x,0,g.z-4],clamps=[];
+  for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const n=bake(scene,parent,[{key:'dock_clamp',zone:'gear',p:[0,0,0],yaw:sx<0?Math.PI/2:-Math.PI/2}],mats,'station-kit-clamp');
+   n.position.set(pad[0]+sx*5.4,.03,pad[2]+sz*3.2);clamps.push({node:n,side:sx});}
+  const lights=[];{const rows=[];for(let z=g.z-g.d/2+1;z<pad[2]-5;z+=1.6)rows.push(z);
+   rows.forEach((z,i)=>{for(const x of [-3.4,3.4])lights.push({key:'guide_light',zone:'gear',p:[g.x+x,.03,z],yaw:0,swap:{st_light:'st_guide_'+(i%3)}});});
+   for(let x=-9;x<=9;x+=1.5)lights.push({key:'guide_light',zone:'gear',p:[g.x+x,.03,g.z-g.d/2-.9],yaw:0,swap:{st_light:'st_guide_'+(Math.abs(Math.round(x/1.5))%3)}});
+   bake(scene,parent,lights,mats,'station-kit-guides');}
+  const colours={idle:[.5,.36,.16],approach:[1,.62,.2],locked:[.25,1,.55],clear:[.9,.95,1]};
+  function update({time=0,clamp=0,state='idle'}={}){
+   for(const c of clamps)c.node.rotation.z=c.side*clamp*.62;                           // the arms lean in over the pad
+   const col=colours[state]||colours.idle,run=state==='approach'||state==='clear';
+   for(let i=0;i<3;i++){const m=mats['st_guide_'+i];if(!m)continue;const phase=((time*1.6-i/3)%1+1)%1,k=run?.18+.82*Math.pow(Math.max(0,1-phase*1.6),2):state==='idle'?.35:1;m.emissiveColor.set(col[0]*k,col[1]*k,col[2]*k);}
+  }
+  update();return {update,clamps:clamps.length,lights:lights.length};
+ }
  /* The derelict station (derelict-station.js) keeps its own structure, textures and encounter layout. This adds the kit's wall plating along its
     solid side walls, modelled crates where its plain freight and cover boxes stood (same footprints, same collision) and a little abandoned service
     gear, all in the worn 'derelict' finish and lit from that station's own lamps. */
@@ -400,7 +423,7 @@
    const colours={warm:[1,.62,.3],cold:[.5,.78,1],red:[1,.14,.12]};
    const bakeLamps=lamps.map(l=>({p:l.p,c:colours[l.color]||colours.warm,power:l.color==='red'?.9:1.5,range:l.color==='red'?8:13,soft:.4}));
    const set=materials(scene,'derelict',quality),plan=out.filter(p=>kit[p.key]&&(quality!=='low'||!p.key.startsWith('prop_')));
-   const node=bake(scene,parent,plan,set.materials,'station-kit-derelict',bakeLamps);
+   const node=bake(scene,parent,plan,set.materials,'station-kit-derelict',bakeLamps,true);
    node.onDisposeObservable.addOnce(()=>set.dispose());node.metadata={...node.metadata,identity:'derelict'};return node;
   }catch(error){console.warn('[VOID station kit] derelict dressing failed.',error.message);return null;}
  }

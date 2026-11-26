@@ -992,7 +992,7 @@
     spaceRoot.setEnabled(true);
     roomRoot?.setEnabled(false);
     const b = B(),
-      basis = snapshot.basis;
+      basis = root.VoidDockingFlight?.camera(snapshot.basis, snapshot.dt) || snapshot.basis; // docking and departure add a little inertia to the view (docking-flight.js)
     camera.position.set(0, 0, 0);
     camera.upVector.set(-basis.u.x, basis.u.y, -basis.u.z);
     camera.setTarget(vector(basis.f));
@@ -1029,7 +1029,8 @@
       // Keep the station's physical orientation and move through that opening.
       station.rotation.y=0;
       const approach=Math.max(0,Math.min(1,(snapshot.approach||0)/VoidWarp.config.approachSeconds));
-      station.position.set(0,-4,arrival?120-105*approach:1500-reveal*1380);
+      const dockPose=root.VoidDockingFlight?.stationPose(snapshot.route,Math.min(1,reveal)); // stations: the docking movement places the port (docking-flight.js)
+      if(dockPose)station.position.copyFrom(vector(dockPose));else station.position.set(0,-4,arrival?120-105*approach:1500-reveal*1380);
     } else if(atOrigin){station.rotation.y=Math.PI;station.position.copyFrom(vector(snapshot.departureStation || {x:0,y:4,z:-15}));}
     station.metadata?.arrays?.forEach((n,i)=>n.rotation.z=.14+Math.sin(snapshot.time*.015+i*.2)*.08);
     if(station.metadata?.doors)station.metadata.doors.forEach((d,i)=>d.position.x=(i?1:-1)*(5+10*(phase==='departure'?Math.min(1,(snapshot.route.departure||0)/1.2):1)));
@@ -1075,6 +1076,7 @@
       }
     // Weapon visuals (flight-fx.js): glowing bolts, missiles with motor flame and smoke, muzzle flashes. Without it, the old simple shapes.
     const fx = !!root.VoidFlightFx?.render({B: B(), scene, root: spaceRoot, vector, quality}, snapshot);
+    root.VoidDockingFlight?.render({B: B(), scene, root: spaceRoot, camera, quality}, snapshot);
     setPool('laser', fx ? [] : snapshot.bullets, '#75ffe0', .16);
     setPool('hostile', fx ? [] : snapshot.hostile, '#ff715f', .2);
     // Faction battle bolts: precise cyan Communion fire, heavier amber Natural Order bursts.

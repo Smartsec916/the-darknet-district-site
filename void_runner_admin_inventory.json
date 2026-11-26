@@ -61128,7 +61128,7 @@
       "spawn"
     ]
   },
-  "revision": "2ed80579bb7fb2be",
+  "revision": "1bf6820a7e3f598f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82178,8 +82178,8 @@
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "55012a61372b0fa09255f974494c1e69a343ea5bf7f2ebce5cd1c2eabd14116b",
-    "void-runner/babylon-renderer.js": "d7acbc88ef34d42d648767f7e60e4d34643580b34b2241d2774fc56060435be6",
+    "void-runner/babylon-integration.js": "1650d87955e576584e78d947d0120708e4bf830893b94815e8e744483c30d8c1",
+    "void-runner/babylon-renderer.js": "faa81bd742defa7c187f443b841ac01db3356193b6e8331d7b4e4b0e9cfa74d9",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -82203,7 +82203,7 @@
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
-    "void-runner/cockpit.js": "65de0d358af52a0c52f7a8d1dfc4d52a8e7a80b4475e3e74d4f088df8276214e",
+    "void-runner/cockpit.js": "ed71dfd3d9ca080bb4f1f9483c8af7ad355e53c5e7cc958c3b08ce1e4d9da304",
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "8a5b96a575cba8c867929a18c96209767a53bdd61e53e21f8af9b0596a96a743",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
@@ -82430,8 +82430,8 @@
     "void-runner/sound-studio-runtime.js": "4dc408d955f1e7efc8d46dbae5fbbcbba7dfceb30a958d1aa26396feab11e66b",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
-    "void-runner/station-kit.js": "45607402aaa5a16740eddccee587808ad57dc36ea3cf38f58ccb7fa9872a1963",
-    "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",
+    "void-runner/station-kit.js": "eb1df0abe38814d48c6488bd45b0895c1a6a84710d386465570ce9d58b7981ac",
+    "void-runner/station-layouts.js": "81b1ef3520524cd81c3a3a31cc9595c2d55e28d8733c882bcd5f8a2f448a5158",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
@@ -82469,7 +82469,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "de2e7f9290ac3c785ff9410ec69ebca226133a3c058f23586ecf2269afd15197",
+    "void-runner/world-integration.js": "689f35bb9f7026a54dddb6460e8be1452ba463cc1a4c361c54d94880eee5db7c",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",

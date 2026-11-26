@@ -29,7 +29,7 @@ to fit, flat box ceilings, emissive strips for lamps, box furniture; eight real 
 ## What was built
 
 ### The kit (Blender, by code)
-`tools/assets/station-kit/build_station_kit.py` (run with the `bpy` package, Blender 5.3) builds **63 pieces, 32,806 triangles**, into ONE file,
+`tools/assets/station-kit/build_station_kit.py` (run with the `bpy` package, Blender 5.3) builds **65 pieces, 32,188 triangles**, into ONE file,
 `void-runner/assets/models/station-kit/station-kit.glb` (2.3 MB, no pictures inside). Pieces are metric, bevelled, and name shared materials.
 
 - **Walls:** `wall_low` (kick plate, framed panels, rail), `wall_mid_a..e` (plate, vent and pipe, service hatch, wall console, ribbed with a paint band),
@@ -121,10 +121,10 @@ NeoChinatown and everything else are untouched. To undo it: remove `||globalThis
 
 | | Before | After |
 |---|---|---|
-| Triangles in view, hangar | 1,646,154 | 2,118,578 |
-| Triangles in view, corridor | 1,521,700 | 1,831,886 |
-| Triangles in view, hall | 853,784 | 772,504 |
-| Meshes in view (hangar / corridor / hall) | 439 / 355 / 217 | 440 / 336 / 188 |
+| Triangles in view, hangar | 1,646,154 | 1,652,194 (2,118,578 before the optimisation pass) |
+| Triangles in view, corridor | 1,521,700 | 1,727,810 |
+| Triangles in view, hall | 853,784 | 772,900 |
+| Meshes in view (hangar / corridor / hall) | 439 / 355 / 217 | 376 / 319 / 176 |
 | Station load, dock to walking | 12.0 s | 13.0 s |
 | New download, first visit | (old kits: 5.1 MB interior + 2.1 MB hull + 2.6 MB panel picture) | 2.3 MB pieces + 6.5 MB pictures + 6.6 MB props (Medium and above) |
 | Hull in space: triangles / meshes | 330,000 / about 70 | 570,000 / 130 |
@@ -158,8 +158,16 @@ Tests: `tests/station-kit.test.cjs`. Bump `BUILD` in `void-runner-sw.js` after a
 - The derelict keeps its own older floor and ceiling textures; only its solid walls, crates and some gear are new.
 - The hull cladding repeats five plate types; from very close the repetition is visible.
 
+## Optimisation pass (26 Nov 2026, after the owner asked for it)
+
+- The most numerous pieces lost their modelled fasteners (the textures carry them): `hull_a` 272 → 112 triangles, `wall_low` 682 → 522, `hangar_panel_a` 660 → 340, `hangar_rib` 920 → 720, `roof_plate` 140 → 80, `hull_b` 496 → 340.
+- The hull in flight: 796,000 → 570,000 triangles, 232 → 130 meshes. A hangar's inside is dropped beyond 650 m and small fittings beyond 900 m.
+- On foot, the other two hangars, every roof and underside and all small hull fittings are not built at all (they cannot be seen from inside).
+- The walkable interior kit: 429,000 → 384,000 triangles.
+- One GPU texture per picture per scene (was one per material: 270 textures in a station scene, now 119; 66 before the overhaul).
+
+Docking and departure: `docs/development/STATION_DOCKING.md`.
+
 ## State
 
-Pushed as branch `claude/station-graphics-overhaul` (26 Nov 2026). **Not merged to `main` and not deployed**: it has not been seen on a real
-graphics card, and the brightness decision above is the owner's. `npm test` passes (2,066 pass, 0 fail, 3 skipped). The Python save tests could
-not be run in the build session (no `flask`); no Python file changed.
+Merged to `main` and deployed on 26 Nov 2026 with the owner's go-ahead (he approved the full brightness range aboard stations and will test on the ROG Ally Extreme). `npm test` passes. The Python save tests could not be run in the build session (no `flask`); no Python file changed.
