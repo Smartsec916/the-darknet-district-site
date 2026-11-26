@@ -162,22 +162,34 @@
  }
  function all(s,C){
   if(!s?.universe)return [];
-  return Object.entries(records(s)).filter(([id,entry])=>entry?.acquired&&live(s,id)).map(([id,entry])=>{
+  const encounter=root.VoidEncounterGame?.journal?.();
+  const missions=Object.entries(records(s)).filter(([id,entry])=>entry?.acquired&&live(s,id)).map(([id,entry])=>{
    const def=description(s,C,id),objectives=def.objectives.map(objective=>({...objective,complete:entry.objectives?.[objective.id]===true}));
    // A finished objective can move the goal (a delivery returns the player to the District).
    const stage=Object.entries(def.after||{}).filter(([key])=>entry.objectives?.[key]===true).map(([,next])=>next).pop();const pendingStep=def.objectives.find(o=>o.required!==false&&entry.objectives?.[o.id]!==true);
    const complete=entry.completed===true||!tutorials.includes(id)&&objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
    const destination=stage?.destination?stage.destination:pendingStep?.destination?pendingStep.destination:id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
-   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,...(pendingStep?.place?{place:pendingStep.place}:{}),...(pendingStep?.target?{target:pendingStep.target}:{}),...(pendingStep?.apt?{apt:pendingStep.apt}:{}),...(pendingStep?.made?{made:pendingStep.made}:{}),objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
+   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,...(pendingStep?.place?{place:pendingStep.place}:{}),...(pendingStep?.target?{target:pendingStep.target}:{}),...(pendingStep?.apt?{apt:pendingStep.apt}:{}),...(pendingStep?.made?{made:pendingStep.made}:{}),objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:!encounter?.tracked&&s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
   });
+  return encounter?[...missions,encounter]:missions;
  }
  function active(s,C){sync(s,C);return all(s,C).filter(mission=>!mission.completed);}
  function tracked(s,C){return active(s,C).find(mission=>mission.tracked)||null;}
- function track(s,id,C){sync(s,C);if(!all(s,C).some(mission=>mission.id===id&&!mission.completed))return false;s.universe.trackedMission=id;s.universe.trackingInitialized=true;s.universe.autoTrack=true;return true;}
- function untrack(s){s.universe.trackedMission=null;s.universe.trackingInitialized=true;s.universe.autoTrack=false;}
+ function track(s,id,C){
+  sync(s,C);
+  if(!all(s,C).some(m=>m.id===id&&!m.completed))return false;
+  const encounter=root.VoidEncounterGame?.journal?.();
+  if(encounter){
+   root.VoidEncounterGame.setTracked(id===encounter.id);
+   if(id===encounter.id)return true;
+  }
+  s.universe.trackedMission=id;s.universe.trackingInitialized=true;s.universe.autoTrack=true;return true;
+ }
+ function untrack(s){root.VoidEncounterGame?.setTracked?.(false);s.universe.trackedMission=null;s.universe.trackingInitialized=true;s.universe.autoTrack=false;}
  // Station terminals that teach each First Station step.
  const stationTerminal={shipInventory:'maintenance',hangar:'maintenance',moduleInstalled:'maintenance',purchasedInstalled:'maintenance',vendor:'services',modulePurchased:'services'};
  function guidance(s,mission,inside){if(!mission||mission.completed)return null;
+  if(mission.type==='encounter')return inside?{kind:'encounter',label:mission.objective}:null;
   const pending=mission.objectives.find(objective=>objective.required!==false&&!objective.complete)||mission.objectives.find(objective=>!objective.complete);
   if(mission.id==='meet-rook'&&inside&&s.location==='meridian')return {kind:'local',label:mission.objective,interaction:mission.interaction};
   if(mission.id==='ground-training')return pending?{kind:'instruction',label:pending.label}:null;

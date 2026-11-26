@@ -87,7 +87,7 @@
   if(!running)return;
   running.controller.abort(new DOMException('Encounter stopped','AbortError'));
   for(const obj of running.owned)obj.dispose?.();
-  running.panel?.remove();running=null;
+  running.panel?.remove();running=null;root.dispatchEvent?.(new Event('void-encounter-journal'));
  }
  function panel(run){
   if(!run.panel){
@@ -223,7 +223,7 @@
   const info=run.private?{name:"Kade and Lace's Apartment Key",position:run.graph.dropPosition,range:run.graph.pickupDistance,model:keyModel}:
    await root.VoidConsumableGame.request('chance-encounters/drop',{id:run.graph.id,run:run.token});
   const card=await model(run,'encounter-key',info.model||keyModel);
-  const at=info.position,plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
+  const at=run.dropPosition=info.position,plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
   const scene=root.VoidBabylon.scene,ray=new (B().Ray)(new (B().Vector3)(at.x,.65,at.z),B().Vector3.Down(),1.2);
   const ground=scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&/sidewalk|paving|asphalt|road|city-ground/i.test(m.material?.name||m.name));
   const surface=ground?.hit?ground.pickedPoint.y:0;
@@ -413,7 +413,7 @@
   let first=true;
   while(sequence.node){
    run.signal.throwIfAborted();
-   const node=sequence.node;let choice;
+   const node=run.node=sequence.node;root.dispatchEvent?.(new Event('void-encounter-journal'));let choice;
    if(node.kind==='move')await walk(run);
    if(node.kind==='item'){await drop(run);await pickupReceipt(run);}
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
@@ -442,7 +442,7 @@
  async function begin(graph,start,privateTest,token){
   stop();const controller=new AbortController();
   const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
-  running=run;
+  run.tracked=true;running=run;
   try{await runGraph(run,start);}finally{if(running===run)stop();}
  }
  async function playtest(graph,start){
@@ -508,7 +508,27 @@
   }catch(e){console.warn('[Chance encounters]',e.message);}finally{checking=false;}
  }
  setInterval(opportunities,2000);
- root.VoidEncounterGame={playtest,stop,playerStep(w){
+ function journal(){
+  if(!running?.node)return null;
+  return {id:'encounter:'+running.graph.id,title:running.graph.name,type:'encounter',objective:running.node.name,objectives:[],completed:false,tracked:running.tracked};
+ }
+ function waypoint(){
+  const run=running,loc=typeof walkingLocation!=='undefined'&&walkingLocation;
+  if(!run?.tracked||!loc||loc.id!=='neochinatown')return null;
+  let position,quarter=run.graph.playtest.quarter;
+  if(run.holds&&run.graph.residence){
+   const a=address(run);
+   if(loc.part==='hall'||loc.part==='flat'){
+    const exit=loc.interactions.find(i=>i.id===(loc.part==='hall'?(loc.street===a.door.id?'hall-door-'+a.slot:'hall-exit'):'apt-exit'))?.position;
+    position=loc.inst===a.target&&run.lace?run.lace.parent.position.asArray():exit;
+   }else{position=[a.door.x,1,a.door.z];quarter=a.door.quarter;}
+  }else if(run.node?.kind==='item'){
+   const drop=run.dropPosition||run.graph.dropPosition;if(drop)position=[drop.x,.1,drop.z];
+  }else if(run.actor)position=run.actor.parent.position.asArray();
+  else position=[run.graph.playtest.x,1,run.graph.playtest.z];
+  return position?{position,quarter,key:'encounter:'+run.graph.id+'|'+run.node.id,label:run.node.name,encounter:true}:null;
+ }
+ root.VoidEncounterGame={playtest,stop,journal,waypoint,setTracked(value){if(running)running.tracked=value;},playerStep(w){
    const pov=running?.pov;if(!pov||pov.w!==w||walkingLocation?.inst!==pov.inst||pov.head.isDisposed())return false;
    pov.head.computeWorldMatrix(true);const eye=pov.head.getAbsolutePosition();w.x=eye.x;w.y=eye.y+.06;w.z=eye.z;return true;
   },hidesResident:id=>running?.graph.residence?.character===id,get privateSession(){return document.getElementById('dev-test-banner')?.dataset.kind==='encounter';},

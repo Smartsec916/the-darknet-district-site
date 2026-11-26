@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "f75b37424f37616a",
+  "revision": "19cc946466eaf825",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80624,67 +80624,67 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 250,
+      "line": 255,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('inbox','INBOX',ib?unreadText(ib):'')+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 256,
+      "line": 261,
       "text": "return tabs+(people.length?'<h2>CONVERSATIONS</h2>'+people.map(id=>'<button type=\"button\" class=\"pd-card pd-thread\" data-thread=\"'+esc(id)+'\"><b>'+esc(String(contactName(id)).toUpperCase())+'</b><span class=\"pd-note\">'+esc(last(id)||'Open the conversation')+'</span></button>').join('')+'<h2>INBOX</h2>':'')+'<div class=\"pd-note\">Messages sent to your V1. No reply is needed.</div>'+(list.length?list.map(m=>'<article class=\"pd-card pd-inmsg'+(m.read?'':' unread')+'\" data-inbox=\"'+esc(m.id)+'\"><div class=\"pd-msg-h\"><b>'+esc(m.header)+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class=\"pd-inmsg-text\">'+esc(m.text)+'</div>'+(m.title?'<div class=\"pd-note\">'+esc(m.title)+'</div>':'')+'</article>').join(''):'<div class=\"pd-empty\">No messages yet.</div>');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 259,
+      "line": 264,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 265,
+      "line": 270,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 386,
+      "line": 391,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 448,
+      "line": 453,
       "text": "if(t.dataset.thread){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox',t.dataset.thread],'tab','OPENING CONVERSATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 449,
+      "line": 454,
       "text": "if(t.dataset.attachOpen){attach={picking:true,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 450,
+      "line": 455,
       "text": "if(t.dataset.attachPhoto){attach={picking:false,photo:t.dataset.attachPhoto,text:'',sending:false};render({keepScroll:true});setTimeout(()=>body?.querySelector('[data-attach-form] input')?.focus(),0);return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 451,
+      "line": 456,
       "text": "if(t.dataset.attachCancel){attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 487,
+      "line": 492,
       "text": "function back(){if(stack[0]==='messages'&&stack[2]){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox'],'tab','LOADING');return true;}   // a conversation goes back to the list",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 572,
+      "line": 577,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -82855,6 +82855,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/world-integration.js",
+      "line": 357,
+      "text": "const guideColor=goal.encounter?{rgb:'46,230,207',ink:'#082e31',text:'#8effee'}:MISSION_YELLOW;",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/world-markers.js",
       "line": 32,
       "text": "const at=(action,text,away)=>here(action)?{text,target:action}:{text:away||text+' (at any station)'};",
@@ -82918,6 +82924,12 @@
       "source": "void-runner/world-markers.js",
       "line": 48,
       "text": "{id:'travel',title:'Travelling between systems',steps:()=>({text:'Track a mission with a destination (L). In flight, turn toward the yellow navigation marker and hold the nose on it to jump.'})}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/world-markers.js",
+      "line": 60,
+      "text": "const goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,Y=goal?.encounter?{hex:'#2ee6cf',text:'#8effee'}:globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());",
       "kind": "source-reference"
     },
     {
@@ -83034,7 +83046,7 @@
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
     "void-runner/chance-encounter-editor.js": "86a7506ea93bf3581447a5849bc1d2bf5734a17ec3659dac38db7898eb058c7d",
-    "void-runner/chance-encounter-game.js": "8a982f810db9c2f156263bd096b7beb9ea9bb3a42804507a6d19197aeb109ee5",
+    "void-runner/chance-encounter-game.js": "77a5817844ebb39be95ff059fed7dfbc98624e542aecc5967385e740fcb9b3a0",
     "void-runner/chance-encounter.js": "ff1adbb4e752fbeb47f30c617fc319797081870501ce17728c6c3baa50219723",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -83172,7 +83184,7 @@
     "void-runner/mission-editor.js": "36e68bcfd3eba300c6abaeea0ae1e7a281007b51bd2594b5feb8d5c7c192f871",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
-    "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
+    "void-runner/mission-log.js": "4d6fb498b6ebb3777c5cd5807c6ee293b82a61403ff51206cb261e0658dbc936",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
     "void-runner/mission-mechanics-game.js": "703b07439b7671f0fe5225738680fdf631af08dda6cbcfd52150a4b97b4e150f",
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
@@ -83237,8 +83249,8 @@
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/ordnance.js": "058611efdb6a6db1ea6a10da24c0362207cc447c29c47642c61c58eac236b8f3",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
-    "void-runner/personal-device.js": "c8f0574cf46a07cab0de40b566c0cc4566ba4f8c9afb3a88647c0818f7262d1f",
-    "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
+    "void-runner/personal-device.js": "f1d9d66becd050cb1b0d8e3a74f7b43c863a4e805aa5e6ca975fb233bc69d309",
+    "void-runner/personal-hud.js": "a9126fc52339462d86eb60228b6fbfe96deb02b57df991b13e57514b486d6be5",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/pixel-neon.js": "aae90fd7f715bb3fb67fcbc035feab4f8b0728f0bbe0a37ddfd05f905d0db232",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
@@ -83316,9 +83328,9 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "689f35bb9f7026a54dddb6460e8be1452ba463cc1a4c361c54d94880eee5db7c",
+    "void-runner/world-integration.js": "cf01bf47ad5a234908e2d6855616c48d57f4ef050eba12eca25249da8df7b49e",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
-    "void-runner/world-markers.js": "3dba1da3c1185202094a79af64afeb52bd160e98ff03f25648b22eef1e78b523",
+    "void-runner/world-markers.js": "f17910789108dd2e67b5e108dbfbdb1e3e063f5a864955e821f501572b99f2f1",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",
