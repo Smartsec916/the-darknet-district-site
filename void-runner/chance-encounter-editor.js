@@ -143,11 +143,16 @@
      onDrag:(_,x,z)=>updateStart({x,z}),onFacing:(_,yaw)=>updateStart({yaw})});
     setup.append(map.el);
    });
+   const motions=element('datalist');motions.id='encounter-lace-motions';host.append(motions);
+   const clipNames=new Set([...(root.VoidCrowd?.clips?.['npc-lib-eb1d6cc8']||[]),
+    g.placement?.clip,...(g.dialogue||[]).map(line=>line.animation),
+    'sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return']);
+   for(const id of clipNames){if(id){const option=element('option');option.value=id;option.label=root.VoidAnimLibrary?.clip?.(id)?.title||id;motions.append(option);}}
    if(g.residence&&g.placement){
     const placement=element('details');placement.append(element('summary','Apartment placement and animation'));host.append(placement);
     for(const [key,label] of [['x','East / west'],['y','Floor offset'],['z','North / south'],['yaw','Facing (radians)'],['scale','Character scale']])
      field(placement,label,input(g.placement[key],v=>{g.placement[key]=v;mark();},'number'));
-    field(placement,'Apartment animation',input(g.placement.clip,v=>{g.placement.clip=v;mark();}));
+    field(placement,'Apartment animation',input(g.placement.clip,v=>{g.placement.clip=v;mark();})).setAttribute('list',motions.id);
     field(placement,'Player first-person animation',input(g.roleplayClip,v=>{g.roleplayClip=v;mark();}));
     const room=g.nodes.find(n=>n.kind==='location');
     if(room)placement.append(button('Preview in apartment',()=>launch(room.id)));
@@ -223,10 +228,11 @@
      }
      const audio=element('output',line.recording?'Recorded':'No recording');
      for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['tags','Delivery tags'],['delay',line.id.startsWith('lace_wait_')?'Wait before this line (seconds)':'Delay (seconds)'],['animation','Animation']])
-      field(row,label,input(line[key],v=>{
+      {const control=field(row,label,input(line[key],v=>{
        if(key==='text'||key==='speaker'){delete line.recording;audio.textContent='No recording';}
        line[key]=v;mark();
       },key==='delay'?'number':'text'));
+       if(key==='animation')control.setAttribute('list',motions.id);}
      for(const [key,label] of [['repeatSpeech','Repeat spoken line until canceled'],['repeatAnimation','Repeat animation until canceled']]){
       const toggle=element('input');toggle.type='checkbox';toggle.checked=line[key]===true;
       toggle.onchange=()=>{line[key]=toggle.checked;mark();};field(row,label,toggle);

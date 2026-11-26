@@ -41,8 +41,20 @@
   const all=figure.made.metadata.animationGroups||[];
   const clip=all.find(g=>g.name.toLowerCase().endsWith('-'+name));
   if(!clip)throw Error('The assigned animation is unavailable: '+name);
+  if(figure.returnToPose){
+   const {group,observer}=figure.returnToPose;
+   group.onAnimationGroupEndObservable.remove(observer);figure.returnToPose=null;
+  }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
-  clip.start(loop);return clip;
+  clip.start(loop);
+  if(!loop&&name==='sz-tiedbf-look-back-return'){
+   const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
+    figure.returnToPose=null;
+    if(!figure.parent.isDisposed())play(figure,'sz-tiedbf');
+   });
+   figure.returnToPose={group:clip,observer};
+  }
+  return clip;
  }
  async function assignedClip(figure,look,name,signal,loop=true){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
@@ -409,10 +421,11 @@
   }
   standing(run.lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
   run.lace.parent.scaling.setAll(placement.scale);
-  const posed=await assignedClip(run.lace,laceLook,placement.clip);
+  const transition=['sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip);
+  const posed=await assignedClip(run.lace,laceLook,placement.clip,run.signal,!transition);
   posed.goToFrame(posed.from);
   groundPose(run.lace,anchor[1],bedEdge);
-  if(placement.clip==='sz-tiedbf')run.rope=addWristRope(run.lace);
+  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace);
   await lines(run,'arrival','opening');
  }
  async function releaseLace(run){
