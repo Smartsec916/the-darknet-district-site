@@ -58,7 +58,7 @@ test('mission hints use the arrow yellow from one place',()=>{
  const G=require(R('void-runner/guide-route.js'));
  assert.equal(G.COLOR.rgb,'255,214,120');assert.equal(G.COLOR.hex,'#ffd678');
  const wi=src('void-runner/world-integration.js');
- assert.match(wi,/const MISSION_YELLOW=VoidGuideRoute\.COLOR;/);assert.match(wi,/ctx\.fillStyle='rgba\('\+MISSION_YELLOW\.rgb\+','/);assert.match(wi,/setProperty\('--mission-yellow',MISSION_YELLOW\.hex\)/);
+ assert.match(wi,/const MISSION_YELLOW=VoidGuideRoute\.COLOR;/);assert.equal(G.ENCOUNTER_COLOR.hex,'#2ee6cf');assert.match(wi,/goal\.encounter\?VoidGuideRoute\.ENCOUNTER_COLOR:MISSION_YELLOW/);assert.match(wi,/ctx\.fillStyle='rgba\('\+guideColor\.rgb\+','/);assert.match(wi,/setProperty\('--mission-yellow',MISSION_YELLOW\.hex\)/);
  const mg=src('void-runner/mission-guide.js');assert.doesNotMatch(mg,/#ffc35c|#ff9f2e|#ffe08a|#f2b33d/);assert.match(mg,/color:var\(--mission-yellow/);
  const wm=src('void-runner/world-markers.js');assert.doesNotMatch(wm,/#ffd23f|#f2b33d/);
  const css=src('void-runner/device-v1.css');assert.match(css,/\.pd-app\.pd-goal::after\{[^}]*var\(--mission-yellow/);assert.match(css,/\.pd-goalhint\{[^}]*color:var\(--mission-yellow/);assert.match(css,/:not\(#pd-callpill\)/);

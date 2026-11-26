@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "19cc946466eaf825",
+  "revision": "97dfc6d0e498be01",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75367,6 +75367,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/guide-route.js",
+      "line": 279,
+      "text": "const ENCOUNTER_COLOR={rgb:'46,230,207',hex:'#2ee6cf',text:'#8effee',ink:'#082e31'};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/hangar.js",
       "line": 14,
       "text": "const rookMissileLine={who:'rook',text:'Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track.'};",
@@ -82855,12 +82861,6 @@
       "kind": "source-reference"
     },
     {
-      "source": "void-runner/world-integration.js",
-      "line": 357,
-      "text": "const guideColor=goal.encounter?{rgb:'46,230,207',ink:'#082e31',text:'#8effee'}:MISSION_YELLOW;",
-      "kind": "source-reference"
-    },
-    {
       "source": "void-runner/world-markers.js",
       "line": 32,
       "text": "const at=(action,text,away)=>here(action)?{text,target:action}:{text:away||text+' (at any station)'};",
@@ -82924,12 +82924,6 @@
       "source": "void-runner/world-markers.js",
       "line": 48,
       "text": "{id:'travel',title:'Travelling between systems',steps:()=>({text:'Track a mission with a destination (L). In flight, turn toward the yellow navigation marker and hold the nose on it to jump.'})}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/world-markers.js",
-      "line": 60,
-      "text": "const goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,Y=goal?.encounter?{hex:'#2ee6cf',text:'#8effee'}:globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());",
       "kind": "source-reference"
     },
     {
@@ -83147,7 +83141,7 @@
     "void-runner/game.js": "600ab5014edde3fc0591d9b6ccdc02c52eb4938d6c8743d2826ed4685ef43738",
     "void-runner/glb-downsizer.js": "b306d69bdbcb49713e9f6ee4eb2f8ae640c6962a492ac8ddfad23121d33df507",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
-    "void-runner/guide-route.js": "644184de23777f5addd84e92d4848206807f285ae7a7592cd694fe49377a17f1",
+    "void-runner/guide-route.js": "db25a16dadf6c3ee3d43f311417c6eba988fedf137c6580e6a396c1ef31bdf60",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
@@ -83328,9 +83322,9 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "cf01bf47ad5a234908e2d6855616c48d57f4ef050eba12eca25249da8df7b49e",
+    "void-runner/world-integration.js": "247fded21fa6531c4c0d9b2c03583b9b2d7e0599cb0f138b13a80d3725050e02",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
-    "void-runner/world-markers.js": "f17910789108dd2e67b5e108dbfbdb1e3e063f5a864955e821f501572b99f2f1",
+    "void-runner/world-markers.js": "65ce71e34220ac5640678aa939c595b5233bd9a353a4ca58e1d758f30955d2c4",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",

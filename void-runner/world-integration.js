@@ -354,7 +354,7 @@ function drawMissionWaypoint(){
  ctx.save();ctx.globalAlpha=o.alpha;ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
  // Ring sits below the crosshair so a goal straight ahead is pointed at near floor level.
  ctx.translate(W*.5+Math.sin(angle)*r,H*.7-Math.cos(angle)*r);ctx.rotate(angle);
- const guideColor=goal.encounter?{rgb:'46,230,207',ink:'#082e31',text:'#8effee'}:MISSION_YELLOW;
+ const guideColor=goal.encounter?VoidGuideRoute.ENCOUNTER_COLOR:MISSION_YELLOW;
  ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba('+guideColor.rgb+','+(.6+.35*pulse)+')';ctx.strokeStyle=guideColor.ink;ctx.lineWidth=3;
  ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
  ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle=guideColor.text;ctx.fillText(label,0,32);

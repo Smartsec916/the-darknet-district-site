@@ -57,7 +57,7 @@
  function label(x,y,text,color){ctx.save();ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.shadowColor='#000';ctx.shadowBlur=6;ctx.fillStyle=color;ctx.fillText(text,x,y);ctx.restore();}
   function drawMarkers(){
   if(mode!=='walking'||!walker||!walkingLocation?.interactions){card.hidden=true;return;}
-  const goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,Y=goal?.encounter?{hex:'#2ee6cf',text:'#8effee'}:globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());
+  const goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,Y=goal?.encounter?VoidGuideRoute.ENCOUNTER_COLOR:globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());
   for(const item of walkingLocation.interactions){
    const p=item.visualPosition||item.position,d=Math.hypot(p[0]-walker.x,p[2]-walker.z),person=!!item.character;
    const isGoal=goal&&(goal===item||(goal.position[0]===item.position[0]&&goal.position[2]===item.position[2])),isGuide=step?.target&&(item.action===step.target||item.id===step.target);
