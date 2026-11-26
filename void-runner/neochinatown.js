@@ -996,7 +996,9 @@
        const desired=visit?Math.min(length,.95*Math.min(visit.elapsed,visit.remaining)):0;
        const old=p.visitorDistance||0;
        if(desired>0||old>0){
-        const d=old+Math.max(-dt*1.25,Math.min(dt*1.25,desired-old)),q=pathAt(path,d);
+        // Streamed-in booth players join the same visit clock as Pixel.
+        // A scene opened halfway through the visit already has a clear booth.
+        const d=visit?desired:Math.max(0,old-dt*1.25),q=pathAt(path,d);
         const moving=Math.abs(old-d)>1e-6,clip=moving?'walk':d>0?'watch':'idle';
         if(clip!==p.visitorClip){p.c.play(p.c.has(clip)?clip:'idle');p.visitorClip=clip;}
         p.node.position.x=q.x;p.node.position.z=q.z;
