@@ -244,12 +244,34 @@ def interaction_problems(table, givers=None, places=None):
     return errors
 
 
+def _pixel_vr_valid(config):
+    def between(value, low, high):
+        return type(value) in (int, float) and low <= value <= high
+    bounds = dict(x=(-13, -12), z=(32, 33), yaw=(-180, 180), duration=(50, 300), fade=(.05, 2))
+    if not isinstance(config, dict) or not all(between(config.get(k), *limits) for k, limits in bounds.items()):
+        return False
+    sequences = config.get('sequences')
+    if not isinstance(sequences, list) or not 1 <= len(sequences) <= 12:
+        return False
+    names = ('cowgirlf', 'rodeof', 'teddyf', 'bananaf', 'missf', 'pgf', 'doggyf', 'doubleactf1')
+    for s in sequences:
+        if not isinstance(s, dict) or type(s.get('weight')) is not int or not 0 <= s['weight'] <= 100:
+            return False
+        if not between(s.get('speed'), .25, 2) or not isinstance(s.get('clips'), list):
+            return False
+        if not 1 <= len(s['clips']) <= 16 or not all(c in names for c in s['clips']):
+            return False
+    return any(s['weight'] for s in sequences)
+
+
 def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'interactions', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'pixelVR', 'interactions', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
+    if 'pixelVR' in content and not _pixel_vr_valid(content['pixelVR']):
+        err('Check the Pixel VR sequence settings.')
     if 'rookFreight' in content:
         import void_runner_freight as freight
         missions = _json('void-runner/save-manifest.json')['storyMissions']
@@ -3097,7 +3119,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight') or content.get('pixelVR')):
         raise DraftError('There is nothing to publish.', 422)
     missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
     if missing:
