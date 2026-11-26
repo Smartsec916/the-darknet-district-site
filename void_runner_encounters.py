@@ -43,7 +43,10 @@ def validate(graph):
         raise DraftError('Set the playtest starting position.')
     if not _num(start.get('yaw',0),-100,100) or not _num(start.get('pitch',0),-1.5,1.5) or not _num(start.get('delaySeconds'),0,300):
         raise DraftError('Check the starting view and delay.')
-    if graph['id'] == 'dropped-cardkey':
+    if graph.get('item') or graph.get('residence'):
+        residence = graph.get('residence')
+        if not isinstance(residence, dict) or not identifier(residence.get('character')):
+            raise DraftError('Choose the resident who owns the apartment.')
         point = graph.get('dropPosition')
         if not isinstance(point, dict) or point.get('quarter') != 'oldtown' or not all(_num(point.get(k), -100000, 100000) for k in ('x', 'z')):
             raise DraftError('Choose a keycard drop position in Old Town.')
@@ -51,6 +54,21 @@ def validate(graph):
             raise DraftError('Pickup distance must be between 0.5 and 5 metres.')
         if not identifier(graph.get('item')):
             raise DraftError('Choose an Items & Vendors keycard.')
+        placement = graph.get('placement')
+        if not isinstance(placement, dict) or not all(_num(placement.get(k), -100, 100) for k in ('x','y','z','yaw')) or not _num(placement.get('scale'), .1, 5):
+            raise DraftError('Check the apartment position, facing and scale.')
+        if not identifier(placement.get('clip')) or not identifier(graph.get('roleplayClip')):
+            raise DraftError('Choose an apartment and a roleplay animation.')
+    dialogue = graph.get('dialogue', [])
+    if not isinstance(dialogue, list) or len(dialogue) > 100:
+        raise DraftError('Use up to 100 dialogue lines.')
+    labels = set()
+    for line in dialogue:
+        if not isinstance(line, dict) or not isinstance(line.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9_]{0,63}', line['id']) or line['id'] in labels:
+            raise DraftError('Each dialogue line needs a distinct ID.')
+        labels.add(line['id'])
+        if not identifier(line.get('speaker')) or not _plain(line.get('text'), 1000) or not _num(line.get('delay', 0), 0, 300):
+            raise DraftError('Check the speaker, line and delay for '+line['id']+'.')
     nodes = graph.get('nodes')
     if not isinstance(nodes, list) or not 1 <= len(nodes) <= 128:
         raise DraftError('An encounter needs 1 to 128 nodes.')

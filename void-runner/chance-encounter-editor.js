@@ -82,6 +82,15 @@
     catch(e){message.textContent=e.message;}
    };
    bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
+   if(record().live){
+    const live=record().live;
+    bar.append(button('Play published version',async()=>{
+     try{
+      sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
+      await root.VoidEncounterGame.playtest(structuredClone(live),live.start);
+     }catch(e){message.textContent=e.message;}
+    }));
+   }
    message.textContent=status||(dirty?'Unsaved draft':record().liveRevision?'Published revision '+record().liveRevision:'Draft');host.append(message);
    const props=element('div');props.className='dev-fields';host.append(props);
    field(props,'Name',input(g.name,v=>{g.name=v;mark();}));
@@ -117,6 +126,23 @@
      onDrag:(_,x,z)=>updateStart({x,z}),onFacing:(_,yaw)=>updateStart({yaw})});
     setup.append(map.el);
    });
+   if(g.residence&&g.placement){
+    const placement=element('details');placement.append(element('summary','Apartment placement and animation'));host.append(placement);
+    for(const [key,label] of [['x','East / west'],['y','Floor offset'],['z','North / south'],['yaw','Facing (radians)'],['scale','Character scale']])
+     field(placement,label,input(g.placement[key],v=>{g.placement[key]=v;mark();},'number'));
+    field(placement,'Apartment animation',input(g.placement.clip,v=>{g.placement.clip=v;mark();}));
+    field(placement,'Optional Kade animation',input(g.roleplayClip,v=>{g.roleplayClip=v;mark();}));
+    const room=g.nodes.find(n=>n.kind==='location');
+    if(room)placement.append(button('Preview in apartment',()=>launch(room.id)));
+   }
+   if(g.item){
+    const prop=element('details');prop.append(element('summary','Dropped keycard'));host.append(prop);
+    field(prop,'Items & Vendors item ID',input(g.item,v=>{g.item=v;mark();}));
+    field(prop,'Pickup distance (metres)',input(g.pickupDistance,v=>{g.pickupDistance=v;mark();},'number'));
+    for(const [key,label] of [['x','Street X'],['z','Street Z']])
+     field(prop,label,input(g.dropPosition[key],v=>{g.dropPosition[key]=v;mark();},'number'));
+    const drop=g.nodes.find(n=>n.kind==='item');if(drop)prop.append(button('Preview keycard drop',()=>launch(drop.id)));
+   }
    if(g.dialogue?.length){
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);
     for(const line of g.dialogue){
