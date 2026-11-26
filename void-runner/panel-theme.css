@@ -1,0 +1,25 @@
+/* Shared frame for information surfaces. Keep children's text, icons and focus rings opaque.
+   Paint the homepage rail and corner details as backgrounds so they never cover controls. */
+body :is(.panel, .card, .side-panel, .opening-card, .room-caption, .dialogue-window,
+  .tea-duo-choices, .social-dialogue, .social-message, .talk-offer,
+  .hud-card, .settings-panel, .km-panel, .expansion-panel, .gear-card, .ord-card,
+  .pd-card, .pd-panel, .vr-card, .dt-panel, .me-mission-panel, .npc-card,
+  .companion-card, .companion-preview-panel, .eh-card, .eh-toast, .pc-toast,
+  #chance-interaction, #guidance-card, #tutorial-prompt, #milked-studio-request-panel,
+  #zone-toast, #notice:not(:empty), #shop-here, #police-hail, #resume-hint, .dt-frame,
+  .companion-guide, .cs-card, .pc-frame, .pd-frame, [role="dialog"], dialog),
+#screen.conversation-live .dialogue-window:has(.talk-menu) {
+  background:
+    linear-gradient(#61eee9, #61eee9) left 12px top 3px / 30px 2px,
+    linear-gradient(#61eee9, #61eee9) left 2px top 12px / 2px 12px,
+    linear-gradient(#d56cba, #d56cba) right 4px top 4px / 8px 2px,
+    linear-gradient(#d56cba, #d56cba) right 4px top 4px / 2px 8px,
+    linear-gradient(#428f97, #428f97) right 14px bottom 3px / 26px 2px,
+    rgba(12, 27, 35, .89) !important;
+  background-repeat: no-repeat !important;
+  border: 1px solid #38808b;
+  border-radius: 0;
+  animation: none !important;
+  transition: none !important;
+}
+
