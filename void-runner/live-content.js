@@ -439,13 +439,16 @@
     let step;
     const remote=root.VoidRemotePlayers;
     if(remote?.connected&&remote.features?.npcDialogue&&!env.draft){
-     const present=members.filter(id=>near.has(id)&&lines[id].length);
+     // Conversation identity and speaker order belong to the published group, not each listener's view.
+     const speakers=members.filter(id=>lines[id].length);
+     const present=speakers.filter(id=>near.has(id));
      if(present.length<2)continue;
-     const key=[walkingLocation.quarter||walkingLocation.area||'world',group.id,members.map(id=>present.includes(id)?1:0).join('')].join(':');
+     const key=[walkingLocation.quarter||walkingLocation.area||'world',group.id,members.map(id=>speakers.includes(id)?1:0).join('')].join(':');
      const turn=remote.npcTurn(key,group.cooldown);
      if(!turn)continue;
-     const speaker=present[turn.turn%present.length],pool=lines[speaker];
-     step={speaker,line:pool[Math.floor(turn.turn/present.length)%pool.length],poses:Object.fromEntries(present.map(id=>[id,id===speaker?'talk':'idle'])),finish:()=>remote.endNpcTurn(turn)};
+     const speaker=speakers[turn.turn%speakers.length],pool=lines[speaker];
+     if(!near.has(speaker)){remote.endNpcTurn(turn);continue;}
+     step={speaker,line:pool[Math.floor(turn.turn/speakers.length)%pool.length],poses:Object.fromEntries(present.map(id=>[id,id===speaker?'talk':'idle'])),finish:()=>remote.endNpcTurn(turn)};
     }else step=A.groupStep(groupCoordinator,{id:group.id,members,order:group.order,cooldownMs:group.cooldown*1000,lines,index:groupIndex,near,hold:true});
     if(!step.line)continue;
     const giver=env.givers.find(g=>g.id===step.speaker),who=giver?.say||step.speaker,now=Date.now();

@@ -276,6 +276,7 @@
     line, the V1's highlighted app and call-bar cue. In CSS: var(--mission-yellow) / --mission-yellow-rgb / --mission-yellow-text / --mission-yellow-ink
     (set on the page root by world-integration.js). Non-mission UI keeps its own colours. */
  const COLOR={rgb:'255,214,120',hex:'#ffd678',text:'#ffe7a8',ink:'#1a1206'};
- const api={COLOR,TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,corporate,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
+ const ENCOUNTER_COLOR={rgb:'46,230,207',hex:'#2ee6cf',text:'#8effee',ink:'#082e31'};
+ const api={COLOR,ENCOUNTER_COLOR,TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,corporate,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
  if(node)module.exports=api;else root.VoidGuideRoute=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

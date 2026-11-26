@@ -24,7 +24,7 @@ class ChanceTests(unittest.TestCase):
         self.assertNotIn('live', self.edit('save',0))
         self.assertEqual(self.edit('publish',1)['liveRevision'],2)
         self.graph['name']='Changed draft'
-        self.assertEqual(self.edit('save',2)['live']['name'],'The Dropped Cardkey')
+        self.assertEqual(self.edit('save',2)['live']['name'],'Pleasure Breach')
         with self.assertRaises(encounters.DraftError):
             self.edit('publish',2)
         self.graph['nodes'][0]['edges'][0]['to']='missing'
@@ -73,3 +73,16 @@ class ChanceTests(unittest.TestCase):
         self.assertFalse(encounters.outcome(self.db,self.uid,dict(request,outcome='rescued'))['duplicate'])
         self.assertFalse(encounters.resume(self.db,self.uid,self.graph['id'])['active'])
         self.assertFalse(encounters.opportunity(self.db,self.uid,{'id':self.graph['id'],'position':pos})['active'])
+
+    def test_expiry_uses_playtime_even_when_key_has_been_dropped(self):
+        identity = self.graph['id']
+        ref = self.db.collection('vr_encounter_runs').document(items._tag(self.uid+'/'+identity))
+        self.db.data[ref.key] = {'run':'test-run','stage':'collected','drop':{'id':'card'},'connectedUntil':120}
+        bag = items._player_ref(self.db,self.uid)
+        self.db.data[bag.key] = {'connectedClock':{'total':119}}
+        self.assertFalse(encounters.resume(self.db,self.uid,identity).get('expired'))
+        self.assertEqual(self.db.data[ref.key]['stage'],'collected')
+        self.db.data[bag.key]['connectedClock']['total'] = 120
+        self.assertTrue(encounters.resume(self.db,self.uid,identity)['expired'])
+        self.assertEqual(self.db.data[ref.key]['outcome'],'expired')
+        self.assertTrue(encounters.resume(self.db,self.uid,identity)['expired'])

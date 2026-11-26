@@ -518,7 +518,7 @@ def move_card(db, uid, body, minute=None):
                 run = run_ref.get(transaction=tx).to_dict() or {}
                 if run.get('stage') != 'dropped' or (run.get('drop') or {}).get('id') != card_id:
                     raise DraftError('The encounter pickup has already been claimed.', 409)
-                tx.set(run_ref, dict(run, stage='collected'))
+                tx.set(run_ref, dict(run, stage='collected', connectedUntil=card['connectedUntil']))
             tx.delete(drop_ref)
         else:
             tick_inventory(db, uid, player, tx, minute)

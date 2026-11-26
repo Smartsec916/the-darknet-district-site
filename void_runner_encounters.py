@@ -130,6 +130,10 @@ def catalog(db, developer=False):
     entries = []
     for snapshot in refs(db).stream():
         record = snapshot.to_dict()
+        for version in ('live', 'draft'):
+            graph = record.get(version) or {}
+            if graph.get('id') == 'dropped-cardkey' and graph.get('name') == 'The Dropped Cardkey':
+                record[version] = dict(graph, name='Pleasure Breach')
         if developer:
             entries.append(record)
         elif record.get('live', {}).get('enabled'):
@@ -200,11 +204,38 @@ def outcome(db, uid, body):
     return finish(db.transaction())
 
 
+def retire_expired(db, tx, uid, ref, record):
+    if record.get('stage') != 'collected':
+        return False
+    bag = items._clean_player(items._player_ref(db, uid).get(transaction=tx).to_dict())
+    deadline = record.get('connectedUntil')
+    if deadline is None:
+        card_id = record['drop']['id']
+        card = bag['cards'].get(card_id)
+        if not card:
+            dropped = db.collection('vr_keycard_drops').document(card_id).get(transaction=tx).to_dict() or {}
+            card = dropped.get('card') or {}
+        deadline = card.get('connectedUntil')
+    if deadline is None or bag.get('connectedClock', {}).get('total', 0) < deadline:
+        return False
+    tx.set(ref, dict(record, finished=True, stage='finished', outcome='expired'))
+    return True
+
+
 def resume(db, uid, identity):
+    from firebase_admin import firestore
     if not identifier(identity):
         raise DraftError('Choose an encounter.')
     ref = db.collection('vr_encounter_runs').document(items._tag(uid+'/'+identity))
-    record = ref.get().to_dict() or {}
+    @firestore.transactional
+    def current(tx):
+        record = ref.get(transaction=tx).to_dict() or {}
+        if retire_expired(db, tx, uid, ref, record):
+            return dict(record, stage='finished', outcome='expired')
+        return record
+    record = current(db.transaction())
+    if record.get('outcome') == 'expired':
+        return {'active': False, 'expired': True, 'run': record['run']}
     if record.get('stage') != 'collected' or not record.get('drop'):
         return {'active': False}
     player = items.timed_inventory(db, uid, None)
@@ -243,6 +274,8 @@ def opportunity(db, uid, body):
         if sum((position[k]-origin[k])**2 for k in ('x','z')) > cond.get('radius', 20)**2:
             return {'active': False}
         record = ref.get(transaction=tx).to_dict() or {}
+        if retire_expired(db, tx, uid, ref, record):
+            return {'active': False}
         if record.get('stage') in ('activated', 'dropped', 'collected'):
             return {'active':True, 'run':record['run'], 'stage':record['stage']}
         if record.get('finished') and not cond.get('repeatable'):

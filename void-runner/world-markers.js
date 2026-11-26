@@ -57,7 +57,7 @@
  function label(x,y,text,color){ctx.save();ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.shadowColor='#000';ctx.shadowBlur=6;ctx.fillStyle=color;ctx.fillText(text,x,y);ctx.restore();}
   function drawMarkers(){
   if(mode!=='walking'||!walker||!walkingLocation?.interactions){card.hidden=true;return;}
-  const Y=globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());
+  const goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,Y=goal?.encounter?VoidGuideRoute.ENCOUNTER_COLOR:globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());
   for(const item of walkingLocation.interactions){
    const p=item.visualPosition||item.position,d=Math.hypot(p[0]-walker.x,p[2]-walker.z),person=!!item.character;
    const isGoal=goal&&(goal===item||(goal.position[0]===item.position[0]&&goal.position[2]===item.position[2])),isGuide=step?.target&&(item.action===step.target||item.id===step.target);
@@ -65,7 +65,7 @@
    const sp=project(p,person?2.35:2.15);if(!sp)continue;const r=Math.max(7,Math.min(13,180/Math.max(d,1)));
    if(isGuide){const pulse=.5+.5*Math.sin(t*5);ctx.save();ctx.strokeStyle='rgba(127,240,255,'+(.55+.4*pulse)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sp.x,sp.y,r+8+pulse*4,0,Math.PI*2);ctx.stroke();ctx.restore();label(sp.x,sp.y-r-14,'GUIDE · '+VoidUnits.fmtDist(d),'#7ff0ff');}
    if(isGoal){const route=globalThis.VoidGuideRoute?.live;if(route?.final){diamond(sp.x,sp.y,r+2,Y.hex,'');label(sp.x,sp.y+r+16,VoidUnits.fmtDist(route.length),Y.hex);}}
-   else if(person&&hasWork(item))diamond(sp.x,sp.y,r,Y.hex,'!');
+   else if(person&&hasWork(item))diamond(sp.x,sp.y,r,VoidGuideRoute.COLOR.hex,'!');
    // The quiet name tags that used to float over shops, pods and terminals (PODS, SHOP, VENDING...) are gone (the owner, Nov 2026: floating text near objects read as asset tags). The interaction prompt still names a thing when you are close enough to use it.
   }
   // Guidance card.
