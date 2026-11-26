@@ -72,6 +72,7 @@
    }else travel(path);
    for(const travelLeg of legs.slice(firstTravel)){
     travelLeg.next=nextPlace.kind;
+    travelLeg.leader=decision?.entry.lines[0].speaker;
     if(decision){
      const at=legs[firstTravel-1].start+decisionAt-travelLeg.start;
      if(at<0&&-at<shared.duration(decision.entry)){travelLeg.decision=decision;travelLeg.decisionAt=at;}
@@ -85,7 +86,7 @@
   }
   const sample=seconds=>{
    const t=((seconds%total)+total)%total,leg=legs.find(s=>t<s.end),elapsed=t-leg.start;
-   const intention={activityEnd:leg.activityEnd??leg.end-leg.start,nextActivity:leg.next||null,decision:leg.decision||null,decisionAt:leg.decisionAt??null,legStart:seconds-elapsed};
+   const intention={leader:leg.leader,activityEnd:leg.activityEnd??leg.end-leg.start,nextActivity:leg.next||null,decision:leg.decision||null,decisionAt:leg.decisionAt??null,legStart:seconds-elapsed};
    if(leg.path){
     const distance=elapsed*life.SPEED,len=(leg.end-leg.start)*life.SPEED;
     const width=Math.min(.42,distance,len-distance),point=d=>life.along(leg.path,d);
@@ -185,7 +186,7 @@
    completed:p.elapsed>30,elapsed:p.elapsed,remaining:p.remaining-(solo?.bar?15:0)};
   const decision=p.decision,scheduled=decision?.entry;
   const beatTime=p.elapsed-p.decisionAt;
-  const reserved=!!scheduled&&beatTime>=-1&&beatTime<shared.duration(scheduled)+.5;
+  const reserved=!!scheduled&&shared.contextFits(scheduled,decision.rule,ctx)&&beatTime>=-1&&beatTime<shared.duration(scheduled)+.5;
   const slot=shared.slotStart(ctx);
   const key=[Math.round(p.legStart),Math.round(slot*2),venue,admin,ctx.iris,ctx.split,ctx.approaching,ctx.observer].join('|');
   if(key!==slotKey){
@@ -223,6 +224,10 @@
    const ease=approach*approach*(3-2*approach);
    const lateral=side*(.32-.20*ease);
    f.node.position.x=w[0]+Math.cos(yaw)*lateral;f.node.position.z=w[1]-Math.sin(yaw)*lateral;
+   if(p.kind==='district'&&people[p.leader]){
+    const lead=(id===p.leader?1:-1)*.12*Math.min(1,p.elapsed,p.remaining);
+    f.node.position.x+=Math.sin(yaw)*lead;f.node.position.z+=Math.cos(yaw)*lead;
+   }
    f.heading=yaw-side*Math.PI/2*ease;
    if(pose){
     const pos=root.VoidNeoChinatown.toWorld(pose.x,pose.z);f.node.position.x=pos[0];f.node.position.z=pos[1];f.heading=pose.yaw+Math.PI;

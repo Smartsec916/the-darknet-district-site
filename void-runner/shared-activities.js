@@ -25,11 +25,14 @@
   }
   return visits;
  }
- function eligible(entry,rule,ctx){
-  if(rule.destination||rule.from&&rule.from!==ctx.venue||!entry.locations.includes(ctx.venue))return false;
+ function contextFits(entry,rule,ctx){
   if(((rule.requires??(entry.requiresAdminNearby?'admin':''))==='admin')&&!ctx.admin)return false;
   if(rule.requires==='iris'&&!ctx.iris||rule.requires==='pixel-in-vr'&&!ctx.split||rule.requires==='observer'&&!ctx.observer)return false;
   if(ctx.split&&!entry.lines.every(l=>l.speaker==='neon'||l.speaker==='bartender'))return false;
+  return true;
+ }
+ function eligible(entry,rule,ctx){
+  if(rule.destination||rule.from&&rule.from!==ctx.venue||!entry.locations.includes(ctx.venue)||!contextFits(entry,rule,ctx))return false;
   if(ctx.approaching&&rule.phase!=='general')return false;
   if(rule.phase==='after'&&(!ctx.completed||ctx.remaining>40))return false;
   if(rule.phase==='before'&&ctx.elapsed>20)return false;
@@ -80,6 +83,6 @@
    (v.agreement===undefined||Number.isInteger(v.agreement)&&v.agreement>=0&&v.agreement<32)&&
    (v.delay===undefined||Number.isFinite(v.delay)&&v.delay>=0&&v.delay<=30));
  }
- const api={gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
+ const api={contextFits,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidSharedActivities=api;
 })(globalThis);
