@@ -61,7 +61,7 @@
  function entries(){const g=S().givers||[],out=[];
   for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',made:!!x.made,group:x.made?'made':mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
   for(const [id,character] of Object.entries(root.VoidLiveContent?.current?.content?.characters||{})){
-   if(id.startsWith('imp-')&&!out.some(row=>row.id===id))out.push({id,name:character.name,kind:'published',group:'made',look:character.model});
+   if((id.startsWith('imp-')||character.residence)&&!out.some(row=>row.id===id))out.push({id,name:character.name,kind:'published',group:'made',look:character.model});
   }
   for(const look of Object.keys(root.VoidCrowd?.street||{}))out.push({id:'crowd:'+look,name:'Street figure '+look.replace(/^npc-/,''),kind:'crowd',group:'crowd',look});
   {const C=root.VoidCrowd||{},seen=new Set([...(C.prepared||[]).map(p=>p.asset),...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
@@ -448,7 +448,7 @@
    catch(err){delete residence.dataset.ready;residenceStatus.textContent=err.message;}
   });
   residence.append(residenceStatus);box.append(residence);
-  if(id.startsWith('imp-')){
+  if(id.startsWith('imp-')||c.residence){
    const note=el('p','','me-small',{role:'status'});
    box.append(btn('Publish world NPC changes',async()=>{
     if(!root.confirm('Publish '+c.name+' and their placement for all players?'))return;

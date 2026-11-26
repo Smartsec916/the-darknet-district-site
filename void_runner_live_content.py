@@ -2880,10 +2880,12 @@ def _ordinary_world(content):
     chars = chars if isinstance(chars, dict) else {}
     plans = plans if isinstance(plans, dict) else {}
     for npc, character in chars.items():
-        if not isinstance(npc, str) or not npc.startswith('imp-') or npc not in plans:
+        resident = isinstance(character, dict) and isinstance(character.get('residence'), dict)
+        if not isinstance(npc, str) or not (resident or npc.startswith('imp-') and npc in plans):
             continue
-        trial = dict(ordinary, characters={**ordinary.get('characters', {}), npc: character},
-                     npcs={**ordinary.get('npcs', {}), npc: plans[npc]})
+        trial = dict(ordinary, characters={**ordinary.get('characters', {}), npc: character})
+        if npc in plans:
+            trial['npcs'] = {**ordinary.get('npcs', {}), npc: plans[npc]}
         if not check(trial):
             ordinary = trial
     interactions = content.get('interactions')
@@ -2998,21 +3000,36 @@ def publish(db, uid, payload):
     if _keys(payload, ['expected', 'worldNpc']) and 'worldNpc' in payload:
         edit = payload['worldNpc']
         if (not isinstance(edit, dict) or set(edit) != {'id', 'character', 'placement'}
-                or not isinstance(edit['id'], str) or not re.fullmatch(r'imp-[0-9a-f-]{36}', edit['id'])
-                or not isinstance(edit['character'], dict) or not isinstance(edit['placement'], dict)):
+                or not isinstance(edit['id'], str) or not MADE_ID.fullmatch(edit['id'])
+                or not isinstance(edit['character'], dict)
+                or edit['placement'] is not None and not isinstance(edit['placement'], dict)):
             raise DraftError('Invalid world NPC edit.', 422)
         npc = edit['id']
 
         def update_world_npc(tx, live, history):
             record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}
-            previous = record.get('content') or {}
+            previous = record.get('content') or {'format': FORMAT, 'version': 1}
             old = (previous.get('characters') or {}).get(npc)
-            if not old or old.get('model') != edit['character'].get('model'):
-                raise DraftError('Publish the imported NPC first. Its permanent model must match.', 409)
-            content = dict(previous, characters={**previous['characters'], npc: edit['character']},
-                           npcs={**(previous.get('npcs') or {}), npc: edit['placement']})
-            standalone = {'format': FORMAT, 'version': 1, 'characters': {npc: edit['character']}, 'npcs': {npc: edit['placement']}}
+            character = edit['character']
+            home = character.get('residence')
+            if old is None:
+                if not isinstance(home, dict) or npc in (previous.get('npcs') or {}):
+                    raise DraftError('Choose a residence for this new world NPC.', 409)
+            elif old.get('model') != character.get('model'):
+                raise DraftError('The permanent model must match the published NPC.', 409)
+            content = dict(previous, characters={**(previous.get('characters') or {}), npc: character})
+            standalone = {'format': FORMAT, 'version': 1, 'characters': {npc: character}}
+            plans = dict(previous.get('npcs') or {})
+            if edit['placement'] is None:
+                plans.pop(npc, None)
+            else:
+                plans[npc] = edit['placement']
+                standalone['npcs'] = {npc: edit['placement']}
+            if plans or 'npcs' in previous:
+                content['npcs'] = plans
             problems = check(standalone)
+            if len(content['characters']) > _json('void_runner_admin_inventory.json')['madeCharacters']['limits']['characters'] or len(plans) > 20:
+                problems.append('The world NPC limit has been reached.')
             if not problems and not check(previous):
                 problems = check(content)
             if problems or len(json.dumps(content).encode('utf-8')) > MAX_BYTES:
