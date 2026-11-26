@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "achievements": [
+    { "id": "first-delivery", "name": "First Shift", "description": "Complete your first delivery.", "icon": "truck" },
+    { "id": "deliveries-10", "name": "Regular Worker", "description": "Complete 10 deliveries.", "stat": "deliveries", "target": 10, "icon": "calendar-check" },
+    { "id": "deliveries-30", "name": "Company Lifer", "description": "Complete 30 deliveries.", "stat": "deliveries", "target": 30, "icon": "badge-check" },
+    { "id": "clean-5", "name": "Spotless Record", "description": "Make 5 deliveries without a collision or a red light.", "stat": "clean_deliveries", "target": 5, "icon": "shield-check" },
+    { "id": "ontime-10", "name": "Punctual", "description": "Make 10 deliveries before the countdown runs out.", "stat": "ontime_deliveries", "target": 10, "icon": "stopwatch" },
+    { "id": "long-haul", "name": "Long Haul", "description": "Drive 20 km on deliveries.", "stat": "meters", "target": 20000, "icon": "road" },
+    { "id": "dock-master", "name": "Back It In", "description": "Reverse your trailer into the department store dock.", "icon": "steering-wheel" },
+    { "id": "rent-covered", "name": "Rent Covered", "description": "Finish all ten working days.", "icon": "flag-checkered" },
+    { "id": "model-worker", "name": "Model Worker", "description": "Finish all ten days without a single collision or red light.", "icon": "trophy-star", "secret": true }
+  ]
+}

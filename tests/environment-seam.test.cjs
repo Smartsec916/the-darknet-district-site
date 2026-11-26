@@ -10,7 +10,7 @@ test('every interaction and solid belongs to exactly one of street, district or 
 test('the interior owns the District interactions, plus the terrace stairs',()=>{
  const g=group(L.interactions);
  assert.deepEqual(g.street.filter(i=>!/^milked-/.test(i)).sort(),['board','terminal']);
- assert.deepEqual(g.district.sort(),['admin','admin-ordnance','district-arcade-blackout','district-arcade-hotel','district-arcade-overdrive','district-arcade-soon-north','district-arcade-zombies','district-bar','district-iris','district-meeting','district-pod','district-pod-02','district-pod-03','district-pod-04','district-pod-05','district-pod-06','district-pod-07','district-pod-08','district-pod-09','district-pod-10','district-shop','district-shop-here','district-stairs','district-vending','district-vr','district-wardrobe','kiosk-entrance','kiosk-far-1','kiosk-far-2','vend-dispensary','vend-drinks','vend-neurohackers']);
+ assert.deepEqual(g.district.sort(),['admin','admin-ordnance','district-arcade-blackout','district-arcade-hotel','district-arcade-metashift','district-arcade-overdrive','district-arcade-zombies','district-bar','district-iris','district-meeting','district-pod','district-pod-02','district-pod-03','district-pod-04','district-pod-05','district-pod-06','district-pod-07','district-pod-08','district-pod-09','district-pod-10','district-shop','district-shop-here','district-stairs','district-vending','district-vr','district-wardrobe','kiosk-entrance','kiosk-far-1','kiosk-far-2','vend-dispensary','vend-drinks','vend-neurohackers']);
  assert.deepEqual(g.terrace,['district-stairs-down']);
 });
 test('solids split 54 district, 3 terrace, 31 street (+61 Milked; the city blocks are cut differently since Far South and The Outskirts opened)',()=>{

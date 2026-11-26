@@ -60597,7 +60597,7 @@
       "spawn"
     ]
   },
-  "revision": "19237e41683a0b6a",
+  "revision": "8394bdfabe708e06",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81628,7 +81628,7 @@
   "warnings": [],
   "sources": {
     "void-runner/account.js": "3d25e4ace5843cbd501bf7525f8f8ae3d0e45dc29de6701194012ae844cb0cac",
-    "void-runner/achievements.js": "3a44ec55663a40473f107997c8ec67fe3b001cfc6e4ca40d5a983526a96fe88b",
+    "void-runner/achievements.js": "5135c8857ba795e90b6151168c44eb1eb2a75b4a27a2a3536827b04aee4cb74f",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
     "void-runner/ad-screens.js": "5792c93ef49ad52000b82b2a8e73e216d1d1430e1e111f1db295b83d8f5ab944",
@@ -81705,13 +81705,13 @@
     "void-runner/device-gate.js": "69755eb313451dfdc5b9079e21610d4d6283c3142336aa345edd2733e8f07598",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
     "void-runner/device-v1.js": "4fb198cb4b873819aa7b1224780b4bb23c11431983c59b44cd5504d5c08375d5",
-    "void-runner/district-arcade.js": "454e312bdeb4c7393d0e61b66ffd501b32a496a013e60308d6b27a4fe32e9726",
+    "void-runner/district-arcade.js": "d87ede7efe30433b77f2bd3db5ae0e44ce7e03714d56e37d5e9f784ca9586208",
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
-    "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
+    "void-runner/district-life.js": "b6066c74a9dfa84b5e6badf2f853057f88f86e0230498641d639717d88797904",
     "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
-    "void-runner/district-people.js": "8bbb7424c4ef8a1b8118875cb895a910b4d78c437f1bd69ffbcb2010a8ef40da",
-    "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
+    "void-runner/district-people.js": "14bc80f15ded29f9dc47f4976387d7866bc6aed60322f2356e7b3865407012d7",
+    "void-runner/district-rooms.js": "03178692e6f969a25be4447aa8197758da8ab527b9921d21e02a7e493fa0850c",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "bcee4f8653c2baa33a52e08db57485e618c3ba8e6fb2616f78efbe78dd5d04be",
     "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
@@ -81822,7 +81822,7 @@
     "void-runner/ncz-street-pair.js": "bf31f9b97a84b58d05b9e80631aed093b868a8952f074a6d5db2b1f03003471f",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
-    "void-runner/neochinatown.js": "5a9f04601c4430c7de97afd52dff17541123a79d1fcbf738c604620473234bdf",
+    "void-runner/neochinatown.js": "441c9b2597b10e4e3168706b0299bb956aa839b998763920c42d832cd6b43b15",
     "void-runner/network.js": "5740953eccbbd9dd90568ebb040d3847bc02b0270c7f78c397c4239993395307",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
@@ -81854,7 +81854,7 @@
     "void-runner/personal-device.js": "c8f0574cf46a07cab0de40b566c0cc4566ba4f8c9afb3a88647c0818f7262d1f",
     "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/pixel-neon.js": "e0c7cc5be821fc4c75f646417824b0385733c42395b19dd1e0f4b56a4498eba7",
+    "void-runner/pixel-neon.js": "d7163b1280bf39a734bab150f9a32e03ed893ee549045ec685ae68ade4983bbd",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",

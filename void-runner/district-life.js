@@ -21,7 +21,7 @@
  const CLIPS={arcade:['interact','watch','idle'],store:['look','watch','idle'],bar:['drink','talk','idle'],oxygen:['idle','talk']};
  const cab=i=>({kind:'arcade',label:'The arcade',at:[-8.75,58.6+i*1.7],face:[-9.9,58.6+i*1.7],door:62,via:[[-3.4,62],[-6.2,62],[-6.2,58.6+i*1.7]]});
  const PLACES=[
-  cab(0),cab(1),cab(2),cab(3),cab(4),
+  cab(0),cab(2),cab(3),cab(4),
   {kind:'store',label:'The Darknet District store',at:[7.4,44.6],face:[7.4,42.6],door:45.6,via:[[3.4,45.6],[7.4,45.6]]},
   {kind:'store',label:'The Darknet District store',at:[11.2,45.7],face:[11.2,48],door:45.6,via:[[3.4,45.6]]},
   {kind:'store',label:'The Darknet District store',at:[13.6,45.6],face:[15.8,45.6],door:45.6,via:[[3.4,45.6]]},
@@ -40,7 +40,7 @@
  /* One resident's round `n` (a whole number): at home, to a first place, to a second, home again. Two residents are never sent to the same first place or
     the same second place in one round (the places are dealt out, not drawn). */
  function round(id,n){
-  const k=WHO.indexOf(id),home=HOMES[id],N=PLACES.length,first=(Math.floor(rnd(n,11)*N)+k*2)%N;let second=(Math.floor(rnd(n,23)*N)+k*2+5)%N;if(second===first)second=(second+1)%N;
+  const k=WHO.indexOf(id),home=HOMES[id],N=PLACES.length,first=(Math.floor(rnd(n,11)*N)+k*5)%N;let second=(Math.floor(rnd(n,23)*N)+k*5+5)%N;if(second===first)second=(second+1)%N;
   const A=PLACES[first],B=PLACES[second],steps=[];let t=0;
   const stay=(place,index,seconds,hold)=>{steps.push({kind:hold?'home':'stay',place:index,start:t,end:t+seconds,mask:!hold&&place.kind==='bar'&&rnd(n,400+k*7+index)<.5});t+=seconds;};
   const walk=(a,b,to)=>{const path=route(a,b),time=length(path)/SPEED;steps.push({kind:'walk',to,start:t,end:t+time,path});t+=time;};

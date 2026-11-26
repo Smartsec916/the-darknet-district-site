@@ -2,8 +2,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),A=require('../void-runner/district-arcade.js');
 const interior=N.layout('interior'),local=p=>N.toWorld(p[0],p[2]);
-test('a small room: five cabinets, four playable, and every playable game has a page',()=>{
- assert.equal(N.arcade.length,5);const playable=N.arcade.filter(c=>c.playable);assert.deepEqual(playable.map(c=>c.game),['hotel-headshots','blackout-protocol','corporate-zombies','underground-overdrive']);
+test('a small room: five playable cabinets, and every playable game has a page',()=>{
+ assert.equal(N.arcade.length,5);const playable=N.arcade.filter(c=>c.playable);assert.deepEqual(playable.map(c=>c.game),['metashift','hotel-headshots','blackout-protocol','corporate-zombies','underground-overdrive']);
  for(const c of playable){assert(A.GAMES[c.game],c.game+' is registered as playable');assert(fs.existsSync(A.GAMES[c.game].page),'its page exists: '+A.GAMES[c.game].page);}
  assert.equal(new Set(N.arcade.map(c=>c.game)).size,5,'five different games');assert.equal(new Set(N.arcade.map(c=>c.id)).size,5);
 });
@@ -17,7 +17,7 @@ test('the prompts: each playable cabinet has its own, standing on open floor in 
  for(const c of N.arcade.filter(c=>c.playable)){const p=interior.interactions.find(i=>i.action==='district-arcade'&&i.game===c.game);assert(p,c.game);const [px,pz]=local(p.position);assert(Math.hypot(px-c.x,pz-c.z)<1.6,c.game);assert(!E.blocked(p.position[0],p.position[2],interior),c.game);assert(A.GAMES[c.game]&&fs.existsSync(A.GAMES[c.game].page),c.game+' page exists');}
  const play=interior.interactions.find(i=>i.id==='district-arcade-blackout'),cab=N.arcade.find(c=>c.game==='blackout-protocol'),[lx,lz]=local(play.position);
  assert.equal(play.action,'district-arcade');assert.equal(play.game,'blackout-protocol');assert(!E.blocked(play.position[0],play.position[2],interior));assert(Math.hypot(lx-cab.x,lz-cab.z)<1.6,'the prompt is at the playable cabinet');
- const soon=interior.interactions.filter(i=>i.action==='district-arcade-soon');assert.equal(soon.length,1);for(const i of soon){assert.match(i.label,/COMING SOON/);assert(!E.blocked(i.position[0],i.position[2],interior));}
+ const soon=interior.interactions.filter(i=>i.action==='district-arcade-soon');assert.equal(soon.length,0);for(const i of soon){assert.match(i.label,/COMING SOON/);assert(!E.blocked(i.position[0],i.position[2],interior));}
 });
 test('the cabinet runs the real game page in a frame and never reaches into it; the script ships in both copies of the page',()=>{
  const src=fs.readFileSync('void-runner/district-arcade.js','utf8');assert.match(src,/createElement\('iframe'\)/);assert.doesNotMatch(src.replace(/\/\*[\s\S]*?\*\//g,''),/contentDocument|postMessage|localStorage/);

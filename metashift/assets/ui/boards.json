@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "boards": [
+    { "board": "total-shift-time", "order": "asc", "label": "Fastest ten-day shift",
+      "format": "duration_ms", "icon": "truck", "min": 60000, "max": 86400000 }
+  ]
+}
