@@ -41,6 +41,7 @@
   }
   return {clip:'idle'};
  }
+ const modelFile=id=>(id==='npc-pixel'||id==='npc-neon')?'assets/models/crowd/'+id+'.vrpak':null;
  function makeRoute(life,config=vrDefaults){
   const legs=[];let total=0;
   function travel(points){
@@ -235,7 +236,7 @@
    const assets=root.VoidAssets;
    await Promise.all(Object.keys(people).map(id=>{
     const key='crowd:npc-'+id;
-    return assets.container(key)||assets.load(key,{src:'assets/models/crowd/npc-'+id+'.vrpak',background:true},target);
+    return assets.container(key)||assets.load(key,{src:modelFile('npc-'+id),background:true},target);
    }));
    if(!inside()||target!==root.VoidBabylon.scene||target.isDisposed)return;
    scene=target;
@@ -288,7 +289,7 @@
    }
   });
  }
- root.VoidPixelNeon={previewVR,validVR,vrDefaults,clipIds:Object.keys(vrLengths),get ready(){return figs.size===2;},get boothVisit(){
+ root.VoidPixelNeon={modelFile,previewVR,validVR,vrDefaults,clipIds:Object.keys(vrLengths),get ready(){return figs.size===2;},get boothVisit(){
   if(!scene||!inside())return null;
   const p=route(Date.now()/1000+(root.VoidDistrictLife.offset||0));return p.kind==='vr'?p:null;
  },get activity(){return visit;}};

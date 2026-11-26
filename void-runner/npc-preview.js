@@ -46,7 +46,7 @@
    return {triangles:Math.round(tri),bytes:bytes|0,textures,bones,rest,clips:groups.map(g=>g.name.split('-').pop()===g.name?g.name:g.name),height:Number.isFinite(max.y-min.y)?max.y-min.y:NaN,min,max};}
   function frame(){const i=info;if(!i||!Number.isFinite(i.height))return;const h=i.height;const s=h>0&&(h<1.3||h>2.3)?1.75/h:1;if(placement&&s!==1)placement.scaling.setAll(s);snapFloor();viewCenter=new B.Vector3(0,Math.min(1.2,h*s*.55),0);viewStrafe=viewHeight=0;cam.target=viewCenter.clone();cam.radius=Math.max(2.2,h*s*1.9);}
   async function show(src){clear();previewFile=src.file||null;await loaders();
-   if(src.asset){container=await root.VoidAssets.loadContainer({src:root.VoidMadeNPCs?.fileOf(src.asset)||'assets/models/crowd/'+src.asset+'.glb'},scene,null,'preview:'+src.asset);}
+   if(src.asset){container=await root.VoidAssets.loadContainer({src:root.VoidPixelNeon?.modelFile?.(src.asset)||root.VoidMadeNPCs?.fileOf(src.asset)||'assets/models/crowd/'+src.asset+'.glb'},scene,null,'preview:'+src.asset);}
    else if(src.file){const buf=src.buffer||await src.file.arrayBuffer(),ext=/\.gltf$/i.test(src.file.name||'')?'.gltf':'.glb';root.VoidNPCPaths.importDocument(buf,ext);container=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);src.bytes=buf.byteLength;}
    else return null;
    if(disposed){container.dispose();return null;}
