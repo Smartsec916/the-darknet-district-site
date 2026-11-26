@@ -1,8 +1,7 @@
 # Space-station graphics overhaul (26 Nov 2026)
 
 Branch `claude/station-graphics-overhaul`, build `2026-11-26-station-kit-1`. Presentation only: no mission, NPC, service, collision, door,
-interaction, travel or save change. **Not pushed and not deployed from the session that built it** (that session had no push access to this
-repository; see "State" at the end).
+interaction, travel or save change. **Pushed; not merged, not deployed** (see "State" at the end).
 
 ## What a station is in this game (the audit)
 
@@ -161,5 +160,6 @@ Tests: `tests/station-kit.test.cjs`. Bump `BUILD` in `void-runner-sw.js` after a
 
 ## State
 
-Built and tested in a cloud session that could read this public repository but had **no push access** to it: nothing was pushed, merged or
-deployed. `npm test` passes (2,066 pass, 0 fail, 3 skipped). The Python save tests could not be run there (no `flask`); no Python file changed.
+Pushed as branch `claude/station-graphics-overhaul` (26 Nov 2026). **Not merged to `main` and not deployed**: it has not been seen on a real
+graphics card, and the brightness decision above is the owner's. `npm test` passes (2,066 pass, 0 fail, 3 skipped). The Python save tests could
+not be run in the build session (no `flask`); no Python file changed.

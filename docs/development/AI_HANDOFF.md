@@ -1,8 +1,8 @@
 # The Darknet District — current AI handoff
 
-## 26 Nov 2026 - Space-station graphics overhaul (branch `claude/station-graphics-overhaul`, build `2026-11-26-station-kit-1`, NOT pushed, NOT deployed)
+## 26 Nov 2026 - Space-station graphics overhaul (branch `claude/station-graphics-overhaul`, build `2026-11-26-station-kit-1`, pushed, NOT merged, NOT deployed)
 
-All seven stations (Meridian, Kepler, Rusthaven, the Foundry, the Belt Anchorage, the Vigil, Holdfast) and the Skirmish derelict have a modelled kit over their unchanged plan: 63 Blender-built pieces in one file, generated texture sets, 13 Meshy props (540 credits), baked per-vertex light from the fittings, dark walls lit by lamps (the owner's direction that day), and an identity per station. Presentation only. Read `docs/development/STATION_GRAPHICS.md`: it has the audit, the asset lists, the Meshy ledger, the measurements, the limits, and the one decision that needs the owner (full brightness range aboard stations on Medium and High). The session that built it had no push access to this repository, so the work exists only as local commits there unless it was handed over. Not verified on a real graphics card.
+All seven stations (Meridian, Kepler, Rusthaven, the Foundry, the Belt Anchorage, the Vigil, Holdfast) and the Skirmish derelict have a modelled kit over their unchanged plan: 63 Blender-built pieces in one file, generated texture sets, 13 Meshy props (540 credits), baked per-vertex light from the fittings, dark walls lit by lamps (the owner's direction that day), and an identity per station. Presentation only. Read `docs/development/STATION_GRAPHICS.md`: it has the audit, the asset lists, the Meshy ledger, the measurements, the limits, and the one decision that needs the owner (full brightness range aboard stations on Medium and High). Pushed as a branch; merging waits for the owner. Not verified on a real graphics card.
 
 ## 25 Nov 2026 - MetaShift and the District arcade pair
 
