@@ -60597,7 +60597,7 @@
       "spawn"
     ]
   },
-  "revision": "334cba803da6af3b",
+  "revision": "d7dc4f90f1344626",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81854,7 +81854,7 @@
     "void-runner/personal-device.js": "c8f0574cf46a07cab0de40b566c0cc4566ba4f8c9afb3a88647c0818f7262d1f",
     "void-runner/personal-hud.js": "8593458b0f2a7c73f4fb453d332c536ad7f0cf3b1d5339dc63651ec973d32d89",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/pixel-neon.js": "f7077e46216ae41e09393f217fb6b4e61bfdec301e4e1b09430a145684cd7a9c",
+    "void-runner/pixel-neon.js": "d7163b1280bf39a734bab150f9a32e03ed893ee549045ec685ae68ade4983bbd",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
