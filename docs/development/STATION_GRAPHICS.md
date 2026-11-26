@@ -30,7 +30,7 @@ to fit, flat box ceilings, emissive strips for lamps, box furniture; eight real 
 ## What was built
 
 ### The kit (Blender, by code)
-`tools/assets/station-kit/build_station_kit.py` (run with the `bpy` package, Blender 5.3) builds **64 pieces, 33,182 triangles**, into ONE file,
+`tools/assets/station-kit/build_station_kit.py` (run with the `bpy` package, Blender 5.3) builds **63 pieces, 32,806 triangles**, into ONE file,
 `void-runner/assets/models/station-kit/station-kit.glb` (2.3 MB, no pictures inside). Pieces are metric, bevelled, and name shared materials.
 
 - **Walls:** `wall_low` (kick plate, framed panels, rail), `wall_mid_a..e` (plate, vent and pipe, service hatch, wall console, ribbed with a paint band),
@@ -44,7 +44,7 @@ to fit, flat box ceilings, emissive strips for lamps, box furniture; eight real 
 - **Hull:** `hull_a..e` (plates, pipework, radiator bay, two window rows), `hull_coping`, `roof_plate`, `roof_unit_a/b/c`, `truss`, `solar`, `tank`,
   `collar`, `mast`, `dish`, `mouth_frame`, `thruster`, `radiator`, `greeble_a/b/c`.
 
-Triangle counts per piece: `station-kit-manifest.json` (largest: backbar 2,332, tank 1,812, collar 1,792, hangar_truss 1,480, mast 1,392).
+Triangle counts per piece: `station-kit-manifest.json` (largest: backbar 2,332, tank 1,812, collar 1,792, hangar_truss 1,480, mast 1,392; the hull plate `hull_a`, the most numerous piece, is 112).
 
 ### Textures (generated, nothing downloaded)
 `tools/assets/station-kit/station_textures.py` writes `void-runner/assets/textures/station/` (6.5 MB): `st_hull` 2K (tiles every 8 m), `st_wall` and
@@ -128,7 +128,7 @@ NeoChinatown and everything else are untouched. To undo it: remove `||globalThis
 | Meshes in view (hangar / corridor / hall) | 439 / 355 / 217 | 440 / 336 / 188 |
 | Station load, dock to walking | 12.0 s | 13.0 s |
 | New download, first visit | (old kits: 5.1 MB interior + 2.1 MB hull + 2.6 MB panel picture) | 2.3 MB pieces + 6.5 MB pictures + 6.6 MB props (Medium and above) |
-| Hull in space: triangles | 330,000 | about 720,000 (608,000 on Low-style plans without fittings) |
+| Hull in space: triangles / meshes | 330,000 / about 70 | 570,000 / 130 |
 
 No frame-rate figure is given: this container has no graphics card, and software rendering does not predict the ROG Ally. **Not verified on real
 hardware.**

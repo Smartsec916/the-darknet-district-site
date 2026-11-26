@@ -790,16 +790,15 @@
    ]
   },
   "hull_a": {
-   "triangles": 272,
+   "triangles": 112,
    "materials": [
     "st_hull",
-    "st_steel",
     "st_dark"
    ],
    "min": [
     -2.0,
     0.0,
-    -0.18
+    -0.16
    ],
    "max": [
     2.0,
@@ -808,7 +807,7 @@
    ]
   },
   "hull_b": {
-   "triangles": 496,
+   "triangles": 340,
    "materials": [
     "st_hull",
     "st_gunmetal",
@@ -905,7 +904,7 @@
    ]
   },
   "roof_plate": {
-   "triangles": 140,
+   "triangles": 80,
    "materials": [
     "st_hull",
     "st_gunmetal"
@@ -1216,7 +1215,7 @@
   }
  },
  "file": "station-kit.glb",
- "bytes": 2288032,
+ "bytes": 2267544,
  "materials": [
   "st_hull",
   "st_wall",

@@ -761,13 +761,12 @@ def hull(p, variant='a', W=4.0, H=2.0):
     p.box((-h, -.06, 0), (h, 0, H), 'st_hull', bevel=0)
     if variant == 'a':
         for a, b in ((-h + .06, -.3), (-.2, h - .06)):
-            p.box((a, -.16, .08), (b, -.06, H - .08), 'st_hull', bevel=.03)
-            p.bolts(corners(a, b, .08, H - .08, -.16, .09), r=.03, depth=.02)
+            p.box((a, -.16, .08), (b, -.06, H - .08), 'st_hull', bevel=.03)      # fasteners are in the texture: these plates are the most numerous piece on a hull
         p.box((-.28, -.12, .3), (-.22, -.06, H - .3), 'st_dark', bevel=0)
     elif variant == 'b':
         p.box((-h + .06, -.12, .08), (h - .06, -.06, H - .08), 'st_hull', bevel=.03)
         for z, r in ((.45, .09), (.72, .06), (1.5, .12)):
-            p.pipe([(-h, -.24, z), (h, -.24, z)], r, 'st_steel', seg=8, flange=1.33)
+            p.pipe([(-h, -.24, z), (h, -.24, z)], r, 'st_steel', seg=6, flange=2.0)
         p.box((-.5, -.36, .95), (.4, -.12, 1.32), 'st_gunmetal', bevel=.03)
         p.front(-.42, -.05, 1.0, 1.27, -.362, 'vent')
         p.front(.05, .32, 1.02, 1.25, -.362, 'label_d')
@@ -805,10 +804,8 @@ def roof_plate(p, W=4.0, L=4.0):
     p.box((-h, -l, 0), (h, l, .08), 'st_hull', bevel=0)
     for a, b in ((-h + .08, -.06), (.06, h - .08)):
         for c, d in ((-l + .08, -.06), (.06, l - .08)):
-            p.box((a, c, .08), (b, d, .14), 'st_hull', bevel=.03)
-    for x in (-h + .5, h - .5):
-        for y in (-l + .5, l - .5):
-            p.cyl((x, y, .14), (x, y, .2), .07, 'st_gunmetal', 6)
+            p.box((a, c, .08), (b, d, .14), 'st_hull', bevel=0)
+    p.cyl((h - .5, l - .5, .14), (h - .5, l - .5, .2), .07, 'st_gunmetal', 6)
 
 
 def roof_unit(p, variant='a'):

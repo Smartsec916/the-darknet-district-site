@@ -286,8 +286,8 @@
    // Medium and High multiply the finished picture by 0.3 everywhere except the VR simulations (babylon-renderer.js sharpen.colorAmount; vr-core.js
    // puts it to 1 while a simulation runs; docs/development/VR_SESSIONS.md). Raising the exposure to make up for it (as Milked does) leaves white capped
    // at 30% and the picture flat, so the stations ask for the full range the same way the simulations do: `aboard` is read by vr-core.js's keeper.
-   api.aboard=true;
-   node.onDisposeObservable.addOnce(()=>{api.aboard=false;set.dispose();});
+   aboardNode=node;
+   node.onDisposeObservable.addOnce(()=>{if(aboardNode===node)aboardNode=null;set.dispose();});
    node.metadata={...node.metadata,identity:def.id,materials:set.materials};
    parent.metadata={...parent.metadata,stationKit:true,kitProps:!!kit.prop_stool};
    return node;
@@ -334,7 +334,7 @@
     face(zone+'-in',[g.x+g.w/2-.42,g.h/2,g.z],g.d-1,g.h,'-x');face(zone+'-in',[g.x-g.w/2+.42,g.h/2,g.z],g.d-1,g.h,'+x');face(zone+'-in',[g.x,g.h/2,g.z+g.d/2-.37],g.w-1,g.h,'-z');put('pad_ring',zone,[g.x,.03,g.z+2]);
     for(let z=-g.d/2+5;z<g.d/2;z+=8)put('hangar_truss',zone,[g.x,g.h-.45,g.z+z],{s:[(g.w-1)/36,1,1]});
     for(const s of [-1,1])for(let z=-g.d/2+4;z<g.d/2-2;z+=8)put('hangar_rib',zone,[g.x+s*(g.w/2-.42),0,g.z+z],{yaw:yawFor[s>0?'-x':'+x'],s:[1,(g.h-.5)/9,1]});
-    for(const [key,x,z,yaw] of [['crate_a',-13,8,0],['crate_b',-13.5,5.5,1.57],['crate_a',12.5,9,.3],['drum',11,9.5,0],['prop_container',13.5,3,-1.57],['prop_loader',9,-2,2.2],['prop_generator',-13,-1,1.57]])put(key,zone,[g.x+x,0,g.z+z],{yaw});}
+    for(const [key,x,z,yaw] of [['crate_a',-13,8,0],['crate_b',-13.5,5.5,1.57],['crate_a',12.5,9,.3],['drum',11,9.5,0],['prop_container',13.5,3,-1.57],['prop_loader',9,-2,2.2]])put(key,zone,[g.x+x,0,g.z+z],{yaw});}
    // the mouth's own face: plates on the two jambs and over the opening, lit by the frame's lamps
    {const zf=g.z-g.d/2-.46,ow=own?20:g.w*.6,oh=own?7:g.h-1.5,jw=(g.w+1.7-ow-1.6)/2;
     for(const s of [-1,1])face(zone,[g.x+s*(ow/2+.8+jw/2),g.h/2-.2,zf],jw,g.h+1.5,'-z');
@@ -344,28 +344,28 @@
    put('mouth_frame',zone,[g.x,0,g.z-g.d/2-.45],{yaw:yawFor['-z'],s:[(own?20:g.w*.6)/20,(own?7:g.h-1.5)/7,1]});
    for(const s of [-1,1])put('thruster',zone+'-detail',[g.x+s*(g.w/2-2),g.h+.5,g.z+g.d/2-3],{yaw:s*Math.PI/4});
   }
-  for(const m of design.modules){if(inside(m.position,m.size))continue;clad(m.id,m.position,m.size,{units:m.size[0]>40?7:2,windows:m.finish!=='edge'||m.size[0]>40});}
+  for(const m of design.modules){if(inside(m.position,m.size))continue;clad('hull',m.position,m.size,{units:m.size[0]>40?7:2,windows:m.finish!=='edge'||m.size[0]>40});}
   // Radiators hanging under the service spine.
-  for(let x=-36;x<=44;x+=16)put('radiator','rear-service-spine',[x,-4.2,40],{s:[1,.55,1]});
+  for(let x=-36;x<=44;x+=16)put('radiator','hull',[x,-4.2,40],{s:[1,.55,1]});
   // Fuel tanks under the hangar mouths, and the three large aft pressure tanks.
-  for(let i=0;i<4;i++){const x=-23+i*7,z=-39+(i%2)*2;put('tank','tanks',[x,-5,z],{basis:[[0,0,1],[0,1,0],[-1,0,0]]});trussRun('tanks',[x,-2.6,z],[x,.6,z],.45);}
-  for(const z of [30,38,46])put('tank','tanks',[68.5,6,z],{s:[16/18,4.2/2.6,4.2/2.6]});
+  for(let i=0;i<4;i++){const x=-23+i*7,z=-39+(i%2)*2;put('tank','hull',[x,-5,z],{basis:[[0,0,1],[0,1,0],[-1,0,0]]});trussRun('hull',[x,-2.6,z],[x,.6,z],.45);}
+  for(const z of [30,38,46])put('tank','hull',[68.5,6,z],{s:[16/18,4.2/2.6,4.2/2.6]});
   // Solar outriggers: trussed booms with tiled arrays; the four tall wings stand on their masts.
   for(const wing of [{x:-82,z:24,w:40,d:46},{x:93,z:34,w:38,d:36}]){const root0=wing.x<0?-48:60;
-   trussRun('arrays',[root0,3,wing.z],[wing.x,3,wing.z],1.1);for(const off of [-6,6])trussRun('arrays',[root0,.4,wing.z+off],[wing.x,2.6,wing.z],.5);
+   trussRun('hull',[root0,3,wing.z],[wing.x,3,wing.z],1.1);for(const off of [-6,6])trussRun('hull',[root0,.4,wing.z+off],[wing.x,2.6,wing.z],.5);
    const nx=Math.round(wing.w/10),nz=Math.round(wing.d/10),sx=wing.w/nx,sz=wing.d/nz;
-   for(let i=0;i<nx;i++)for(let j=0;j<nz;j++)put('solar','arrays',[wing.x-wing.w/2+sx*(i+.5),3.5,wing.z-wing.d/2+sz*(j+.5)],{s:[sx/10,1,sz/10]});}
-  for(const [x,z] of [[-60,-10],[-30,62],[34,66],[100,-6]]){trussRun('arrays',[x,2,z],[x,40,z],.7);
-   for(const side of [-1,1])for(let k=0;k<3;k++)put('solar','arrays',[x+side*4.4,14+k*10,z-.3],{basis:[[1,0,0],[0,0,-1],[0,1,0]],s:[.7,1,1]});}
+   for(let i=0;i<nx;i++)for(let j=0;j<nz;j++)put('solar','hull',[wing.x-wing.w/2+sx*(i+.5),3.5,wing.z-wing.d/2+sz*(j+.5)],{s:[sx/10,1,sz/10]});}
+  for(const [x,z] of [[-60,-10],[-30,62],[34,66],[100,-6]]){trussRun('hull',[x,2,z],[x,40,z],.7);
+   for(const side of [-1,1])for(let k=0;k<3;k++)put('solar','hull',[x+side*4.4,14+k*10,z-.3],{basis:[[1,0,0],[0,0,-1],[0,1,0]],s:[.7,1,1]});}
   // The large-ship collar on its boom, with two service arms.
-  trussRun('collar',[77,2,25],[114,2,8],2);put('collar','collar',[114,3,2]);
-  put('prop_arm','collar-detail',[103,3.2,12],{yaw:-.6,s:[.8,.8,.8]});put('prop_arm','collar-detail',[124.5,3,6],{yaw:2.6,s:[.7,.7,.7]});
+  trussRun('hull',[77,2,25],[114,2,8],2);put('collar','hull',[114,3,2]);
+  put('prop_arm','hull-detail',[103,3.2,12],{yaw:-.6,s:[.8,.8,.8]});put('prop_arm','hull-detail',[124.5,3,6],{yaw:2.6,s:[.7,.7,.7]});
   // Communications: the mast, the dish, the sensor spire, and the modelled arrays on the roofs.
-  put('mast','comms',[-8,24.5,43]);put('dish','comms',[-20,21,40],{basis:[[Math.cos(.5),Math.sin(.5),0],[-Math.sin(.5),Math.cos(.5),0],[0,0,1]]});trussRun('comms',[-20,15,40],[-20,20,40],.5);
-  put('mast','comms',[22,8.5,40],{s:[1.3,1.42,1.3]});for(const x of [-48,58])put('mast','comms',[x,8.5,30],{s:[.6,.9,.6]});
-  put('prop_dish','comms-detail',[-40,8.5,40.5],{yaw:.7,s:[.55,.55,.55]});put('prop_antenna','comms-detail',[-27,17,33],{yaw:.3});put('prop_antenna','comms-detail',[42,8.5,41],{yaw:2,s:[.8,.8,.8]});
-  for(const [x,y,z,b] of [[-47.4,5,42,[[0,1,0],[-1,0,0],[0,0,1]]],[53.4,5,42,[[0,-1,0],[1,0,0],[0,0,1]]],[-47.4,5,37,[[0,1,0],[-1,0,0],[0,0,1]]],[53.4,5,37,[[0,-1,0],[1,0,0],[0,0,1]]]])put('thruster','comms-detail',[x,y,z],{basis:b});
-  put('prop_thruster','comms-detail',[3,1.2,46.2],{yaw:-Math.PI/2});put('prop_thruster','comms-detail',[-30,1.2,46.2],{yaw:-Math.PI/2});
+  put('mast','hull',[-8,24.5,43]);put('dish','hull',[-20,21,40],{basis:[[Math.cos(.5),Math.sin(.5),0],[-Math.sin(.5),Math.cos(.5),0],[0,0,1]]});trussRun('hull',[-20,15,40],[-20,20,40],.5);
+  put('mast','hull',[22,8.5,40],{s:[1.3,1.42,1.3]});for(const x of [-48,58])put('mast','hull',[x,8.5,30],{s:[.6,.9,.6]});
+  put('prop_dish','hull-detail',[-40,8.5,40.5],{yaw:.7,s:[.55,.55,.55]});put('prop_antenna','hull-detail',[-27,17,33],{yaw:.3});put('prop_antenna','hull-detail',[42,8.5,41],{yaw:2,s:[.8,.8,.8]});
+  for(const [x,y,z,b] of [[-47.4,5,42,[[0,1,0],[-1,0,0],[0,0,1]]],[53.4,5,42,[[0,-1,0],[1,0,0],[0,0,1]]],[-47.4,5,37,[[0,1,0],[-1,0,0],[0,0,1]]],[53.4,5,37,[[0,-1,0],[1,0,0],[0,0,1]]]])put('thruster','hull-detail',[x,y,z],{basis:b});
+  put('prop_thruster','hull-detail',[3,1.2,46.2],{yaw:-Math.PI/2});put('prop_thruster','hull-detail',[-30,1.2,46.2],{yaw:-Math.PI/2});
   return out;
  }
  /* Dresses the station's exterior (built by VoidMeridian.build with {kit:true}). Returns the node, or null if the kit is not loaded. */
@@ -405,6 +405,8 @@
   }catch(error){console.warn('[VOID station kit] derelict dressing failed.',error.message);return null;}
  }
 
- const api={aboard:false,identity,look,parseGLB,fetchAll,fetchProps,ready,materials,bake,along,interiorPlan,interiorLamps,dressInterior,exteriorPlan,dressExterior,dressDerelict,HIDDEN,yawFor,_set(k){kit=k;}};
+ // True only while the walk-in station is the scene on screen (it is kept, switched off, while its own space scene is flown).
+ let aboardNode=null;
+ const api={get aboard(){return !!(aboardNode&&!aboardNode.isDisposed()&&aboardNode.isEnabled());},identity,look,parseGLB,fetchAll,fetchProps,ready,materials,bake,along,interiorPlan,interiorLamps,dressInterior,exteriorPlan,dressExterior,dressDerelict,HIDDEN,yawFor,_set(k){kit=k;}};
  if(typeof module!=='undefined')module.exports=api;else root.VoidStationKit=api;
 })(globalThis);
