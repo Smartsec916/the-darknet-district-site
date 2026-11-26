@@ -7,7 +7,7 @@
   // Pressurised modules behind the hangars: one source for the builder and any cladding (meridian-kitbash.js).
   modules:[{id:'rear-service-spine',size:[100,7,10],position:[3,5,40],finish:'hull'},{id:'port-link',size:[16,5,7],position:[-23,3,11],finish:'panel'},{id:'starboard-link',size:[16,5,10],position:[26,4,9],finish:'panel'},
    {id:'habitation',size:[30,10,12],position:[-18,12,35],finish:'panel'},{id:'bar-business-module',size:[22,7,10],position:[17,11,39],finish:'hull'},{id:'raised-communications',size:[14,13,13],position:[-8,18,43],finish:'edge'}]};
- function build(scene,parent,{occupied=false,name='MERIDIAN'}={}){ // name: the hull lettering (every station shares this design)
+ function build(scene,parent,{occupied=false,name='MERIDIAN',kit=false}={}){ // name: the hull lettering (every station shares this design). kit: station-kit.js stands its modelled tanks, arrays, collar, mast and windows in place of the plain ones here
   const B=BABYLON,node=new B.TransformNode('meridian-exterior',scene);node.parent=parent;const materials=[],textures=[],batches=new Map(),blink=[];
   function mat(name,hex,glow=false){const m=new B.StandardMaterial('meridian-'+name,scene);m.diffuseColor=B.Color3.FromHexString(hex);m.specularColor=new B.Color3(.22,.25,.28);m.specularPower=48;if(glow){m.emissiveColor=m.diffuseColor.clone();m.disableLighting=true;}materials.push(m);return m;}
   const hull=mat('graphite','#4b535b'),panel=mat('patch-panels','#61686c'),edge=mat('frames','#272f37'),tank=mat('ceramic-tanks','#c5c6b9'),hazard=mat('hazard','#d9782c'),dark=mat('hangar-depth','#0b151e'),solar=mat('solar-cells','#294664'),warm=mat('inhabited','#b49a6b',true),nav=mat('navigation','#8dd9d0',true),red=mat('navigation-red','#cc7964',true);
@@ -16,44 +16,44 @@
   function box(name,size,p,m=hull){const intersects=occupied&&Math.abs(p[0])<18+size[0]/2&&p[2]+size[2]/2>-26&&p[2]-size[2]/2<66&&p[1]+size[1]/2>0&&p[1]-size[1]/2<9;const mesh=add(B.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene),m,p,!intersects);if(intersects)mesh.setEnabled(false);return mesh;}
   function cylinder(name,r,h,p,m=tank){return add(B.MeshBuilder.CreateCylinder(name,{diameter:2*r,height:h,tessellation:16},scene),m,p);}
   function beam(a,b,width=.4){const start=B.Vector3.FromArray(a),end=B.Vector3.FromArray(b),mid=start.add(end).scale(.5);const mesh=box('structural-framework',[width,width,B.Vector3.Distance(start,end)],mid.asArray(),edge);mesh.lookAt(end);return mesh;}
-  function label(text,p,w,h){const t=new B.DynamicTexture('meridian-label-'+text,{width:512,height:128},scene,false);textures.push(t);const c=t.getContext();c.fillStyle='#273039';c.fillRect(0,0,512,128);c.fillStyle='#d0b980';c.font='bold 82px monospace';c.textAlign='center';c.fillText(text,256,95);t.update();const m=mat('label-'+text,'#ffffff');m.diffuseTexture=t;m.emissiveColor=new B.Color3(.18,.17,.14);return add(B.MeshBuilder.CreatePlane('label-'+text,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene),m,p,false);}
+  function label(text,p,w,h){const t=new B.DynamicTexture('meridian-label-'+text,{width:512,height:128},scene,false);textures.push(t);const c=t.getContext();c.fillStyle='#273039';c.fillRect(0,0,512,128);c.fillStyle='#d0b980';c.font='bold 82px monospace';c.textAlign='center';c.fillText(text,256,95);t.update();const m=mat('label-'+text,'#ffffff');m.diffuseTexture=t;m.emissiveColor=new B.Color3(.18,.17,.14);return add(B.MeshBuilder.CreatePlane('label-'+text,{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE},scene),m,kit?[p[0],p[1],p[2]-.45]:p,false);}
   for(const h of design.hangars){
    if(!(occupied&&h.id==='H01')){box(h.id+'-roof',[h.w,.9,h.d],[h.x,h.h,h.z]);box(h.id+'-floor',[h.w,.8,h.d],[h.x,-.4,h.z],edge);for(const s of [-1,1])box(h.id+'-side',[.8,h.h,h.d],[h.x+s*h.w/2,h.h/2,h.z]);box(h.id+'-back',[h.w,h.h,.7],[h.x,h.h/2,h.z+h.d/2]);
-    box(h.id+'-shadow',[h.w-4,h.h-2,.2],[h.x,h.h/2,h.z+h.d*.25],dark);box(h.id+'-inner-light',[h.w-5,.25,.3],[h.x,h.h-1,h.z+h.d*.2],warm);
+    if(!kit){box(h.id+'-shadow',[h.w-4,h.h-2,.2],[h.x,h.h/2,h.z+h.d*.25],dark);box(h.id+'-inner-light',[h.w-5,.25,.3],[h.x,h.h-1,h.z+h.d*.2],warm);}
     for(const s of [-1,1])box(h.id+'-portal',[h.w*.2,h.h,.9],[h.x+s*h.w*.4,h.h/2,h.z-h.d/2],edge);
    }
    box(h.id+'-lintel',[h.w+1,2,1.2],[h.x,h.h-.5,h.z-h.d/2],panel);label(h.id,[h.x,h.h+2,h.z-h.d/2-.8],12,3);
-   for(const s of [-1,1]){box('hangar-strip',[.25,h.h-2,.25],[h.x+s*(h.w*.29),h.h/2,h.z-h.d/2-.7],warm);for(let z=-h.d/2;z<h.d/2;z+=8)box('hangar-rib',[.35,h.h+1,.5],[h.x+s*(h.w/2+.5),h.h/2,h.z+z],edge);}
-   for(let i=0;i<3;i++)box('roof-service',[3,.6,4],[h.x-h.w*.28+i*h.w*.28,h.h+.7,h.z+4],i%2?panel:edge);
+   if(!kit)for(const s of [-1,1]){box('hangar-strip',[.25,h.h-2,.25],[h.x+s*(h.w*.29),h.h/2,h.z-h.d/2-.7],warm);for(let z=-h.d/2;z<h.d/2;z+=8)box('hangar-rib',[.35,h.h+1,.5],[h.x+s*(h.w/2+.5),h.h/2,h.z+z],edge);}
+   if(!kit)for(let i=0;i<3;i++)box('roof-service',[3,.6,4],[h.x-h.w*.28+i*h.w*.28,h.h+.7,h.z+4],i%2?panel:edge);
   }
   // Modules extend the real H01/concourse footprint instead of changing its walkable plan.
   for(const m of design.modules)box(m.id,m.size,m.position,{hull,panel,edge}[m.finish]);
-  for(let x=-31;x<28;x+=3)for(const y of [12,15])box('warm-window',[1.6,.7,.12],[x,y,28.85],warm);
+  if(!kit)for(let x=-31;x<28;x+=3)for(const y of [12,15])box('warm-window',[1.6,.7,.12],[x,y,28.85],warm);
   label(name,[13,17,33.8],20,3.4);
   // Lighter pressure vessels with circumferential safety bands.
-  for(let i=0;i<4;i++){const x=-23+i*7,z=-39+(i%2)*2;const body=cylinder('fuel-storage-tank',2.6,18,[x,-5,z]);body.rotation.x=Math.PI/2;for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('tank-end',{diameter:5.2,segments:12},scene),tank,[x,-5,z+end*9]);cap.scaling.z=.4;const band=cylinder('tank-hazard-band',2.65,.8,[x,-5,z+end*6.6],hazard);band.rotation.x=Math.PI/2;}box('tank-reflector',[.8,.2,12],[x,-2.33,z],warm);beam([x,-3,z],[x,1,z],.45);}
+  if(!kit)for(let i=0;i<4;i++){const x=-23+i*7,z=-39+(i%2)*2;const body=cylinder('fuel-storage-tank',2.6,18,[x,-5,z]);body.rotation.x=Math.PI/2;for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('tank-end',{diameter:5.2,segments:12},scene),tank,[x,-5,z+end*9]);cap.scaling.z=.4;const band=cylinder('tank-hazard-band',2.65,.8,[x,-5,z+end*6.6],hazard);band.rotation.x=Math.PI/2;}box('tank-reflector',[.8,.2,12],[x,-2.33,z],warm);beam([x,-3,z],[x,1,z],.45);}
   // Asymmetric trussed solar outriggers; blue cell faces remain visible from approach.
-  for(const wing of [{x:-82,z:24,w:40,d:46},{x:93,z:34,w:38,d:36}]){
+  if(!kit)for(const wing of [{x:-82,z:24,w:40,d:46},{x:93,z:34,w:38,d:36}]){
    beam([wing.x<0?-48:60,3,wing.z],[wing.x,3,wing.z],1);for(const offset of [-6,6])beam([wing.x<0?-48:60,0,wing.z+offset],[wing.x,3,wing.z],.45);
    box('solar-frame',[wing.w+.7,.7,wing.d+.7],[wing.x,3,wing.z],edge);box('solar-array',[wing.w,.15,wing.d],[wing.x,3.44,wing.z],solar);
    for(let x=-wing.w/2;x<=wing.w/2;x+=10)box('solar-rail',[.25,.15,wing.d],[wing.x+x,3.6,wing.z],panel);
   }
   // Large ship berthing collar on the starboard flank.
-  beam([77,2,25],[114,2,8],2);const collar=add(B.MeshBuilder.CreateTorus('large-ship-docking-collar',{diameter:17,thickness:2,tessellation:32},scene),panel,[114,3,2]);collar.rotation.x=Math.PI/2;
+  if(!kit){beam([77,2,25],[114,2,8],2);const collar=add(B.MeshBuilder.CreateTorus('large-ship-docking-collar',{diameter:17,thickness:2,tessellation:32},scene),panel,[114,3,2]);collar.rotation.x=Math.PI/2;
   const seal=add(B.MeshBuilder.CreateTorus('docking-seal',{diameter:13,thickness:.8,tessellation:32},scene),hazard,[114,3,1.7]);seal.rotation.x=Math.PI/2;
-  for(const s of [-1,1])box('docking-clamp',[3,4,5],[114+s*9,3,3],edge);
-  beam([-8,25,43],[-8,43,43],.65);for(let y=29;y<41;y+=4)box('antenna',[10,.15,.15],[-8,y,43],panel);
+  for(const s of [-1,1])box('docking-clamp',[3,4,5],[114+s*9,3,3],edge);}
+  if(!kit){beam([-8,25,43],[-8,43,43],.65);for(let y=29;y<41;y+=4)box('antenna',[10,.15,.15],[-8,y,43],panel);
   const dish=add(B.MeshBuilder.CreateSphere('communications-dish',{diameter:9,segments:16,slice:.5},scene),tank,[-20,21,40]);dish.scaling.y=.28;dish.rotation.z=.5;beam([-20,15,40],[-20,21,40]);
-  for(const x of [-48,58]){beam([x,10,30],[x,25,30],.23);box('comms-panel',[2,4,.25],[x,21,30],panel);}
+  for(const x of [-48,58]){beam([x,10,30],[x,25,30],.23);box('comms-panel',[2,4,.25],[x,21,30],panel);}}
   for(const p of [[-103,4,0],[112,4,17],[-8,44,43],[114,3,-.5]]){const lamp=add(B.MeshBuilder.CreateSphere('navigation-beacon',{diameter:.85,segments:6},scene),p[0]<0?red:nav,p,false);blink.push(lamp);}
   // Reference-art pass: lit window bands along the spine, orange-banded pressure
   // tanks on the aft end, tall vertical solar wings, a sensor spire and the full
   // MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES lettering.
-  for(let x=-44;x<52;x+=2.4)for(const y of [3.2,6.4]){if(Math.abs(x-13)<11&&y>6)continue;box('spine-window',[1.3,.55,.12],[x,y,34.95],(Math.floor(x*7+y)%5)?warm:edge);}
-  for(const [i,z] of [[0,30],[1,38],[2,46]]){const big=cylinder('aft-pressure-tank',4.2,16,[66+i*0,6+i*0,z]);big.rotation.z=Math.PI/2;big.position.x=60+8.5;for(const off of [-5,0,5]){const band=cylinder('aft-tank-band',4.3,1.2,[68.5+off,6,z],hazard);band.rotation.z=Math.PI/2;}for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('aft-tank-cap',{diameter:8.4,segments:12},scene),tank,[68.5+end*8,6,z]);cap.scaling.x=.35;}}
-  for(const [x,z] of [[-60,-10],[-30,62],[34,66],[100,-6]]){beam([x,2,z],[x,40,z],.6);for(const side of [-1,1]){box('tall-solar-frame',[7.4,30.4,.5],[x+side*4.4,24,z],edge);box('tall-solar-array',[7,30,.2],[x+side*4.4,24,z-.3],solar);}}
-  for(const h of design.hangars)for(const sd of [-1,1])for(let z=-h.d/2+3;z<h.d/2-2;z+=2.6)box('hangar-side-window',[.12,.6,1.4],[h.x+sd*(h.w/2+.45),h.h*.72,h.z+z],(Math.round(z*3+h.x)%4)?warm:edge);
-  beam([22,8.5,40],[22,34,40],.5);for(let y=14;y<34;y+=5)box('spire-ring',[2.6,.5,2.6],[22,y,40],panel);
+  if(!kit)for(let x=-44;x<52;x+=2.4)for(const y of [3.2,6.4]){if(Math.abs(x-13)<11&&y>6)continue;box('spine-window',[1.3,.55,.12],[x,y,34.95],(Math.floor(x*7+y)%5)?warm:edge);}
+  if(!kit)for(const [i,z] of [[0,30],[1,38],[2,46]]){const big=cylinder('aft-pressure-tank',4.2,16,[66+i*0,6+i*0,z]);big.rotation.z=Math.PI/2;big.position.x=60+8.5;for(const off of [-5,0,5]){const band=cylinder('aft-tank-band',4.3,1.2,[68.5+off,6,z],hazard);band.rotation.z=Math.PI/2;}for(const end of [-1,1]){const cap=add(B.MeshBuilder.CreateSphere('aft-tank-cap',{diameter:8.4,segments:12},scene),tank,[68.5+end*8,6,z]);cap.scaling.x=.35;}}
+  if(!kit)for(const [x,z] of [[-60,-10],[-30,62],[34,66],[100,-6]]){beam([x,2,z],[x,40,z],.6);for(const side of [-1,1]){box('tall-solar-frame',[7.4,30.4,.5],[x+side*4.4,24,z],edge);box('tall-solar-array',[7,30,.2],[x+side*4.4,24,z-.3],solar);}}
+  if(!kit)for(const h of design.hangars)for(const sd of [-1,1])for(let z=-h.d/2+3;z<h.d/2-2;z+=2.6)box('hangar-side-window',[.12,.6,1.4],[h.x+sd*(h.w/2+.45),h.h*.72,h.z+z],(Math.round(z*3+h.x)%4)?warm:edge);
+  if(!kit){beam([22,8.5,40],[22,34,40],.5);for(let y=14;y<34;y+=5)box('spire-ring',[2.6,.5,2.6],[22,y,40],panel);}
   label('FUEL · REPAIRS · SUPPLIES',[13,13.6,33.8],24,2.2);
   for(const [m,list]of batches)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);merged.material=m;merged.parent=node;merged.name='meridian-batch-'+m.name;merged.isPickable=false;}
   node.metadata={identity:'meridian',design,exteriorOnly:!occupied,blink,dispose(){for(const t of textures)t.dispose();for(const m of materials)m.dispose(false,false);}};return node;
@@ -64,7 +64,7 @@
  async function menu(engine,quality,task){const B=BABYLON,scene=new B.Scene(engine);scene.clearColor=new B.Color4(.004,.009,.019,1);const camera=new B.FreeCamera('meridian-menu-camera',B.Vector3.Zero(),scene);camera.inputs.clear();camera.minZ=1;camera.maxZ=4500;globalThis.VoidLook?.apply(scene,camera,quality);
   const sun=new B.DirectionalLight('menu-star',new B.Vector3(.45,-.6,.65),scene);sun.intensity=2.1;sun.diffuse=new B.Color3(1,.92,.81);const fill=new B.HemisphericLight('menu-reflection',new B.Vector3(0,1,-.3),scene);fill.intensity=.27;fill.diffuse=new B.Color3(.58,.71,.91);fill.groundColor=new B.Color3(.06,.08,.12);
   const origin=new B.TransformNode('meridian-menu-root',scene);let station,disposed=false;
-  try{const def=VoidAssets.models.stations.meridian||model;if(def.src){try{await VoidPreparation.run(t=>t.wait('optional',()=>VoidAssets.load('menu:meridian',def,scene,t),def.src));station=VoidAssets.instance('menu:meridian',origin);}catch(e){console.warn('[VOID Meridian menu optional model]',e.message);}}task.check();if(!station){station=build(scene,origin);await globalThis.VoidMeridianKitbash?.dressOwned(scene,station,task);task.check();}
+  try{const def=VoidAssets.models.stations.meridian||model;if(def.src){try{await VoidPreparation.run(t=>t.wait('optional',()=>VoidAssets.load('menu:meridian',def,scene,t),def.src));station=VoidAssets.instance('menu:meridian',origin);}catch(e){console.warn('[VOID Meridian menu optional model]',e.message);}}task.check();if(!station){const kitOn=!!(await globalThis.VoidStationKit?.fetchAll(task));if(kitOn&&quality!=='low')await VoidStationKit.fetchProps('exterior',task);task.check();station=build(scene,origin,{kit:kitOn});if(!(kitOn&&VoidStationKit.dressExterior({scene,parent:station,id:'meridian',quality})))await globalThis.VoidMeridianKitbash?.dressOwned(scene,station,task);task.check();}
    const world=B.MeshBuilder.CreateSphere('meridian-menu-planet',{diameter:310,segments:quality==='low'?32:48},scene);world.position.set(-260,-100,620);const pm=new B.ShaderMaterial('menu-planet-surface',scene,{vertexSource:'precision highp float;attribute vec3 position;attribute vec3 normal;attribute vec2 uv;uniform mat4 world;uniform mat4 worldViewProjection;varying vec3 n;varying vec3 p;varying vec2 vUV;void main(){n=normalize(mat3(world)*normal);p=(world*vec4(position,1.)).xyz;vUV=uv;gl_Position=worldViewProjection*vec4(position,1.);}',fragmentSource:'precision highp float;varying vec3 n;varying vec3 p;varying vec2 vUV;uniform sampler2D surfaceMap;uniform vec3 cameraPosition;void main(){vec3 N=normalize(n),L=normalize(vec3(-.55,.5,-.7)),V=normalize(cameraPosition-p);float light=dot(N,L),day=smoothstep(-.04,.12,light);vec3 terrain=texture2D(surfaceMap,vUV).rgb;vec3 color=terrain*(.035+max(0.,light)*.78)*day+vec3(.004,.006,.012)*(1.-day);float rim=pow(1.-max(0.,dot(N,V)),4.)*smoothstep(-.15,.3,light);color+=vec3(.08,.15,.22)*rim;gl_FragColor=vec4(color,1.);}'},{attributes:['position','normal','uv'],uniforms:['world','worldViewProjection','cameraPosition'],samplers:['surfaceMap']});pm.setTexture('surfaceMap',planetTexture(scene));world.material=pm;
    let seed=9321;const random=()=>((seed=seed*16807%2147483647)-1)/2147483646;const rockMat=new B.StandardMaterial('menu-debris-stone',scene);rockMat.diffuseColor=new B.Color3(.22,.25,.27);rockMat.specularColor=B.Color3.Black();const rocks=[];
    for(let variant=0;variant<4;variant++){const source=B.MeshBuilder.CreateIcoSphere('debris-source-'+variant,{radius:1,subdivisions:2,flat:true},scene),vertices=source.getVerticesData(B.VertexBuffer.PositionKind);for(let i=0;i<vertices.length;i+=3){const n=.7+.27*Math.sin(vertices[i]*5+variant*7)*Math.cos(vertices[i+1]*9+vertices[i+2]*6);vertices[i]*=n*(1+variant*.13);vertices[i+1]*=n;vertices[i+2]*=n*(.8+variant*.1);}source.setVerticesData(B.VertexBuffer.PositionKind,vertices);source.createNormals(true);source.material=rockMat;source.isVisible=false;

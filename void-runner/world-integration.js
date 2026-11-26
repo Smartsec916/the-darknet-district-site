@@ -289,7 +289,7 @@ const missionLogButton=document.createElement('button');missionLogButton.id='mis
 function flightRoutes(){const all=VoidUniverse.destinations(state),shown=globalThis.VoidNav?new Set(VoidNav.shown()):null;return all.map((id,i)=>{const angle=-1.05+i*.42;return {id,vector:VoidWarp.skyward(state.location,{x:Math.sin(angle),y:0,z:Math.cos(angle)})};}).filter(r=>!shown||shown.has(r.id));}
 const worldUpdate=update;
 update=function(dt){
- if(mode==='play'&&flight.route?.phase==='departure'){const speed=Math.max(0,Math.min(18,(flight.route.departure-1)*9));flight.velocity={x:0,y:0,z:speed};}
+ if(mode==='play'&&flight.route?.phase==='departure'&&!globalThis.VoidDockingFlight?.departureStep(dt)){const speed=Math.max(0,Math.min(18,(flight.route.departure-1)*9));flight.velocity={x:0,y:0,z:speed};}
  worldUpdate(dt);
  if(mode==='play'&&state.universe.freeTravel&&flight.route?.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)>0){routeMarkers=flightRoutes();const chosen=routeMarkers.find(r=>FM.dot(flightBasis().f,r.vector)>.993);if(chosen&&chosen.id!==current.destination)setFlightDestination(chosen.id);const marker=routeMarkers.find(r=>r.id===current.destination);if(marker){flight.route.vector=marker.vector;flight.nav={x:marker.vector.x*140,y:marker.vector.y*140,z:marker.vector.z*140};}}
  const tracked=['play','walking'].includes(mode)&&!globalThis.VoidFlightSkirmish?.active?VoidMissions.tracked(state,C):null;missionTracker.hidden=!tracked;if(tracked){const label=tracked.title+' / '+tracked.objective;if(missionTracker.textContent!==label)missionTracker.textContent=label;}

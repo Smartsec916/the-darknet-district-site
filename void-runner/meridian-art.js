@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  function enhance({B,scene,parent,box,material,quality}){
-  const owned=[],textures=[];
+  const owned=[],textures=[],kitOn=!!parent.metadata?.stationKit,kitMats=kitOn?parent.getChildren().find(n=>n.name==='station-kit-interior')?.metadata?.materials:null; // kitOn: station-kit.js models the chairs, tables, sofas, bar, shelves and window frames
   function metal(name,color,metallic=.25,roughness=.65){const m=new B.PBRMaterial('meridian-'+name,scene);m.albedoColor=B.Color3.FromHexString(color);m.metallic=metallic;m.roughness=roughness;m.maxSimultaneousLights=8;owned.push(m);return m;}
   const wall=metal('pressure-panels','#96988f',.32,.7),deck=metal('deck-plates','#555d61',.4,.61),frame=metal('gunmetal','#424b51',.65,.42),trim=metal('brushed-alloy','#9ca3a1',.6,.38),leather=metal('seat-upholstery','#674b33',0,.86),fabric=metal('bedding','#777967',0,1),ceramic=metal('ceramic','#afbab1',0,.32);
   // Procedural material stays usable if the optional authored texture fails to load.
@@ -11,7 +11,8 @@
   // Downloaded before it becomes a texture: a scene texture still downloading holds up the scene's readiness check,
   // and on a first visit these panels (2.6 MB) queue behind the models and time preparation out. The fallback
   // shows until they arrive; the service worker still caches the download.
-  fetch('void-runner/assets/textures/meridian-panels-v1.png').then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.blob();}).then(blob=>{if(disposed)return;const src=URL.createObjectURL(blob);
+  if(kitMats){for(const [m,k] of [[wall,kitMats.st_wall],[deck,kitMats.st_deck]]){m.albedoTexture=k.albedoTexture;m.bumpTexture=k.bumpTexture;m.albedoColor=k.albedoColor;}}
+  else fetch('void-runner/assets/textures/meridian-panels-v1.png').then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.blob();}).then(blob=>{if(disposed)return;const src=URL.createObjectURL(blob);
    const authored=new B.Texture(src,scene,false,false,B.Texture.TRILINEAR_SAMPLINGMODE,()=>{URL.revokeObjectURL(src);if(!disposed){wall.albedoTexture=authored;deck.albedoTexture=authored;}},()=>URL.revokeObjectURL(src));authored.anisotropicFilteringLevel=quality==='low'?2:8;textures.push(authored);}).catch(()=>{});
   function metreUV(mesh,scale=3){const p=mesh.getVerticesData(B.VertexBuffer.PositionKind),n=mesh.getVerticesData(B.VertexBuffer.NormalKind);if(!p||!n)return;const uv=[];for(let i=0;i<p.length;i+=3){const x=Math.abs(n[i]),y=Math.abs(n[i+1]);uv.push((x>.5?p[i+2]:p[i])/scale,(y>.5?p[i+2]:p[i+1])/scale);}mesh.setVerticesData(B.VertexBuffer.UVKind,uv);}
   const oldFurniture=new Set(['lounge-chair','chair-back','chair-metal-leg','bar-stool','bottle','bunk-mattress','pod-bank','pod-bank-2','washbasin','sanitary-fixture']);
@@ -27,17 +28,17 @@
   // Furniture positions come from the walkable plan (meridian-interior.js), so the detail follows the rooms.
   const F=root.VoidMeridianInterior.layout().furniture,G=parent.metadata?.propGroups||{};
   // Actual chair frames and padded seats; their positions match the existing activity points.
-  for(const {x,z} of F.tables)for(const side of [-1,1]){
+  if(!kitOn)for(const {x,z} of F.tables)for(const side of [-1,1]){
    const cx=x+side*1.6;
    for(const dx of [-.25,.25])for(const dz of [-.25,.25])rail([cx+dx,.03,z+dz],[cx+dx,.49,z+dz]);
    box('seat-pan',[.7,.07,.7],[cx,.46,z],frame,parent);ellipsoid('leather-cushion',[cx,.54,z],[.75,.18,.73],leather);
    box('chair-back-frame',[.07,.7,.72],[cx+side*.32,.83,z],frame,parent);ellipsoid('padded-back',[cx+side*.28,.85,z],[.18,.74,.72],leather);
    for(const dz of [-.37,.37]){rail([cx+side*.3,.55,z+dz],[cx+side*.3,.82,z+dz]);rail([cx-side*.26,.79,z+dz],[cx+side*.3,.82,z+dz],.025);}
   }
-  if(!G['bar-stools'])for(const {x,z} of F.stools){cylinder('stool-foot',[x,.04,z],.65,.08,frame);cylinder('stool-column',[x,.28,z],.12,.48,trim);cylinder('stool-seat',[x,.56,z],.62,.12,leather);const ring=B.MeshBuilder.CreateTorus('stool-footrest',{diameter:.42,thickness:.035,tessellation:16},scene);ring.parent=parent;ring.position.set(x,.23,z);ring.material=trim;}
+  if(!G['bar-stools']&&!parent.metadata?.kitProps)for(const {x,z} of F.stools){cylinder('stool-foot',[x,.04,z],.65,.08,frame);cylinder('stool-column',[x,.28,z],.12,.48,trim);cylinder('stool-seat',[x,.56,z],.62,.12,leather);const ring=B.MeshBuilder.CreateTorus('stool-footrest',{diameter:.42,thickness:.035,tessellation:16},scene);ring.parent=parent;ring.position.set(x,.23,z);ring.material=trim;}
   const glass=metal('bottle-glass','#3e7664',.1,.2),amber=metal('amber-glass','#8a542e',.1,.25);
-  const bx=F.bar.backX+.3;for(let i=0;i<14;i++){const x=bx,z=F.bar.z-F.bar.length/2+.75+i*(F.bar.length-1.5)/13,mat=i%3?glass:amber;cylinder('bottle-body',[x,1.92,z],.15,.34,mat);cylinder('bottle-neck',[x,2.14,z],.065,.13,mat);cylinder('bottle-cap',[x,2.22,z],.072,.035,trim);}
-  for(const y of [1.68,2.5])box('backbar-shelf',[.6,.09,F.bar.length-.2],[bx,y,F.bar.z],trim,parent);
+  const bx=F.bar.backX+.3;if(!kitOn)for(let i=0;i<14;i++){const x=bx,z=F.bar.z-F.bar.length/2+.75+i*(F.bar.length-1.5)/13,mat=i%3?glass:amber;cylinder('bottle-body',[x,1.92,z],.15,.34,mat);cylinder('bottle-neck',[x,2.14,z],.065,.13,mat);cylinder('bottle-cap',[x,2.22,z],.072,.035,trim);}
+  if(!kitOn)for(const y of [1.68,2.5])box('backbar-shelf',[.6,.09,F.bar.length-.2],[bx,y,F.bar.z],trim,parent);
   if(!G['quarters-beds'])for(const {x,z,head} of F.bunks){box('bunk-mattress',[3.6,.2,1.6],[x,.55,z],fabric,parent);ellipsoid('pillow',[x+head*1.25,.74,z],[.64,.25,1.25],ceramic);box('folded-blanket',[1.7,.07,1.63],[x-head*.8,.71,z],leather,parent);box('berth-shelf',[.6,.08,1.3],[x+head*1.7,1.2,z],trim,parent);}
   for(const {x,z} of F.lockers){for(const y of [.32,1.6])box('locker-handle',[.045,.27,.07],[x+.42,y,z+.25],trim,parent);box('locker-vent',[.02,.22,.6],[x+.41,2.05,z],frame,parent);}
   if(!G['quarters-basins'])for(const {x,z,facing} of F.basins){box('sink-vanity',[1.4,.8,.7],[x,.4,z],frame,parent);ellipsoid('basin',[x,.84,z],[1.15,.2,.63],ceramic);rail([x,.85,z-facing*.2],[x,1.15,z-facing*.2],.025);rail([x,1.15,z-facing*.2],[x,1.15,z],.025);}
@@ -48,8 +49,8 @@
   for(const [x,z,w,d]of [...F.tables.map(t=>[t.x,t.z,5.4,2.4]),[F.bar.x,F.bar.z,3,F.bar.length+1],[F.store.x,F.store.z,3,F.store.length+2]]){const m=B.MeshBuilder.CreateGround('furniture-contact',{width:w,height:d},scene);m.parent=parent;m.position.set(x,.034,z);m.material=shadow;m.isPickable=false;}
   // Operational details are physical panels, shelving and pressure-frame hardware.
   // Observation windows: pressure seals and fasteners along the hall's starboard and aft glass.
-  for(let z=42;z<61;z+=4){box('window-seal',[.13,.18,3.75],[16.2,1.14,z],frame,parent);box('window-seal',[.13,.14,3.75],[16.2,3.4,z],frame,parent);for(const y of [1.45,3.1])cylinder('pressure-fastener',[16.15,y,z],.065,.09,trim);}
-  for(let x=-14;x<15;x+=4){box('window-seal',[3.75,.18,.13],[x,1.04,62.15],frame,parent);box('window-seal',[3.75,.14,.13],[x,3.4,62.15],frame,parent);}
+  if(!kitOn)for(let z=42;z<61;z+=4){box('window-seal',[.13,.18,3.75],[16.2,1.14,z],frame,parent);box('window-seal',[.13,.14,3.75],[16.2,3.4,z],frame,parent);for(const y of [1.45,3.1])cylinder('pressure-fastener',[16.15,y,z],.065,.09,trim);}
+  if(!kitOn)for(let x=-14;x<15;x+=4){box('window-seal',[3.75,.18,.13],[x,1.04,62.15],frame,parent);box('window-seal',[3.75,.14,.13],[x,3.4,62.15],frame,parent);}
   // Sleeping pods: two tiers of capsules along the living area's walls, hatches facing into the room.
   // Each has a padded berth, its own warm light, a part-drawn privacy cover, an occupancy light and a drawer.
   const podLight=material('pod-light','#ffcf8e',true),free=material('pod-free','#7fe0b0',true),taken=material('pod-taken','#ffad5c',true),glassMat=material('pod-glass','#9fd2e6',false,.18);
@@ -78,7 +79,7 @@
    for(const q of pods)if(q.f!==q.target){q.f=q.target>q.f?Math.min(q.target,q.f+dt/1.6):Math.max(q.target,q.f-dt/1.6);placeCover(q);if(q.f===q.target)q.occ.material=q.f?taken:free;}}):null;
   // The Dead Channel's glow (reference sheet): violet neon along the back bar's shelves and the counter's edge.
   {const neon=material('bar-neon','#b46cff',true),pink=material('bar-neon-pink','#ff5fb4',true),B0=F.bar;
-   for(const y of [1.6,2.42])box('backbar-neon',[.04,.04,B0.length-.4],[B0.backX+.62,y,B0.z],neon,parent);
+   for(const y of [1.6,2.42])box('backbar-neon',[.04,.04,B0.length-.4],[B0.backX+(kitOn?.16:.62),kitOn?y+.03:y,B0.z],neon,parent);
    box('counter-neon',[.04,.04,B0.length-.2],[B0.x+.63,1.12,B0.z],pink,parent);box('backbar-canopy',[1.6,.08,B0.length],[B0.backX+.6,3.1,B0.z],frame,parent);
    for(const dz of [-B0.length/2+.3,B0.length/2-.3])box('canopy-neon',[1.2,.04,.04],[B0.backX+.6,3.04,B0.z+dz],neon,parent);}
   // Potted plants in the hall's corners and at the corridor's end, as on the reference sheet.
@@ -116,7 +117,7 @@
   }
   // Sofas under the windows: deep red leather, as on the reference sheet.
   const sofaLeather=metal('sofa-leather','#6b1d24',0,.62);
-  for(const {x,z,length} of F.sofas||[]){for(const dz of [-length/4,length/4])ellipsoid('sofa-cushion',[x,.52,z+dz],[.95,.22,length/2-.08],sofaLeather);ellipsoid('sofa-back-cushion',[x+.48,.92,z],[.26,.62,length-.1],sofaLeather);}
+  if(!kitOn)for(const {x,z,length} of F.sofas||[]){for(const dz of [-length/4,length/4])ellipsoid('sofa-cushion',[x,.52,z+dz],[.95,.22,length/2-.08],sofaLeather);ellipsoid('sofa-back-cushion',[x+.48,.92,z],[.26,.62,length-.1],sofaLeather);}
   const api={dispose(){disposed=true;for(const l of lights)l.dispose();if(podObserver)scene.onBeforeRenderObservable.remove(podObserver);for(const m of owned)m.dispose(false,false);for(const t of textures)t.dispose();}};return api;
  }
  root.VoidMeridianArt={enhance};

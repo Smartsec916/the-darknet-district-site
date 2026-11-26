@@ -36,6 +36,8 @@
   const layout={id:'derelict-station',name:'Derelict Space Station',kind:'derelict',music:'combat',bounds:[38,104],spawn:[0,1.68,-71],yaw:0,solids,interactions:[],signs:[],zones};
   function build({scene,parent,quality,shipModel}){
     const B=root.BABYLON, mat={}, staticByMaterial=new Map(), dynamic=[];
+    // The modelled station kit (station-kit.js), when loaded: wall plating, crates and service gear, lit from this station's own lamps. Collision is untouched.
+    const kitOn=!!root.VoidStationKit?.ready(),kitWalls=[],kitLamps=[],kitCrates=[];
     scene.clearColor=new B.Color4(.012,.018,.027,1);
     scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.006;scene.fogColor=new B.Color3(.045,.065,.075);
     const sun=scene.getLightByName('sun');if(sun)sun.intensity=.38;
@@ -49,7 +51,7 @@
     function cyl(name,pos,r,h,key,segments=12,rot=0){const m=B.MeshBuilder.CreateCylinder(name,{diameter:r*2,height:h,tessellation:segments},scene);m.position.set(...pos);m.rotation.z=rot;m.material=mat[key];m.parent=parent;m.isPickable=false;dynamic.push(m);return m;}
     function beam(name,a,c,width,key){const start=B.Vector3.FromArray(a),end=B.Vector3.FromArray(c),mid=start.add(end).scale(.5),m=box(name,mid.asArray(),[width,width,B.Vector3.Distance(start,end)],key);m.lookAt(end);return m;}
     function placard(text,pos,w=3.8){const t=new B.DynamicTexture('derelict-sign-'+text,{width:512,height:128},scene,false),g=t.getContext();g.fillStyle='#101d23';g.fillRect(0,0,512,128);g.strokeStyle='#af8b62';g.lineWidth=7;g.strokeRect(5,5,502,118);g.fillStyle='#d2c8af';g.font='bold 34px monospace';g.textAlign='center';g.fillText(text,256,77);t.update();const m=new B.StandardMaterial('derelict-sign-material-'+text,scene);m.diffuseTexture=t;m.emissiveColor=new B.Color3(.22,.18,.12);const plane=B.MeshBuilder.CreatePlane('wayfinding-'+text,{width:w,height:.93,sideOrientation:B.Mesh.DOUBLESIDE},scene);plane.parent=parent;plane.position.set(...pos);plane.material=m;dynamic.push(plane,m,t);}
-    function lamp(x,y,z,color='warm'){box('recessed-industrial-luminaire',[x,y,z],[2.5,.12,.28],color);box('lamp-housing',[x,y+.10,z],[2.7,.18,.4],'frame');}
+    function lamp(x,y,z,color='warm'){kitLamps.push({p:[x,y-.2,z],color});box('recessed-industrial-luminaire',[x,y,z],[2.5,.12,.28],color);box('lamp-housing',[x,y+.10,z],[2.7,.18,.4],'frame');}
     function section(id,x,z,w,d,h,kind,openFront=true,openBack=true){
       const floor=kind==='stronghold'?'gang':'deck',walls=kind==='service'?'machinery':kind==='retail'?'gang':'hull';
       box(id+'-deck',[x,-.21,z],[w,.4,d],floor);box(id+'-ceiling',[x,h+.18,z],[w,.34,d],'hull');
@@ -57,7 +59,7 @@
         const px=x+side*w/2;
         const portal=([11,26,37].includes(Math.round(Math.abs(px)))&&z>0&&z<75);
         if(portal){for(const [a,b] of [[-d/2,-4],[4,d/2]])if(b>a)box(id+'-wall',[px,h/2,z+(a+b)/2],[.55,h,b-a],walls);box(id+'-side-door-header',[px,h-.7,z],[.8,1.4,8],'frame');}
-        else box(id+'-wall',[px,h/2,z],[.55,h,d],walls);
+        else{box(id+'-wall',[px,h/2,z],[.55,h,d],walls);kitWalls.push({axis:'z',fixed:px-side*.28,from:z-d/2+.4,to:z+d/2-.4,h,normal:side>0?'-x':'+x',room:id},{axis:'z',fixed:px+side*.28,from:z-d/2+.4,to:z+d/2-.4,h,normal:side>0?'+x':'-x',room:id});}
         if(!portal)box(id+'-lower-scuff',[px-side*.31,.55,z],[.05,1,d],'gang');
         for(let q=-d/2+3;q<d/2;q+=5){const zz=z+q;
           box(id+'-rib',[px-side*.35,h/2,zz],[.45,h,.38],'frame');
@@ -68,8 +70,8 @@
       }
       for(const [end,open] of [[-1,openFront],[1,openBack]]){
         const ez=z+end*d/2;
-        if(open){const aperture=id==='hangar'&&end<0?22:4;for(const side of [-1,1])box(id+'-portal-cheek',[x+side*(w+aperture)/4,h/2,ez],[(w-aperture)/2,h,.65],walls);box(id+'-portal-header',[x,h-.65,ez],[aperture,1.3,.9],'frame');}
-        else box(id+'-end-wall',[x,h/2,ez],[w,h,.65],walls);
+        if(open){const aperture=id==='hangar'&&end<0?22:4;for(const side of [-1,1]){box(id+'-portal-cheek',[x+side*(w+aperture)/4,h/2,ez],[(w-aperture)/2,h,.65],walls);const c=x+side*(w+aperture)/4,hw=(w-aperture)/4-.35;for(const n of [-1,1])kitWalls.push({axis:'x',fixed:ez+n*.33,from:c-hw,to:c+hw,h,normal:n>0?'+z':'-z',room:id});}box(id+'-portal-header',[x,h-.65,ez],[aperture,1.3,.9],'frame');}
+        else{box(id+'-end-wall',[x,h/2,ez],[w,h,.65],walls);kitWalls.push({axis:'x',fixed:ez-end*.33,from:x-w/2+.4,to:x+w/2-.4,h,normal:end>0?'-z':'+z',room:id});}
       }
       for(let q=-d/2+3;q<d/2;q+=5){const zz=z+q;
         box(id+'-roof-truss',[x,h-.25,zz],[w,.4,.55],'frame');
@@ -99,10 +101,10 @@
       for(let z=-69;z<-31;z+=7){beam('hangar-raking-brace',[side*17.55,.2,z],[side*17.55,7.7,z+4],.26,'frame');beam('hangar-reverse-brace',[side*17.55,7.7,z+4],[side*17.55,.2,z+8],.21,'trim');}
       for(let z=-69;z<-30;z+=6){beam('roof-diagonal-brace',[side*17,10.25,z],[side*3,10.25,z+5],.22,'frame');}
     }
-    for(const s of solids){if(s.cover){box('cover-'+s.id,s.position,s.size,s.id.includes('stronghold')?'gang':'machinery');box('cover-top-'+s.id,[s.position[0],s.size[1]+.04,s.position[2]],[s.size[0]+.12,.10,s.size[2]+.12],'frame');}}
+    for(const s of solids){if(s.cover&&kitOn&&/freight|spares|cache|barricade|stronghold-cover|customs-/.test(s.id)){kitCrates.push({p:[s.position[0],0,s.position[2]],size:s.size});continue;}if(s.cover){box('cover-'+s.id,s.position,s.size,s.id.includes('stronghold')?'gang':'machinery');box('cover-top-'+s.id,[s.position[0],s.size[1]+.04,s.position[2]],[s.size[0]+.12,.10,s.size[2]+.12],'frame');}}
     // A parked stripped shuttle ties the entrance arena to the player's ship scale.
     const wreck=shipModel('starter','friendly',parent);wreck.position.set(-8,1.65,-58);wreck.rotation.y=.45;wreck.scaling.setAll(1.25);dynamic.push(wreck);
-    for(let i=0;i<22;i++){const x=(i%2?-1:1)*(8+i%4*2),z=-68+Math.floor(i/2)*4;box('freight-stack',[x,.55,z],[1.25,1.1,1.5],i%3?'machinery':'gang');box('freight-lock',[x,1.13,z],[1.1,.12,1.37],'frame');box('freight-corner',[x+.52,.58,z+.57],[.08,1.1,.08],'trim');}
+    for(let i=0;i<22;i++){const x=(i%2?-1:1)*(8+i%4*2),z=-68+Math.floor(i/2)*4;if(kitOn){kitCrates.push({p:[x,0,z],size:[1.25,1.1+(i%3)*.12,1.5],yaw:(i%5-2)*.07});continue;}box('freight-stack',[x,.55,z],[1.25,1.1,1.5],i%3?'machinery':'gang');box('freight-lock',[x,1.13,z],[1.1,.12,1.37],'frame');box('freight-corner',[x+.52,.58,z+.57],[.08,1.1,.08],'trim');}
     // Functional handling equipment and layered hangar floor markings.
     for(const z of [-67,-52,-37]){box('crane-bridge',[0,9.35,z],[34,.75,.8],'machinery');for(const side of [-1,1]){box('crane-rail',[side*16,9.8,z],[.4,.35,3.6],'trim');box('hangar-lane',[side*5,.015,z],[.12,.025,12],'trim');}box('crane-winch',[0,8.25,z],[2.4,1.2,1.8],'frame');box('crane-cable',[0,6.65,z],[.06,2.5,.06],'dark');cyl('crane-hook',[0,5.3,z],.35,.42,'trim');}
     for(let i=0;i<9;i++){const z=-72+i*5;box('runway-chevron-left',[-2,.026,z],[.16,.025,2.1],'trim',-.35);box('runway-chevron-right',[2,.026,z],[.16,.025,2.1],'trim',.35);}
@@ -154,6 +156,7 @@
     box('gang-banner',[0,6.2,-76.4],[7,3.4,.06],'red');box('gang-banner-mark',[0,6.3,-76.33],[2.4,2.4,.04],'dark',.78);
     // Static material batches reduce draw calls without baking the map or its gameplay collision.
     for(const [key,meshes] of staticByMaterial)if(meshes.length>1){const merged=B.Mesh.MergeMeshes(meshes,true,true,undefined,false,false);if(merged){merged.name='derelict-batch-'+key;merged.parent=parent;merged.material=mat[key];merged.isPickable=false;}}
+    if(kitOn)root.VoidStationKit.dressDerelict({scene,parent,walls:kitWalls,lamps:kitLamps,crates:kitCrates,quality});
     return {dispose(){scene.fogMode=B.Scene.FOGMODE_NONE;for(const m of dynamic)m.dispose?.();for(const m of Object.values(mat))m.dispose(false,true);},materials:mat};
   }
   root.VoidDerelictStation={layout,zones,build};
