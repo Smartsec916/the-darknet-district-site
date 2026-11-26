@@ -33,6 +33,8 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     assert.equal(await page.getByLabel('Spoken line', { exact: true }).first().isVisible(), true);
     assert.equal(await page.getByLabel('Spoken line', { exact: true }).count(), 9);
     const waiting=page.getByRole('group',{name:'lace_wait_01',exact:true});
+    const motions=await waiting.getByLabel('Animation',{exact:true}).evaluate(input=>[...input.list.options].map(o=>o.value));
+    for(const name of ['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'])assert.ok(motions.includes(name));
     await waiting.getByLabel('Repeat spoken line until canceled').check();
     assert.equal(await waiting.getByLabel('Repeat animation until canceled').isChecked(), false);
     await waiting.getByLabel('Spoken line',{exact:true}).fill('Still deciding?');

@@ -47,6 +47,9 @@
   ["Femalemasturbation",7.35],
   ["OysterF",8.067],
   ["OysterM",8.067]].map(([title,seconds])=>({id:'sz-'+title.toLowerCase(),title,seconds,category:'adult',root:'free',loop:false}));
+ for(const [suffix,title] of [['','TiedBF - Look back'],['-return','TiedBF - Return from look back']]){
+  CLIPS.sexyzips.push({id:'sz-tiedbf-look-back'+suffix,title,seconds:1.4,category:'adult',root:'inplace',loop:false});
+ }
  const FILES={meshy:'assets/models/anim/anim-meshy.vrpak',sexyzips:'assets/models/anim/anim-sexyzips.vrpak',actorcore:'assets/models/anim/anim-actorcore.vrpak'};
  const SOURCES={meshy:{name:'Meshy running export',reference:'vr-companion-f',skeleton:'Mixamo-named humanoid',licence:'Owner-supplied Meshy export, private asset storage'},sexyzips:{name:'SexyZips.zip',licence:'Free use, per project owner',skeleton:'Retargeted humanoid'},actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
  const bare=n=>String(n||'').split(':').pop();

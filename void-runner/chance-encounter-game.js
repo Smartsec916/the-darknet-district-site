@@ -41,8 +41,20 @@
   const all=figure.made.metadata.animationGroups||[];
   const clip=all.find(g=>g.name.toLowerCase().endsWith('-'+name));
   if(!clip)throw Error('The assigned animation is unavailable: '+name);
+  if(figure.returnToPose){
+   const {group,observer}=figure.returnToPose;
+   group.onAnimationGroupEndObservable.remove(observer);figure.returnToPose=null;
+  }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
-  clip.start(loop);return clip;
+  clip.start(loop);
+  if(!loop&&name==='sz-tiedbf-look-back-return'){
+   const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
+    figure.returnToPose=null;
+    if(!figure.parent.isDisposed())play(figure,'sz-tiedbf');
+   });
+   figure.returnToPose={group:clip,observer};
+  }
+  return clip;
  }
  async function assignedClip(figure,look,name,signal,loop=true){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
@@ -338,7 +350,7 @@
   }
   return null;
  }
- function addWristRope(figure){
+ function addWristRope(figure,ceiling){
   const left=joint(figure,'lefthand'),right=joint(figure,'righthand');
   if(!left||!right)return;
   const scene=figure.parent.getScene(),b=B(),rope=new b.TransformNode('encounter-rope',scene);
@@ -351,17 +363,35 @@
   const path=[b.Vector3.Zero(),new b.Vector3(.01,-.03,0),new b.Vector3(.03,0,0)];
   const span=b.MeshBuilder.CreateTube('visible wrist cord',{path,radius:.007,tessellation:6,updatable:true},scene);
   span.parent=rope;span.material=material;span.isPickable=false;
+  left.computeWorldMatrix(true);right.computeWorldMatrix(true);
+  const mount=b.Vector3.Center(left.getAbsolutePosition(),right.getAbsolutePosition());
+  mount.y=ceiling;
+  const metal=new b.StandardMaterial('screw eye steel',scene);
+  metal.diffuseColor=new b.Color3(.52,.53,.5);metal.emissiveColor=new b.Color3(.13,.13,.12);
+  const fixture=new b.TransformNode('encounter ceiling anchor',scene);fixture.position.copyFrom(mount);
+  const eye=b.MeshBuilder.CreateTorus('screw eye',{diameter:.14,thickness:.025,tessellation:28},scene);
+  eye.rotation.x=Math.PI/2;eye.position.y=-.14;
+  const stem=b.MeshBuilder.CreateCylinder('screw eye stem',{height:.085,diameter:.032},scene);stem.position.y=-.041;
+  const washer=b.MeshBuilder.CreateCylinder('screw eye washer',{height:.016,diameter:.105},scene);washer.position.y=-.009;
+  for(const mesh of [eye,stem,washer]){mesh.parent=fixture;mesh.material=metal;mesh.isPickable=false;}
+  figure.parent.onDisposeObservable.addOnce(()=>{fixture.dispose();metal.dispose();});
+  const leadPath=[mount.clone(),mount.clone(),mount.add(new b.Vector3(0,-.2,0))];
+  const lead=b.MeshBuilder.CreateTube('wrist to screw eye rope',{path:leadPath,radius:.014,tessellation:10,updatable:true},scene);
+  lead.material=material;lead.isPickable=false;lead.parent=rope;
   const obs=scene.onBeforeRenderObservable.add(()=>{
    for(const [i,hand] of [left,right].entries()){hand.computeWorldMatrix(true);cuffs[i].position.copyFrom(hand.getAbsolutePosition());}
    path[0].copyFrom(cuffs[0].position);path[2].copyFrom(cuffs[1].position);
    b.Vector3.LerpToRef(path[0],path[2],.5,path[1]);path[1].y-=.035;
    b.MeshBuilder.CreateTube('visible wrist cord',{path,instance:span},scene);
+   leadPath[0].copyFrom(path[1]);b.Vector3.LerpToRef(leadPath[0],leadPath[2],.5,leadPath[1]);
+   leadPath[1].x+=.012;
+   b.MeshBuilder.CreateTube('wrist to screw eye rope',{path:leadPath,instance:lead},scene);
   });
   rope.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(obs);material.dispose();});
   figure.parent.onDisposeObservable.addOnce(()=>{if(!rope.isDisposed())rope.dispose();});
   return rope;
  }
- function groundPose(figure,floor,bedEdge){
+ function groundPose(figure,floor,bedEdge,bedHeight){
   let bottom=Infinity;
   for(const mesh of figure.made.getChildMeshes()){
    if(!mesh.skeleton||!mesh.getTotalVertices())continue;
@@ -371,8 +401,6 @@
   if(!Number.isFinite(bottom))return;
   if(Number.isFinite(bedEdge)){
    // Measure the posed shoes in world space. The rig origin can be well behind the feet.
-   const feet=['leftfoot','rightfoot'].map(name=>joint(figure,name)).filter(Boolean)
-    .map(node=>{node.computeWorldMatrix(true);return node.getAbsolutePosition();});
    const point=new (B().Vector3)();
    let nearest=-Infinity;
    for(const mesh of figure.made.getChildMeshes()){
@@ -380,12 +408,12 @@
     const vertices=mesh.getPositionData(true,true),matrix=mesh.getWorldMatrix();
     for(let i=0;vertices&&i<vertices.length;i+=3){
      B().Vector3.TransformCoordinatesFromFloatsToRef(vertices[i],vertices[i+1],vertices[i+2],matrix,point);
-     if(point.y<=bottom+.14&&(!feet.length||feet.some(f=>Math.hypot(point.x-f.x,point.z-f.z)<.32))){
+     if(point.y<=bottom+bedHeight+.04){
       nearest=Math.max(nearest,point.x);
      }
     }
    }
-   if(Number.isFinite(nearest))figure.parent.position.x+=bedEdge-.015-nearest;
+   if(Number.isFinite(nearest))figure.parent.position.x+=bedEdge-.08-nearest;
   }
   figure.parent.position.y+=floor-bottom;
  }
@@ -401,18 +429,20 @@
   run.lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
   const placement=run.graph.placement,anchor=root.VoidApartments.world([placement.x,placement.y,placement.z]);
   // Older drafts used the original default position half a metre from the bed.
+  const room=root.VoidApartments.geo(a.door.style);
   let bedEdge;
   if(placement.x===1.5&&placement.z===-.8){
-   const bed=root.VoidApartments.geo(a.door.style).FURN.bed;
+   const bed=room.FURN.bed;
    bedEdge=anchor[0]+bed[0]-placement.x;
    anchor[0]=bedEdge-.04;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
   }
   standing(run.lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
   run.lace.parent.scaling.setAll(placement.scale);
-  const posed=await assignedClip(run.lace,laceLook,placement.clip);
+  const transition=['sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip);
+  const posed=await assignedClip(run.lace,laceLook,placement.clip,run.signal,!transition);
   posed.goToFrame(posed.from);
-  groundPose(run.lace,anchor[1],bedEdge);
-  if(placement.clip==='sz-tiedbf')run.rope=addWristRope(run.lace);
+  groundPose(run.lace,anchor[1],bedEdge,room.FURN.bed[4]);
+  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace,root.VoidApartments.world([0,room.CEIL,0])[1]);
   await lines(run,'arrival','opening');
  }
  async function releaseLace(run){
@@ -434,6 +464,15 @@
  async function roleplay(run){
   if(!run.lace)await flat(run,true);
   if(await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
+  if(run.rope){
+   const rope=run.rope,meshes=rope.getChildMeshes(),start=performance.now();
+   await until(()=>{
+    const opacity=Math.max(0,1-(performance.now()-start)/400);
+    for(const mesh of meshes)mesh.visibility=opacity;
+    return opacity===0;
+   },run.signal);
+   rope.dispose();run.rope=null;
+  }
   const sceneController=new AbortController(),phase={...run,controller:sceneController,signal:sceneController.signal,owned:new Set()};
   const cancel=()=>sceneController.abort(new DOMException('Roleplay ended','AbortError'));
   run.signal.addEventListener('abort',cancel,{once:true});

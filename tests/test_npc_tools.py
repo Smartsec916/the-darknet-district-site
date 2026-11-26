@@ -51,7 +51,8 @@ class NpcToolsServerTests(unittest.TestCase):
     def test_shared_animations(self):
         clips = INV['npcPaths']['movable']['tea-host']['anims']
         pack = [clip for clip in clips if clip.startswith('sz-')]
-        self.assertEqual(len(pack), 17)
+        self.assertEqual(len(pack), 19)
+        self.assertTrue({'sz-tiedbf-look-back', 'sz-tiedbf-look-back-return'}.issubset(pack))
         self.assertEqual(live.npc_problems({'tea-host': {'mode': 'original', 'anims': pack}}, INV), [])
         self.assertFalse(INV['npcPaths']['movable']['street-cat']['anims'])
         for invalid in [['unknown-clip'], pack + [pack[0]], [{}]]:

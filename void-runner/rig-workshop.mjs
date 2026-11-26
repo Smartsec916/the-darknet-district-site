@@ -89,12 +89,24 @@ export async function bindSharedMotions(node,look,names,asset=null,targetFile=nu
   const name=look+'-'+id;if(groups.some(g=>g.name===name)){added.push(id);continue;}
   if(!clipOK(source.doc,a,source.rig,a.name))continue;
   const frames=bake(source.doc,source.rig,a,target.doc,target.rig),g=new B.AnimationGroup(name,node.getScene());
+  // Embedded TiedBF poses can have a different limb orientation from retargeted library poses.
+  // Apply the turn relative to this figure's own starting pose so its hands and feet stay put.
+  const returning=id==='sz-tiedbf-look-back-return';
+  const base=(returning||id==='sz-tiedbf-look-back')&&groups.find(group=>group.name.endsWith('-sz-tiedbf'));
+  const reference=returning?frames.at(-1):frames[0];
   for(const [i,joint] of frames[0].joints.entries()){
    const t=target.joints.get(joint.joint);
    for(const [field,property,type,from] of [['rotation','rotationQuaternion',B.Animation.ANIMATIONTYPE_QUATERNION,B.Quaternion],['translation','position',B.Animation.ANIMATIONTYPE_VECTOR3,B.Vector3]]){
     if(!joint[field])continue;
     const track=new B.Animation(name+'-'+joint.joint,property,30,type,B.Animation.ANIMATIONLOOPMODE_CYCLE);
-    track.setKeys(frames.map(f=>({frame:f.time*30,value:from.FromArray(f.joints[i][field])})));g.addTargetedAnimation(track,t);
+    const original=base&&base.targetedAnimations.find(entry=>entry.target===t&&entry.animation.targetProperty===property);
+    const rest=original?.animation?.evaluate(base.from);
+    const inverse=rest&&field==='rotation'?B.Quaternion.Inverse(from.FromArray(reference.joints[i][field])):null;
+    track.setKeys(frames.map(f=>{
+     let value=from.FromArray(f.joints[i][field]);
+     if(rest)value=inverse?rest.multiply(inverse.multiply(value)).normalize():rest.clone();
+     return {frame:f.time*30,value};
+    }));g.addTargetedAnimation(track,t);
    }
   }
   g.enableBlending=true;groups.push(g);node.onDisposeObservable.addOnce(()=>g.dispose());added.push(id);
