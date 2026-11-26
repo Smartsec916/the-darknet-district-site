@@ -60597,7 +60597,7 @@
       "spawn"
     ]
   },
-  "revision": "d7dc4f90f1344626",
+  "revision": "8394bdfabe708e06",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81711,7 +81711,7 @@
     "void-runner/district-life.js": "b6066c74a9dfa84b5e6badf2f853057f88f86e0230498641d639717d88797904",
     "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
     "void-runner/district-people.js": "14bc80f15ded29f9dc47f4976387d7866bc6aed60322f2356e7b3865407012d7",
-    "void-runner/district-rooms.js": "fc28cd77fa8354ae73fb1bf0ce426de123fbc929c8f3518f9fbb65d9ad9744f1",
+    "void-runner/district-rooms.js": "03178692e6f969a25be4447aa8197758da8ab527b9921d21e02a7e493fa0850c",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "bcee4f8653c2baa33a52e08db57485e618c3ba8e6fb2616f78efbe78dd5d04be",
     "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",

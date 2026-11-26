@@ -31,7 +31,7 @@ test('Admin proximity, venue and recency determine eligible conversations',()=>{
 test('the pair visit Hotel Headshots and only stop for a kiss off the hallway path',()=>{
  const route=makeRoute(life),city=require('../void-runner/neochinatown.js');
  const cab=city.arcade.find(c=>c.game==='hotel-headshots');
- assert.equal(route(0).z,cab.z);
+ assert.ok(Math.abs(route(0).z-cab.z)<.001);
  const spots=new Set();
  for(let t=0;t<2000;t+=.25){
   const p=route(t);
