@@ -240,8 +240,13 @@
     +(m.completed?'':(m.objective?'<div class="pd-obj"><b>OBJECTIVE</b> '+esc(m.objective)+'</div>':'')+'<ul class="pd-steps">'+(m.objectives||[]).map(o=>'<li class="'+(o.complete?'on':'')+'">'+(o.complete?'✓ ':'○ ')+esc(o.label)+'</li>').join('')+'</ul>')
     +(()=>{try{return root.VoidMissionExtras?root.VoidMissionExtras(m.id,!!m.completed):'';}catch{return '';}})()   // the mission's evidence, REPORT, OPEN REMOTE FEED (mission-mechanics-game.js)
     +(m.completed?'':'<button type="button" data-'+(m.tracked?'untrack':'track')+'="'+esc(m.id)+'">'+(m.tracked?'STOP TRACKING':'TRACK')+'</button>')+'</article>';};
+   const category=m=>m.type==='encounter'?'encounters':m.type==='main'||m.type==='tutorial'||/^main story/i.test(m.category||'')?'main':'side';
+   const tab=stack[1]||category(list.find(m=>m.tracked)||{type:'main'});
+   const tabs=[['main','Main Mission'],['side','Side Missions'],['encounters','Chance Encounters']];
+   const navigation='<div class="pd-tabs">'+tabs.map(([id,label])=>'<button type="button" data-sub="'+id+'" aria-pressed="'+(tab===id)+'">'+label+'</button>').join('')+'</div>';
+   list=list.filter(m=>category(m)===tab);
    const active=list.filter(m=>!m.completed),done=list.filter(m=>m.completed);
-   return (active.length?active.map(card).join(''):'<div class="pd-empty">No active missions.<br>Missions appear here when someone in the District offers you work.</div>')+(done.length?'<h2>COMPLETED</h2>'+done.map(card).join(''):'');
+   return navigation+(active.length?active.map(card).join(''):tab==='encounters'?'<div class="pd-empty">No active chance encounters.</div>':'<div class="pd-empty">No active missions.<br>Missions appear here when someone in the District offers you work.</div>')+(done.length?'<h2>COMPLETED</h2>'+done.map(card).join(''):'');
   },
   messages(){
    const r=rp(),C_=chat(),sub=stack[1]||(contacts().length?'inbox':'chat'),un=C_?.unread||0;
@@ -616,5 +621,6 @@
  // The banner is shown only on foot (a conversation, a menu or the pod card hides it; it comes back while it is still due).
  setInterval(()=>{if(!banner||banner.hidden&&!bannerKey)return;const show=!open&&typeof mode!=='undefined'&&mode==='walking'&&!root.VoidCharacterCreator?.isOpen;banner.classList.toggle('away',!show);},250);
  root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||15000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},get call(){return call?{id:call.id,from:call.from,ended:call.ended,line:callLive()?callIndex():-1,lines:call.lines.slice(),voiced:!!call.voice}:null;},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
+ root.addEventListener?.('void-encounter-journal',()=>{if(open&&stack[0]==='missions')render({keepScroll:true});});
  root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},get thread(){return stack[0]==='messages'&&stack[1]==='inbox'?stack[2]||null:null;},get attach(){return {picking:attach.picking,photo:attach.photo};},contacts,openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);

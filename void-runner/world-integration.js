@@ -300,9 +300,9 @@ update=function(dt){
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
  trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=(typeof missionEscortGoal==='function'?missionEscortGoal(g):null)||walkingLocation.interactions.find(i=>i.id===g.interaction&&!i.hidden&&(!i.when||VoidStory.matches(state,i.when)))||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null)||districtRoute(g.interaction)||(typeof missionPlaceRoute==='function'?missionPlaceRoute(g):null);// trackedWalkWaypoint is the GOAL. The route to it (doors, the vestibule, gate lanes), the next waypoint, the smoothing and fading: guide-route.js (drawMissionWaypoint).
 // station: an older station's corridor (the hangar door at z 3, the concourse door at z 19), as the arrow used to pick here by hand.
-const waypoint=item?{position:item.position,label:item.label,key:(m?.id||'')+'|'+(g.label||'')+'|'+(g.interaction||g.place||g.target||''),quarter:item.quarter||(item.id==='board'&&walkingLocation.id==='neochinatown'?'port':item.route?null:walkingLocation.quarter),station:!item.route&&!['neochinatown','milked','corporate','temple'].includes(walkingLocation.id)}:null;trackedWalkWaypoint=waypoint;const distance=waypoint&&guideDistanceLabel(waypoint);$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(distance?' · '+distance:'');}
+const waypoint=item?{position:item.position,label:item.label,key:(m?.id||'')+'|'+(g.label||'')+'|'+(g.interaction||g.place||g.target||''),quarter:item.quarter||(item.id==='board'&&walkingLocation.id==='neochinatown'?'port':item.route?null:walkingLocation.quarter),station:!item.route&&!['neochinatown','milked','corporate','temple'].includes(walkingLocation.id)}:null;trackedWalkWaypoint=g.kind==='encounter'?globalThis.VoidEncounterGame?.waypoint():waypoint;const distance=trackedWalkWaypoint&&guideDistanceLabel(trackedWalkWaypoint);$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(distance?' · '+distance:'');}
   // The Kepler hand-over leads to Dr. Sol at the bar (through the door and corridor, as above).
-  const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol){const waypoint={position:sol.position,label:sol.label,key:'kepler-sol',station:true};trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar '+guideDistanceLabel(waypoint);}}
+  const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol&&m?.type!=='encounter'){const waypoint={position:sol.position,label:sol.label,key:'kepler-sol',station:true};trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar '+guideDistanceLabel(waypoint);}}
 };
 // A tracked mission's person inside The Darknet District while the player is out on the NeoChinatown street: the goal is that person (inside the District's layout); the
 // route to them through the outer door, the vestibule and the inner door is guide-route.js's (17 Nov 2026, arrow smoothing). Before that the arrow aimed at the vestibule's middle,
@@ -329,7 +329,7 @@ function openMissionLog(){
  missionPanel.innerHTML='<h1>MISSION LOG</h1><div data-missions>'+list()+'</div><button data-close>CLOSE / '+escapeText(VoidInput.label(VoidInput.bindings.missionLog||'KeyL'))+'</button>';
  missionPanel.onclick=e=>{const id=e.target.closest('[data-track]')?.dataset.track,untrack=e.target.closest('[data-untrack]')?.dataset.untrack;// Tracking changes refresh the log in place; it stays open until L (or its close button).
 // Only the mission list is redrawn: the log itself (and a paused flight behind it) stays exactly as it is.
-const refresh=()=>{const top=missionPanel.scrollTop;missionPanel.querySelector('[data-missions]').innerHTML=list();missionPanel.scrollTop=top;e.stopPropagation();};if(id&&VoidMissions.track(state,id,C)){save();refresh();return;}else if(untrack&&state.universe.trackedMission===untrack){VoidMissions.untrack(state);save();refresh();return;}if(e.target.closest('[data-close]'))closeMissionLog();};
+const refresh=()=>{const top=missionPanel.scrollTop;missionPanel.querySelector('[data-missions]').innerHTML=list();missionPanel.scrollTop=top;e.stopPropagation();};if(id&&VoidMissions.track(state,id,C)){save();refresh();return;}else if(untrack&&VoidMissions.tracked(state,C)?.id===untrack){VoidMissions.untrack(state);save();refresh();return;}if(e.target.closest('[data-close]'))closeMissionLog();};
  document.body.append(missionPanel);missionPanel.querySelector('button')?.focus();
 }
 addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});
@@ -354,8 +354,9 @@ function drawMissionWaypoint(){
  ctx.save();ctx.globalAlpha=o.alpha;ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
  // Ring sits below the crosshair so a goal straight ahead is pointed at near floor level.
  ctx.translate(W*.5+Math.sin(angle)*r,H*.7-Math.cos(angle)*r);ctx.rotate(angle);
- ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba('+MISSION_YELLOW.rgb+','+(.6+.35*pulse)+')';ctx.strokeStyle=MISSION_YELLOW.ink;ctx.lineWidth=3;
+ const guideColor=goal.encounter?VoidGuideRoute.ENCOUNTER_COLOR:MISSION_YELLOW;
+ ctx.shadowColor='#000';ctx.shadowBlur=12;ctx.fillStyle='rgba('+guideColor.rgb+','+(.6+.35*pulse)+')';ctx.strokeStyle=guideColor.ink;ctx.lineWidth=3;
  ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-17,10);ctx.lineTo(0,2);ctx.lineTo(17,10);ctx.closePath();ctx.stroke();ctx.fill();
- ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle=MISSION_YELLOW.text;ctx.fillText(label,0,32);
+ ctx.rotate(-angle);ctx.shadowBlur=4;ctx.fillStyle=guideColor.text;ctx.fillText(label,0,32);
  ctx.restore();
 }

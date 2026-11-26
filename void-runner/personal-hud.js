@@ -80,7 +80,7 @@
   if(b.dataset.hudAchievement){achievementFilter=b.dataset.hudAchievement;return render();}
   if(b.hasAttribute('data-hud-character')){socialCharacter=b.dataset.hudCharacter;return render();}
   if(b.dataset.hudTrack){if(VoidMissions.track(state,b.dataset.hudTrack,C))save();return render();}
-  if(b.dataset.hudUntrack){if(state.universe.trackedMission===b.dataset.hudUntrack){VoidMissions.untrack(state);save();}return render();}
+  if(b.dataset.hudUntrack){if(VoidMissions.tracked(state,C)?.id===b.dataset.hudUntrack){VoidMissions.untrack(state);save();}return render();}
   if(b.dataset.hudAction)globalThis.VoidRoadTaxi?.action?.(b.dataset.hudAction,{close,render});
  },true);
  addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
