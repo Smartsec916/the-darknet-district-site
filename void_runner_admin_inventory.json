@@ -61128,7 +61128,7 @@
       "spawn"
     ]
   },
-  "revision": "329eb72f7b74d8a1",
+  "revision": "7931faa5839d5562",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -77705,7 +77705,7 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1284,
+      "line": 1285,
       "text": "addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;",
       "kind": "source-reference"
     },
@@ -82320,7 +82320,7 @@
     "void-runner/mission-blocks.js": "1af9c0a679b9b1503b92760f1110decd16cf68f5719cabfa320bbab98d94364a",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "6db037e4b6d63d24190faf189fe2624804b31fc97c942eb91fc801decf1e1a9e",
+    "void-runner/mission-editor.js": "22daef43c00a319a2dbdf73cf0fa64a34fd6c511ec16ec7dfae5a75af09b3087",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -82368,7 +82368,7 @@
     "void-runner/npc-behaviour.js": "da2a6aa446947446d3a8c57c4653f01ac82ea1c276452ffb56b8d1f9da9ada32",
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "4388344d5e17da3ea35727acfa14b3a42a525043abe7e80ad11094c4227e50b7",
+    "void-runner/npc-editor.js": "7433bc951200777409be4dc9581e107ebc3f96477973eb60430999ae564630e8",
     "void-runner/npc-escort-across.js": "1868ddb6152f7439c3c57f24d3152691d510771b2122e462ad269e57ca1ec184",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "777b2182d9dd75c54ac98ed26154bcba465e6c91686e6e7a35fb0f281bd55ccc",
