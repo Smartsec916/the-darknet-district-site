@@ -1360,6 +1360,7 @@
     }
     /* The house rule on scanning (district-people.js ETIQUETTE): someone walks in with the WarFlying app ACTIVE; Admin or Iris comes out from the counter, tells them
        it is rude and to deactivate it, and goes back. Once per visit; it re-arms when the app is switched off. Nothing else about Admin or Iris changes. */
+    const irisVisit=staffActors.iris&&root.VoidDistrictLife?.shopVisit(staffActors.iris);
     const etiquette=(()=>{
      const E=root.VoidDistrictPeople?.ETIQUETTE;if(!E)return {tick(){}};
      let phase='watch',seen=0,armed=true,who=null,actor=null,route=[],at=0,talk=0,spoken=false;
@@ -1370,7 +1371,7 @@
      return {get phase(){return phase;},get who(){return who;},tick(dt){
       const p=playerLocal(),on=active();if(!on&&phase==='watch'){armed=true;seen=0;}
       if(phase==='watch'){if(!armed||!on||!p||typeof mode==='undefined'||mode!=='walking')return;seen+=dt;if(seen<E.noticeAfter)return;
-       who=E.who(!!staffActors.admin?.ready,!!staffActors.iris?.ready,rand());if(!who)return;actor=staffActors[who];route=E.path(actor.home,p);at=0;armed=false;phase='go';actor.play('walk');return;}
+       who=E.who(!!staffActors.admin?.ready,!!staffActors.iris?.ready&&!irisVisit?.away,rand());if(!who)return;actor=staffActors[who];route=E.path(actor.home,p);at=0;armed=false;phase='go';actor.play('walk');return;}
       if(!actor)return;const h=actor.holder;
       if(phase==='go'){const last=at>=route.length-1;if(last&&p){const dx=p[0]-h.position.x,dz=p[1]-h.position.z,d=Math.hypot(dx,dz);if(d<=E.stopAt){face(h,dx,dz);phase='talk';talk=0;spoken=false;actor.play('talk');return;}route[route.length-1]=[p[0]-dx/d*(E.stopAt-.2),p[1]-dz/d*(E.stopAt-.2)];}   /* the last leg follows the player if they move */
        if(step(h,route[at],dt)&&at<route.length-1)at++;return;}
@@ -1378,7 +1379,7 @@
        if(talk>=E.talkFor||(!on&&talk>1.5)){const end=actor.home[0]<10?4.9:15.1;route=[[2.2,45.4],[end,45.4],[end,actor.home[1]],actor.home.slice()];at=0;phase='back';actor.play('walk');}return;}
       if(phase==='back'){if(step(h,route[at],dt)){at++;if(at>=route.length){h.rotation.y=Math.PI;actor.play('idle');phase='watch';seen=0;actor=null;}}}
      }};})();
-    return {lights,terminal,vrTick:dt=>{vrTick(dt);rooms.tick(dt);},podScreen,arcade,etiquette};})();
+    return {lights,terminal,vrTick:dt=>{vrTick(dt);rooms.tick(dt);irisVisit?.tick(dt,etiquette.phase!=='watch'&&etiquette.who==='iris');},podScreen,arcade,etiquette};})();
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----

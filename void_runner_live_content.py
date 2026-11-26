@@ -3558,12 +3558,13 @@ def _residence_access_ok(a, inv):
     return m == 'mission' and isinstance(v, str) and bool(re.fullmatch(r'[a-z][a-z0-9-]{1,59}', v))
 
 def _residence_ok(r, inv):
-    if not _keys(r, ['door', 'slot', 'mode', 'from', 'to', 'streetAccess', 'apartmentAccess']) or not isinstance(r.get('door'), str):
+    if not _keys(r, ['door', 'slot', 'mode', 'from', 'to', 'streetAccess', 'apartmentAccess', 'visitMinutes']) or not isinstance(r.get('door'), str):
         return False
     d = (inv.get('apartments', {}).get('doors') or {}).get(r['door']) or {}
     if d.get('family', 'city') not in ('city', 'container') or d.get('style') not in ('normal', 'rundown', 'luxury', 'container-rundown', 'container-regular'):
         return False
     return (type(r.get('slot')) is int and 0 <= r['slot'] < (4 if d.get('family') == 'container' else 10)
+            and ('visitMinutes' not in r or type(r['visitMinutes']) is int and 1 <= r['visitMinutes'] <= 10)
             and r.get('mode') in ('always', 'schedule') and all(isinstance(r.get(k), str) and re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d', r[k]) for k in ('from', 'to'))
             and (r['mode'] == 'always' or r['from'] != r['to'])
             and all(_residence_access_ok(r.get(k), inv) for k in ('streetAccess', 'apartmentAccess')))
