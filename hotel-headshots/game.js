@@ -139,7 +139,12 @@
  $('start').onclick=start;$('settings').onclick=()=>showSettings(false);$('scores').onclick=scores;$('controls').onclick=()=>{mode='controls';dialog('GUEST HANDBOOK','<div class="controls-grid"><b>W A S D</b><span>Move through the hotel</span><b>MOUSE</b><span>Aim left/right and up/down (near-vertical)</span><b>LEFT CLICK</b><span>Fire a load (hold for automatic fire)</span><b>SHIFT</b><span>Sprint</span><b>E</b><span>Doors and stairs</span><b>ESCAPE</b><span>Pause / release mouse</span></div><p>Head hits remove 100 resistance; torso / legs 50; shielding arms 15. More resistant guests need more hits. Repelled guests retreat and cannot steal. Cover breaks line of sight, but guests search rooms and open doors.</p>',[['BACK',title,true]]);};
  addEventListener('keydown',e=>{if(mode==='playing'&&['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','KeyE','Space'].includes(e.code))e.preventDefault();if(e.code==='Escape'){if(mode==='playing')pause();return;}if(mode!=='playing')return;keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();});addEventListener('keyup',e=>keys.delete(e.code));
  function look(dx,dy){yaw+=dx*.0022*settings.sensitivity;const limit=89*Math.PI/180;pitch=Math.max(-limit,Math.min(limit,pitch+dy*.0022*settings.sensitivity));}
- addEventListener('mousemove',e=>{if(mode==='playing'&&document.pointerLockElement===canvas)look(e.movementX,e.movementY);});
+ const lookEvent=window.PointerEvent?'pointermove':'mousemove';
+ document.addEventListener(lookEvent,e=>{
+  if(mode!=='playing'||document.pointerLockElement!==canvas)return;
+  if(e.pointerType&&e.pointerType!=='mouse')return;
+  look(e.movementX,e.movementY);
+ });
  function startFiring(e){
   if((e.pointerType&&e.pointerType!=='mouse')||e.button!==0||firing||mode!=='playing')return;
   firing=true;
