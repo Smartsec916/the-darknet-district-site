@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "51e593fdae7e84fd",
+  "revision": "b4d009399dfc82e7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82842,7 +82842,7 @@
     "void-runner/consumable-gameplay.js": "d6de5f6c7d8f5b305866a5416a8e944ba613cfab5717348a9ae5804c9b09d0de",
     "void-runner/consumable-renderer.js": "b78947437dd2926c92d9620f0b75854306b6579e7134d0777a95834d6220dfda",
     "void-runner/consumable-spec.js": "525cd53833e3297fa757ac72959fa19cbdf20f2a2c301027d84923a5f9979301",
-    "void-runner/consumable-studio.js": "f55fe905f7e5e7a9ed5f91d9ef41fab16785dad140b0c43eaee3ef4d24968b9a",
+    "void-runner/consumable-studio.js": "7edea7c293358b1a9c8125e01b59bc1409d4a4ff2a2b4231df775cc4cde9d9b9",
     "void-runner/consumables.js": "873dc57d9245ca347c4ce37816f7ac07026008d87b636b54082721cdbde3700e",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",

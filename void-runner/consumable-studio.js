@@ -184,6 +184,19 @@
    const light=new B.PointLight('practical',new B.Vector3(-2,2.7,2),local);light.diffuse=place==='club'?new B.Color3(.68,.21,.92):new B.Color3(.45,.84,.91);
    const floor=B.MeshBuilder.CreateGround('pavement',{width:22,height:20},local);
    const mat=new B.StandardMaterial('pavement',local);mat.diffuseColor=new B.Color3(.16,.19,.21);floor.material=mat;
+   const signs={
+    street:['DRAGON NOODLES','#f1b768'],alley:['DELIVERIES','#b6b69e'],shop:['THE DARKNET DISTRICT','#8be5df'],
+    club:['NULL','#c78bf2'],passage:['UNDERGROUND','#e7ba70']
+   };
+   if(signs[place]){
+    const [label,color]=signs[place];
+    const texture=new B.DynamicTexture('storefront lettering',{width:768,height:128},local,false);
+    texture.drawText(label,null,88,'bold 64px monospace',color,'#0c171e',true,true);
+    const signMaterial=new B.StandardMaterial('sign housing',local);
+    signMaterial.emissiveTexture=texture;signMaterial.disableLighting=true;
+    const sign=B.MeshBuilder.CreatePlane('business sign',{width:4.8,height:.8,sideOrientation:B.Mesh.DOUBLESIDE},local);
+    sign.material=signMaterial;sign.position.set(0,2.9,2.6);
+   }
    const cast=[],imports=new Map();root.VoidAssets.useMeshoptLocally?.();await root.VoidAssets.loadPlugin();if(local.isDisposed)return;
    async function instance(src,x,y,z){
     if(!imports.has(src)){
@@ -197,6 +210,12 @@
     const rig=contents.instantiateModelsToScene();
     const anchor=new B.TransformNode('preview-placement',local);anchor.position.set(x,y,z);
     for(const node of rig.rootNodes)node.parent=anchor;
+    if(!src.includes('/crowd/')){
+     anchor.rotation.y=Math.PI;
+     const bounds=anchor.getHierarchyBoundingVectors(true);
+     anchor.position.x+=x-(bounds.min.x+bounds.max.x)/2;
+     anchor.position.y+=y-bounds.min.y;
+    }
     return {anchor,rig};
    }
    await Promise.all(environments[place].map(([asset,x,y,z])=>instance('assets/models/'+(asset.startsWith('kit_')?'kit/':'district-interior/')+asset+'.glb',x,y,z)));
