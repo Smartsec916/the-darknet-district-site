@@ -343,7 +343,7 @@
     residenceSlot:a.slot,number:a.number,items:[],residents:[]});
   }
   await until(()=>typeof walkingLocation!=='undefined'&&walkingLocation?.part==='flat'&&walkingLocation.inst===a.target,run.signal);
-  run.signal.throwIfAborted();
+  run.signal.throwIfAborted();run.entered=a.target;
   run.lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
   const placement=run.graph.placement,anchor=root.VoidApartments.world([placement.x,placement.y,placement.z]);
   // Older drafts used the original default position half a metre from the bed.
@@ -405,7 +405,7 @@
    run.pov=null;
    for(const obj of phase.owned)obj.dispose();
    if(run.panel)run.panel.hidden=true;
-   if(walkingLocation?.part==='flat')await root.VoidApartments.backToHall();
+   if(!run.signal.aborted&&walkingLocation?.inst===run.entered)await root.VoidApartments.backToHall();
   }
  }
  async function runGraph(run,start){
@@ -433,17 +433,48 @@
     }else throw Error('Choose a supported animation action for '+node.name+'.');
    }
    if(node.kind==='end'){
+    if(run.graph.id==='dropped-cardkey'&&run.entered){
+     run.ending=node.id;run.node={...node,name:'Leave the apartment'};
+     root.dispatchEvent(new Event('void-encounter-journal'));
+     await until(()=>false,run.signal);
+    }
     if(!run.private)await root.VoidConsumableGame.request('chance-encounters/outcome',{id:run.graph.id,run:run.token,outcome:node.id});
     break;
    }
    sequence.step(choice);first=false;
   }
  }
+ async function watchApartment(run){
+  let nextPoll=0,left=false;
+  while(!run.signal.aborted){
+   await delay(200,run.signal);
+   if(!run.holds)continue;
+   if(run.private&&performance.now()>=run.expiresAt)return;
+   left=left||run.entered&&(typeof walkingLocation==='undefined'||walkingLocation?.inst!==run.entered);
+   if(run.private&&left)return;
+   if(run.private||Date.now()<nextPoll)continue;
+   if(!left&&Date.now()<(run.nextExpiryCheck||0))continue;
+   try{
+    if(left){
+     const ending=run.ending||run.graph.nodes.find(n=>n.id==='leave'&&n.kind==='end')?.id||run.graph.nodes.find(n=>n.kind==='end')?.id;
+     await root.VoidConsumableGame.request('chance-encounters/outcome',{id:run.graph.id,run:run.token,outcome:ending});
+     return;
+    }
+    const state=await root.VoidConsumableGame.request('chance-encounters/resume',{id:run.graph.id});
+    if(state.expired&&state.run===run.token)return;
+    run.nextExpiryCheck=Date.now()+15000;
+   }catch(e){nextPoll=Date.now()+3000;console.warn('[Chance encounters]',e.message);}
+  }
+ }
  async function begin(graph,start,privateTest,token){
   stop();const controller=new AbortController();
   const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
   run.tracked=true;running=run;
-  try{await runGraph(run,start);}finally{if(running===run)stop();}
+  try{
+   const playback=runGraph(run,start);
+   if(graph.id==='dropped-cardkey')await Promise.race([playback,watchApartment(run)]);
+   else await playback;
+  }finally{if(running===run)stop();}
  }
  async function playtest(graph,start){
   const errors=root.VoidChanceEncounter.validate(graph);if(errors.length)throw Error(errors.join(' '));
@@ -520,7 +551,7 @@
    const a=address(run);
    if(loc.part==='hall'||loc.part==='flat'){
     const exit=loc.interactions.find(i=>i.id===(loc.part==='hall'?(loc.street===a.door.id?'hall-door-'+a.slot:'hall-exit'):'apt-exit'))?.position;
-    position=loc.inst===a.target&&run.lace?run.lace.parent.position.asArray():exit;
+    position=loc.inst===a.target&&run.lace&&!run.ending?run.lace.parent.position.asArray():exit;
    }else{position=[a.door.x,1,a.door.z];quarter=a.door.quarter;}
   }else if(run.node?.kind==='item'){
    const drop=run.dropPosition||run.graph.dropPosition;if(drop)position=[drop.x,.1,drop.z];

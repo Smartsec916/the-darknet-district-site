@@ -39,7 +39,7 @@
  async function mount(host,tools){
   const uid=tools.uid,api=root.VoidChanceEncounter;
   const current=()=>host.isConnected&&tools.authorized&&uid===tools.uid;
-  const [catalog,seed]=await Promise.all([tools.request('developer/chance-encounters'),fetch('void-runner/chance-encounter-seed.json').then(r=>{if(!r.ok)throw Error('Could not load The Dropped Cardkey.');return r.json();})]);
+  const [catalog,seed]=await Promise.all([tools.request('developer/chance-encounters'),fetch('void-runner/chance-encounter-seed.json').then(r=>{if(!r.ok)throw Error('Could not load Pleasure Breach.');return r.json();})]);
   if(!current())return;
   const records=new Map(catalog.encounters.map(r=>[r.id,r]));
   if(!records.has(seed.id))records.set(seed.id,{id:seed.id,revision:0,draft:seed});
