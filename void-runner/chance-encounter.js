@@ -67,7 +67,7 @@
  }
  // Older published encounters predate the editable waiting line. A blank saved line means silence.
  function withWaitingDialogue(graph){
-  if(graph?.id!=='dropped-cardkey'||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
+  if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
  const api={kinds,validate,createRun,withWaitingDialogue};
