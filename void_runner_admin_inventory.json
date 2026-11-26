@@ -18149,18 +18149,10 @@
       "communion-tech": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "communion_tech.shades0",
-          "communion_tech.collar1",
-          "communion_tech.bob02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "communion_tech.shades0",
-          "communion_tech.collar1",
-          "communion_tech.bob02",
-          "communion_tech.matcreator_mc-scifi-armor_guardian",
-          "communion_tech.matcreator_mc-skinsuit_2022"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -18169,18 +18161,10 @@
       "communion-worker": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "communion_worker.visor0",
-          "communion_worker.collar1",
-          "communion_worker.short01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "communion_worker.visor0",
-          "communion_worker.collar1",
-          "communion_worker.male_worksuit01",
-          "communion_worker.shoes03",
-          "communion_worker.short01"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -18189,16 +18173,10 @@
       "cyborg-01": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "cyborg_01.visor0",
-          "cyborg_01.collar1"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "cyborg_01.visor0",
-          "cyborg_01.collar1",
-          "cyborg_01.matcreator_mc-scifi-armor_jupiter7",
-          "cyborg_01.matcreator_mc-skinsuit_2022"
+          "*"
         ],
         "gear": "male",
         "hair": true,
@@ -18207,18 +18185,10 @@
       "district-resident": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "district_resident.mask0",
-          "district_resident.mask0.slit0",
-          "district_resident.mask0.slit1",
-          "district_resident.braid01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "district_resident.mask0",
-          "district_resident.braid01",
-          "district_resident.female_sportsuit01",
-          "district_resident.shoes04"
+          "*"
         ],
         "gear": "female",
         "hair": true,
@@ -18227,38 +18197,22 @@
       "district-smuggler": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "district_smuggler.shades0",
-          "district_smuggler.fedora_cocked",
-          "district_smuggler.short04"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "district_smuggler.shades0",
-          "district_smuggler.fedora_cocked",
-          "district_smuggler.male_casualsuit01",
-          "district_smuggler.shoes03",
-          "district_smuggler.short04"
+          "*"
         ],
         "gear": "male",
         "hair": true,
-        "hats": [
-          "district_smuggler.fedora_cocked"
-        ]
+        "hats": []
       },
       "fixer-01": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "fixer_01.shades0",
-          "fixer_01.bob02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "fixer_01.shades0",
-          "fixer_01.bob02",
-          "fixer_01.female_elegantsuit01",
-          "fixer_01.shoes03"
+          "*"
         ],
         "gear": "female",
         "hair": true,
@@ -18267,16 +18221,10 @@
       "hacker-01": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "hacker_01.visor0",
-          "hacker_01.short02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "hacker_01.visor0",
-          "hacker_01.male_casualsuit05",
-          "hacker_01.shoes03",
-          "hacker_01.short02"
+          "*"
         ],
         "gear": "male",
         "hair": true,
@@ -18285,16 +18233,10 @@
       "meridian-bartender": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "meridian_bartender.shades0",
-          "meridian_bartender.bob01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "meridian_bartender.shades0",
-          "meridian_bartender.bob01",
-          "meridian_bartender.female_elegantsuit01",
-          "meridian_bartender.shoes03"
+          "*"
         ],
         "gear": "female",
         "hair": true,
@@ -18303,16 +18245,10 @@
       "ncz-neon": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "ncz_neon.collar0",
-          "ncz_neon.long01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "ncz_neon.collar0",
-          "ncz_neon.female_sportsuit01",
-          "ncz_neon.long01",
-          "ncz_neon.shoes05"
+          "*"
         ],
         "gear": "female",
         "hair": true,
@@ -18993,36 +18929,22 @@
       "order-farmhand": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "order_farmhand.fedora_cocked",
-          "order_farmhand.short03"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "order_farmhand.fedora_cocked",
-          "order_farmhand.male_worksuit01",
-          "order_farmhand.shoes02",
-          "order_farmhand.short03"
+          "*"
         ],
         "gear": null,
         "hair": false,
-        "hats": [
-          "order_farmhand.fedora_cocked"
-        ]
+        "hats": []
       },
       "order-grower": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "order_grower.mask0",
-          "order_grower.braid01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "order_grower.mask0",
-          "order_grower.braid01",
-          "order_grower.female_sportsuit01",
-          "order_grower.shoes02"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19031,14 +18953,10 @@
       "order-militia": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "order_militia.short01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "order_militia.matcreator_mc-bodysuit-2021",
-          "order_militia.matcreator_mc-scifi-armor_guardian",
-          "order_militia.short01"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19047,16 +18965,10 @@
       "outlaw-01": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "outlaw_01.mask0",
-          "outlaw_01.short02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "outlaw_01.mask0",
-          "outlaw_01.male_casualsuit05",
-          "outlaw_01.matcreator_mc-scifi-armor_guardian",
-          "outlaw_01.short02"
+          "*"
         ],
         "gear": "male",
         "hair": true,
@@ -19065,18 +18977,10 @@
       "regular-01": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "regular_01.mask0",
-          "regular_01.mask0.slit0",
-          "regular_01.mask0.slit1",
-          "regular_01.short03"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "regular_01.mask0",
-          "regular_01.male_worksuit01",
-          "regular_01.shoes03",
-          "regular_01.short03"
+          "*"
         ],
         "gear": "male",
         "hair": true,
@@ -19085,16 +18989,10 @@
       "runner-02": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "runner_02.shades0",
-          "runner_02.bob01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "runner_02.shades0",
-          "runner_02.bob01",
-          "runner_02.culturalibre_heroine_suit_2",
-          "runner_02.shoes03"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19115,16 +19013,10 @@
       "vesper-mechanic": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vesper_mechanic.visor0",
-          "vesper_mechanic.short01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vesper_mechanic.visor0",
-          "vesper_mechanic.male_worksuit01",
-          "vesper_mechanic.shoes03",
-          "vesper_mechanic.short01"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19133,16 +19025,10 @@
       "vesper-pilot": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vesper_pilot.shades0",
-          "vesper_pilot.ponytail01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vesper_pilot.shades0",
-          "vesper_pilot.female_sportsuit01",
-          "vesper_pilot.ponytail01",
-          "vesper_pilot.shoes03"
+          "*"
         ],
         "gear": "female",
         "hair": true,
@@ -19151,24 +19037,14 @@
       "vesper-trader": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vesper_trader.mask0",
-          "vesper_trader.fedora01",
-          "vesper_trader.short02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vesper_trader.mask0",
-          "vesper_trader.fedora01",
-          "vesper_trader.male_casualsuit03",
-          "vesper_trader.shoes01",
-          "vesper_trader.short02"
+          "*"
         ],
         "gear": "male",
         "hair": true,
-        "hats": [
-          "vesper_trader.fedora01"
-        ]
+        "hats": []
       },
       "vr-companion-ava": {
         "licensed": true,
@@ -19209,14 +19085,10 @@
       "vr-companion-f": {
         "licensed": true,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vr_companion_f.long01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vr_companion_f.female_elegantsuit01",
-          "vr_companion_f.long01",
-          "vr_companion_f.shoes03"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19237,14 +19109,10 @@
       "vr-companion-m": {
         "licensed": true,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vr_companion_m.short02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vr_companion_m.male_elegantsuit01",
-          "vr_companion_m.shoes01",
-          "vr_companion_m.short02"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19277,22 +19145,10 @@
       "vr-player-a": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vr_player_a.trackers1.Left",
-          "vr_player_a.headset0",
-          "vr_player_a.headset0.lens",
-          "vr_player_a.headset0.strap",
-          "vr_player_a.trackers1.Right",
-          "vr_player_a.short02"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vr_player_a.trackers1.Left",
-          "vr_player_a.headset0",
-          "vr_player_a.trackers1.Right",
-          "vr_player_a.male_casualsuit03",
-          "vr_player_a.shoes01",
-          "vr_player_a.short02"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -19301,22 +19157,10 @@
       "vr-player-b": {
         "licensed": false,
         "street": false,
-        "whole": false,
-        "parts": [
-          "vr_player_b.trackers1.Left",
-          "vr_player_b.headset0",
-          "vr_player_b.headset0.lens",
-          "vr_player_b.headset0.strap",
-          "vr_player_b.trackers1.Right",
-          "vr_player_b.ponytail01"
-        ],
+        "whole": true,
+        "parts": [],
         "colours": [
-          "vr_player_b.trackers1.Left",
-          "vr_player_b.headset0",
-          "vr_player_b.trackers1.Right",
-          "vr_player_b.female_sportsuit01",
-          "vr_player_b.ponytail01",
-          "vr_player_b.shoes05"
+          "*"
         ],
         "gear": null,
         "hair": false,
@@ -61659,7 +61503,7 @@
       "spawn"
     ]
   },
-  "revision": "8c5442ef9f14c956",
+  "revision": "d46f097cd9f5a5e2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74439,7 +74283,7 @@
     {
       "source": "void-runner/chance-encounter-editor.js",
       "line": 178,
-      "text": "dialogue.append(element('p','Waiting lines play once in order while the choices are open. Set the delay on each line, or clear the text to keep Lace silent.'));",
+      "text": "dialogue.append(element('p','Waiting lines play in order while the choices are open. A choice cancels the current repeat. Set the delay on each line, or clear the text to keep Lace silent.'));",
       "kind": "source-reference"
     },
     {
@@ -74510,7 +74354,7 @@
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 253,
+      "line": 257,
       "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
       "kind": "source-reference"
     },
@@ -74522,19 +74366,19 @@
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 69,
+      "line": 92,
       "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 124,
+      "line": 159,
       "text": ".catch(error=>{if(!waitController.signal.aborted)console.warn('Encounter waiting dialogue:',error);});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 155,
+      "line": 190,
       "text": "'Somewhere a little checkbox says pedestrian detected.',",
       "kind": "source-reference"
     },
@@ -83039,8 +82883,8 @@
     "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "996c481c55976d0548e6a5df4281a04a3f296b61a54fd0bab9c3e9df326c4f48",
-    "void-runner/chance-encounter-game.js": "b1d070f183de7a513a9b5c9d6e308adb68253ca7f383bfd92e94dbf209e44952",
+    "void-runner/chance-encounter-editor.js": "a36f1bbb3662f5201fc391b19bdfbdf8a956e9d9a9fafa8b3f5e7798aec33fbf",
+    "void-runner/chance-encounter-game.js": "4c43abd4aad44ed665d44e0bcb588f865f357a079bccca01af974724f48d79f2",
     "void-runner/chance-encounter.js": "f98e4d4620ec95721c905b0195c8044cffea3c5473a6e07ee77f81b341bdc14f",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
