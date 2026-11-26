@@ -62,6 +62,13 @@
   const people=id==='meridian'?['rook','nyx']:id==='kepler'?['sol']:id==='rusthaven'?['iona']:id==='vigil'?['elara']:id==='holdfast'?['marcus']:id==='vesper'?['mara','elias']:[];
   const names={elara:'DR. ELARA VOSS',marcus:'MARCUS VALE'};
   people.forEach((character,i)=>interactions.push({id:character,action:'talk',character,label:(character==='elias'?'PLAY ARCHIVE / ':'TALK / ')+(names[character]||character.toUpperCase()),position:id==='vesper'?[i?5:0,1.7,i?-10:-12]:[i?13:8,1.7,i?31:25],range:3}));
+  if(['servo-orbital','vantor-relay','vesper-relay'].includes(id)){
+   const hangar=shell.filter(p=>p.id.startsWith('hangar'));
+   const bulkhead={id:'rear-bulkhead',size:[8,9,.6],position:[0,4.5,4],kind:'hull'};
+   return {id,name:id.toUpperCase(),kind:'station',bounds:[18,26],spawn:[0,1.7,-17],ship,color:'#697c87',
+    shell:[...hangar,bulkhead],solids:[...hangar.filter(p=>solids.includes(p)),bulkhead,solids.find(p=>p.id==='ship')],
+    interactions:[interactions[0]],signs:[]};
+  }
   return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id==='vigil'?'THE VIGIL / RECEIVING':id==='holdfast'?'HOLDFAST / SUPPLY YARD':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};
  }
  /* Docking and departure (docking.js, docking-flight.js). Speeds in m/s, accelerations in m/s2, rotation in rad/s, distances in metres, times in seconds.

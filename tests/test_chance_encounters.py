@@ -17,6 +17,25 @@ class ChanceTests(unittest.TestCase):
         self.graph['conditions']['chance'] = 100
         self.uid = 'owner'
 
+    def test_nested_playlists_validate_odds_and_ownership(self):
+        row = self.graph['dialogue'][0]
+        a = dict(id='branch_a', text='a', speaker='lace')
+        b = dict(id='branch_b', text='b', speaker='lace')
+        self.graph['dialogue'].extend([a, b])
+        row['branches'] = [dict(chance=75, passes=2, actions=[a['id']])]
+        a['branches'] = [dict(chance=100, passes=0, actions=[b['id']])]
+        encounters.validate(self.graph)
+        row['branches'][0]['chance'] = 101
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+        row['branches'][0]['chance'] = 25
+        b['branches'] = [dict(chance=100, actions=[a['id']])]
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+        row['branches'] = []
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+
     def edit(self, action, revision):
         return encounters.edit(self.db,self.uid,dict(id=self.graph['id'],graph=self.graph,action=action,revision=revision))
 
@@ -30,6 +49,18 @@ class ChanceTests(unittest.TestCase):
         self.graph['nodes'][0]['edges'][0]['to']='missing'
         with self.assertRaises(encounters.DraftError):
             self.edit('publish',3)
+
+    def test_chance_bounds_survive_publication_and_stay_in_their_own_playlist(self):
+        row = self.graph['dialogue'][0]
+        ids = ['branch_a', 'branch_b', 'branch_c']
+        self.graph['dialogue'].extend(dict(id=i, text=i, speaker='lace') for i in ids)
+        branch = dict(chance=80, passes=3, actions=ids, startAction=ids[1], endAction=ids[2])
+        row['branches'] = [branch]
+        self.assertEqual(self.edit('publish', 0)['live']['dialogue'][0]['branches'], [branch])
+        for end in [ids[0], row['id'], None]:
+            branch['endAction'] = end
+            with self.assertRaises(encounters.DraftError):
+                encounters.validate(self.graph)
 
     def test_repeat_options_survive_publication_and_require_booleans(self):
         line = self.graph['dialogue'][0]
@@ -83,6 +114,55 @@ class ChanceTests(unittest.TestCase):
         self.assertFalse(encounters.outcome(self.db,self.uid,dict(request,outcome='rescued'))['duplicate'])
         self.assertFalse(encounters.resume(self.db,self.uid,self.graph['id'])['active'])
         self.assertFalse(encounters.opportunity(self.db,self.uid,{'id':self.graph['id'],'position':pos})['active'])
+
+    def test_place_start_preserves_probability_interval_and_event_identity(self):
+        cond = self.graph['conditions']
+        cond.update(startTrigger={'kind': 'place', 'target': 'oldtown'}, chance=0)
+        self.edit('publish', 0)
+        body = dict(id=self.graph['id'], position=dict(area='street', quarter='oldtown', x=52, z=-84))
+        pulse = dict(kind='place', target='oldtown', token='d80e6e34-327b-4706-9ab9-c745db108af6')
+        def attempt(**changes):
+            return encounters.opportunity(self.db, self.uid, {**body, **changes})
+        with patch.object(encounters.time, 'time', return_value=100):
+            self.assertFalse(attempt()['active'])
+            self.assertNotIn('rolled', attempt(startEvent={**pulse, 'kind':'leave'}))
+            self.assertNotIn('rolled', attempt(startEvent=pulse, position={**body['position'], 'x':1000}))
+            self.assertEqual(attempt(startEvent=pulse)['rolled'], True)
+        cond['chance'] = 100
+        self.edit('publish', 1)
+        with patch.object(encounters.time, 'time', return_value=300):
+            self.assertFalse(attempt(startEvent=pulse)['active'])
+            self.assertFalse(attempt()['active'])
+            cond['startTrigger']['alsoRandom'] = True
+            self.edit('publish', 2)
+            self.assertTrue(attempt()['active'])
+
+    def test_campaign_start_uses_players_saved_mission_and_clock(self):
+        self.graph['conditions']['startTrigger'] = dict(kind='game-time', target='awakening', minutes=30)
+        self.edit('publish', 0)
+        body = dict(id=self.graph['id'], position=dict(area='street', quarter='oldtown', x=52, z=-84))
+        account = self.db.collection('vr_players').document(items._tag(self.uid))
+        flags = {'gc_awakening':100, 'gameMin':129}
+        self.db.data[account.key] = {'save':{'universe':{'missions':{'awakening':{'completed':True}}}, 'story':{'flags':flags}}}
+        self.assertFalse(encounters.opportunity(self.db,self.uid,body)['active'])
+        flags['gameMin'] = 130
+        self.assertFalse(encounters.opportunity(self.db,'other-player',body)['active'])
+        self.assertTrue(encounters.opportunity(self.db,self.uid,body)['active'])
+
+    def test_trigger_config_and_remaining_mission_starts(self):
+        save = dict(save={'universe':{'missions':{'m':{'completed':True}}}, 'story':{'flags':{'f':True}}})
+        for trigger in [dict(kind='after-mission',target='m'), dict(kind='flag',target='f')]:
+            self.assertTrue(encounters.start_trigger_ready(trigger,None,save,{}))
+            self.assertFalse(encounters.start_trigger_ready(trigger,None,{},{}))
+        for kind in ['near','leave','pod-exit']:
+            trigger=dict(kind=kind) if kind=='pod-exit' else dict(kind=kind,target='admin')
+            event={**trigger, 'token':'d80e6e34-327b-4706-9ab9-c745db108af6'}
+            self.assertTrue(encounters.start_trigger_ready(trigger,event,{},{}))
+            self.assertFalse(encounters.start_trigger_ready(trigger,None,{},{}))
+        for invalid in [dict(kind='near',target='admin',distance=31), dict(kind='leave'), dict(kind='game-time',target='m',minutes=-1),dict(kind='interval',alsoRandom='yes')]:
+            self.graph['conditions']['startTrigger']=invalid
+            with self.assertRaises(encounters.DraftError):
+                encounters.validate(self.graph)
 
     def test_expiry_uses_playtime_even_when_key_has_been_dropped(self):
         identity = self.graph['id']

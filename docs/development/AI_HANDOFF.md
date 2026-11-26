@@ -1,5 +1,12 @@
 # The Darknet District — current AI handoff
 
+## 26 Nov 2026 - Universe travel verification
+
+The universe expansion uses separate arrival and cargo destination IDs. See [the universe asset manifest](UNIVERSE_ASSET_MANIFEST.md) for the route map, provisional names, pad dimensions and planned modular assets. The two-browser test confirmed that both pilots appear at an arrival point and separate when one changes systems.
+
+Mission 012 has two recordings to review. In the extra voice manifest, `iris-m012-nav` directs the pilot to select Meridian before entering Erebus. The first selectable marker is now Erebus Arrival. `iris-m012-jump` describes automatic docking, which applies on the final local leg. Preserve the owner's recordings until replacements are approved.
+
+
 ## 26 Nov 2026 - Space-station graphics overhaul (branch `claude/station-graphics-overhaul`, build `2026-11-26-station-docking-2`, merged and deployed with the owner's go-ahead)
 
 All seven stations (Meridian, Kepler, Rusthaven, the Foundry, the Belt Anchorage, the Vigil, Holdfast) and the Skirmish derelict have a modelled kit over their unchanged plan: 65 Blender-built pieces in one file, generated texture sets, 13 Meshy props (540 credits), baked per-vertex light from the fittings, dark walls lit by lamps (the owner's direction that day), and an identity per station. Presentation only. Read `docs/development/STATION_GRAPHICS.md`: it has the audit, the asset lists, the Meshy ledger, the measurements, the limits, and the one decision that needs the owner (full brightness range aboard stations on Medium and High). Docking and departure at every station now use one shared movement system (momentum, gradual thrust, quaternion turns, clamps and approach lights): `docs/development/STATION_DOCKING.md`. The owner approved the brightness change and will test on the ROG Ally Extreme. Not verified on a real graphics card.

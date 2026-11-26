@@ -1,12 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/campaign.js'),M=require('../void-runner/mission-log.js'),U=require('../void-runner/universe.js'),P=require('../void-runner/progression.js'),R=require('../void-runner/flight-runtime.js');
 function district(){const s=C.fresh();s.quest='open';s.location='earth';s.progression.completed=true;s.progression.flags.missileFired=true;s.universe=U.restore({...s.universe,freeTravel:true},s);s.universe.freeTravel=true;s.story.flags.metAdmin=true;return s;}
-function run(s,accept,faction){accept(s,faction);C.complete(s);C.deliverFaction(s,faction);s.location='earth';C.collectFactionPayment(s);}
+function run(s,accept,faction){accept(s,faction);completeJourney(s);C.deliverFaction(s,faction);s.location='earth';C.collectFactionPayment(s);}
 // A pilot who has delivered a supply contract and been offered the homeworld run.
 function offered(faction){const s=district();run(s,C.acceptFaction,'communion');run(s,C.acceptFaction,'natural-order');run(s,C.acceptSupply,faction);return s;}
 const mission=(s,id)=>M.all(s,C).find(m=>m.id===id);
-function toPlanet(s,faction){const h=C.homeworlds[faction];while(s.location!==h.planet){assert(C.flight(s));C.complete(s);}}
+function toPlanet(s,faction){const h=C.homeworlds[faction];while(s.location!==h.planet){assert(C.flight(s));completeJourney(s);}}
 
+const completeJourney=require('./helpers/complete-journey.cjs');
 test('the homeworlds exist in their factions\' systems and open only when the offer is accepted',()=>{
   assert.equal(U.locations.nexus.name,'The Nexus');assert.equal(U.system('nexus'),'communion');
   assert.equal(U.locations['order-homeworld'].name,'Natural Order Homeworld');assert.equal(U.system('order-homeworld'),'natural-order');

@@ -768,7 +768,15 @@
       "vigil",
       "holdfast",
       "nexus",
-      "order-homeworld"
+      "order-homeworld",
+      "vesper-relay",
+      "servo-orbital",
+      "vantor-relay",
+      "cinder-landing",
+      "erebus-arrival",
+      "sol-arrival",
+      "communion-arrival",
+      "natural-order-arrival"
     ],
     "ships": [
       "starter",
@@ -61665,7 +61673,7 @@
       "spawn"
     ]
   },
-  "revision": "13a09c5235b3eb50",
+  "revision": "e820c920207a96c3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74402,151 +74410,247 @@
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 148,
+      "line": 176,
       "text": "g.placement?.clip,...(g.dialogue||[]).map(line=>line.animation),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 169,
+      "line": 197,
       "text": "if(g.dialogue?.length){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 170,
+      "line": 198,
       "text": "const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 174,
+      "line": 199,
+      "text": "const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 203,
       "text": "position.replaceChildren(new Option('End of this conversation',''));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 177,
+      "line": 206,
       "text": "const branch=select(conversations,addBranch,v=>{addBranch=v;fillPositions();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 179,
+      "line": 208,
       "text": "const arrival=g.dialogue.filter(l=>l.id.startsWith('lace_arrival_'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 180,
+      "line": 209,
       "text": "field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 182,
+      "line": 211,
       "text": "field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 183,
-      "text": "dialogue.append(element('p','Waiting lines play in order while the choices are open. A choice cancels the current repeat. Set the delay on each line, or clear the text to keep Lace silent.'));",
+      "line": 212,
+      "text": "dialogue.append(element('p','Checked speech and animations repeat in order between the first and last repeated actions. Each action can lead to a percentage branch. Unused percentage continues directly to the next action. A player choice ends the waiting playlist.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 185,
+      "line": 214,
       "text": "const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 186,
+      "line": 215,
       "text": "insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 189,
+      "line": 218,
       "text": "add.disabled=g.dialogue.length>=100;dialogue.append(add);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 192,
+      "line": 221,
       "text": "dialogue.append(element('p','Enter the spoken text first. For bulk import, name each recording after its line ID, such as lace_arrival_01.ogg.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 194,
+      "line": 223,
       "text": "field(dialogue,'Bulk import recordings',bulk);dialogue.append(report);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 205,
-      "text": "const ordered=editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue;",
+      "line": 233,
+      "text": "const ordered=(editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue).filter(l=>!l.id.startsWith('branch_'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 207,
-      "text": "const row=element('fieldset');row.append(element('legend',line.id));dialogue.append(row);",
+      "line": 238,
+      "text": "g.dialogue.push({id,speaker:'lace',text:'',animation:'',delay:0,tags:''});return id;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 213,
+      "line": 243,
+      "text": "const line=g.dialogue.find(row=>row.id===id);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 246,
+      "text": "g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 248,
+      "text": "const groups=Object.values(api.dialogueSections(g));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 272,
+      "text": "if(owner||branchOf(line))row.classList.add('encounter-dialogue-action');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 273,
+      "text": "if(!owner&&branchOf(line))row.dataset.conversation=branchOf(line);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 292,
       "text": "field(row,'Conversation for this line',select(conversations,currentBranch,destination=>{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 216,
+      "line": 295,
       "text": "g.dialogue.splice(g.dialogue.indexOf(line),1);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 223,
+      "line": 302,
       "text": "const a=g.dialogue.indexOf(line),b=g.dialogue.indexOf(adjacent);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 224,
+      "line": 303,
       "text": "[g.dialogue[a],g.dialogue[b]]=[g.dialogue[b],g.dialogue[a]];redrawLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 263,
+      "line": 336,
+      "text": "const next={id:nextLineId(g,currentBranch),speaker:'lace',text:'',animation:'',delay:0,tags:'',repeatSpeech:true,repeatAnimation:true};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 337,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(line)+1,0,next);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 342,
+      "text": "add.disabled=g.dialogue.length>=100;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 352,
+      "text": "const group=owner?g.dialogue.filter(r=>owner.actions.includes(r.id)):Object.values(api.dialogueSections(g)).find(rows=>rows.includes(line));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 360,
+      "text": "});add.disabled=g.dialogue.length>=100;settings.append(add);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 372,
+      "text": "const action=g.dialogue.find(r=>r.id===id);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 384,
+      "text": "for(const id of branch.actions)drawRow(g.dialogue.find(r=>r.id===id),lane,branch,depth+1);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 386,
+      "text": "addAction.disabled=g.dialogue.length>=100;lane.append(addAction,button('Remove branch',()=>{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 415,
       "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
       "kind": "source-reference"
     },
     {
-      "source": "void-runner/chance-encounter-game.js",
-      "line": 66,
-      "text": "let rows=(run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_'));",
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 432,
+      "text": "for(const line of ordered)drawRow(line,dialogue,null);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 104,
+      "line": 67,
+      "text": "const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-game.js",
+      "line": 68,
+      "text": "const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-game.js",
+      "line": 87,
       "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 171,
+      "line": 188,
       "text": ".catch(error=>{if(!waitController.signal.aborted)console.warn('Encounter waiting dialogue:',error);});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 202,
+      "line": 219,
       "text": "'Somewhere a little checkbox says pedestrian detected.',",
       "kind": "source-reference"
     },
@@ -74558,14 +74662,80 @@
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 71,
+      "line": 9,
+      "text": "function dialogueSections(graph){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 12,
+      "text": "for(const row of graph.dialogue||[]){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 46,
+      "text": "function dialogueProblems(graph){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 47,
+      "text": "const errors=[],rows=graph.dialogue??[],seen=new Set();",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 48,
+      "text": "if(!Array.isArray(rows)||rows.length>100||rows.some(row=>typeof row?.id!=='string'||typeof row.text!=='string'))return ['Use up to 100 valid dialogue actions.'];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 50,
+      "text": "if(ids.size!==rows.length)errors.push('Each dialogue action needs a distinct ID.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 57,
+      "text": "for(const group of Object.values(dialogueSections(graph)))checkBounds(group);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 59,
+      "text": "if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 62,
+      "text": "errors.push('Branches must start from conversation actions.');continue;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 93,
+      "text": "const errors=dialogueProblems(encounter||{}),nodes=encounter?.nodes;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 161,
       "text": "if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 72,
+      "line": 162,
       "text": "return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 164,
+      "text": "const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,branchPlaylist,isRepeat,chooseBranch};",
       "kind": "source-reference"
     },
     {
@@ -76707,13 +76877,13 @@
     {
       "source": "void-runner/main-story.js",
       "line": 335,
-      "text": "{id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},",
+      "text": "{id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off from NeoChinatown. On the V1 Map, select the Erebus arrival point and fly into its marker.',say:[IRIS(IRIS_NEW.course)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
       "line": 336,
-      "text": "{id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},",
+      "text": "{id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'From the Erebus arrival point, select Meridian Station and fly into its local warp marker.',say:[IRIS(IRIS_NEW.jump)]},",
       "kind": "source-reference"
     },
     {
@@ -80978,19 +81148,19 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 189,
+      "line": 191,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 243,
+      "line": 245,
       "text": "/* The device itself (any model, see myDevice): sent only to a hub that says it knows it (features.dev; an older hub would count the message as a fault), and only",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 283,
+      "line": 286,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -81392,7 +81562,7 @@
     },
     {
       "source": "void-runner/station-layouts.js",
-      "line": 65,
+      "line": 72,
       "text": "return {id,name:id.toUpperCase(),kind:'station',bounds:[18,34],spawn:[0,1.7,-17],ship,color:(palettes[id]||palettes.meridian)[0],shell,solids,interactions,signs:[{id:'hangar',position:[0,6,3.5],text:'HANGAR  /  CONCOURSE →',color:'#9fcbba'},{id:'concourse',position:[0,4,33.5],text:id==='meridian'?'THE DEAD CHANNEL / OUTFITTER':id==='vigil'?'THE VIGIL / RECEIVING':id==='holdfast'?'HOLDFAST / SUPPLY YARD':id.toUpperCase()+' / CREW SERVICES',color:'#a4c3b6'}]};",
       "kind": "source-reference"
     },
@@ -82742,133 +82912,133 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 140,
+      "line": 142,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 141,
+      "line": 143,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 151,
+      "line": 153,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 164,
+      "line": 166,
       "text": "talk('',[{who:'rook',text:line}],resumeWalking,'RETURN TO STATION','Rook freight contracts');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 165,
+      "line": 167,
       "text": "const controls=screen.querySelector('.speech-controls');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 166,
+      "line": 168,
       "text": "if(controls&&buttons.length){speech.shown=line.length;controls.insertAdjacentHTML('afterbegin',buttons.map(([label,a])=>button(label,a)).join(''));screen.querySelector('.dialogue-window')?.classList.add('choice-menu');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 228,
+      "line": 230,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 230,
+      "line": 232,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 232,
+      "line": 234,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 233,
+      "line": 235,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 237,
+      "line": 239,
       "text": "if(district&&state.story.flags.rookNavSent!==true){state.story.flags.rookNavSent=true;globalThis.VoidNav?.grantCoordinates('rook');save();talk('',[{who:'rook',text:RL.coordinates}],()=>rookFreightOffer(),'NEXT →','Rook’s booth');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 239,
+      "line": 241,
       "text": "if(!r){talk('',[{who:'rook',text:'Deliver the cargo. Then come back for more work.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 243,
+      "line": 245,
       "text": "talk('',[{who:'rook',text:district?RL.board:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 244,
+      "line": 246,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 245,
+      "line": 247,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 246,
+      "line": 248,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 247,
+      "line": 249,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+(district&&globalThis.VoidAccount?.user&&!globalThis.VoidAccount.user.isAnonymous?button('ACCOUNT FREIGHT CONTRACT','freight-offer'): '')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 251,
+      "line": 253,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 254,
+      "line": 256,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 263,
+      "line": 265,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 324,
+      "line": 326,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 335,
+      "line": 337,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -83040,7 +83210,7 @@
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "47e003bd8ffeda5c439b29cf0678e892ab88054940aa173ff917326c8360c84c",
-    "void-runner/babylon-renderer.js": "faa81bd742defa7c187f443b841ac01db3356193b6e8331d7b4e4b0e9cfa74d9",
+    "void-runner/babylon-renderer.js": "1e9c9f93f3c748c729dc906422f3af89cf5b319e3c427104519c7675d1a5f61a",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -83048,12 +83218,12 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
-    "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
+    "void-runner/campaign.js": "66a931be09b92248eb5cc316b849d9636cf0e9a1708fa64b3c6c4e089c8091f7",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "05e451e2d70a2d40f81f4d62cb609007eb2463bc23f9a474c28ee192e3292af2",
-    "void-runner/chance-encounter-game.js": "93bf2bf4a76eb5775f8527155819607391b93ee7538d49ee69300718889997a3",
-    "void-runner/chance-encounter.js": "f98e4d4620ec95721c905b0195c8044cffea3c5473a6e07ee77f81b341bdc14f",
+    "void-runner/chance-encounter-editor.js": "909733c0aa70d26a88faaf1f10f8bb6fb058b8dbe4836c4efe8599efc75d9408",
+    "void-runner/chance-encounter-game.js": "8049aa5ce9d1baf93a23d9df1b0c0a26aefad41dbf9f4e4cea5e4a0c88d7994e",
+    "void-runner/chance-encounter.js": "01ff43990dc27c84f685356ce7a7d514e1c2dd738635d78f798de263a169260a",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -83068,7 +83238,7 @@
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
     "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
-    "void-runner/cockpit.js": "ed71dfd3d9ca080bb4f1f9483c8af7ad355e53c5e7cc958c3b08ce1e4d9da304",
+    "void-runner/cockpit.js": "38e29eb95b9cc9cf00fda515c26c3067bc89f6bc5a4aa037e3ab764a2cf4e406",
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "8a5b96a575cba8c867929a18c96209767a53bdd61e53e21f8af9b0596a96a743",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
@@ -83100,7 +83270,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "fef89722c796bc18545313d6b37ba76c69ee0abac739fcee15c6da11756b9539",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
-    "void-runner/dev-test.js": "3b7d20ed061de37fb8632c808be0b1dc9673845c9d822efcb1841c335e63855f",
+    "void-runner/dev-test.js": "87e96cb28cba5e7c2c4bd68b2d6429f601f249f509dde8efb771778150a59bb1",
     "void-runner/dev-tools.js": "ea5950e7065daac0db6656cc9e97f68d5bffb7ae9b48e6138b5cdd5c239d1009",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
@@ -83138,7 +83308,7 @@
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-fx.js": "a39f921f115b6e0ec2830ed4a4b4dd150428654b6d5022b4ecadcfcd56bd8b97",
     "void-runner/flight-hud.js": "aaa74c9d9960fd6267d0c081d247b9cc875a122f40ad553752ad3940ff9f189a",
-    "void-runner/flight-nav.js": "b3fbdc7ca65e89f5b3edcb1ffa9ff57edaa0632e9391d53bc49f3f60412e23fc",
+    "void-runner/flight-nav.js": "f570e3bfc8a384c70a72d57ba808d54628f12914cee7e4129ac3f8863fca6eaa",
     "void-runner/flight-physics.js": "b996699897bb5197930c37c4e397b701b0b1ee028f9b00d474137b7e4a40a40c",
     "void-runner/flight-presentation.js": "5c7772fdbf1e4dff9539c8ac30fbb3220f0cc3964751457003a323089d1609d2",
     "void-runner/flight-runtime-integration.js": "f2afb02e6cd1c98868de7276202ffe4f7ece0e54ba34e98ad5864abc442d44de",
@@ -83155,7 +83325,7 @@
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/guide-route.js": "db25a16dadf6c3ee3d43f311417c6eba988fedf137c6580e6a396c1ef31bdf60",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
-    "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
+    "void-runner/homeworld-scenes.js": "5463d4ea8c97fd9db8ce8a47e10d0fd2bcceacf68c64866fd6da2aba960e9312",
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
@@ -83166,11 +83336,11 @@
     "void-runner/item-catalog-editor.js": "e205a69c12971d130d7cfec31e2cb8b413c0f9f3967522b4044431714d830180",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
-    "void-runner/live-content.js": "b45fa760a430d0381eadd66ddb4b18dbcf5e3713528038ad49ba35d155a54aba",
+    "void-runner/live-content.js": "8b271bcff9d5484b392f1d257cc130628a03ee3c3b77a41c21e7ed993637f24f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "8cee869bbad79c79e26b9c7dde1e96050616c73ffd4a8342e9b240bc61ec6ec1",
+    "void-runner/main-story.js": "43c23d30e6351665208bcc411a8ec0aea8cbb3d0a7f75abd53edd5eb0b545c49",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "9e3496b07d3bde85163afadf0cf6bdcf8b753a27c348223460af8aae45e169e0",
     "void-runner/meridian-art.js": "8c37173337a1b4cfbc9164a5f7c5a62547eb9f93916abb2b9e036b5e2cbeb00b",
@@ -83206,7 +83376,7 @@
     "void-runner/music-engine.js": "3058cb35f65337dfff3bead224182fd1db113b81c6a9459a16b7f22788d4d6e5",
     "void-runner/music-integration.js": "195d2f8e371286b0036d3d7c1589d8ced67463962d81d0e1637844e48e29e7a5",
     "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
-    "void-runner/nav-coords.js": "90146b858e992b388ee5529bba69ffdad5cf4aac2d2c6a20cf7e89e484c5494b",
+    "void-runner/nav-coords.js": "14d7b45fb1e12968ac86eeb968a8d5338eb034bd9b9ef91c573187163ed313ad",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
@@ -83260,8 +83430,8 @@
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/pixel-neon.js": "aae90fd7f715bb3fb67fcbc035feab4f8b0728f0bbe0a37ddfd05f905d0db232",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
-    "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
-    "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
+    "void-runner/planet-landing.js": "7e83f588296a65cc4351d4cd87dff194a9a517c8a169dd338d2dc42064dbdfd2",
+    "void-runner/planets.js": "d7e09f3f8af53f791c91368925b8b96f52d5f26f63a9623cda262e065f5413c7",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
     "void-runner/pod-playlist.js": "551f33d389b5090865394f22b1607761e72e711cdc5625e822a60b96f0fb77c1",
@@ -83274,11 +83444,11 @@
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
     "void-runner/relay.js": "9d6ddf78aba19d66545431c4eb87d23e974991792851191548039b80f2097b3f",
-    "void-runner/remote-players.js": "ad2503fbc93f78863867684f8bb7498edde43fd387e85bd2ddf109e16c1c85c6",
+    "void-runner/remote-players.js": "8317808fd4892717d95c3c391418fd5e2e3c21bc33f5f80cf19febc4a6ef9f87",
     "void-runner/road-taxi-rules.js": "1b8ff8145d975777eee18b76bffbe971cf42ed5462f0392e6a73ecc81bc4a947",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "4e386484bda8d6b5297320510c2fd1183f88e71a46c904c6fce8251bed38e1b6",
-    "void-runner/rook-cargo-gen.js": "5a1b3c8d0db9f57545e80be13e9d8d174c52a0819f5126b8de014905eb7c9500",
+    "void-runner/rook-cargo-gen.js": "b6358f40ce2edc114354779615409ac917dcdd989c57231399029a1f8fdaeea6",
     "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
@@ -83296,7 +83466,7 @@
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-kit.js": "eb1df0abe38814d48c6488bd45b0895c1a6a84710d386465570ce9d58b7981ac",
-    "void-runner/station-layouts.js": "81b1ef3520524cd81c3a3a31cc9595c2d55e28d8733c882bcd5f8a2f448a5158",
+    "void-runner/station-layouts.js": "0509f9d16a9fe6cc4e69136607ba2946bf98f31a443d8a7b9a69287c4cd893cc",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
@@ -83314,7 +83484,7 @@
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
     "void-runner/unified-controls.js": "6a529693c61d3b164f6617d9e700b5b28ac1bd9343bb989486f8086d31116bfa",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
-    "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
+    "void-runner/universe.js": "20a842f3fcc7ee6f8d05f2ae246b45d6be4bc5b1a404de16e92bd4129fe7277a",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
@@ -83333,8 +83503,8 @@
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
-    "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "247fded21fa6531c4c0d9b2c03583b9b2d7e0599cb0f138b13a80d3725050e02",
+    "void-runner/warp.js": "9252ef8b98dc7c4f26ee12dac1189301e466ed90a67565d12b12aa6995713232",
+    "void-runner/world-integration.js": "601b6792e79a9685c8684f059924984dbb14f7e794d325c53b70f3b588b570fd",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "65ce71e34220ac5640678aa939c595b5233bd9a353a4ca58e1d758f30955d2c4",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
@@ -83346,7 +83516,7 @@
     "tools/admin-inventory.cjs": "4cba225b1c4a56bfa9ed659f9ed0dfc80028442615992ebecb43aa997c6b352a",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
     "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
-    "void-runner/save-manifest.json": "b9f065b33262f83661385458906ddd77caa9ac5d665bae9153cc3413af27dca9"
+    "void-runner/save-manifest.json": "de6687d366a6549f09d5bd25fb130a7d4e1d1ec44ec856ed56206e69de76fc10"
   },
   "coverage": {
     "structuredScenes": 1,
@@ -83367,7 +83537,15 @@
         "vigil",
         "holdfast",
         "nexus",
-        "order-homeworld"
+        "order-homeworld",
+        "vesper-relay",
+        "servo-orbital",
+        "vantor-relay",
+        "cinder-landing",
+        "erebus-arrival",
+        "sol-arrival",
+        "communion-arrival",
+        "natural-order-arrival"
       ],
       "systems": [
         "erebus",

@@ -6,8 +6,98 @@
   animation:'Animation',location:'Location and access',end:'Cleanup'
  });
 
+ function dialogueSections(graph){
+  const result={opening:[],remaining:[],wait:[],free:[],be_kade:[]};
+  let after=graph.decisionAfter==='before';
+  for(const row of graph.dialogue||[]){
+   if(row.id.startsWith('lace_arrival_')){
+    result[after?'remaining':'opening'].push(row);
+    if(row.id===graph.decisionAfter)after=true;
+   }else for(const key of ['wait','free','be_kade'])if(row.id.startsWith('lace_'+key+'_'))result[key].push(row);
+  }
+  return result;
+ }
+ const startTriggers={interval:'Nearby percentage roll',near:'Walking near an NPC',place:'Entering a place',leave:'Leaving a place','pod-exit':'Exiting a Sleeping Pod',
+  'after-mission':'After a mission is completed','game-time':'After in-game time following a mission',flag:'A story flag is set'};
+ const isVisitTrigger=kind=>['near','place','leave','pod-exit'].includes(kind);
+ const isRepeat=row=>!!((row.repeatSpeech&&row.text?.trim())||(row.repeatAnimation&&row.animation));
+ function playlist(rows,repeatAll=false){
+  const selected=rows.filter(isRepeat);
+  if(!selected.length)return repeatAll?{before:[],cycle:rows,after:[]}:{before:rows,cycle:[],after:[]};
+  const first=rows.indexOf(selected.find(row=>row.playlistStart)||selected[0]);
+  const last=rows.indexOf(selected.find(row=>row.playlistEnd)||selected.at(-1));
+  return {before:rows.slice(0,first),cycle:rows.slice(first,last+1),after:rows.slice(last+1)};
+ }
+ function branchPlaylist(branch,byId){
+  const rows=branch.actions.map(id=>byId.get(id));
+  if(branch.startAction===undefined&&branch.endAction===undefined)return playlist(rows,(branch.passes??1)!==1);
+  const first=branch.startAction===undefined?0:branch.actions.indexOf(branch.startAction);
+  const last=branch.endAction===undefined?rows.length-1:branch.actions.indexOf(branch.endAction);
+  return {before:[],cycle:rows.slice(first,last+1),after:[]};
+ }
+ function chooseBranch(row,roll=Math.random()){
+  let limit=0;
+  for(const branch of row.branches||[]){
+   limit+=branch.chance;
+   if(roll*100<limit)return branch;
+  }
+  return null;
+ }
+ function dialogueProblems(graph){
+  const errors=[],rows=graph.dialogue??[],seen=new Set();
+  if(!Array.isArray(rows)||rows.length>100||rows.some(row=>typeof row?.id!=='string'||typeof row.text!=='string'))return ['Use up to 100 valid dialogue actions.'];
+  const ids=new Set(rows.map(row=>row.id));
+  if(ids.size!==rows.length)errors.push('Each dialogue action needs a distinct ID.');
+  const byId=new Map(rows.map(row=>[row.id,row]));
+  function checkBounds(group){
+   const first=group.filter(row=>row.playlistStart),last=group.filter(row=>row.playlistEnd);
+   if(first.length>1||last.length>1||first.length&&last.length&&group.indexOf(first[0])>group.indexOf(last[0]))
+    errors.push('Choose a first repeated action that precedes the last one in each playlist.');
+  }
+  for(const group of Object.values(dialogueSections(graph)))checkBounds(group);
+  for(const row of rows){
+   if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');
+   if(!row.branches)continue;
+   if(!Array.isArray(row.branches)||!/^(lace_(arrival|free|be_kade|wait)|branch)_/.test(row.id)){
+    errors.push('Branches must start from conversation actions.');continue;
+   }
+   let total=0;
+   for(const branch of row.branches){
+    if(!Number.isFinite(branch?.chance)||branch.chance<0||branch.chance>100||!Array.isArray(branch.actions)||!branch.actions.length){
+     errors.push('Give each branch at '+row.id+' a percentage and at least one action.');continue;
+    }
+    if(branch.passes!==undefined&&(!Number.isInteger(branch.passes)||branch.passes<0||branch.passes>100))errors.push('Use 0 to 100 passes for a branch playlist.');
+    const first=branch.actions.indexOf(branch.startAction===undefined?branch.actions[0]:branch.startAction);
+    const last=branch.actions.indexOf(branch.endAction===undefined?branch.actions.at(-1):branch.endAction);
+    if(first<0||last<first)errors.push('Choose starting and ending actions in order within the chance playlist on '+row.id+'.');
+    checkBounds(branch.actions.map(id=>byId.get(id)).filter(Boolean));
+    total+=branch.chance;
+    for(const id of branch.actions){
+     if(typeof id!=='string'||!id.startsWith('branch_')||!ids.has(id)||seen.has(id))errors.push('Invalid or shared branch action on '+row.id+'.');
+     seen.add(id);
+    }
+   }
+   if(total>100+1e-9)errors.push('Branch chances on '+row.id+' must total 100% or less.');
+  }
+  const reachable=new Set();
+  function visit(row){
+   if(!row||reachable.has(row.id))return;
+   reachable.add(row.id);
+   if(Array.isArray(row.branches))for(const branch of row.branches)if(Array.isArray(branch?.actions))for(const id of branch.actions)visit(byId.get(id));
+  }
+  rows.filter(row=>!row.id.startsWith('branch_')).forEach(visit);
+  if(rows.some(row=>!reachable.has(row.id)))errors.push('A branch playlist has no reachable parent.');
+  return errors;
+ }
  function validate(encounter){
-  const errors=[],nodes=encounter?.nodes;
+  const errors=dialogueProblems(encounter||{}),nodes=encounter?.nodes;
+  const trigger=encounter?.conditions?.startTrigger;
+  if(trigger!==undefined){
+   if(!trigger||!Object.hasOwn(startTriggers,trigger.kind))errors.push('Choose a supported encounter start trigger.');
+   else if(!['interval','pod-exit'].includes(trigger.kind)&&(typeof trigger.target!=='string'||!trigger.target.trim()||trigger.target.length>100))errors.push('Choose the place, mission or flag for the start trigger.');
+   if(trigger?.kind==='near'&&(!Number.isFinite(trigger.distance)||trigger.distance<1||trigger.distance>30))errors.push('Choose a distance from 1 to 30 metres.');
+   if(trigger?.kind==='game-time'&&(!Number.isInteger(trigger.minutes)||trigger.minutes<1||trigger.minutes>10080))errors.push('Choose 1 to 10080 in-game minutes after mission completion.');
+  }
   if(!Array.isArray(nodes)||!nodes.length||nodes.length>128)return ['An encounter needs 1 to 128 nodes.'];
   const byId=new Map();
   for(const node of nodes){
@@ -71,7 +161,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,validate,createRun,withWaitingDialogue};
+ const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);

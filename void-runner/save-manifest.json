@@ -11,7 +11,15 @@
     "vigil",
     "holdfast",
     "nexus",
-    "order-homeworld"
+    "order-homeworld",
+    "vesper-relay",
+    "servo-orbital",
+    "vantor-relay",
+    "cinder-landing",
+    "erebus-arrival",
+    "sol-arrival",
+    "communion-arrival",
+    "natural-order-arrival"
   ],
   "systems": [
     "erebus",

@@ -16,6 +16,44 @@
   nexus:{system:'communion',name:'The Nexus',district:'CANTOR / COMMUNION HOMEWORLD',color:'#8fd4ee',bar:'Aid Station',ownerFaction:'communion',securityFaction:'communion',planet:true},
   'order-homeworld':{system:'natural-order',name:'Natural Order Homeworld',district:'GARROW / NATURAL ORDER HOMEWORLD (NAME PENDING)',color:'#c9a24a',bar:'Cooperative Hall',ownerFaction:'natural-order',securityFaction:'natural-order',planet:true}
  };
+ // Flight destinations retain their save IDs. Planet and settlement IDs identify geography
+ // independently of the pad that the pilot targets or the name an editor displays.
+ const planets={
+  vesper:{name:'Vesper',pad:'vesper',settlement:'Ward Freight Workshop',facility:'Workshop Yard',facilityProvisional:true,orbital:'vesper-relay'},
+  'cinder-ring':{name:'Cinder Ring',provisional:true,pad:'cinder-landing',settlement:'Ring Survey Site',settlementProvisional:true,facility:'Survey Landing',facilityProvisional:true,orbital:'meridian'},
+  servo:{name:'Servo',pad:'earth',settlement:'NeoChinatown',facility:'The Port — Pad 01',orbital:'servo-orbital'},
+  vantor:{name:'Vantor',pad:'mars',settlement:'Underground City',facility:'Pressure Control Landing Pad',facilityProvisional:true,orbital:'vantor-relay'},
+  nexus:{name:'The Nexus',pad:'nexus',settlement:'Fractured Circuit',settlementProvisional:true,facility:'Synapse Port',facilityProvisional:true,orbital:'vigil'},
+  'order-homeworld':{name:'Eden Prime',provisional:true,pad:'order-homeworld',settlement:'Haven’s Reach',settlementProvisional:true,facility:'Harvest Landing',facilityProvisional:true,orbital:'holdfast'}
+ };
+ Object.assign(locations,{
+  'vesper-relay':{system:'erebus',name:'Vesper Relay',type:'station',placeholder:true},
+  'servo-orbital':{system:'sol',name:'Servo Orbital Exchange',type:'station',placeholder:true},
+  'vantor-relay':{system:'sol',name:'Vantor Relay',type:'station',placeholder:true},
+  'cinder-landing':{system:'erebus',name:'Survey Landing',surface:true,placeholder:true}
+ });
+ const bearings={vesper:-105,meridian:-64,kepler:35,rusthaven:-20,foundry:70,'vesper-relay':6,'cinder-landing':100,
+  earth:-64,mars:35,'sol-belt':-20,'servo-orbital':6,'vantor-relay':70,nexus:35,vigil:-64,holdfast:-64,'order-homeworld':35,
+  'erebus-arrival':128,'sol-arrival':158,'communion-arrival':188,'natural-order-arrival':218};
+ for(const [id,world] of Object.entries(planets)){
+  world.settlementId=id+'-settlement';world.facilityId=id+'-pad';
+  const pad=locations[world.pad],station=locations[world.orbital];
+  world.system=pad.system;
+  pad.parentPlanet=id;pad.type='pad';station.parentPlanet=id;
+ }
+ for(const [id,region] of Object.entries(systems)){
+  region.arrival=id+'-arrival';
+  locations[region.arrival]={name:region.name+' Arrival',system:id,type:'arrival',color:'#abc4d1',
+   ownerFaction:region.ownerFaction,securityFaction:region.securityFaction};
+ }
+ for(const [id,place] of Object.entries(locations)){
+  place.bearing=bearings[id]*Math.PI/180;
+  place.testable=true;place.status=place.placeholder?'Functional placeholder':'Existing';
+  if(place.placeholder)place.awaiting=['custom assets','NPCs','missions'];
+  place.missionDestination=place.type!=='arrival'&&!place.placeholder;
+  place.type??=id==='sol-belt'?'anchorage':'station';
+  if(place.placeholder)place.color??='#a9b8bd';
+ }
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
  // Planetside locations (on the ground, not docked in space): departures from them warp up into the sky.
@@ -42,9 +80,12 @@
   if(raw.station?.location===state.location)out.station={location:state.location};return out;
  }
  function unlock(s){const travel=s.progression?.completed===true||s.progression?.flags?.missileFired===true||s.missileOfferSeen===true||s.universe?.freeTravel===true;s.universe=restore({...s.universe,missionLogUnlocked:true,freeTravel:travel},s);if(travel&&!s.universe.trackingInitialized&&!s.universe.trackedMission)s.universe.trackedMission='meet-admin';}
- function visit(s){const u=s.universe;u.currentSystem=system(s.location);for(const key of ['visitedLocations','discoveredLocations'])if(!u[key].includes(s.location))u[key].push(s.location);if(!u.discoveredSystems.includes(u.currentSystem))u.discoveredSystems.push(u.currentSystem);u.station={location:s.location};}
+ function visit(s){const u=s.universe;u.currentSystem=system(s.location);for(const key of ['visitedLocations','discoveredLocations'])if(!u[key].includes(s.location))u[key].push(s.location);if(!u.discoveredSystems.includes(u.currentSystem))u.discoveredSystems.push(u.currentSystem);u.station=locations[s.location]?.type==='arrival'?null:{location:s.location};}
  function discover(s,id){const u=s.universe;if(!Object.hasOwn(locations,id))return false;if(!u.discoveredLocations.includes(id))u.discoveredLocations.push(id);if(!u.discoveredSystems.includes(system(id)))u.discoveredSystems.push(system(id));return true;}
- function destinations(s){const u=s.universe||fresh();return u.discoveredLocations.filter(id=>id!==s.location&&(system(id)===system(s.location)||id===systems[system(id)].hub));}
- function nextHop(origin,target){return system(origin)===system(target)?target:systems[system(target)].hub;}
- const api={systems,locations,system,planetside,route,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
+ function destinations(s){const u=s.universe||fresh();const here=system(s.location);
+  const local=u.discoveredLocations.filter(id=>id!==s.location&&system(id)===here&&locations[id]?.type!=='arrival');
+  const reachable=new Set(u.discoveredLocations.map(system));
+  return [...new Set(local),...[...reachable].filter(id=>id!==here).map(id=>systems[id].arrival)];}
+ function nextHop(origin,target){return system(origin)===system(target)?target:systems[system(target)].arrival;}
+ const api={systems,locations,planets,system,planetside,route,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
 })(globalThis);

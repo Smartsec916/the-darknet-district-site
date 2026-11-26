@@ -30,7 +30,7 @@
  // Every ship owner already knows the Erebus and Tessaly places (universe.js restore: fresh, freeTravel, quest 'open'), so 'discovered beyond' means a faction system's place.
  function qualifies(s){const f=s?.story?.flags||{},u=s?.universe||{};if(f.shipAccess==='none'||u.freeTravel!==true)return false;
   return (u.visitedLocations||[]).some(id=>id!==HOME&&id!=='vesper')||known(s).some(id=>!coordinatePlaces().includes(id))||(f.missionPool!=='closed'&&s.quest!=='inheritance');}
- function migrate(s){if(!s?.story?.flags||s.story.flags[FLAG]!==undefined||!qualifies(s))return false;grant(s,'migrated');return true;}
+ function migrate(s){if(has(s)){let changed=false;for(const id of coordinatePlaces())if(!known(s).includes(id)){U.discover(s,id);changed=true;}return changed;}if(!s?.story?.flags||s.story.flags[FLAG]!==undefined||!qualifies(s))return false;grant(s,'migrated');return true;}
  /* Which mode the Map app is in (see the top). active: VoidMissions.active() (Node tests pass a list). */
  function hops(s,active){const here=s.location,need=new Set();for(const m of active||[]){if(!m||m.completed||!m.destination||!U.locations[m.destination]||m.destination===here)continue;need.add(U.nextHop(here,m.destination));}return need;}
  function mode(s,active){return has(s)?'full':hops(s,active).size?'route':'known';}

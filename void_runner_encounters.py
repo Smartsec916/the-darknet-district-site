@@ -16,6 +16,86 @@ def identifier(value):
     return isinstance(value, str) and re.fullmatch('[a-z][a-z0-9-]{0,63}', value) is not None
 
 
+def validate_playlists(dialogue, decision):
+    by_id = {row['id']: row for row in dialogue}
+    sections = {key: [] for key in ('opening', 'remaining', 'free', 'be_kade', 'wait')}
+    arrival = 'remaining' if decision == 'before' else 'opening'
+    owned = set()
+    for row in dialogue:
+        key = row['id']
+        if key.startswith('lace_arrival_'):
+            sections[arrival].append(row)
+            if key == decision:
+                arrival = 'remaining'
+        else:
+            for section in ('free', 'be_kade', 'wait'):
+                if key.startswith('lace_' + section + '_'):
+                    sections[section].append(row)
+        if row.get('playlistStart') or row.get('playlistEnd'):
+            if not (row.get('repeatSpeech') and row['text'].strip() or row.get('repeatAnimation') and row.get('animation')):
+                raise DraftError('Select speech or animation to repeat on ' + key + '.')
+        branches = row.get('branches', [])
+        if not isinstance(branches, list) or branches and not re.match(r'^(lace_(arrival|free|be_kade|wait)|branch)_', key):
+            raise DraftError('Choose a valid parent action for each branch playlist.')
+        total = 0
+        for index, branch in enumerate(branches):
+            if not isinstance(branch, dict) or not _num(branch.get('chance'), 0, 100) or not _int(branch.get('passes', 1), 0, 100):
+                raise DraftError('Choose a branch chance and 0 to 100 playlist passes.')
+            actions = branch.get('actions')
+            if not isinstance(actions, list) or not actions:
+                raise DraftError('Each branch needs at least one action.')
+            for action in actions:
+                if not isinstance(action, str) or not action.startswith('branch_') or action not in by_id or action in owned:
+                    raise DraftError('Invalid or shared branch action on ' + key + '.')
+                owned.add(action)
+            start = branch.get('startAction', actions[0])
+            end = branch.get('endAction', actions[-1])
+            if start not in actions or end not in actions or actions.index(start) > actions.index(end):
+                raise DraftError('Choose starting and ending actions in order within the chance playlist on ' + key + '.')
+            sections[(key, index)] = [by_id[action] for action in actions]
+            total += branch['chance']
+        if total > 100 + 1e-9:
+            raise DraftError('Branch chances on ' + key + ' must total 100% or less.')
+    for group in sections.values():
+        first = [n for n, row in enumerate(group) if row.get('playlistStart')]
+        last = [n for n, row in enumerate(group) if row.get('playlistEnd')]
+        if len(first) > 1 or len(last) > 1 or first and last and first[0] > last[0]:
+            raise DraftError('Check the first and last actions in the playlist.')
+    reachable = set()
+    pending = [key for key in by_id if not key.startswith('branch_')]
+    while pending:
+        key = pending.pop()
+        if key not in reachable:
+            reachable.add(key)
+            for branch in by_id[key].get('branches', []):
+                pending.extend(branch['actions'])
+    if len(reachable) != len(by_id):
+        raise DraftError('A branch playlist has no reachable parent.')
+
+
+def start_trigger_ready(trigger, event, campaign, record):
+    kind = trigger.get('kind', 'interval')
+    save = campaign.get('save') or {}
+    flags = (save.get('story') or {}).get('flags') or {}
+    target = trigger.get('target')
+    if kind in ('near', 'place', 'leave', 'pod-exit'):
+        return (isinstance(event, dict) and event.get('kind') == kind
+                and event.get('target') == target and isinstance(event.get('token'), str)
+                and re.fullmatch('[a-f0-9-]{36}', event['token']) is not None
+                and event['token'] not in record.get('recentStartEvents', []))
+    if kind == 'flag':
+        return flags.get(target) is True
+    if kind in ('after-mission', 'game-time'):
+        mission = ((save.get('universe') or {}).get('missions') or {}).get(target) or {}
+        if mission.get('completed') is not True:
+            return False
+        if kind == 'game-time':
+            stamp = flags.get('gc_' + target[:60])
+            return type(stamp) is int and items.saved_minute(campaign) - stamp >= trigger['minutes']
+        return True
+    return kind == 'interval'
+
+
 def validate(graph):
     if not isinstance(graph, dict) or len(json.dumps(graph).encode()) > 65536:
         raise DraftError('Encounter exceeds the 64 KB limit.')
@@ -28,6 +108,18 @@ def validate(graph):
         raise DraftError('Choose a probability from 0 to 100 and a positive interval in seconds.')
     if not identifier(conditions.get('quarter')) or not _num(conditions.get('radius', 20), 1, 200):
         raise DraftError('Choose the quarter and activation distance.')
+    trigger = conditions.get('startTrigger', {'kind': 'interval'})
+    if not isinstance(trigger, dict) or trigger.get('kind') not in ('interval', 'near', 'place', 'leave', 'after-mission', 'game-time', 'flag', 'pod-exit'):
+        raise DraftError('Choose a supported encounter start trigger.')
+    kind = trigger['kind']
+    if kind not in ('interval', 'pod-exit') and not (_plain(trigger.get('target'), 100) and trigger['target'].strip()):
+        raise DraftError('Choose the place, mission or flag for the start trigger.')
+    if 'alsoRandom' in trigger and type(trigger['alsoRandom']) is not bool:
+        raise DraftError('Choose whether nearby percentage rolls also apply.')
+    if kind == 'near' and not _num(trigger.get('distance'), 1, 30):
+        raise DraftError('Choose a distance from 1 to 30 metres.')
+    if kind == 'game-time' and not _int(trigger.get('minutes'), 1, 10080):
+        raise DraftError('Choose 1 to 10080 in-game minutes after mission completion.')
     for field, limit in [('cooldownSeconds', 31536000), ('dailyLimit', 1000), ('expiresSeconds', 31536000)]:
         if not _int(conditions.get(field, 0), 0, limit):
             raise DraftError('Check '+field+'.')
@@ -71,7 +163,7 @@ def validate(graph):
         labels.add(line['id'])
         if not identifier(line.get('speaker')) or not _plain(line.get('text'), 1000) or not _num(line.get('delay', 0), 0, 300):
             raise DraftError('Check the speaker, line and delay for '+line['id']+'.')
-        for flag in ('repeatSpeech', 'repeatAnimation'):
+        for flag in ('repeatSpeech', 'repeatAnimation', 'playlistStart', 'playlistEnd'):
             if flag in line and not isinstance(line[flag], bool):
                 raise DraftError('Choose on or off for dialogue repeats.')
         if 'recording' in line:
@@ -79,6 +171,7 @@ def validate(graph):
             clip = line['recording']
             if clip_problems([clip]) or clip['who'] != line['speaker'] or clip['text'] != line['text']:
                 raise DraftError('Attach a recording that matches '+line['id']+'.')
+    validate_playlists(dialogue, graph.get('decisionAfter'))
     nodes = graph.get('nodes')
     if not isinstance(nodes, list) or not 1 <= len(nodes) <= 128:
         raise DraftError('An encounter needs 1 to 128 nodes.')
@@ -286,6 +379,10 @@ def opportunity(db, uid, body):
         if now < record.get('next', 0):
             return {'active':False, 'next':record['next']}
         campaign = db.collection('vr_players').document(items._tag(uid)).get(transaction=tx).to_dict() or {}
+        trigger = cond.get('startTrigger', {})
+        event = body.get('startEvent')
+        if not (trigger.get('alsoRandom') is True and event is None) and not start_trigger_ready(trigger, event, campaign, record):
+            return {'active': False}
         minute = items.saved_minute(campaign)
         day, tod = divmod(minute,1440)
         after,before = cond.get('fromMinute',0),cond.get('toMinute',0)
@@ -311,13 +408,16 @@ def opportunity(db, uid, body):
         if cond.get('dailyLimit') and count>=cond['dailyLimit']:
             return {'active':False}
         record['next'] = now + cond['intervalSeconds']
+        event_trigger = event is not None and trigger.get('kind') in ('near', 'place', 'leave', 'pod-exit')
+        if event_trigger:
+            record['recentStartEvents'] = [*record.get('recentStartEvents', [])[-31:], event['token']]
         active = roll < cond['chance']
         if active:
             record.pop('drop',None)
             record.update(stage='activated', run=secrets.token_hex(16), started=now, finished=False,
                           day=day,count=count+1,next=now+max(cond['intervalSeconds'],cond.get('cooldownSeconds',0)))
         tx.set(ref, record)
-        return {'active':active, 'next':record['next'], **({'run':record['run'],'stage':'activated'} if active else {})}
+        return {'active':active, 'rolled':True, 'next':record['next'], **({'run':record['run'],'stage':'activated'} if active else {})}
     return activate(db.transaction())
 
 

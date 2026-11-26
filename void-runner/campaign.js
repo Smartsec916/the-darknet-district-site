@@ -182,12 +182,12 @@
   const rookRunBase={ id: 'rook-run', name: 'Rook freight run', cargo: 'Rook freight', legal: true, destination: 'meridian', reward: 500, enemies: 4, tier: 1, duration: 36, contact: 'Rook', briefing: 'Rook always has another crate that needs to be somewhere else.' };
   function rookRunNumber(s){return (Number.isSafeInteger(s.story?.flags?.rookRuns)?s.story.flags.rookRuns:0)+1;}
   // Rook runs no freight to Vesper or the faction homeworlds, nor into a system Admin's delivery hasn't opened.
-  function rookPool(s){const u=s.universe||U.fresh();return Object.keys(U.locations).filter(id=>!RC.never.includes(id)&&Object.hasOwn(stations,id)&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));}
+  function rookPool(s){const u=s.universe||U.fresh();return Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&!RC.never.includes(id)&&Object.hasOwn(stations,id)&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));}
   function rookRunTarget(s){
     const u=s.universe||U.fresh(),served=String(s.story?.flags?.rookSystems||'erebus').split(',');
     const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location&&!heldForAdmin(s,id));
     if(fresh)return U.systems[fresh].hub;
-    const pool=Object.keys(U.locations).filter(id=>id!=='vesper'&&id!=='nexus'&&id!=='order-homeworld'&&id!==s.location&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));
+    const pool=Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&id!=='vesper'&&id!=='nexus'&&id!=='order-homeworld'&&id!==s.location&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));
     return pool.length?pool[(rookRunNumber(s)-1)%pool.length]:'meridian';
   }
   // The board for the next run: one routine job at first, two from the second run, three from the fourth.
@@ -344,14 +344,18 @@
     /* A Rook job whose destination is where the player already is (every login wakes them in their pod in NeoChinatown, so a job to NeoChinatown taken before a reload
        starts there): it is not delivered by flying away. The flight is a transit with the cargo still aboard; the job is delivered on the next real arrival there
        (or handed back to Rook at Meridian). Before 21 Nov 2026 that flight went to Meridian as the job itself and completed and paid it. */
-    if(mission&&s.contract==='rook-run'&&/^rook-run-/.test(mission.id||'')&&s.location!=='meridian'&&rookRun(s).destination===s.location)mission={name:'Transit / cargo aboard',destination:'meridian',duration:U.route(s.location,'meridian').seconds,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
-    // A run whose destination is the other system's hub is flown in one interstellar leg.
-    if(mission&&U.system(s.location)!==U.system(mission.destination)&&U.nextHop(s.location,mission.destination)===mission.destination)mission={...mission,duration:Math.max(mission.duration,24)};
-    else if(mission&&U.system(s.location)!==U.system(mission.destination))mission={name:'Interstellar connection',destination:U.nextHop(s.location,mission.destination),duration:24,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
+    if(mission&&s.contract==='rook-run'&&/^rook-run-/.test(mission.id||'')&&s.location!=='meridian'&&(rookRun(s).destination===s.location||s.story.flags.returnCargoToRook===true))mission={name:'Transit / cargo aboard',destination:'meridian',duration:U.route(s.location,'meridian').seconds,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
+    if(mission&&U.system(s.location)!==U.system(mission.destination)){
+      const destination=U.nextHop(s.location,mission.destination);
+      mission={id:mission.id,finalDestination:mission.destination,returnCargoToRook:mission.name==='Transit / cargo aboard',
+        name:'Interstellar connection',destination,duration:U.route(s.location,destination).seconds,
+        enemies:0,tier:0,reward:0,legal:mission.legal,cargo:mission.cargo||'Cargo retained in hold',kind:'transit'};
+    }
     if(!s.universe?.freeTravel||!s.destination||s.destination===s.location)return mission;
     if(mission?.destination===s.destination)return mission;
-    const policy=U.route(s.location,s.destination);
-    return {name:'Free transit',destination:s.destination,duration:policy.seconds,enemies:policy.interdiction?3:0,tier:1,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
+    const destination=U.nextHop(s.location,s.destination);
+    const policy=U.route(s.location,destination);
+    return {name:'Free transit',destination,duration:policy.seconds,enemies:policy.interdiction?3:0,tier:1,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
   }
   function accept(s, id) {
     if(Missions.closed(s)&&!(rookOpen(s)&&(id==='rook-run'||String(id).startsWith('rook-job:'))))return false;   // a District campaign: only Rook's side missions, once his board is open
@@ -369,11 +373,17 @@
   function complete(s) {
     // A District campaign has no old missions to complete, but a pilot who owns a ship (the beginner campaign's award, or a developer test ship) must still be able to ARRIVE
     // from a free transit: without this the flight never ended and the ship could never reach another place.
-    if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&(flight(s)?.kind==='transit'||s.contract==='rook-run'&&rookOpen(s))))return null;   // ... and Rook's side missions deliver
+    if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&(s.universe?.freeTravel&&flight(s)?.kind==='transit'||s.contract==='rook-run'&&rookOpen(s))))return null;   // ... and Rook's side missions deliver
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
+    s.story.flags.flightCheckpoint=true;
     if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
     s.travel=null;s.destination=null;
+    if(U.locations[f.destination]?.type==='arrival'){
+      if(f.returnCargoToRook)s.story.flags.returnCargoToRook=true;
+      s.location=f.destination;U.visit(s);P.checkpoint(s,s.location);
+      return {...f,connection:true,repairCharged:0,gunReward:false};
+    }
     if(f.kind==='training'){
       s.location=f.destination;U.visit(s);P.checkpoint(s,s.location);P.mark(s,'dock');
       s.story.flags.flightTrainingComplete=true;
@@ -381,6 +391,7 @@
       Story.emit(s,'arriveLocation',s.location);
       return {...f,repairCharged:0,gunReward:false,training:true};
     }
+    delete s.story.flags.returnCargoToRook;
     s.location = f.destination; U.visit(s);if(s.location==='earth'&&s.story?.flags){delete s.story.flags.area;delete s.story.flags.quarter;}/* a flight sets down at the Port, on the street (planet-landing.js): never inside the District or in another quarter */P.checkpoint(s,s.location);P.mark(s,'dock');if(!s.progression.equipment.owned.includes('cooling')){s.progression.equipment.owned.push('cooling');if(previous==='arrival')s.credits+=200;} s.credits += f.reward;
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
@@ -436,7 +447,11 @@
     // Admin stays in the store except while the first faction payment waits (replaces the old adminAway flag).
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
-    if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
+    if(stations[out.progression.checkpoint.location]){
+      out.location=out.progression.checkpoint.location;
+      out.universe.currentSystem=U.system(out.location);
+      out.universe.station=U.locations[out.location]?.type==='arrival'?null:{location:out.location};
+    }
     out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Ord()?.migrate(out);Nav()?.migrate(out);if(Missions.closed(out)&&rookOpen(out)&&!RG.validSeed(out.story.flags.rookSeed))out.story.flags.rookSeed=RG.seedOf(out);/* Rook's procedural board: a save with his board open but no seed gets one derived from it, once (rook-cargo-gen.js) */Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
@@ -462,7 +477,10 @@
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
   function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
   function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}
-  function chooseDestination(s,id){if(!s.universe?.freeTravel||!U.destinations(s).includes(id)||!stations[id]||id===s.location)return false;s.destination=id;s.travel=null;return true;}
+  function chooseDestination(s,id){if(!s.universe?.freeTravel||!stations[id]||id===s.location)return false;
+    const hop=U.nextHop(s.location,id);
+    if(!U.destinations(s).includes(hop)||hop!==id&&!s.universe.discoveredLocations.includes(id))return false;
+    s.destination=hop;s.travel=null;return true;}
 
   // Resolve the current campaign at each callback: loading/new journeys replace state.
   function enemyHitConsequences(getState, persist) {

@@ -5,6 +5,7 @@
  const W=(id,x1,z1,x2,z2,h=6)=>({id,position:[(x1+x2)/2,h/2,(z1+z2)/2],size:[Math.abs(x2-x1)||.4,h,Math.abs(z2-z1)||.4]});
  const T=(id,label,position,extra={})=>({id,label,position,action:'homeworld-task',range:3,...extra});
  const worlds={
+  'cinder-landing':{location:'cinder-landing',name:'Survey Landing',color:'#909da2',solids:[],interactions:[]},
   nexus:{location:'nexus',name:'THE NEXUS / CANTOR',color:'#8fd4ee',
    solids:[W('core',-14,30,14,44,30),W('depot',-25,-10,-17,-2,4),W('aid',14,-8,22,0,3.5),W('relay',-18,14,-14,18,3),W('power',14,16,18,20,3.5)],
    interactions:[
@@ -25,7 +26,7 @@
     T('order-solar','REPAIR THE SOLAR INSTALLATION',[10,1.7,24],{when:{flags:{orderSolar:'carrying'}}})]}
  };
  function layout(id){const w=worlds[id];if(!w)return null;
-  return {id:'planet-'+id,location:w.location,name:w.name,kind:'planet',planet:id,bounds:[38,40],spawn:[0,1.7,-20],yaw:0,color:w.color,ship:'starter',
+  return {id:'planet-'+id,location:w.location,name:w.name,kind:'planet',planet:id,bounds:id==='cinder-landing'?[120,120]:[38,40],spawn:[0,1.7,-20],yaw:0,color:w.color,ship:'starter',
    solids:w.solids.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),
    interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-25],action:'board',range:3.5},...w.interactions.map(i=>({...i,position:i.position.slice()}))],signs:[]};}
 
@@ -49,10 +50,13 @@
   const flags=()=>state?.story?.flags||{};
   const ground=(hex,size=96)=>{const g=B.MeshBuilder.CreateGround('hw-ground',{width:size,height:size},scene);g.material=mat('ground',hex);g.parent=parent;g.isPickable=false;g.position.y=-.01;return g;};
   // The player's ship on its pad.
-  cyl('pad',5,.12,[-4,.06,-29],mat('pad','#3a3f44',{rough:.6,metal:.4}),true,32);
+  cyl('pad',id==='cinder-landing'?12:5,.12,[-4,.06,-29],mat('pad','#3a3f44',{rough:.6,metal:.4}),true,32);
   const ship=shipModel('starter','friendly',parent,{landed:true});if(ship){ship.position.set(-4,1.1,-29);ship.scaling.setAll(1.6);ship.rotation.y=.3;}
   let tick=()=>{};
-  if(id==='nexus'){
+  if(id==='cinder-landing'){
+   ground('#4c4946',260);scene.clearColor=new B.Color4(.12,.13,.15,1);
+   if(sun)sun.intensity=.85;if(ambient)ambient.intensity=.7;
+  }else if(id==='nexus'){
    scene.clearColor=new B.Color4(.42,.5,.57,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.012;scene.fogColor=new B.Color3(.55,.62,.68);
    if(sun)sun.intensity=.7;if(ambient)ambient.intensity=.75;
    const tile=texture('nexus-plaza',512,512,(g,w,h)=>{g.fillStyle='#6d7a83';g.fillRect(0,0,w,h);g.strokeStyle='#5b6770';g.lineWidth=3;for(let i=0;i<=w;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,h);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(w,i);g.stroke();}

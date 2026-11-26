@@ -21,16 +21,55 @@
    return '<option value="'+escapeText(value)+'"'+(choice.stage===value?' selected':'')+'>'+escapeText(m.title||m.id)+'</option>';
   }).join('')+'</optgroup>').join('');
  }
+ function destinationGroups(){
+  const U=VoidUniverse;
+  return '<h3 class="dev-group">Jump directly to a location</h3>'+Object.entries(U.systems).map(([key,sys])=>{
+   const button=(id,label)=>'<button data-dev="test-place-'+id+'">'+escapeText(label)+'</button>';
+   const entries=Object.entries(U.locations).filter(([,l])=>l.system===key).map(([id,l])=>{
+    const body=U.planets[l.parentPlanet],status=l.status+(l.awaiting?' · awaiting '+l.awaiting.join(', '):'');
+    const name=(label,provisional)=>label+(provisional?' (provisional)':'');
+    if(l.type==='pad'&&body){
+     return button(id+'/planet',name(body.name,body.provisional)+' · planet · '+status)+
+      button(id+'/settlement',name(body.settlement,body.settlementProvisional)+' · settlement · '+status)+
+      button(id,name(body.facility,body.facilityProvisional)+' · landing pad · '+status);
+    }
+    return button(id,name(C.stations[id]?.name||id,l.placeholder)+' · '+l.type+' · '+status);
+   }).join('');
+   return '<details><summary>'+escapeText(sys.name)+'</summary><div class="dev-actions">'+entries+'</div></details>';
+  }).join('');
+ }
+ function grantTravelKit(s){
+  s.credits=10000;s.progression.personal.weapon='ward-pistol';s.missileUnlocked=true;
+  if(!s.creditGear.includes('launcher'))s.creditGear.push('launcher');
+  for(const id of Object.keys(VoidUniverse.locations))VoidUniverse.discover(s,id);
+ }
+ async function jump(target,panel){
+  const [id,site]=target.split('/');
+  if(!Object.hasOwn(VoidUniverse.locations,id))return;
+  const kit=!!panel.querySelector('#dev-test-kit')?.checked;
+  const result=await session({banner:'Test location · '+C.stations[id].name,
+   build(){
+    const s=C.startDistrictCampaign(C.fresh());C.awardStarterShip(s);s.story.flags.podWakePending=false;
+    if(kit)grantTravelKit(s);
+    VoidUniverse.discover(s,id);s.location=id;VoidUniverse.visit(s);return s;
+   },
+   async enter(){
+    if(VoidUniverse.locations[id].type==='arrival')await launch();
+    else if(id==='earth')await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:site==='settlement'?'oldtown':'port'});
+    else await dock();
+   }});
+  if(result.error||result.problem)panel.querySelector('#dev-status').textContent=result.error||result.problem;
+ }
  function render(){
   choice.stage??=liveTrees()[0]?.missions[0]?'mission:'+liveTrees()[0].missions[0].id:'open';
   const byName=places().sort((a,b)=>a[2].localeCompare(b[2])||a[1].localeCompare(b[1]));
   return '<p class="dev-note">Start a throwaway test session at any place and story stage. While it runs, <b>nothing is saved</b>: not to this browser and not to the cloud. <b>EXIT TEST</b> (top of the screen) reloads the game with your real save exactly as it was.</p>'
    +'<div class="dev-test-grid">'
-   +'<label>Place for story presets<select id="dev-test-location">'+byName.map(([id,name,sys])=>'<option value="'+id+'"'+(id===choice.location?' selected':'')+'>'+escapeText(name+' · '+sys)+'</option>').join('')+'</select></label>'
+   +'<label>Place for story presets<select id="dev-test-location">'+Object.values(VoidUniverse.systems).map(sys=>'<optgroup label="'+escapeText(sys.name)+'">'+byName.filter(p=>p[2]===sys.name).map(([id,name])=>{const l=VoidUniverse.locations[id];return '<option value="'+id+'"'+(id===choice.location?' selected':'')+'>'+escapeText(name+' · '+l.type+(l.placeholder?' · functional placeholder':' · existing'))+'</option>';}).join('')+'</optgroup>').join('')+'</select></label>'
    +'<label>Story stage<select id="dev-test-stage">'+missionOptions()+'<optgroup label="Campaign presets">'+stages.map(([id,name])=>'<option value="'+id+'"'+(id===choice.stage?' selected':'')+'>'+escapeText(name)+'</option>').join('')+'</optgroup></select></label>'
    +'<label><span>Test kit</span><span><input id="dev-test-kit" type="checkbox"'+(choice.kit?' checked':'')+'> 10,000 credits, Ward pistol, missile launcher, every place discovered</span></label>'
    +'</div><div class="dev-actions"><button data-dev="test-start">START TEST SESSION</button>'+(active?'<button data-dev="test-exit">EXIT TEST</button>':'')+'</div>'
-   +'<h3 class="dev-group">Street life</h3><p class="dev-note">Two people argue a few steps in front of you; the people round about stop and most of them film it on their V1 (monks and V3 // Shadow carriers do not). Walking in NeoChinatown only.</p><div class="dev-actions"><button data-dev="test-argument">STAGE A STREET ARGUMENT HERE</button></div><p id="dev-status" role="status"></p>';
+   +destinationGroups()+'<h3 class="dev-group">Street life</h3><p class="dev-note">Two people argue a few steps in front of you; the people round about stop and most of them film it on their V1 (monks and V3 // Shadow carriers do not). Walking in NeoChinatown only.</p><div class="dev-actions"><button data-dev="test-argument">STAGE A STREET ARGUMENT HERE</button></div><p id="dev-status" role="status"></p>';
  }
  function read(panel){choice={location:panel.querySelector('#dev-test-location')?.value||choice.location,stage:panel.querySelector('#dev-test-stage')?.value||choice.stage,kit:!!panel.querySelector('#dev-test-kit')?.checked};}
 
@@ -59,11 +98,7 @@
     const result=await session({banner:'TEST MISSION · '+mission.title,build:()=>{
      target=editor.liveTreeState(id);
      const s=target.state;
-     if(choice.kit){
-      s.credits=10000;s.progression.personal.weapon='ward-pistol';s.missileUnlocked=true;
-      if(!s.creditGear.includes('launcher'))s.creditGear.push('launcher');
-      s.universe.discoveredLocations=[...new Set([...s.universe.discoveredLocations,...Object.keys(VoidUniverse.locations)])];
-     }
+     if(choice.kit)grantTravelKit(s);
      return s;
     },enter:()=>editor.enterTree(target.where),message:()=>mission.title+' · '+target.notes.join(' ')});
     if(result?.error)status.textContent=result.error;
@@ -77,7 +112,9 @@
   state=build(choice);walkingLocation=walker=null;mode='menu';
   document.getElementById('screen')?.classList.add('hidden');
   if(choice.stage==='district-ship'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}   // stand on the street beside the pad (the Port quarter)
-  else if(choice.location==='vesper')await worldEnterWalking('vesper');else await dock();
+  else if(VoidUniverse.locations[choice.location]?.type==='arrival'){
+   C.awardStarterShip(state);state.universe.freeTravel=true;state.location=choice.location;VoidUniverse.visit(state);await launch();
+  }else if(choice.location==='vesper')await worldEnterWalking('vesper');else await dock();
   if(typeof hud==='function')hud();
   announce('TEST MODE · '+(C.stations[choice.location]?.name||choice.location)+' · nothing is saved');
  }
@@ -109,7 +146,7 @@
   catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Press '+(opts.leave||'EXIT TEST')+' to go back, then try again (if it keeps failing, reload the page).');return {started:true,problem:String(e?.message||e)};}
   const msg=typeof opts.message==='function'?opts.message():opts.message;if(msg)announce(msg);return {started:true};
  }
- function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();if(name==='test-argument')return argument(panel);}
+ function action(name,panel){if(name.startsWith('test-place-'))return jump(name.slice('test-place-'.length),panel);if(name==='test-start')return start(panel);if(name==='test-exit')return exit();if(name==='test-argument')return argument(panel);}
  // STAGE A STREET ARGUMENT HERE (npc-device.js): nothing is saved and nobody is hurt; it ends by itself after about 15 seconds.
  function argument(panel){const st=panel.querySelector('#dev-status');if(typeof mode==='undefined'||mode!=='walking'||!globalThis.VoidCrowdReact){if(st)st.textContent='Walk somewhere in NeoChinatown first.';return;}const r=VoidCrowdReact.stageArgument();if(r?.error){if(st)st.textContent=r.error;return;}panel.hidden=true;announce('Two people start arguing in front of you.');}
  /* DRAFT: STEP FAILED (21 Nov 2026, the owner: "while trying to play through a test mission the editor pops up"). A failed step in draft play behaves as in the real
