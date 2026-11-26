@@ -389,7 +389,7 @@
    people.delete(id);
   }
   function pose(id,c,index){
-   if(!c||!present(id))return null;
+   if(!c||!present(id)||root.VoidEncounterGame?.hidesResident?.(id))return null;
    const outing=residentOuting(id,c);
    if(outing){
     if(outing.area!==def.part)return null;

@@ -33,7 +33,7 @@
  const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:G?.placeIds?G.placeIds():new Set((G?.PLACES||[]).map(p=>p.id)),subjects:new Set((G?.photoSubjects?.(env.givers)||[]).map(g=>g.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{})),ships:new Map(Object.entries(root.VoidShips?.ships||{}))});
  function use(content,source,version){
   const kade=content?.characters?.['kade-mercer'];
-  if(kade?.model==='district-resident')content={...content,characters:{...content.characters,'kade-mercer':{...kade,model:'npc-office-m'}}};
+  if(['district-resident','npc-office-m'].includes(kade?.model))content={...content,characters:{...content.characters,'kade-mercer':{...kade,model:'npc-hacker'}}};
   const r=MC.apply(content,env,ctx());
   if(r.refused.length){MC.apply(null,env);try{root.VoidVoiceImports?.use([]);}catch{}current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}
   current={version:version||0,source,content,refused:null};env.draft=source==='draft';try{root.VoidVoiceImports?.use(env.clips,{draft:source==='draft',givers:env.givers,interactions:Object.values(env.interactions||{}).flatMap(r=>r.clips||[])});}catch{}lastState=null;migrateNow();return true;   // Ordinary audio is scoped independently of mission lines.
