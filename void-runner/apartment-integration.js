@@ -195,7 +195,7 @@
    h.tick=function(time){const r=t.apply(this,arguments);const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{sd.tick(dt);}catch(e){console.warn('[apartments]',e);}return r;};h.dispose=function(){try{sd.dispose();}catch{}return d.apply(this,arguments);};}}}catch(e){console.warn('[apartments] street doors',e);}return h;};NC.build.apartments=true;}}
  // ---- going in and out ----
  async function presentCard(door){
-  if(root.VoidDevTest?.active&&root.VoidEncounterGame?.testAccess(door))return true;
+  if(root.VoidDevTest?.active&&root.VoidEncounterGame?.privateSession)return root.VoidEncounterGame.testAccess(door);
   const shop=root.VoidConsumableGame,uid=root.VoidAccount?.user?.uid;
   if(!uid||!shop)return false;
   try{

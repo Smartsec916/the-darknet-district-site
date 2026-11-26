@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "266ca71f96ef6d8c",
+  "revision": "107e9e92177e93cc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82847,7 +82847,7 @@
     "void-runner/anim-library.js": "b4879bd34b9014a5d73cd566c3fd72b15b81dfc628483b99667e6547aa455a45",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
-    "void-runner/apartment-integration.js": "f1058b0e4a195832e6a5f59b197c532d11af568fad2eddc8d227f6a0ab834201",
+    "void-runner/apartment-integration.js": "1c485837e25f52c8447dfe3c27f8c3a3100a7184709f66f4a4c037ebe055a213",
     "void-runner/apartments.js": "f9784f206db205426d45e7118b6770a6fcc3fb7c87ac43de28e47632e60598f2",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
@@ -82866,7 +82866,7 @@
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
     "void-runner/chance-encounter-editor.js": "6801def0088786bbdf0b0bef10159b510bb06abed835e3b6306a53d6991236c7",
-    "void-runner/chance-encounter-game.js": "322e990f410b8c96e6ceac6eff8a03d15993f2e5bec0d7c8f7370207832f112c",
+    "void-runner/chance-encounter-game.js": "914b70bdf0530e5001a25e1c7241545e0d33b9f9e30bf612172f999ed68c5b75",
     "void-runner/chance-encounter.js": "61317223430ed450ec76bf6638a15a7af64a598341d7b782e977ffbabf8de7f0",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",

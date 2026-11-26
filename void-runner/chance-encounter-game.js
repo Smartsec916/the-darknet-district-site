@@ -176,6 +176,7 @@
     await root.VoidConsumableGame.refresh();
    }
    run.holds=true;
+   if(run.private)run.expiresAt=performance.now()+86400000;
   }finally{document.removeEventListener('keydown',key,true);host.hidden=true;card.parent.dispose();run.owned.delete(card.parent);}
  }
  async function flat(run,jump){
@@ -261,7 +262,7 @@
  }
  async function begin(graph,start,privateTest,token){
   stop();const controller=new AbortController();
-  const run={graph,private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false};
+  const run={graph,private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
   running=run;
   try{await runGraph(run,start);}finally{if(running===run)stop();}
  }
@@ -280,7 +281,12 @@
   if(result.error||result.problem)throw Error(result.error||result.problem);
   const bar=document.getElementById('dev-test-banner');
   for(const old of bar.querySelectorAll('[data-chance-control]'))old.remove();
-  for(const [name,action] of [['Restart Encounter',()=>playtest(graph,start)],['Stop Playtest',()=>{stop();root.VoidDevTest.exit();}]]){
+  const controls=[['Restart Encounter',()=>playtest(graph,start)],['Stop Playtest',()=>{stop();root.VoidDevTest.exit();}]];
+  if(graph.item)controls.push(['Expire test keycard',()=>{
+   if(!running?.private||!running.holds){announce('Collect the test keycard first.');return;}
+   running.expiresAt=0;announce('Test keycard expired.');
+  }]);
+  for(const [name,action] of controls){
    const b=document.createElement('button');b.type='button';b.dataset.chanceControl='';b.textContent=name;b.onclick=action;bar.append(b);
   }
  }
@@ -323,6 +329,6 @@
   }catch(e){console.warn('[Chance encounters]',e.message);}finally{checking=false;}
  }
  setInterval(opportunities,2000);
- root.VoidEncounterGame={playtest,stop,
-  testAccess(target){if(!running?.private||!root.VoidDevTest.active||!running.holds)return false;const a=address(running);return target===a.target||target===a.door.id;}};
+ root.VoidEncounterGame={playtest,stop,get privateSession(){return document.getElementById('dev-test-banner')?.dataset.kind==='encounter';},
+  testAccess(target){if(!running?.private||!root.VoidDevTest.active||!running.holds||performance.now()>=running.expiresAt)return false;const a=address(running);return target===a.target||target===a.door.id;}};
 })(globalThis);
