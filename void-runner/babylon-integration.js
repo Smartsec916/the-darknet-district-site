@@ -423,14 +423,15 @@ update = function(dt) {
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
     if(!VoidInputState.current.movement){moving.x=0;moving.z=0;moving.run=false;moving.crouch=false;}
-    const seated=globalThis.VoidTeaDuo?.playerStep?.(walker,moving,dt);
+    const posed=globalThis.VoidEncounterGame?.playerStep?.(walker);
+    const seated=posed||globalThis.VoidTeaDuo?.playerStep?.(walker,moving,dt);
     if(!seated)VoidExplorer.step(walker, moving, dt, walkingLocation);
     if (!seated&&!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
     walkTarget = seated?null:VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
     $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
-    $('walking-interact').textContent = seated?'['+(globalThis.VoidControls?.label('interact')||'E')+'] STAND UP':walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
-    $('walking-interact').disabled = !seated&&!walkTarget;
+    $('walking-interact').textContent = posed?'':seated?'['+(globalThis.VoidControls?.label('interact')||'E')+'] STAND UP':walkTarget ? '['+(globalThis.VoidControls?.label('interact')||'E')+'] ' + walkTarget.label : 'Look toward a nearby object';
+    $('walking-interact').disabled = posed||!seated&&!walkTarget;
     lastStepSound -= dt;
     if ((moving.x || moving.z) && lastStepSound <= 0) {
       if (!globalThis.VoidAmbience?.ownStep?.(moving.run)) VoidAudio.tone(moving.run ? 88 : 95, .06, 'triangle', moving.run ? .017 : .009);   // your own steps are louder when you run

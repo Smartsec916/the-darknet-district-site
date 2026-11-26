@@ -71,7 +71,7 @@
  // ---------------------------------------------------------------- drafts (saved on every edit)
  /* The draft. The main storyline is always in it: until the owner edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
  function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},characters:{},...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},characters:{}};
-  if(d.characters?.['kade-mercer']?.model==='district-resident')d.characters['kade-mercer'].model='npc-office-m';
+  if(['district-resident','npc-office-m'].includes(d.characters?.['kade-mercer']?.model))d.characters['kade-mercer'].model='npc-hacker';
   const S=MS();if(S){const own=d.trees.find(t=>t.id===S.TREE_ID);if(!own)d.trees.unshift(S.trees()[0]);
    // A copy saved before a shipped mission existed (Mission 002, 17 Nov 2026) gets that mission, where it stands in the shipped tree, unless its number was removed in the draft.
    // The tree's old default name "Main storyline" becomes "Awakening" (the owner calls it the Awakening Tree; the id never changes). Saved with the next edit.

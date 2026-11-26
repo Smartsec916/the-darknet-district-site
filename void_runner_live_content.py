@@ -3016,8 +3016,8 @@ def publish(db, uid, payload):
                 if not isinstance(home, dict) or npc in (previous.get('npcs') or {}):
                     raise DraftError('Choose a residence for this new world NPC.', 409)
             elif old.get('model') != character.get('model') and not (
-                    npc == 'kade-mercer' and old.get('model') == 'district-resident'
-                    and character.get('model') == 'npc-office-m'):
+                    npc == 'kade-mercer' and old.get('model') in ('district-resident', 'npc-office-m')
+                    and character.get('model') == 'npc-hacker'):
                 raise DraftError('The permanent model must match the published NPC.', 409)
             content = dict(previous, characters={**(previous.get('characters') or {}), npc: character})
             standalone = {'format': FORMAT, 'version': 1, 'characters': {npc: character}}

@@ -152,6 +152,9 @@
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);
     if(g.id==='dropped-cardkey'){
      const branch=select([['arrival','Arrival'],['free','Free Lace'],['be_kade','Be Kade']],'arrival',()=>{});
+     const arrival=g.dialogue.filter(l=>l.id.startsWith('lace_arrival_'));
+     field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],
+      ...arrival.map(l=>[l.id,'After '+l.id+(l.text?' — '+l.text.slice(0,55):'')])],g.decisionAfter||'end',v=>{g.decisionAfter=v;mark();}));
      field(dialogue,'Conversation',branch);
      dialogue.append(button('Add Lace line',()=>{
       const prefix='lace_'+branch.value+'_';let n=1;

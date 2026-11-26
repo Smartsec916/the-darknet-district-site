@@ -332,7 +332,7 @@ def residential_drop(db, uid, body):
         point = graph['dropPosition']
         drop = {'door':door,'position':point,'range':graph['pickupDistance'],'card':card,'runRef':items._tag(uid+'/'+identity)}
         result = {'id':key,'door':door,'slot':slot,'streetNumber':address['number'],'apartmentNumber':unit_number,
-                  'name':item['name'],'model':item.get('model'),'position':point,'range':drop['range']}
+                  'name':item['name'],'description':item.get('description',''),'model':item.get('model'),'position':point,'range':drop['range']}
         tx.create(db.collection('vr_keycard_drops').document(key), drop)
         record.update(stage='dropped',drop=result)
         tx.set(ref,record)
