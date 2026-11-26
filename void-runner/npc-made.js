@@ -46,7 +46,14 @@
  const LIMIT={characters:12,name:40,role:80,items:6};
  const KEYS=['name','role','model','adult','look','device','ship','items','when','companionProfile','worldBehavior','relationships','residence'];
  const residenceMinute=s=>typeof s==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(s)?Number(s.slice(0,2))*60+Number(s.slice(3)):null;
- function validResidence(r){return keysOk(r,['door','slot','mode','from','to','streetAccess','apartmentAccess','visitMinutes'])&&(r.visitMinutes===undefined||(Number.isInteger(r.visitMinutes)&&r.visitMinutes>=1&&r.visitMinutes<=10))&&typeof r.door==='string'&&r.door.length<=100&&Number.isInteger(r.slot)&&r.slot>=0&&r.slot<10&&['always','schedule'].includes(r.mode)&&residenceMinute(r.from)!=null&&residenceMinute(r.to)!=null&&(r.mode==='always'||r.from!==r.to)&&[r.streetAccess,r.apartmentAccess].every(a=>(node?req('./apartments.js'):root.VoidApartments)?.validAccess(a)??a==null);}
+ function validShift(s){
+  return keysOk(s,['open','breakStart','breakEnd','close','x','z','yaw','greetingCooldown'])&&
+   ['open','breakStart','breakEnd','close'].every(k=>Number.isInteger(s[k])&&s[k]>=0&&s[k]<1440)&&
+   s.open<s.breakStart&&s.breakStart<s.breakEnd&&(s.close<s.open||s.close>s.breakEnd)&&
+   ['x','z','yaw','greetingCooldown'].every(k=>Number.isFinite(s[k]))&&Math.abs(s.x)<=512&&Math.abs(s.z)<=512&&
+   Math.abs(s.yaw)<=Math.PI*2&&s.greetingCooldown>=1&&s.greetingCooldown<=3600;
+ }
+ function validResidence(r){return keysOk(r,['door','slot','mode','from','to','streetAccess','apartmentAccess','visitMinutes','vendorShift'])&&(r.vendorShift===undefined||validShift(r.vendorShift))&&(r.visitMinutes===undefined||(Number.isInteger(r.visitMinutes)&&r.visitMinutes>=1&&r.visitMinutes<=10))&&typeof r.door==='string'&&r.door.length<=100&&Number.isInteger(r.slot)&&r.slot>=0&&r.slot<10&&['always','schedule'].includes(r.mode)&&residenceMinute(r.from)!=null&&residenceMinute(r.to)!=null&&(r.mode==='always'||r.from!==r.to)&&[r.streetAccess,r.apartmentAccess].every(a=>(node?req('./apartments.js'):root.VoidApartments)?.validAccess(a)??a==null);}
  function residenceAtHome(r,minute){if(!validResidence(r))return false;if(r.mode==='always')return true;if(!Number.isFinite(minute))return false;const a=residenceMinute(r.from),b=residenceMinute(r.to);return a<b?minute>=a&&minute<b:minute>=a||minute<b;}
  const REL_TYPES=['friend','coworker','partner','rival','acquaintance'];
  function validRelationships(a){return Array.isArray(a)&&a.length<=8&&new Set(a.map(r=>r?.target)).size===a.length&&a.every(r=>keysOk(r,['target','type','affection','distance','activity','lines'])&&(r.target==='player'||ID.test(r.target||''))&&REL_TYPES.includes(r.type)&&typeof r.affection==='number'&&Number.isFinite(r.affection)&&r.affection>=0&&r.affection<=1&&typeof r.distance==='number'&&r.distance>=1&&r.distance<=8&&['greet','approach','seat'].includes(r.activity)&&Array.isArray(r.lines)&&r.lines.length<=10&&r.lines.every(t=>plain(t,500)&&!/[<>]/.test(t)));}
@@ -170,7 +177,7 @@
   for(const [key,clip] of Object.entries(draft.clips||{}))if(clip?.who===id)delete draft.clips[key];
   return true;
  }
- const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validShift,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
@@ -179,11 +186,27 @@
  const plansAll=()=>{try{return (root.VoidLiveContent&&root.VoidLiveContent.plans&&root.VoidLiveContent.plans())||{};}catch{return {};}};
  /* What she does now: the plan live-content.js works out (a mission's "waits at", a follow / lead step, her daily schedule), else her all-day spot or route. */
  let visitDoor=null,visitPaths=null;
+ let patchAddress='',patchPaths=null;
+ function outingMinute(){
+  const shared=root.VoidRemotePlayers?.serverNow?.();
+  return Number.isFinite(shared)?shared*root.VoidClock.RATE/60000:root.VoidLiveContent?.campaignMinute?.();
+ }
+ function residentOuting(id,c){
+  if(env()?.npcPlans?.[id])return null;
+  if(id==='tacta')return tactaOuting(c);
+  const life=root.VoidDistrictLife,home=c?.residence;
+  if(id!=='patch'||c?.model!=='npc-patch'||!home?.door||!life||!root.VoidApartments||!root.VoidCrosswalks||!root.VoidNPCEscort)return null;
+  const shift={...life.PATCH_SHIFT,...home.vendorShift},address=[home.door,home.slot,shift.x,shift.z].join('|');
+  if(address!==patchAddress){
+   patchPaths=life.patchRoute(root.VoidApartments.door(home.door),shift,root.VoidNPCEscort,root.VoidApartments,root.VoidCrosswalks,home.slot);
+   patchAddress=address;
+  }
+  return life.patchAt(outingMinute(),patchPaths,shift,root.VoidClock.RATE);
+ }
  function tactaOuting(c){
   const life=root.VoidDistrictLife,home=c?.residence;
   if(c?.model!=='npc-tacta'||home?.mode!=='always'||!home.door||!life||!root.VoidNPCEscort||!root.VoidCrosswalks||!root.VoidNeoChinatown||!root.VoidApartments)return null;
-  const shared=root.VoidRemotePlayers?.serverNow?.();
-  const minute=Number.isFinite(shared)?shared*root.VoidClock.RATE/60000:root.VoidLiveContent?.campaignMinute?.();
+  const minute=outingMinute();
   if(!Number.isFinite(minute))return null;
   const address=home.door+'|'+home.slot;
   if(address!==visitDoor){
@@ -194,19 +217,19 @@
   return life.tactaAt(1+Math.floor(minute/1440),minute%1440,visitPaths,root.VoidClock.RATE,home.visitMinutes);
  }
  function planOf(id){const P=plansAll()[id];if(P)return P;
-  if(id==='tacta'&&!env()?.npcPlans?.[id]){
-   const outing=tactaOuting(env()?.characters?.[id]);
+  if(id==='tacta'||id==='patch'){
+   const outing=residentOuting(id,env()?.characters?.[id]);
    if(outing){
     const sceneArea=outing.area==='checkpoint'&&typeof walkingLocation!=='undefined'?walkingLocation?.area:outing.area;
     const area=sceneArea==='street'?'oldtown':sceneArea==='interior'?'district':null;
     if(!area)return null;
-    return {mode:'stay',area,key:'iris-visit-'+outing.key,x:outing.x,z:outing.z,yaw:outing.yaw,outing};
+    return {mode:'stay',area,key:id+'-outing-'+outing.key,x:outing.x,z:outing.z,yaw:outing.yaw,outing};
    }
   }
   const b=basePlan(((env()&&env().npcPlans)||{})[id]);return NPX().planNow(id,{plan:b||null});}   // no plan: a built-in character's post (npc-paths.js homePlan), else nothing
  const areaOfPlan=P=>P?(P.area||(AR()&&AR().areaOf(P.mode==='path'?P.points[0]:P))||null):null;
  function present(id){const c=chars()[id];if(!c)return false;try{return exists(c,typeof state!=='undefined'?state:null,env()&&env().trees);}catch{return true;}}
- function atHome(c){if(c&&c===env()?.characters?.tacta&&!env()?.npcPlans?.tacta&&tactaOuting(c))return false;return residenceAtHome(c?.residence,root.VoidClock?.now?.(typeof state!=='undefined'?state:null)?.minuteOfDay);}
+ function atHome(c){if(c&&['patch','tacta'].some(id=>c===env()?.characters?.[id]&&residentOuting(id,c)))return false;return residenceAtHome(c?.residence,root.VoidClock?.now?.(typeof state!=='undefined'?state:null)?.minuteOfDay);}
  // ---- props: a holstered pistol and a hand-held device, built from boxes (one merged mesh, one shared material each per scene), on the figure's own bones
  function mat(scene,name,hex,glow){const B=root.BABYLON;let m=scene.getMaterialByName(name);if(m)return m;m=new B.PBRMaterial(name,scene);m.albedoColor=B.Color3.FromHexString(hex);m.metallic=.55;m.roughness=.45;if(glow){m.emissiveColor=B.Color3.FromHexString(glow);m.emissiveIntensity=1.4;}return m;}
  function boxes(scene,name,parts){const B=root.BABYLON,ms=parts.map(([w,h,d,x,y,z],i)=>{const b=B.MeshBuilder.CreateBox(name+'-'+i,{width:w,height:h,depth:d},scene);b.position.set(x,y,z);return b;});return B.Mesh.MergeMeshes(ms,true,true);}
@@ -240,9 +263,9 @@
    const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null)||{x:0,z:0};
    const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};
    const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
-   if(id==='tacta')root.VoidTeaDuo?.attachGaze(n,()=>{
+   if(id==='tacta'||id==='patch')root.VoidTeaDuo?.attachGaze(n,()=>{
     const camera=scene.activeCamera?.globalPosition;
-    if(!camera||Math.hypot(camera.x-n.position.x,camera.z-n.position.z)>12)return null;
+    if(!camera||Math.hypot(camera.x-n.position.x,camera.z-n.position.z)>(id==='patch'?1.22:12))return null;
     if(p.s.mode==='walk')return null;
     if(p.plan?.outing?.phase==='visit'&&chatting()!==id){
      const holder=scene.getTransformNodeByName('npc-iris');
@@ -305,10 +328,13 @@
    if(P?.outing){
     const target=P.outing,walking=target.phase==='walk';
     p.s.x=target.x;p.s.z=target.z;p.s.mode=walking?'walk':'stay';
-    const yaw=target.yaw??p.s.yaw;
+    const near=p.id==='patch'&&target.phase==='sell'&&w&&Math.hypot(w.x-target.x,w.z-target.z)<=1.22;
+    if(near&&!p.wasNear&&!talk)root.VoidNPCServices?.greet?.(p.c.residence?.vendorShift?.greetingCooldown??root.VoidDistrictLife.PATCH_SHIFT.greetingCooldown);
+    p.wasNear=!!near;
+    const yaw=near?Math.atan2(w.x-target.x,w.z-target.z):target.yaw??p.s.yaw;
     p.s.yaw+=Math.atan2(Math.sin(yaw-p.s.yaw),Math.cos(yaw-p.s.yaw))*Math.min(1,dt*5);
     const voice=root.VoidAudio?.voiceStatus;
-    const expression=root.VoidDistrictLife.visitGesture(p.id);
+    const expression=p.id==='tacta'?root.VoidDistrictLife.visitGesture(p.id):null;
     clip=walking?'walk':p.anim?.has?.(expression)?expression:voice?.active&&voice.id===p.id?'talk':'idle';
     if(target.phase==='visit'&&!voice?.active){
      const sign=target.remaining<4?'wave':target.elapsed<4?'wave':null;
@@ -316,9 +342,9 @@
     }
     if(walking){
      const crossing=root.VoidCrosswalks?.at(target.x,target.z,'oldtown');
-     if(crossing)root.VoidCrosswalks.mark('made-tacta',target.x,target.z);
+     if(crossing)root.VoidCrosswalks.mark('made-'+p.id,target.x,target.z);
      const doors=root.VoidBabylon?.district?.doors;
-     if(doors&&!doors.secured){
+     if(p.id==='tacta'&&doors&&!doors.secured){
       const [x,z]=root.VoidNeoChinatown.toWorld(target.x,target.z);
       const street=target.area==='street';
       if(Math.abs(x)<2&&Math.abs(z-(street?20:26))<3)doors.kick(street?'district-door':'district-inner-door',.4);
@@ -364,7 +390,7 @@
   }
   function pose(id,c,index){
    if(!c||!present(id))return null;
-   const outing=id==='tacta'&&!env()?.npcPlans?.tacta?tactaOuting(c):null;
+   const outing=residentOuting(id,c);
    if(outing){
     if(outing.area!==def.part)return null;
     return {x:outing.x,z:outing.z,yaw:outing.yaw,clip:'walk'};
@@ -397,7 +423,7 @@
   function tick(){
    if(stopped)return;
    const cs=chars();
-   const ids=hall?(cs.tacta?.residence?.door===def.street?['tacta']:[]):def.residents||[];
+   const ids=hall?['tacta','patch'].filter(id=>cs[id]?.residence?.door===def.street):def.residents||[];
    for(const id of people.keys())if(!ids.includes(id))remove(id);
    for(const [i,id] of ids.entries()){
     const c=cs[id],p=people.get(id),target=pose(id,c,i);
@@ -407,11 +433,10 @@
    }
   }
   return {tick,walkingNear(x,z,radius){
-   const p=people.get('tacta');
-   return p?.clip==='walk'&&Math.hypot(p.node.position.x-x,p.node.position.z-z)<radius;
+   return [...people.values()].some(p=>p.clip==='walk'&&Math.hypot(p.node.position.x-x,p.node.position.z-z)<radius);
   },dispose(){stopped=true;for(const id of people.keys())remove(id);}};
  }
- root.VoidMadeNPCs={...api,start,startResidents,planOf,present,props,live:null,nameCards,tactaOuting:()=>tactaOuting(env()?.characters?.tacta)};
+ root.VoidMadeNPCs={...api,start,startResidents,planOf,present,props,live:null,nameCards,patchOuting:()=>residentOuting('patch',env()?.characters?.patch),tactaOuting:()=>tactaOuting(env()?.characters?.tacta)};
  if(root.VoidDevTools?.standalone)return; // lightweight companion editor: no game runtime or interaction polling
  // every street quarter and the District interior: started (and ticked, and disposed) with the street pair, which neochinatown.js starts in each of them
  (function wrap(){const S=root.VoidStreetPair;if(!S||!S.start||S.start.made)return;const s0=S.start;const s1=function(o){const a=s0.apply(this,arguments);let b=null;try{b=start(o||{});}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}
@@ -424,5 +449,5 @@
  root.VoidMadeNPCs.watchScene=watchScene;watchScene('corporate',root.VoidCorporate);watchScene('temple',root.VoidTemple);
  // TALK TO <NAME> with no mission waiting: a silent beat (no words are invented for them; live-content.js offers their missions first)
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);nameCards();
-  VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);
+  VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();const contextual=root.VoidNPCServices?.conversation?.(id);talk('',(contextual?[contextual]:conversationLines(chars()[id])).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);
 })(typeof globalThis!=='undefined'?globalThis:this);

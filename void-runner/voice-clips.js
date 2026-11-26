@@ -37,6 +37,7 @@
  }).catch(error=>{console.warn('[District dialogue]',error.message);return [];});}
  const districtExchanges=recordedExchanges('pixel-neon-dialogue.json','pixel-neon','pn-');
  const tactaExchanges=recordedExchanges('tacta-iris-dialogue.json','tacta-iris','tacta-iris-');
+ const patchLines=recordedExchanges('patch-dialogue.json','patch','patch-');
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  // Imported voice files (voice-imports.js, Developer Tools, 19 Nov 2026) override any recorded clip for that exact line text; same playback, same live effects.
  const imported=(who,text,ordinary)=>{const I=root.VoidVoiceImports;return I&&I.find?I.find(who,text,ordinary):null;};
@@ -142,7 +143,7 @@
  // ({text, translation}) when the line asked for is its translation, else null: a Comms call shows them as the original and V1 TRANSLATION (personal-device.js).
  function duration(who,text){const l=lookup.get(key(who,text)),d=l&&cache.get(l.id);if(!d)return 0;const w=l.with&&extraById.get(l.with.id),pd=w&&cache.get(w.id),t={...(translations[l.speaker]||{}),...(l.with||{})};return pd?Math.max(d.duration,Math.max(0,Number(t.offset)||0)+pd.duration):d.duration;}
  function foreign(who,text){const l=lookup.get(key(who,text));return l&&l.shown===text&&l.text!==text?{text:l.text,translation:text}:null;}
- root.VoidVoiceClips={districtExchanges,tactaExchanges,has,speak,cancel,broadcast,PRESETS,duration,foreign,get now(){return now;},get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
+ root.VoidVoiceClips={districtExchanges,tactaExchanges,patchLines,has,speak,cancel,broadcast,PRESETS,duration,foreign,get now(){return now;},get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
  root.VoidAudio?.setVoiceProvider?.(root.VoidVoiceClips);
  // Replay the current line on demand.
  const voicedRender=renderLine;

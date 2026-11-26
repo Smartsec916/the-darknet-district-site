@@ -147,7 +147,14 @@
    const menu=[meal,sprint].map(it=>({...newVendorEntry(it.id,it.price),stock:40,maxStock:40,restock:{mode:'interval',every:300,amount:4}}));
    vendors.push({...reg,id:reg.entity,entries:menu});
   }
-  return {format:S.format,version:S.version,categories:clone(S.categories),items:[sprint,tint,meal],vendors,presets:[]};}
+  const patchItems=[['wirewake','Wirewake','staminaRegen','Sprint reserve recovery',.25,75,45],['hardcase','Hardcase','damageResist','Damage resistance',.2,45,65]].map(([id,name,stat,label,amount,duration,price])=>{
+   const item=clone(sprint);
+   Object.assign(item,{id,name,price,description:label+' increases by '+Math.round(amount*100)+'% for '+duration+' seconds.'});
+   item.consumable.modifiers=[{stat,amount,delay:0,duration}];return item;
+  });
+  const patch=S.vendorRegistry.find(v=>v.entity==='npc-patch');
+  vendors.push({...patch,id:patch.entity,entries:[...patchItems,tint,sprint].map(it=>({...newVendorEntry(it.id,it.price),stock:10,maxStock:10,restock:{mode:'interval',every:300,amount:1}}))});
+  return {format:S.format,version:S.version,categories:clone(S.categories),items:[sprint,tint,meal,...patchItems],vendors,presets:[]};}
  /* ---------- vendor listing math (the server runs the same rules on its own stock record) ---------- */
  function restocked(entry,rec,now){const base={remaining:entry.stock,at:now,base:entry.stock};let r=rec&&rec.base===entry.stock?{...rec}:base;
   if(entry.restock.mode==='interval'&&entry.restock.every>0&&r.remaining<entry.maxStock){const k=Math.floor(Math.max(0,now-r.at)/entry.restock.every);if(k>0){r.remaining=Math.min(entry.maxStock,r.remaining+k*entry.restock.amount);r.at+=k*entry.restock.every;}}

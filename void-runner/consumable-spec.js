@@ -158,6 +158,7 @@ globalThis.VoidConsumableSpec = {
   "assets/models/district-interior/district_arcade_change_1m.glb":{"name":"District change machine","kit":"arcade_change_1m"}
  },
  "vendorRegistry": [
+  {"entity": "npc-patch", "name": "Patch", "kind": "npc", "location": "Old Town · Alley south of NULL"},
   {"entity": "shop-here", "name": "SHOP HERE counter", "kind": "counter", "location": "District store"},
   {"entity": "kiosk-entrance", "name": "Store kiosk by the entrance", "kind": "kiosk", "location": "District store"},
   {"entity": "kiosk-far-1", "name": "Store kiosk, far wall (survival gear)", "kind": "kiosk", "location": "District store"},
