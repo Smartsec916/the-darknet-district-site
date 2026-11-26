@@ -23,6 +23,20 @@ await page.keyboard.press('Escape');await page.waitForTimeout(150);const paused=
 await page.evaluate(()=>{const t=HotelHeadshots.test;t.teleport(36,36,0);for(const n of t.npcs){n.speed=0;n.activity="active";n.view.activity={kind:"stand"};n.view.node.position.set(4,0,36);}const n=t.npcs[0];n.view.node.position.set(36,0,41);n.view.node.rotation.y=0;n.resistance=100;n.shield=0;n.view.animate(.1,0,false);t.aim(0,-.025);});
 await page.mouse.down();await page.waitForFunction(()=>HotelHeadshots.state().bullets+HotelHeadshots.state().splats>0);await page.mouse.up();await page.waitForFunction(()=>HotelHeadshots.state().npcs[0].state==='retreat');
 assert.equal(await page.evaluate(()=>HotelHeadshots.state().npcs[0].state),'retreat','actual projectile headshot repels');
+// Canceling pointerdown suppresses compatibility mousemove while the button is held.
+await page.evaluate(()=>{
+ const canvas=document.getElementById('game');
+ canvas.addEventListener('pointerdown',e=>e.preventDefault(),{once:true});
+});
+await page.mouse.move(640,480);
+await page.mouse.down();
+const angles=await page.evaluate(()=>HotelHeadshots.test.art.camera.rotation.asArray());
+await page.mouse.move(664,495,{steps:3});
+await page.waitForFunction(([pitch,yaw])=>{
+ const rotation=HotelHeadshots.test.art.camera.rotation;
+ return rotation.x!==pitch&&rotation.y!==yaw;
+},angles);
+await page.mouse.up();
 // Raised forearms really intercept rays that previously hit the head or torso.
 const guards=await page.evaluate(()=>{const t=HotelHeadshots.test,n=t.npcs[1];n.view.node.position.set(36,0,41);n.view.node.rotation.y=0;n.view.node.scaling.setAll(1);n.view.guard=0;n.view.animate(.2,0,false);const trace=()=>{for(const m of n.view.hitMeshes)m.computeWorldMatrix(true);const hits=[];for(let x=-.3;x<=.3;x+=.025)for(let y=1.25;y<1.85;y+=.025){const hit=t.scene.pickWithRay(new BABYLON.Ray(new BABYLON.Vector3(36+x,y,37),new BABYLON.Vector3(0,0,1),6),m=>m.metadata?.npc===n.id);hits.push(hit?.pickedMesh?.metadata.part);}return hits;};const counts=[];for(let style=0;style<3;style++){n.view.guardStyle=style;n.view.animate(1,0,false);const before=trace();n.view.animate(1,0,true);const after=trace();counts.push(after.filter((part,i)=>part==='arm'&&['head','torso'].includes(before[i])).length);}return counts;});assert(guards.every(n=>n>0),'shielding arms physically block body/head rays');
 // A nearby pursuer steals through live AI; a retreating guest cannot.

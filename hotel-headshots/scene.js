@@ -3,7 +3,10 @@
  'use strict';
  const B=root.BABYLON,R=root.HotelRules,V=(x,y,z)=>new B.Vector3(x,y,z);
  function build(engine,map,settings){
-  const scene=new B.Scene(engine);scene.clearColor=new B.Color4(.38,.65,.84,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.003;scene.fogColor=new B.Color3(.62,.77,.85);
+  const scene=new B.Scene(engine);
+  // The game handles canvas input directly and uses explicit rays for hits.
+  scene.detachControl();
+  scene.clearColor=new B.Color4(.38,.65,.84,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.003;scene.fogColor=new B.Color3(.62,.77,.85);
   const camera=new B.UniversalCamera('eyes',V(24,1.68,4.8),scene);camera.minZ=.055;camera.maxZ=100;camera.fov=1.18;camera.inputs.clear();
   const hemi=new B.HemisphericLight('ambient',V(.1,1,.2),scene);hemi.intensity=.85;hemi.groundColor=B.Color3.FromHexString('#41463d');
   const sun=new B.DirectionalLight('window light',V(-.4,-1,.3),scene);sun.position=V(24,12,12);sun.intensity=1.15;sun.diffuse=B.Color3.FromHexString('#fff0d1');
