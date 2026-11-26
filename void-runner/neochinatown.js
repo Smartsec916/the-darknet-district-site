@@ -987,6 +987,28 @@
       if(p.aside){const a=p.aside;if(a.gone)continue;a.time+=dt;a.d=Math.min(a.len,a.d+dt*1.25);const at=pathAt(a.path,a.d);p.node.position.x=at.x;p.node.position.z=at.z;   // a walking pace (district-life.js)
        const turn=Math.atan2(Math.sin(at.yaw-p.node.rotation.y),Math.cos(at.yaw-p.node.rotation.y));p.node.rotation.y+=turn*Math.min(1,dt*7);if(!p.c.has('walk'))p.c.walk(a.time);
        if(a.d>=a.len){a.gone=true;p.node.setEnabled(false);}continue;}
+      if(p.home===0){
+       const visit=root.VoidPixelNeon?.boothVisit;
+       // The trainer waits on the viewing strip while Pixel has the booth.
+       // Player-controlled VR keeps priority through the existing aside state.
+       const path=p.visitorPath??= [[-12.6,32.4],...BOOTH_EXITS[0].slice(0,4),[-6.8,32.2]];
+       const length=p.visitorLength??=path.slice(1).reduce((n,q,i)=>n+Math.hypot(q[0]-path[i][0],q[1]-path[i][1]),0);
+       const desired=visit?Math.min(length,.95*Math.min(visit.elapsed,visit.remaining)):0;
+       const old=p.visitorDistance||0;
+       if(desired>0||old>0){
+        // Streamed-in booth players join the same visit clock as Pixel.
+        // A scene opened halfway through the visit already has a clear booth.
+        const d=visit?desired:Math.max(0,old-dt*1.25),q=pathAt(path,d);
+        const moving=Math.abs(old-d)>1e-6,clip=moving?'walk':d>0?'watch':'idle';
+        if(clip!==p.visitorClip){p.c.play(p.c.has(clip)?clip:'idle');p.visitorClip=clip;}
+        p.node.position.x=q.x;p.node.position.z=q.z;
+        const yaw=moving?q.yaw+(d<old?Math.PI:0):d>0?-Math.PI/2:p.base;
+        p.node.rotation.y+=Math.atan2(Math.sin(yaw-p.node.rotation.y),Math.cos(yaw-p.node.rotation.y))*Math.min(1,dt*7);
+        p.visitorDistance=d;
+        if(d>0)continue;
+        p.visitorClip=null;p.timer=0;
+       }
+      }
       p.timer-=dt;
       // Small turns of the whole body toward where the virtual action is; the arms and legs come from the clips.
       p.turn+=(p.want-p.turn)*Math.min(1,dt*2.5);p.node.rotation.y=p.base+p.turn;
