@@ -7,6 +7,8 @@ body :is(.panel, .card, .side-panel, .opening-card, .room-caption, .dialogue-win
   .companion-card, .companion-preview-panel, .eh-card, .eh-toast, .pc-toast,
   #chance-interaction, #guidance-card, #tutorial-prompt, #milked-studio-request-panel,
   #zone-toast, #notice:not(:empty), #shop-here, #police-hail, #resume-hint, .dt-frame,
+  .skirmish-menu, .skirmish-vitals, .skirmish-objective, .skirmish-controls, .skirmish-location,
+  #walking-caption, #walking-interact:enabled, #systems-hud, #fps-ammo-hud, #dev-test-banner,
   .companion-guide, .cs-card, .pc-frame, .pd-frame, [role="dialog"], dialog),
 #screen.conversation-live .dialogue-window:has(.talk-menu) {
   background:
@@ -15,11 +17,18 @@ body :is(.panel, .card, .side-panel, .opening-card, .room-caption, .dialogue-win
     linear-gradient(#d56cba, #d56cba) right 4px top 4px / 8px 2px,
     linear-gradient(#d56cba, #d56cba) right 4px top 4px / 2px 8px,
     linear-gradient(#428f97, #428f97) right 14px bottom 3px / 26px 2px,
-    rgba(12, 27, 35, .89) !important;
+    linear-gradient(135deg, transparent 7px, rgba(12, 27, 35, .89) 7.8px,
+      rgba(12, 27, 35, .89) calc(100% - 7.8px), transparent calc(100% - 7px)) border-box !important;
   background-repeat: no-repeat !important;
   border: 1px solid #38808b;
+  /* Nine-slice the frame so a wide dialogue window and a small prompt get the same 10px cuts. */
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M10.5 .5H31.5V21.5L21.5 31.5H.5V10.5Z' fill='none' stroke='%2338808b'/%3E%3C/svg%3E") 12 / 12px stretch;
   border-radius: 0;
+  box-shadow: none !important;
   animation: none !important;
   transition: none !important;
 }
 
+
+#dev-test-banner { color: #ffd27a; }
+#dev-test-banner[data-kind="draft"] { color: #ffb392; }
