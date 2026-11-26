@@ -120,7 +120,7 @@
   pbr('st_dark',{sharedSet:'kit_gunmetal',color:'#ffffff',k:.55,rough:.6,metal:.4});
   pbr('st_accent',{sharedSet:'kit_steel',color:L.accent,k:space?2.6:1.5,rough:.55,metal:.15});
   pbr('st_marking',{color:'#d8a326',rough:.7,metal:0});
-  pbr('st_leather',{color:id==='vigil'?'#8d99a3':id==='kepler'?'#2f4a63':id==='holdfast'||id==='foundry'?'#5a3a22':'#4c1218',rough:.5,metal:0});
+  pbr('st_leather',{color:id==='vigil'?'#8d99a3':id==='kepler'?'#2f4a63':id==='holdfast'||id==='foundry'?'#5a3a22':'#3a0c11',rough:.6,metal:0});
   pbr('st_counter',{color:'#0f1012',rough:.36,metal:.1});
   pbr('st_glass',{color:'#3f6d5e',rough:.08,metal:.1,alpha:.55});
   const bottle=pbr('st_bottle',{color:'#8a4f22',rough:.1,metal:.1,emissive:new B.Color3(.2,.09,.03)});bottle.alpha=.92;

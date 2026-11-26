@@ -133,6 +133,13 @@ NeoChinatown and everything else are untouched. To undo it: remove `||globalThis
 No frame-rate figure is given: this container has no graphics card, and software rendering does not predict the ROG Ally. **Not verified on real
 hardware.**
 
+## Pictures
+
+`docs/development/station-graphics/`: before and after pairs for Meridian (hangar, corridor, living area, store, hall, bar; Medium), Kepler, the Vigil and
+Holdfast (hangar, hall), the hull (six views), the derelict (three views), `seven-stations.jpg` (every station's hangar and corridor) and
+`hull-identities.jpg`. Taken with software rendering in the build session: they show layout, materials and light, not final image quality. The
+"before" station pictures are nearly black because of the 0.3 pass described above.
+
 ## Rebuilding
 
     python -m venv .venv && .venv/bin/pip install bpy pillow numpy

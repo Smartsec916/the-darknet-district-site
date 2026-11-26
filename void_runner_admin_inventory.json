@@ -60597,7 +60597,7 @@
       "spawn"
     ]
   },
-  "revision": "524676d3d0a4fadb",
+  "revision": "a8515b73026211b2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81891,7 +81891,7 @@
     "void-runner/sound-studio-runtime.js": "4dc408d955f1e7efc8d46dbae5fbbcbba7dfceb30a958d1aa26396feab11e66b",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
-    "void-runner/station-kit.js": "973637303434b6a6a039653d30bc9dce98bea49d5de76467b8d532df4abd75d2",
+    "void-runner/station-kit.js": "45607402aaa5a16740eddccee587808ad57dc36ea3cf38f58ccb7fa9872a1963",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
