@@ -139,6 +139,7 @@
     const prop=element('details');prop.append(element('summary','Dropped keycard'));host.append(prop);
     field(prop,'Items & Vendors item ID',input(g.item,v=>{g.item=v;mark();}));
     field(prop,'Pickup distance (metres)',input(g.pickupDistance,v=>{g.pickupDistance=v;mark();},'number'));
+    field(prop,'Kade recovery delay (seconds)',input(g.recoverySeconds??8,v=>{g.recoverySeconds=v;mark();},'number'));
     for(const [key,label] of [['x','Street X'],['z','Street Z']])
      field(prop,label,input(g.dropPosition[key],v=>{g.dropPosition[key]=v;mark();},'number'));
     const drop=g.nodes.find(n=>n.kind==='item');if(drop)prop.append(button('Preview keycard drop',()=>launch(drop.id)));

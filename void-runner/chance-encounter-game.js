@@ -81,11 +81,12 @@
   }
   return run.panel;
  }
- function prompt(run,text,choices){
+ function prompt(run,text,choices,onLeave){
   const host=panel(run);host.hidden=false;host.replaceChildren();
   const line=document.createElement('p');line.textContent=text;host.append(line);
   return new Promise((resolve,reject)=>{
-   const cleanup=()=>{document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',cancel);};
+   let locationTimer;
+   const cleanup=()=>{clearInterval(locationTimer);document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',cancel);};
    const select=label=>{cleanup();host.hidden=true;resolve(label);};
    const keys=e=>{
     if(e.repeat||e.target?.matches?.('input,textarea,select'))return;
@@ -96,6 +97,10 @@
    const cancel=()=>{cleanup();reject(run.signal.reason);};
    run.signal.addEventListener('abort',cancel,{once:true});
    document.addEventListener('keydown',keys,true);
+   if(onLeave){
+    const apartment=walkingLocation?.inst;
+    locationTimer=setInterval(()=>{if(walkingLocation?.inst!==apartment||walkingLocation?.part!=='flat')select(onLeave);},100);
+   }
    for(const label of choices){
     const b=document.createElement('button');b.type='button';b.textContent=(choices.indexOf(label)+1)+' · '+label;host.append(b);
     b.onclick=()=>select(label);
@@ -133,6 +138,17 @@
    if(t>=.85)break;
    await delay(16,run.signal);
   }while(true);
+  if(run.actor){
+   const actor=run.actor;
+   const recover=async()=>{
+    await delay((run.graph.recoverySeconds??8)*1000,run.signal);
+    if(actor.parent.isDisposed())return;
+    const exit=play(actor,'floor-knees-up',false);
+    await until(()=>!exit.isPlaying||actor.parent.isDisposed(),run.signal);
+    if(!actor.parent.isDisposed()){actor.parent.dispose();run.owned.delete(actor.parent);}
+   };
+   recover().catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
+  }
   const meshes=card.made.getChildMeshes();
   const focus=()=>{
    const cam=root.VoidBabylon.scene?.activeCamera;
@@ -225,7 +241,8 @@
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
    if(node.kind==='choice'){
     if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}
-    choice=await prompt(run,node.name,node.edges.map(e=>e.label));
+    const exit=run.lace&&node.edges.find(e=>run.graph.nodes.some(n=>n.id===e.to&&n.kind==='end'&&n.id==='leave'));
+    choice=await prompt(run,node.name,node.edges.map(e=>e.label),exit?.label);
    }
    if(node.kind==='animation'){
     if(node.action==='release')await releaseLace(run);

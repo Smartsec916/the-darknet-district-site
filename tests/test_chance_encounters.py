@@ -67,6 +67,9 @@ class ChanceTests(unittest.TestCase):
         self.assertEqual(encounters.resume(self.db,self.uid,self.graph['id'])['target'],unit)
         self.assertFalse(encounters.resume(self.db,'different-player',self.graph['id'])['active'])
         self.assertFalse(items.card_access(self.db,self.uid,unit[:-1]+'1'))
+        residence['slot']=1
+        self.assertFalse(items.card_access(self.db,self.uid,unit))
+        self.assertEqual(encounters.resume(self.db,self.uid,self.graph['id'])['target'],unit[:-1]+'1')
         self.assertFalse(encounters.outcome(self.db,self.uid,dict(request,outcome='rescued'))['duplicate'])
         self.assertFalse(encounters.resume(self.db,self.uid,self.graph['id'])['active'])
         self.assertFalse(encounters.opportunity(self.db,self.uid,{'id':self.graph['id'],'position':pos})['active'])

@@ -52,6 +52,8 @@ def validate(graph):
             raise DraftError('Choose a keycard drop position in Old Town.')
         if not _num(graph.get('pickupDistance'), .5, 5):
             raise DraftError('Pickup distance must be between 0.5 and 5 metres.')
+        if not _num(graph.get('recoverySeconds', 8), 0, 300):
+            raise DraftError('Choose a recovery delay between 0 and 300 seconds.')
         if not identifier(graph.get('item')):
             raise DraftError('Choose an Items & Vendors keycard.')
         placement = graph.get('placement')
@@ -196,9 +198,13 @@ def resume(db, uid, identity):
     record = ref.get().to_dict() or {}
     if record.get('stage') != 'collected' or not record.get('drop'):
         return {'active': False}
-    card = record['drop']
-    target = f"residence/{card['door']}/{card['slot']}"
-    if not items.card_access(db, uid, target):
+    player = items.timed_inventory(db, uid, None)
+    card = player['cards'].get(record['drop']['id'])
+    if not card:
+        return {'active': False}
+    items.resolve_residential_cards(db, [card])
+    target = next((door for door in card['doors'] if door.startswith('residence/')), None)
+    if not target or not items.card_allows(card, uid, target, time.time(), player.get('connectedClock', {}).get('total', 0)):
         return {'active': False}
     return {'active': True, 'run': record['run'], 'target': target}
 
