@@ -121,23 +121,32 @@
  "bartender-4e05c4bdfe": {
   "configHash": "827569c45d66",
   "textHash": "74dffb4ebc8e",
-  "generatedAt": "2026-10-15",
-  "runtime": "kokoro-onnx 0.6.1",
-  "note": "recorded at registry creation; rendered with these settings"
+  "generatedAt": "2026-11-25",
+  "runtime": "ElevenLabs",
+  "note": "Owner-selected District bartender voice",
+  "voiceId": "54Cze5LrTSyLgbO6Fhlc",
+  "model": "eleven_v4",
+  "protected": true
  },
  "bartender-cbd0d30d99": {
   "configHash": "827569c45d66",
   "textHash": "51039a9612c2",
-  "generatedAt": "2026-10-15",
-  "runtime": "kokoro-onnx 0.6.1",
-  "note": "recorded at registry creation; rendered with these settings"
+  "generatedAt": "2026-11-25",
+  "runtime": "ElevenLabs",
+  "note": "Owner-selected District bartender voice",
+  "voiceId": "54Cze5LrTSyLgbO6Fhlc",
+  "model": "eleven_v4",
+  "protected": true
  },
  "bartender-ebb7d2f21c": {
   "configHash": "827569c45d66",
   "textHash": "321565e43a42",
-  "generatedAt": "2026-10-15",
-  "runtime": "kokoro-onnx 0.6.1",
-  "note": "recorded at registry creation; rendered with these settings"
+  "generatedAt": "2026-11-25",
+  "runtime": "ElevenLabs",
+  "note": "Owner-selected District bartender voice",
+  "voiceId": "54Cze5LrTSyLgbO6Fhlc",
+  "model": "eleven_v4",
+  "protected": true
  },
  "elara-074a9eed0d": {
   "configHash": "0b85923080b1",
