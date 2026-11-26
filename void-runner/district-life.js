@@ -71,7 +71,7 @@
    seconds:180+Math.floor(241*rnd(day,2120+index))
   }));
  }
- function tactaRoute(home,N,crosswalks,escort,apartments,slot=0){
+ function tactaRoute(home,N,crosswalks,escort,apartments,slot=0,destination=STORE_VISIT.tacta){
   if(home?.quarter!=='oldtown'||!home.front)return null;
   const vec=([x,z])=>({x,z});
   const street=[home.front];
@@ -97,7 +97,7 @@
   const checkpoint=N.toWorld(0,23),hallway=N.toWorld(0,27.5);
   street.push(checkpoint);
   const solids=N.layout('interior').solids.filter(s=>s.position[1]-s.size[1]/2<1.6&&s.position[1]+s.size[1]/2>.1);
-  const store=N.toWorld(...STORE_VISIT.tacta);
+  const store=N.toWorld(...destination);
   const interior=escort.gridRoute(vec(hallway),vec(store),solids,{grid:.25,radius:.3});
   if(!interior?.length||dist([interior.at(-1).x,interior.at(-1).z],store)>.12)return null;
   const result={street,interior:[checkpoint,hallway,...interior.map(p=>[p.x,p.z])]};

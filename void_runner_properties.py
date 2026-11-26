@@ -11,7 +11,8 @@ def registry_ref(db):
 
 def npc_units(content):
     result = {}
-    for npc, character in ((content or {}).get('characters') or {}).items():
+    characters = {**inventory()['apartments'].get('districtPair', {}), **((content or {}).get('characters') or {})}
+    for npc, character in characters.items():
         home = character.get('residence') or {}
         if home.get('door') and type(home.get('slot')) is int:
             result.setdefault(f"residence/{home['door']}/{home['slot']}", set()).add(npc)
