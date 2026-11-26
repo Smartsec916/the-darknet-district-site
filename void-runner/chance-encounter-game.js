@@ -57,7 +57,7 @@
    if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
     const cancel=()=>root.VoidVoiceClips.cancel();
     run.signal.addEventListener('abort',cancel,{once:true});
-    try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus,recording});}
+    try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}
     finally{run.signal.removeEventListener('abort',cancel);}
    }
   }
@@ -117,11 +117,7 @@
  async function walk(run){
   await until(()=>root.VoidRoadTaxi?.world?.quarter==='oldtown',run.signal,30000);
   run.actor=await model(run,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
-  const voice=root.VoidAudio?.bus('voice');
-  if(voice){
-   run.impactVoice=await fetch('void-runner/assets/audio/voice/kade-taxi-impact.mp3',{signal:run.signal})
-    .then(response=>response.arrayBuffer()).then(data=>voice.context.decodeAudioData(data)).catch(()=>null);
-  }
+  run.impactVoice=await voiceBuffer(run,'kade-taxi-impact.mp3');
   const crossing=root.VoidChanceCrossing;
   await until(()=>{run.plan=crossing.plan(root.VoidRoadTaxi.world,run.graph.playtest.crossing,run.graph.playtest.delaySeconds,run.private);return run.plan;},run.signal,65000);
   if(run.private)crossing.preparePrivate(run.plan);
@@ -161,6 +157,23 @@
   });
   node.onDisposeObservable.addOnce(()=>scene.onBeforeRenderObservable.remove(obs));
  }
+ async function voiceBuffer(run,file){
+  const bus=root.VoidAudio?.bus('voice');
+  if(!bus)return null;
+  try{
+   const response=await fetch('void-runner/assets/audio/voice/'+file,{signal:run.signal});
+   if(!response.ok)return null;
+   return await bus.context.decodeAudioData(await response.arrayBuffer());
+  }catch{return null;}
+ }
+ function playVoice(run,buffer){
+  const voice=root.VoidAudio?.bus('voice');
+  if(!voice||!buffer||run.signal.aborted)return;
+  const source=voice.context.createBufferSource();source.buffer=buffer;source.connect(voice.node);
+  const stop=()=>source.stop();
+  source.onended=()=>{source.disconnect();run.signal.removeEventListener('abort',stop);};
+  run.signal.addEventListener('abort',stop,{once:true});source.start();
+ }
  function taxiImpact(run){
   const bus=root.VoidAudio?.bus('effects');
   if(bus){
@@ -171,20 +184,16 @@
    body.connect(volume);volume.connect(bus.node);body.onended=()=>{body.disconnect();volume.disconnect();};
    body.start(now);body.stop(now+.20);
   }
-  const voice=root.VoidAudio?.bus('voice');
-  if(voice&&run.impactVoice){
-   const grunt=voice.context.createBufferSource();grunt.buffer=run.impactVoice;grunt.connect(voice.node);
-   const stopGrunt=()=>grunt.stop();
-   grunt.onended=()=>{grunt.disconnect();run.signal.removeEventListener('abort',stopGrunt);};
-   run.signal.addEventListener('abort',stopGrunt,{once:true});grunt.start();
-  }
+  playVoice(run,run.impactVoice);
   const event=root.VoidCrowdReact?.spectacle({...run.plan.hit,radius:12,duration:6,kind:'taxi-impact',filmCap:0});
   if(!event)return;
   run.signal.addEventListener('abort',event.end,{once:true});
   if(event.reactions.some(person=>person.mode==='watch')){
-   delay(1400,run.signal).then(()=>{
-    if(walkingLocation?.area==='street'&&root.VoidRoadTaxi?.world?.quarter==='oldtown')
-     announce('Passer-by: '+witnessLines[Math.floor(Math.random()*witnessLines.length)]);
+   const index=Math.floor(Math.random()*witnessLines.length);
+   Promise.all([delay(1400,run.signal),voiceBuffer(run,'taxi-witness-'+(index+1)+'.ogg')]).then(([,buffer])=>{
+    if(!run.signal.aborted&&walkingLocation?.area==='street'&&root.VoidRoadTaxi?.world?.quarter==='oldtown'){
+     announce('Passer-by: '+witnessLines[index]);playVoice(run,buffer);
+    }
    }).catch(e=>{if(e.name!=='AbortError')console.warn(e);});
   }
  }

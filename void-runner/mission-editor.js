@@ -187,7 +187,7 @@
   if(l.kind==='design'){const st=studioEnsure(),mid=l.key.slice(9).split('/')[0],m=st.missions.find(x=>x.id===mid),k=Number(l.key.split('/').pop());if(m&&m.offer&&m.offer[k]){m.offer[k].text=text;saveStudio(st);}return;}
   const d=local(),prev=d.lines[l.ref]||{};if(text===l.text&&!(unlocked??prev.unlocked))delete d.lines[l.ref];else d.lines[l.ref]={who:l.who,from:l.text,to:text,adapter:l.adapter,source:l.source,...((unlocked??prev.unlocked)?{unlocked:true}:{})};saveLocal(d);}
  const V=()=>root.VoidNPCVoices;
- const voiceNow=id=>V()?V().current(id,{registry:src&&src.registry,engines:src&&src.engines,voices:local().voices}):{kind:'none'};
+ const voiceNow=id=>V()?V().current(id,{registry:src&&src.registry,engines:src?.engines||root.VoidMissionTrees?.VOICE_ENGINES,voices:local().voices}):{kind:'none'};
  const canVoice=l=>!!(l&&l.who!=='player'&&(l.voice||voiceNow(l.who).kind==='elevenlabs'));
  /* ElevenLabs voice tags (19 Nov 2026): what a voice is sent (npc-voices.js speakText: tags kept only for a model that reads them), so adding or changing a tag is a
     change only for those voices; players see the line without them (sh). */

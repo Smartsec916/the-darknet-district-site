@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "f2d2aa28ec7f05d2",
+  "revision": "629817013225f785",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74433,12 +74433,12 @@
     {
       "source": "void-runner/chance-encounter-game.js",
       "line": 60,
-      "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus,recording});}",
+      "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 144,
+      "line": 140,
       "text": "'Somewhere a little checkbox says pedestrian detected.',",
       "kind": "source-reference"
     },
@@ -82926,7 +82926,7 @@
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
     "void-runner/chance-encounter-editor.js": "e959833cee989532b9ee9ff6ba93cfc76dd78c93f975690706c1db97ed4f37af",
-    "void-runner/chance-encounter-game.js": "3d8b50c0379834c19a4912b432e7a848b3e5989ed0efdeffa15fd7b770029cc7",
+    "void-runner/chance-encounter-game.js": "a0d3f934da086fbddaa60659da97115491cc9ac93a7dfe2ccf9b3bafa64b0037",
     "void-runner/chance-encounter.js": "61317223430ed450ec76bf6638a15a7af64a598341d7b782e977ffbabf8de7f0",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -83061,7 +83061,7 @@
     "void-runner/mission-blocks.js": "1af9c0a679b9b1503b92760f1110decd16cf68f5719cabfa320bbab98d94364a",
     "void-runner/mission-content.js": "f51eb2a84cea65d598cd4df06bddde65d22507fa34b315004fbe90290b44f445",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "22daef43c00a319a2dbdf73cf0fa64a34fd6c511ec16ec7dfae5a75af09b3087",
+    "void-runner/mission-editor.js": "9766585c787137c63f90440bf6514643c068b34f1666da3d7685d3d0ecabdb86",
     "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
