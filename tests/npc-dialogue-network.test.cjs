@@ -16,7 +16,8 @@ test('a shared turn survives interruption by one listener and the last departure
  now=10000;book.handle(a,request);assert.equal(events.length,2);
  book.depart(b);
  now=14999;book.handle(a,request);assert.equal(events.length,2);
- now=15200;book.handle(a,request);assert.equal(events.at(-1).turn,1);
+ now=15200;book.handle(a,request);assert.equal(events.length,2);
+ now=15800;book.handle(a,request);assert.equal(events.at(-1).turn,1);
  assert.equal(events.length,3);
 });
 
@@ -71,4 +72,24 @@ test('unplaced and distant queued listeners do not receive a turn',()=>{
  unplaced.placed=false;
  now=700;book.handle(a,request);
  assert.deepEqual(events.map(e=>e.to),['a']);
+});
+test('every subsequent turn collects nearby listeners after the cooldown',()=>{
+ let now=0;
+ const events=[];
+ const book=new NpcDialogue(()=>now,(to,event)=>events.push({to,...event}));
+ const peer=conn=>({conn,room:'district-interior',placed:true,x:1,z:2});
+ const a=peer('a'),b=peer('b'),c=peer('c');
+ const request={t:'npc-ready',group:'pair',cooldown:5};
+ book.handle(a,request);book.handle(b,request);
+ now=700;book.handle(a,request);
+ for(let turn=1;turn<=3;turn++){
+  const token=events.at(-1).token;
+  now+=100;book.handle(a,{t:'npc-end',group:'pair',token});book.handle(b,{t:'npc-end',group:'pair',token});
+  const start=now;
+  now=start+4300;book.handle(c,request); // pre-cooldown ready must expire before grant
+  now=start+5000;book.handle(a,request);assert.equal(events.length,2*turn);
+  now+=200;book.handle(b,request);assert.equal(events.length,2*turn);
+  now=start+5600;book.handle(a,request);
+  assert.deepEqual(events.slice(2*turn).map(e=>[e.to,e.turn]),[['a',turn],['b',turn]]);
+ }
 });

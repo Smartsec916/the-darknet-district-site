@@ -151,3 +151,8 @@ Keep separate commits, update this handoff at each completed stage, and do not c
 
 ## 22 Nov — collapsed room editor checkpoint
 - Added optional Advanced room dialogue controls using canonical place options; room-only drafts accepted; existing exact audio matching preserved. 9 Node checks and 3 Python schema tests passed. Runtime adapter, room boundary/occlusion, playback, multiplayer and real browser verification still required. Do not deploy this draft. Crowd-density increment separated into PR #501.
+
+
+## November 26 — shared conversation turn collection (isolated hub increment)
+
+Base `5e75c7de8047618a3c274a253aa26bdb1b1c7bd5`. Repeated dialogue turns now collect nearby ready listeners for 600 ms after the cooldown; no protocol or browser changes. The existing 1200 ms ready expiry and single-group listener leases are preserved. Exact baseline blobs verified locally. Original regression failed (4/5 tests passed); candidate `node --test tests/npc-dialogue-network.test.cjs` passed 5/5, including three successive turns, stale readiness expiry, disconnect, single listener, room isolation and lease expiry. Node v22.16.0. Full CI and actual WebSocket/two-client audio verification still required. The admin inventory generator does not include `tools/district-hub/*.cjs` or tests; no browser JS, BUILD or generated inventory changes in this increment. Full checkout unavailable due to DNS. This is not the full client canonical group-key/speaker fix; that remains next, followed by physical taxi/return, general residence itinerary and positional audio integration. No production deployment or paid services authorized by this checkpoint.
