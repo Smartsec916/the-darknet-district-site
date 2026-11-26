@@ -16,7 +16,7 @@ const ROOMS={'district-interior':{x:[-400,400],z:[-400,400],cap:12}};
    District). One room per place; a player is in exactly one room and sees only the people in it. NULL nightclub and the alley are part of the NeoChinatown
    street scene, so they share its room. The names are the game's own place ids; an unknown name is still refused. */
 const PLACE={x:[-3000,3000],z:[-3000,3000],cap:16};
-for(const id of ['neochinatown-street','corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld'])ROOMS[id]=PLACE;
+for(const id of ['neochinatown-street','corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld','cinder-landing','servo-orbital','vantor-relay','vesper-relay','erebus-arrival','sol-arrival','communion-arrival','natural-order-arrival'])ROOMS[id]=PLACE;
 // Existing animated District crowd models that a character slot may name (see CHARACTER_MODELS in void_runner_api.py).
 // The creator's appearance rules are shared with the game (one catalog, one validator). If the file is not deployed with the hub, appearances are simply ignored.
 const Appearance=(()=>{try{return require('./appearance/character-appearance.js');}catch{return null;}})();
@@ -116,8 +116,11 @@ class Hub{
     if(this.roomPeers(message.room).length>=room.cap){this.send(conn,{t:'error',reason:'room full'});this.closeConn(conn,4003,'room full');return false;}
     const {model,appearance}=this.look(who);
     const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,anonymous:!!who.anonymous,ignoring:new Set(),chatTimes:[],chatRefusals:0,chatLockUntil:0,reports:0,lastReportAt:-Infinity,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
+    // Pilots are present immediately; flight does not send walking coordinates.
+    peer.placed=message.room.endsWith('-arrival');
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
     this.send(conn,{t:'welcome',you:id,serverTime:this.now(),features:{teaRoom:true,npcDialogue:true,dev:true,trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true,voice:!!this.voice&&!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    if(peer.placed)this.broadcast(peer.room,{t:'join',peer:this.view(peer)},id);
     return true;
   }
 
