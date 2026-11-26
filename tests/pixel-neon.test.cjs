@@ -77,3 +77,33 @@ test('authored VR visit uses the same timing for late joiners and zero-weight se
  }
  assert.ok(samples>30);
 });
+
+test('accepted suggestions choose the next route, with one extra round per visit',()=>{
+ const shared=require('../void-runner/shared-activities.js');
+ const {stops,vrDefaults}=require('../void-runner/pixel-neon.js');
+ const route=makeRoute(life,vrDefaults,data);
+ const proposals=new Set(route.legs.filter(l=>l.decision).map(l=>l.decision.entry.id));
+ for(const e of data.filter(e=>e.behavior.destination))assert.ok(proposals.has(e.id),e.id);
+ const visits=shared.plan(stops,data,{'pn-night-vr-next':{destination:'bar'}});
+ const choice=visits.find(v=>v.decision?.entry.id==='pn-night-vr-next');
+ assert.equal(choice.next.kind,'bar');
+ assert.equal(visits[visits.indexOf(choice)+1].place.kind,'bar');
+ for(const leg of route.legs.filter(l=>l.place?.kind==='arcade'&&l.decision?.rule.destination==='arcade')){
+  assert.ok(leg.end-leg.start-leg.decisionAt>40);
+ }
+ assert.ok(visits.length<=3*stops.length*2);
+});
+
+test('context and timing keep recordings with their actors and activities',()=>{
+ const a=require('../void-runner/shared-activities.js');
+ const ctx={venue:'bar',elapsed:30,remaining:60,split:false};
+ const vrLine=data.find(e=>e.id==='pn-brief-bar-2');
+ assert.equal(a.eligible(vrLine,vrLine.behavior,ctx),false);
+ assert.ok(a.eligible(vrLine,vrLine.behavior,{...ctx,split:true}));
+ const exit=data.find(e=>e.id==='pn-store-new-exit-1');
+ assert.equal(a.eligible(exit,exit.behavior,{...ctx,venue:'store',completed:false}),false);
+ assert.ok(a.eligible(exit,exit.behavior,{...ctx,venue:'store',admin:true,completed:true,remaining:30}));
+ assert.ok(a.valid({'pn-night-vr-next':{destination:'store',delay:5}}));
+ assert.equal(a.valid({'pn-night-vr-next':{delay:-1}}),false);
+ assert.deepEqual(a.conversationAt(data,{},ctx,1000,1),a.conversationAt(data,{},structuredClone(ctx),1000,1));
+});

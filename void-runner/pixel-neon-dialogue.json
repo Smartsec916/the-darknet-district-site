@@ -1,6 +1,7 @@
 [
   {
     "id": "pn-aim",
+    "behavior": {"phase": "during"},
     "cue": "round",
     "locations": [
       "arcade"
@@ -40,6 +41,7 @@
   },
   {
     "id": "pn-three-headshots",
+    "behavior": {"phase": "during"},
     "cue": "streak",
     "locations": [
       "arcade"
@@ -65,6 +67,7 @@
   },
   {
     "id": "pn-empty",
+    "behavior": {"phase": "during"},
     "cue": "reload",
     "locations": [
       "arcade"
@@ -90,6 +93,7 @@
   },
   {
     "id": "pn-record",
+    "behavior": {"phase": "during"},
     "cue": "record",
     "locations": [
       "arcade"
@@ -115,6 +119,7 @@
   },
   {
     "id": "pn-accuracy",
+    "behavior": {"phase": "during"},
     "cue": "round",
     "locations": [
       "arcade"
@@ -140,6 +145,7 @@
   },
   {
     "id": "pn-spread",
+    "behavior": {"phase": "during"},
     "cue": "round",
     "locations": [
       "arcade"
@@ -165,6 +171,7 @@
   },
   {
     "id": "pn-lessons",
+    "behavior": {"phase": "general"},
     "cue": "admin",
     "locations": [
       "arcade",
@@ -198,6 +205,7 @@
   },
   {
     "id": "pn-mission-request",
+    "behavior": {"phase": "general"},
     "cue": "admin",
     "locations": [
       "arcade",
@@ -252,6 +260,7 @@
   },
   {
     "id": "pn-multiplayer",
+    "behavior": {"phase": "general"},
     "cue": "admin",
     "locations": [
       "arcade",
@@ -278,6 +287,7 @@
   },
   {
     "id": "pn-within-earshot",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "admin-near",
     "locations": [
       "arcade",
@@ -304,6 +314,7 @@
   },
   {
     "id": "pn-networking",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "admin-near",
     "locations": [
       "arcade",
@@ -344,6 +355,7 @@
   },
   {
     "id": "pn-joystick",
+    "behavior": {"phase": "during"},
     "cue": "loss",
     "locations": [
       "arcade"
@@ -383,6 +395,7 @@
   },
   {
     "id": "pn-another-round",
+    "behavior": {"phase": "during", "destination": "arcade", "agreement": 0},
     "cue": "loss",
     "locations": [
       "arcade"
@@ -408,6 +421,7 @@
   },
   {
     "id": "pn-wrist",
+    "behavior": {"phase": "after"},
     "cue": "leaving",
     "locations": [
       "arcade"
@@ -433,6 +447,7 @@
   },
   {
     "id": "pn-tomorrow",
+    "behavior": {"phase": "after"},
     "cue": "leaving",
     "locations": [
       "arcade"
@@ -486,6 +501,7 @@
   },
   {
     "id": "pn-night-bad-decisions",
+    "behavior": {"phase": "before"},
     "cue": "opening",
     "locations": [
       "district"
@@ -511,6 +527,7 @@
   },
   {
     "id": "pn-night-dignity",
+    "behavior": {"phase": "before"},
     "cue": "opening",
     "locations": [
       "district"
@@ -536,6 +553,7 @@
   },
   {
     "id": "pn-night-uncomfortable-leaderboard",
+    "behavior": {"phase": "before", "destination": "arcade", "agreement": 1},
     "cue": "opening",
     "locations": [
       "district"
@@ -561,6 +579,7 @@
   },
   {
     "id": "pn-night-muscle-memory",
+    "behavior": {"phase": "during"},
     "cue": "competitive",
     "locations": [
       "arcade"
@@ -600,6 +619,7 @@
   },
   {
     "id": "pn-night-aim-higher",
+    "behavior": {"phase": "during"},
     "cue": "competitive",
     "locations": [
       "arcade"
@@ -632,6 +652,7 @@
   },
   {
     "id": "pn-night-bonus-round",
+    "behavior": {"phase": "during"},
     "cue": "competitive",
     "locations": [
       "arcade"
@@ -671,6 +692,7 @@
   },
   {
     "id": "pn-night-recoil",
+    "behavior": {"phase": "during"},
     "cue": "competitive",
     "locations": [
       "arcade"
@@ -710,6 +732,7 @@
   },
   {
     "id": "pn-night-atmosphere",
+    "behavior": {"phase": "during"},
     "cue": "competitive",
     "locations": [
       "arcade"
@@ -749,6 +772,7 @@
   },
   {
     "id": "pn-night-cooperative",
+    "behavior": {"phase": "during"},
     "cue": "late-round",
     "locations": [
       "arcade"
@@ -781,6 +805,7 @@
   },
   {
     "id": "pn-night-resume",
+    "behavior": {"phase": "during"},
     "cue": "late-round",
     "locations": [
       "arcade"
@@ -820,6 +845,7 @@
   },
   {
     "id": "pn-night-came-to-win",
+    "behavior": {"phase": "during"},
     "cue": "late-round",
     "locations": [
       "arcade"
@@ -859,6 +885,7 @@
   },
   {
     "id": "pn-night-hard-mode",
+    "behavior": {"phase": "during"},
     "cue": "late-round",
     "locations": [
       "arcade"
@@ -891,6 +918,7 @@
   },
   {
     "id": "pn-night-recreation",
+    "behavior": {"phase": "general"},
     "cue": "late-admin",
     "locations": [
       "arcade",
@@ -924,6 +952,7 @@
   },
   {
     "id": "pn-night-honorary-girl",
+    "behavior": {"phase": "general"},
     "cue": "late-admin",
     "locations": [
       "arcade",
@@ -957,6 +986,7 @@
   },
   {
     "id": "pn-night-admin-high-score",
+    "behavior": {"phase": "general"},
     "cue": "late-admin",
     "locations": [
       "arcade",
@@ -997,6 +1027,7 @@
   },
   {
     "id": "pn-night-education",
+    "behavior": {"phase": "general"},
     "cue": "late-admin",
     "locations": [
       "arcade",
@@ -1037,6 +1068,7 @@
   },
   {
     "id": "pn-night-your-turn",
+    "behavior": {"phase": "general"},
     "cue": "late-admin",
     "locations": [
       "arcade",
@@ -1070,6 +1102,7 @@
   },
   {
     "id": "pn-night-athletes",
+    "behavior": {"phase": "during", "requires": "observer"},
     "cue": "passerby",
     "locations": [
       "arcade"
@@ -1102,6 +1135,7 @@
   },
   {
     "id": "pn-night-advertising",
+    "behavior": {"phase": "during", "requires": "observer"},
     "cue": "passerby",
     "locations": [
       "arcade"
@@ -1134,6 +1168,7 @@
   },
   {
     "id": "pn-night-vr-next",
+    "behavior": {"phase": "after", "from": "arcade", "destination": "vr", "agreement": 1},
     "cue": "vr-entry",
     "locations": [
       "arcade",
@@ -1160,6 +1195,7 @@
   },
   {
     "id": "pn-night-cameras",
+    "behavior": {"phase": "after"},
     "cue": "vr-entry",
     "locations": [
       "arcade",
@@ -1193,6 +1229,7 @@
   },
   {
     "id": "pn-night-sponsor",
+    "behavior": {"phase": "after"},
     "cue": "vr-entry",
     "locations": [
       "arcade",
@@ -1226,6 +1263,7 @@
   },
   {
     "id": "pn-night-guilty",
+    "behavior": {"phase": "after"},
     "cue": "vr-entry",
     "locations": [
       "arcade",
@@ -1266,6 +1304,7 @@
   },
   {
     "id": "pn-night-independent",
+    "behavior": {"phase": "general", "destination": "arcade", "agreement": 3},
     "cue": "maximum-chaos",
     "locations": [
       "arcade"
@@ -1306,6 +1345,7 @@
   },
   {
     "id": "pn-night-supervision",
+    "behavior": {"phase": "general"},
     "cue": "maximum-chaos",
     "locations": [
       "arcade"
@@ -1346,6 +1386,7 @@
   },
   {
     "id": "pn-night-three-hours",
+    "behavior": {"phase": "after"},
     "cue": "maximum-chaos",
     "locations": [
       "arcade"
@@ -1386,6 +1427,7 @@
   },
   {
     "id": "pn-night-operation",
+    "behavior": {"phase": "general"},
     "cue": "maximum-chaos",
     "locations": [
       "arcade"
@@ -1426,6 +1468,7 @@
   },
   {
     "id": "pn-night-leaderboard-stays",
+    "behavior": {"phase": "general"},
     "cue": "maximum-chaos",
     "locations": [
       "arcade"
@@ -1459,6 +1502,7 @@
   },
   {
     "id": "pn-store-new-clothing-1",
+    "behavior": {"phase": "during"},
     "cue": "store-clothing",
     "locations": [
       "store"
@@ -1498,6 +1542,7 @@
   },
   {
     "id": "pn-store-new-clothing-2",
+    "behavior": {"phase": "during"},
     "cue": "store-clothing",
     "locations": [
       "store"
@@ -1530,6 +1575,7 @@
   },
   {
     "id": "pn-store-new-clothing-3",
+    "behavior": {"phase": "during"},
     "cue": "store-clothing",
     "locations": [
       "store"
@@ -1562,6 +1608,7 @@
   },
   {
     "id": "pn-store-new-clothing-4",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "store-clothing",
     "locations": [
       "store"
@@ -1594,6 +1641,7 @@
   },
   {
     "id": "pn-store-new-survival-1",
+    "behavior": {"phase": "during"},
     "cue": "store-survival",
     "locations": [
       "store"
@@ -1626,6 +1674,7 @@
   },
   {
     "id": "pn-store-new-survival-2",
+    "behavior": {"phase": "during"},
     "cue": "store-survival",
     "locations": [
       "store"
@@ -1665,6 +1714,7 @@
   },
   {
     "id": "pn-store-new-survival-3",
+    "behavior": {"phase": "during"},
     "cue": "store-survival",
     "locations": [
       "store"
@@ -1704,6 +1754,7 @@
   },
   {
     "id": "pn-store-new-survival-4",
+    "behavior": {"phase": "during"},
     "cue": "store-survival",
     "locations": [
       "store"
@@ -1736,6 +1787,7 @@
   },
   {
     "id": "pn-store-new-medical-1",
+    "behavior": {"phase": "during"},
     "cue": "store-medical",
     "locations": [
       "store"
@@ -1775,6 +1827,7 @@
   },
   {
     "id": "pn-store-new-medical-2",
+    "behavior": {"phase": "during"},
     "cue": "store-medical",
     "locations": [
       "store"
@@ -1814,6 +1867,7 @@
   },
   {
     "id": "pn-store-new-medical-3",
+    "behavior": {"phase": "during"},
     "cue": "store-medical",
     "locations": [
       "store"
@@ -1846,6 +1900,7 @@
   },
   {
     "id": "pn-store-new-food-energy-1",
+    "behavior": {"phase": "during"},
     "cue": "store-food-energy",
     "locations": [
       "store"
@@ -1878,6 +1933,7 @@
   },
   {
     "id": "pn-store-new-food-energy-2",
+    "behavior": {"phase": "during"},
     "cue": "store-food-energy",
     "locations": [
       "store"
@@ -1910,6 +1966,7 @@
   },
   {
     "id": "pn-store-new-food-energy-3",
+    "behavior": {"phase": "during"},
     "cue": "store-food-energy",
     "locations": [
       "store"
@@ -1949,6 +2006,7 @@
   },
   {
     "id": "pn-store-new-food-energy-4",
+    "behavior": {"phase": "during"},
     "cue": "store-food-energy",
     "locations": [
       "store"
@@ -1981,6 +2039,7 @@
   },
   {
     "id": "pn-store-new-kiosk-1",
+    "behavior": {"phase": "during"},
     "cue": "store-kiosk",
     "locations": [
       "store"
@@ -2013,6 +2072,7 @@
   },
   {
     "id": "pn-store-new-kiosk-2",
+    "behavior": {"phase": "during"},
     "cue": "store-kiosk",
     "locations": [
       "store"
@@ -2045,6 +2105,7 @@
   },
   {
     "id": "pn-store-new-kiosk-3",
+    "behavior": {"phase": "during"},
     "cue": "store-kiosk",
     "locations": [
       "store"
@@ -2077,6 +2138,7 @@
   },
   {
     "id": "pn-store-new-kiosk-4",
+    "behavior": {"phase": "during"},
     "cue": "store-kiosk",
     "locations": [
       "store"
@@ -2109,6 +2171,7 @@
   },
   {
     "id": "pn-store-new-equipment-1",
+    "behavior": {"phase": "during"},
     "cue": "store-equipment",
     "locations": [
       "store"
@@ -2141,6 +2204,7 @@
   },
   {
     "id": "pn-store-new-equipment-2",
+    "behavior": {"phase": "during"},
     "cue": "store-equipment",
     "locations": [
       "store"
@@ -2180,6 +2244,7 @@
   },
   {
     "id": "pn-store-new-equipment-3",
+    "behavior": {"phase": "during"},
     "cue": "store-equipment",
     "locations": [
       "store"
@@ -2212,6 +2277,7 @@
   },
   {
     "id": "pn-store-new-iris-1",
+    "behavior": {"phase": "during", "requires": "iris"},
     "cue": "store-iris",
     "locations": [
       "store"
@@ -2245,6 +2311,7 @@
   },
   {
     "id": "pn-store-new-iris-2",
+    "behavior": {"phase": "during", "requires": "iris"},
     "cue": "store-iris",
     "locations": [
       "store"
@@ -2278,6 +2345,7 @@
   },
   {
     "id": "pn-store-new-iris-3",
+    "behavior": {"phase": "during"},
     "cue": "store-iris",
     "locations": [
       "store"
@@ -2325,6 +2393,7 @@
   },
   {
     "id": "pn-store-new-admin-1",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "store-admin",
     "locations": [
       "store"
@@ -2357,6 +2426,7 @@
   },
   {
     "id": "pn-store-new-admin-2",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "store-admin",
     "locations": [
       "store"
@@ -2389,6 +2459,7 @@
   },
   {
     "id": "pn-store-new-admin-3",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "store-admin",
     "locations": [
       "store"
@@ -2421,6 +2492,7 @@
   },
   {
     "id": "pn-store-new-admin-4",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "store-admin",
     "locations": [
       "store"
@@ -2460,6 +2532,7 @@
   },
   {
     "id": "pn-store-new-exit-1",
+    "behavior": {"phase": "after"},
     "cue": "store-exit",
     "locations": [
       "store"
@@ -2492,6 +2565,7 @@
   },
   {
     "id": "pn-store-new-exit-2",
+    "behavior": {"phase": "after", "destination": "arcade", "agreement": 1},
     "cue": "store-exit",
     "locations": [
       "store"
@@ -2524,6 +2598,7 @@
   },
   {
     "id": "pn-store-new-exit-3",
+    "behavior": {"phase": "after"},
     "cue": "store-exit",
     "locations": [
       "store"
@@ -2563,6 +2638,7 @@
   },
   {
     "id": "pn-brief-bar-1",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2595,6 +2671,7 @@
   },
   {
     "id": "pn-brief-bar-2",
+    "behavior": {"phase": "during", "requires": "pixel-in-vr"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2627,6 +2704,7 @@
   },
   {
     "id": "pn-brief-bar-3",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2659,6 +2737,7 @@
   },
   {
     "id": "pn-brief-bar-4",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2691,6 +2770,7 @@
   },
   {
     "id": "pn-brief-bar-5",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2723,6 +2803,7 @@
   },
   {
     "id": "pn-brief-bar-6",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2755,6 +2836,7 @@
   },
   {
     "id": "pn-brief-bar-7",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2787,6 +2869,7 @@
   },
   {
     "id": "pn-brief-bar-8",
+    "behavior": {"phase": "during"},
     "cue": "bar",
     "locations": [
       "bar"
@@ -2819,6 +2902,7 @@
   },
   {
     "id": "pn-brief-greeting-1",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "greeting",
     "locations": [
       "store"
@@ -2851,6 +2935,7 @@
   },
   {
     "id": "pn-brief-greeting-2",
+    "behavior": {"phase": "during", "requires": "iris"},
     "cue": "greeting",
     "locations": [
       "store"
@@ -2884,6 +2969,7 @@
   },
   {
     "id": "pn-brief-greeting-3",
+    "behavior": {"phase": "during", "requires": "admin"},
     "cue": "greeting",
     "locations": [
       "store"
@@ -2909,6 +2995,7 @@
   },
   {
     "id": "pn-brief-greeting-4",
+    "behavior": {"phase": "during", "requires": "iris"},
     "cue": "greeting",
     "locations": [
       "store"
@@ -2935,6 +3022,7 @@
   },
   {
     "id": "pn-brief-greeting-5",
+    "behavior": {"phase": "during"},
     "cue": "greeting",
     "locations": [
       "store"

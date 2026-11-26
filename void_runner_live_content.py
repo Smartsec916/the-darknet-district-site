@@ -244,6 +244,27 @@ def interaction_problems(table, givers=None, places=None):
     return errors
 
 
+def _pair_dialogue_valid(edits):
+    if not isinstance(edits, dict) or len(edits) > 128:
+        return False
+    enums = {'phase': ('before', 'during', 'after', 'general'),
+             'destination': ('', 'arcade', 'vr', 'store', 'bar'),
+             'from': ('district', 'arcade', 'vr', 'store', 'bar'),
+             'requires': ('', 'admin', 'iris', 'observer', 'pixel-in-vr')}
+    for key, rule in edits.items():
+        if not re.fullmatch(r'pn-[a-z0-9-]{1,80}', key) or not isinstance(rule, dict):
+            return False
+        if set(rule) - (set(enums) | {'agreement', 'delay'}):
+            return False
+        if any(name in rule and rule[name] not in values for name, values in enums.items()):
+            return False
+        if 'agreement' in rule and (type(rule['agreement']) is not int or not 0 <= rule['agreement'] < 32):
+            return False
+        if 'delay' in rule and (type(rule['delay']) not in (int, float) or not 0 <= rule['delay'] <= 30):
+            return False
+    return True
+
+
 def _pixel_vr_valid(config):
     def between(value, low, high):
         return type(value) in (int, float) and low <= value <= high
@@ -274,8 +295,10 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'pixelVR', 'interactions', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'rookFreight', 'pixelVR', 'pairDialogue', 'interactions', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
+    if 'pairDialogue' in content and not _pair_dialogue_valid(content['pairDialogue']):
+        errors.append('Check the shared dialogue actions.')
     if 'pixelVR' in content and not _pixel_vr_valid(content['pixelVR']):
         err('Check the Pixel VR sequence settings.')
     if 'rookFreight' in content:
@@ -3125,7 +3148,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight') or content.get('pixelVR')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips') or content.get('rookFreight') or content.get('pixelVR') or content.get('pairDialogue')):
         raise DraftError('There is nothing to publish.', 422)
     missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
     if missing:
