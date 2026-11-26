@@ -2,7 +2,7 @@
  'use strict';
  const B=()=>root.BABYLON;
  const keyModel='assets/models/keycards/kade-lace-key.glb';
- const kadeLook='district-resident',laceLook='npc-lib-eb1d6cc8';
+ const kadeLook='npc-office-m',laceLook='npc-lib-eb1d6cc8';
  let running=null;
  function delay(ms,signal){
   return new Promise((resolve,reject)=>{
@@ -117,6 +117,11 @@
  async function walk(run){
   await until(()=>root.VoidRoadTaxi?.world?.quarter==='oldtown',run.signal,30000);
   run.actor=await model(run,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
+  const voice=root.VoidAudio?.bus('voice');
+  if(voice){
+   run.impactVoice=await fetch('void-runner/assets/audio/voice/kade-taxi-impact.mp3',{signal:run.signal})
+    .then(response=>response.arrayBuffer()).then(data=>voice.context.decodeAudioData(data)).catch(()=>null);
+  }
   const crossing=root.VoidChanceCrossing;
   await until(()=>{run.plan=crossing.plan(root.VoidRoadTaxi.world,run.graph.playtest.crossing,run.graph.playtest.delaySeconds,run.private);return run.plan;},run.signal,65000);
   if(run.private)crossing.preparePrivate(run.plan);
@@ -132,16 +137,70 @@
    return progress>=1;
   },run.signal);
  }
+ const witnessLines=[
+  'So unsafe. I liked it better when I could yell at a person.',
+  "They're revolting! Yesterday mine demanded a tip.",
+  'Five stars for pickup. One star for putting him back down.',
+  'Somewhere a little checkbox says pedestrian detected.',
+  'My taxi asked me to rate the ride. Does he get a vote?',
+  'It stopped for a plastic bag this morning. A plastic bag.'
+ ];
+ // The model folds at its knees while its centre of mass rolls away from the bumper.
+ function impactPose(actor,recover=false){
+  const scene=root.VoidBabylon.scene,node=actor.parent;
+  const start={x:node.rotation.x,y:node.position.y,z:node.position.z};
+  const duration=recover ? .85 : .58;
+  let elapsed=0;
+  const obs=scene.onBeforeRenderObservable.add(()=>{
+   elapsed+=Math.min(.1,scene.getEngine().getDeltaTime()/1000);
+   const t=Math.min(1,elapsed/duration),weight=t*t*(3-2*t);
+   node.rotation.x=start.x+((recover?0:-1.29)-start.x)*weight;
+   node.position.y=start.y+((recover?0:.16)-start.y)*weight;
+   node.position.z=start.z+(recover?0:-.48)*weight;
+   if(t===1)scene.onBeforeRenderObservable.remove(obs);
+  });
+  node.onDisposeObservable.addOnce(()=>scene.onBeforeRenderObservable.remove(obs));
+ }
+ function taxiImpact(run){
+  const bus=root.VoidAudio?.bus('effects');
+  if(bus){
+   const ctx=bus.context,now=ctx.currentTime,body=ctx.createOscillator(),volume=ctx.createGain();
+   body.type='triangle';body.frequency.setValueAtTime(143,now);body.frequency.exponentialRampToValueAtTime(42,now+.14);
+   volume.gain.setValueAtTime(.001,now);volume.gain.exponentialRampToValueAtTime(.54,now+.008);
+   volume.gain.exponentialRampToValueAtTime(.001,now+.19);
+   body.connect(volume);volume.connect(bus.node);body.onended=()=>{body.disconnect();volume.disconnect();};
+   body.start(now);body.stop(now+.20);
+  }
+  const voice=root.VoidAudio?.bus('voice');
+  if(voice&&run.impactVoice){
+   const grunt=voice.context.createBufferSource();grunt.buffer=run.impactVoice;grunt.connect(voice.node);
+   const stopGrunt=()=>grunt.stop();
+   grunt.onended=()=>{grunt.disconnect();run.signal.removeEventListener('abort',stopGrunt);};
+   run.signal.addEventListener('abort',stopGrunt,{once:true});grunt.start();
+  }
+  const event=root.VoidCrowdReact?.spectacle({...run.plan.hit,radius:12,duration:6,kind:'taxi-impact',filmCap:0});
+  if(!event)return;
+  run.signal.addEventListener('abort',event.end,{once:true});
+  if(event.reactions.some(person=>person.mode==='watch')){
+   delay(1400,run.signal).then(()=>{
+    if(walkingLocation?.area==='street'&&root.VoidRoadTaxi?.world?.quarter==='oldtown')
+     announce('Passer-by: '+witnessLines[Math.floor(Math.random()*witnessLines.length)]);
+   }).catch(e=>{if(e.name!=='AbortError')console.warn(e);});
+  }
+ }
  async function drop(run){
   const home=address(run);
   const info=run.private?{name:"Kade and Lace's Apartment Key",position:run.graph.dropPosition,range:run.graph.pickupDistance,model:keyModel}:
    await root.VoidConsumableGame.request('chance-encounters/drop',{id:run.graph.id,run:run.token});
   const card=await model(run,'encounter-key',info.model||keyModel);
   const at=info.position,plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
+  const scene=root.VoidBabylon.scene,ray=new (B().Ray)(new (B().Vector3)(at.x,.65,at.z),B().Vector3.Down(),1.2);
+  const ground=scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&/sidewalk|paving|asphalt|road|city-ground/i.test(m.material?.name||m.name));
+  const surface=ground?.hit?ground.pickedPoint.y:0;
   const start=performance.now();
   do{
    const t=(performance.now()-start)/1000,p=root.VoidChanceCrossing.cardPose(plan,t);
-   card.parent.position.set(p.x,p.y,p.z);card.parent.rotation.z=p.spin;
+   card.parent.position.set(p.x,p.y+surface+.003,p.z);card.parent.rotation.z=p.spin;
    if(t>=.85)break;
    await delay(16,run.signal);
   }while(true);
@@ -150,6 +209,7 @@
    const recover=async()=>{
     await delay((run.graph.recoverySeconds??8)*1000,run.signal);
     if(actor.parent.isDisposed())return;
+    impactPose(actor,true);
     const exit=play(actor,'floor-knees-up',false);
     await until(()=>!exit.isPlaying||actor.parent.isDisposed(),run.signal);
     if(!actor.parent.isDisposed()){actor.parent.dispose();run.owned.delete(actor.parent);}
@@ -161,7 +221,7 @@
    const cam=root.VoidBabylon.scene?.activeCamera;
    if(!cam||typeof walker==='undefined'||!walker||walkingLocation?.area!=='street')return false;
    const delta=card.parent.position.subtract(cam.globalPosition);
-   return delta.length()<=info.range&&B().Vector3.Dot(cam.getForwardRay().direction,delta.normalize())>.986;
+   return delta.length()<=info.range&&B().Vector3.Dot(cam.getForwardRay().direction,delta.normalize())>.963;
   };
   const host=panel(run);host.replaceChildren();
   const title=document.createElement('strong'),where=document.createElement('p'),pick=document.createElement('button');
@@ -257,6 +317,7 @@
     else if(node.action==='roleplay')await roleplay(run);
     else if(node.action==='stumble'){
      if(!run.actor)await walk(run);
+     impactPose(run.actor);taxiImpact(run);
      play(run.actor,'floor-knees-down',false);
     }else throw Error('Choose a supported animation action for '+node.name+'.');
    }

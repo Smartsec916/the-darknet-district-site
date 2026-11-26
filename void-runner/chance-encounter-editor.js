@@ -149,9 +149,31 @@
     const drop=g.nodes.find(n=>n.kind==='item');if(drop)prop.append(button('Preview keycard drop',()=>launch(drop.id)));
    }
    if(g.dialogue?.length){
-    const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);
+    const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);
+    if(g.id==='dropped-cardkey'){
+     const branch=select([['arrival','Arrival'],['free','Free Lace'],['be_kade','Be Kade']],'arrival',()=>{});
+     field(dialogue,'Conversation',branch);
+     dialogue.append(button('Add Lace line',()=>{
+      const prefix='lace_'+branch.value+'_';let n=1;
+      while(g.dialogue.some(l=>l.id===prefix+String(n).padStart(2,'0')))n++;
+      g.dialogue.push({id:prefix+String(n).padStart(2,'0'),speaker:'lace',text:'',tags:'',delay:0,animation:''});mark();draw();
+     }));
+    }
+    const uploads=new Map();
+    dialogue.append(element('p','Enter the spoken text first. For bulk import, name each recording after its line ID, such as lace_arrival_01.ogg.'));
+    const bulk=element('input'),report=element('output');bulk.type='file';bulk.multiple=true;bulk.accept='audio/*,.ogg,.mp3,.wav';
+    field(dialogue,'Bulk import recordings',bulk);dialogue.append(report);
+    bulk.onchange=async()=>{
+     const files=Array.from(bulk.files),issues=[],seen=new Set();let imported=0;host.inert=true;
+     try{for(const file of files){
+      const key=file.name.replace(/\.[^.]+$/,'').toLowerCase();
+      try{if(seen.has(key))throw Error('Duplicate file');if(!uploads.has(key))throw Error('Unknown line ID');
+       seen.add(key);await uploads.get(key)(file);imported++;
+      }catch(e){issues.push(file.name+' — '+e.message);}
+     }}finally{host.inert=false;bulk.value='';report.textContent=[imported+' imported',...issues].join(' · ');}
+    };
     for(const line of g.dialogue){
-     const row=element('fieldset');row.append(element('legend',line.id.replaceAll('_',' ')));dialogue.append(row);
+     const row=element('fieldset');row.append(element('legend',line.id));dialogue.append(row);
      const audio=element('output',line.recording?'Recorded':'No recording');
      for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['tags','Delivery tags'],['delay','Delay (seconds)'],['animation','Animation']])
       field(row,label,input(line[key],v=>{
@@ -166,6 +188,7 @@
       if(line.speaker!==who||line.text!==text)throw Error('The line changed during import.');
       line.recording={who,text,hash:p.hash,type:p.type,bytes:p.bytes,duration:p.duration};mark();audio.textContent='Recorded';
      };
+     uploads.set(line.id.toLowerCase(),attach);
      const upload=element('input');upload.type='file';upload.accept='audio/*,.ogg,.mp3,.wav';
      upload.onchange=async()=>{try{if(upload.files[0])await attach(upload.files[0]);}catch(e){audio.textContent=e.message;}finally{upload.value='';}};
      field(row,'Import recording',upload);
