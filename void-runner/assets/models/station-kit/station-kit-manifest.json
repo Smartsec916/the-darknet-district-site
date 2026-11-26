@@ -1,0 +1,1450 @@
+{
+ "pieces": {
+  "wall_low": {
+   "triangles": 522,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.15
+   ],
+   "max": [
+    1.0,
+    1.1,
+    0.0
+   ]
+  },
+  "wall_mid_a": {
+   "triangles": 326,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.122
+   ],
+   "max": [
+    1.0,
+    1.5,
+    0.0
+   ]
+  },
+  "wall_mid_b": {
+   "triangles": 534,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.167
+   ],
+   "max": [
+    1.0,
+    1.5,
+    0.0
+   ]
+  },
+  "wall_mid_c": {
+   "triangles": 444,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.128
+   ],
+   "max": [
+    1.0,
+    1.5,
+    0.0
+   ]
+  },
+  "wall_mid_d": {
+   "triangles": 350,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.172
+   ],
+   "max": [
+    1.0,
+    1.5,
+    0.0
+   ]
+  },
+  "wall_mid_e": {
+   "triangles": 378,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.127
+   ],
+   "max": [
+    1.0,
+    1.5,
+    0.0
+   ]
+  },
+  "wall_mid_port": {
+   "triangles": 346,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.102
+   ],
+   "max": [
+    1.0,
+    1.5,
+    0.0
+   ]
+  },
+  "wall_top": {
+   "triangles": 338,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.345
+   ],
+   "max": [
+    1.0,
+    1.0,
+    0.0
+   ]
+  },
+  "wall_clere": {
+   "triangles": 150,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.1
+   ],
+   "max": [
+    1.0,
+    1.4,
+    0.0
+   ]
+  },
+  "pilaster_36": {
+   "triangles": 290,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -0.2,
+    0.0,
+    -0.26
+   ],
+   "max": [
+    0.2,
+    3.6,
+    0.0
+   ]
+  },
+  "pilaster_50": {
+   "triangles": 334,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -0.2,
+    0.0,
+    -0.26
+   ],
+   "max": [
+    0.2,
+    5.0,
+    0.0
+   ]
+  },
+  "hangar_panel_a": {
+   "triangles": 340,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.212
+   ],
+   "max": [
+    2.0,
+    5.4,
+    0.0
+   ]
+  },
+  "hangar_panel_b": {
+   "triangles": 1120,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_tank"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.476
+   ],
+   "max": [
+    2.0,
+    5.4,
+    0.0
+   ]
+  },
+  "hangar_rib": {
+   "triangles": 720,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -0.45,
+    0.0,
+    -0.72
+   ],
+   "max": [
+    0.45,
+    9.0,
+    0.104
+   ]
+  },
+  "ceil_corridor": {
+   "triangles": 534,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -2.2,
+    -0.46,
+    -1.0
+   ],
+   "max": [
+    2.2,
+    0.0,
+    1.0
+   ]
+  },
+  "ceil_room_a": {
+   "triangles": 688,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -2.0,
+    -0.502,
+    -2.0
+   ],
+   "max": [
+    2.0,
+    0.0,
+    2.0
+   ]
+  },
+  "ceil_room_b": {
+   "triangles": 748,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -2.0,
+    -0.77,
+    -2.0
+   ],
+   "max": [
+    2.0,
+    0.0,
+    2.0
+   ]
+  },
+  "hangar_truss": {
+   "triangles": 1480,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -18.05,
+    -2.222,
+    -0.34
+   ],
+   "max": [
+    18.05,
+    -0.05,
+    0.421
+   ]
+  },
+  "hangar_ceil": {
+   "triangles": 330,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -3.05,
+    -0.716,
+    -3.0
+   ],
+   "max": [
+    3.05,
+    0.0,
+    3.0
+   ]
+  },
+  "hangar_crane": {
+   "triangles": 530,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -17.6,
+    -3.558,
+    -1.102
+   ],
+   "max": [
+    17.6,
+    0.1,
+    1.1
+   ]
+  },
+  "floor_grate": {
+   "triangles": 46,
+   "materials": [
+    "st_steel",
+    "st_trim"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.25
+   ],
+   "max": [
+    1.0,
+    0.032,
+    0.25
+   ]
+  },
+  "floor_hazard": {
+   "triangles": 2,
+   "materials": [
+    "st_trim"
+   ],
+   "min": [
+    -2.0,
+    0.012,
+    -0.15
+   ],
+   "max": [
+    2.0,
+    0.012,
+    0.15
+   ]
+  },
+  "floor_chevron": {
+   "triangles": 2,
+   "materials": [
+    "st_trim"
+   ],
+   "min": [
+    -2.0,
+    0.012,
+    -0.3
+   ],
+   "max": [
+    2.0,
+    0.012,
+    0.3
+   ]
+  },
+  "floor_line": {
+   "triangles": 2,
+   "materials": [
+    "st_trim"
+   ],
+   "min": [
+    -2.0,
+    0.012,
+    -0.25
+   ],
+   "max": [
+    2.0,
+    0.012,
+    0.25
+   ]
+  },
+  "pad_ring": {
+   "triangles": 560,
+   "materials": [
+    "st_light",
+    "st_dark",
+    "st_marking"
+   ],
+   "min": [
+    -5.824,
+    0.0,
+    -5.824
+   ],
+   "max": [
+    5.824,
+    0.037,
+    5.824
+   ]
+  },
+  "door_frame": {
+   "triangles": 566,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -2.02,
+    0.0,
+    -0.395
+   ],
+   "max": [
+    2.02,
+    3.95,
+    0.0
+   ]
+  },
+  "portal_3m": {
+   "triangles": 142,
+   "materials": [
+    "st_gunmetal",
+    "st_trim",
+    "st_light"
+   ],
+   "min": [
+    -1.7,
+    0.0,
+    -0.103
+   ],
+   "max": [
+    1.7,
+    3.6,
+    0.0
+   ]
+  },
+  "portal_5m": {
+   "triangles": 142,
+   "materials": [
+    "st_gunmetal",
+    "st_trim",
+    "st_light"
+   ],
+   "min": [
+    -2.7,
+    0.0,
+    -0.103
+   ],
+   "max": [
+    2.7,
+    3.6,
+    0.0
+   ]
+  },
+  "window_bay": {
+   "triangles": 436,
+   "materials": [
+    "st_wall",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -2.09,
+    0.0,
+    -0.36
+   ],
+   "max": [
+    2.09,
+    5.0,
+    0.3
+   ]
+  },
+  "porthole": {
+   "triangles": 510,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -0.82,
+    -0.57,
+    -0.13
+   ],
+   "max": [
+    0.82,
+    0.64,
+    0.0
+   ]
+  },
+  "bar_counter": {
+   "triangles": 570,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_light",
+    "st_dark",
+    "st_counter"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.725
+   ],
+   "max": [
+    1.0,
+    1.15,
+    0.62
+   ]
+  },
+  "backbar": {
+   "triangles": 2332,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_glass",
+    "st_light",
+    "st_dark",
+    "st_counter",
+    "st_bottle"
+   ],
+   "min": [
+    -1.0,
+    0.0,
+    -0.53
+   ],
+   "max": [
+    1.0,
+    2.8,
+    0.0
+   ]
+  },
+  "booth": {
+   "triangles": 484,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_leather",
+    "st_dark"
+   ],
+   "min": [
+    -1.6,
+    0.0,
+    -0.5
+   ],
+   "max": [
+    1.6,
+    1.1,
+    0.52
+   ]
+  },
+  "table": {
+   "triangles": 300,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_counter"
+   ],
+   "min": [
+    -1.108,
+    0.0,
+    -0.608
+   ],
+   "max": [
+    1.108,
+    0.8,
+    0.608
+   ]
+  },
+  "chair": {
+   "triangles": 172,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_leather"
+   ],
+   "min": [
+    -0.28,
+    0.0,
+    -0.27
+   ],
+   "max": [
+    0.28,
+    1.02,
+    0.318
+   ]
+  },
+  "pod_shell": {
+   "triangles": 326,
+   "materials": [
+    "st_wall",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -0.81,
+    -0.06,
+    -0.176
+   ],
+   "max": [
+    0.81,
+    1.21,
+    0.0
+   ]
+  },
+  "shop_shelf": {
+   "triangles": 1374,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent",
+    "st_dark",
+    "st_tank"
+   ],
+   "min": [
+    -1.3,
+    0.0,
+    -0.61
+   ],
+   "max": [
+    1.3,
+    2.63,
+    0.0
+   ]
+  },
+  "terminal": {
+   "triangles": 266,
+   "materials": [
+    "st_gunmetal",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -0.5,
+    0.0,
+    -0.2
+   ],
+   "max": [
+    0.5,
+    1.78,
+    0.18
+   ]
+  },
+  "crate_a": {
+   "triangles": 664,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -0.6,
+    0.0,
+    -0.61
+   ],
+   "max": [
+    0.6,
+    1.2,
+    0.6
+   ]
+  },
+  "crate_b": {
+   "triangles": 712,
+   "materials": [
+    "st_steel",
+    "st_trim",
+    "st_dark",
+    "st_tank"
+   ],
+   "min": [
+    -0.9,
+    0.0,
+    -0.51
+   ],
+   "max": [
+    0.9,
+    0.8,
+    0.5
+   ]
+  },
+  "drum": {
+   "triangles": 282,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent"
+   ],
+   "min": [
+    -0.297,
+    0.0,
+    -0.305
+   ],
+   "max": [
+    0.297,
+    0.93,
+    0.305
+   ]
+  },
+  "hull_a": {
+   "triangles": 112,
+   "materials": [
+    "st_hull",
+    "st_dark"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.16
+   ],
+   "max": [
+    2.0,
+    2.0,
+    0.0
+   ]
+  },
+  "hull_b": {
+   "triangles": 340,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.402
+   ],
+   "max": [
+    2.0,
+    2.0,
+    0.0
+   ]
+  },
+  "hull_c": {
+   "triangles": 246,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_trim",
+    "st_accent"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.27
+   ],
+   "max": [
+    2.0,
+    2.0,
+    0.0
+   ]
+  },
+  "hull_d": {
+   "triangles": 114,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_trim",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.24
+   ],
+   "max": [
+    2.0,
+    2.0,
+    0.0
+   ]
+  },
+  "hull_e": {
+   "triangles": 114,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_trim",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -0.24
+   ],
+   "max": [
+    2.0,
+    2.0,
+    0.0
+   ]
+  },
+  "hull_coping": {
+   "triangles": 146,
+   "materials": [
+    "st_gunmetal",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -2.0,
+    -0.25,
+    -0.28
+   ],
+   "max": [
+    2.0,
+    0.12,
+    0.25
+   ]
+  },
+  "roof_plate": {
+   "triangles": 80,
+   "materials": [
+    "st_hull",
+    "st_gunmetal"
+   ],
+   "min": [
+    -2.0,
+    0.0,
+    -2.0
+   ],
+   "max": [
+    2.0,
+    0.2,
+    2.0
+   ]
+  },
+  "roof_unit_a": {
+   "triangles": 314,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -2.09,
+    0.0,
+    -0.8
+   ],
+   "max": [
+    2.07,
+    1.682,
+    0.8
+   ]
+  },
+  "roof_unit_b": {
+   "triangles": 852,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_accent",
+    "st_dark",
+    "st_tank"
+   ],
+   "min": [
+    -1.5,
+    0.0,
+    -1.0
+   ],
+   "max": [
+    1.5,
+    1.0,
+    1.0
+   ]
+  },
+  "roof_unit_c": {
+   "triangles": 532,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark",
+    "st_tank"
+   ],
+   "min": [
+    -2.1,
+    0.0,
+    -1.082
+   ],
+   "max": [
+    1.652,
+    3.2,
+    0.8
+   ]
+  },
+  "truss": {
+   "triangles": 500,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_accent"
+   ],
+   "min": [
+    -4.04,
+    -0.5,
+    -0.5
+   ],
+   "max": [
+    4.04,
+    0.5,
+    0.5
+   ]
+  },
+  "solar": {
+   "triangles": 216,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent"
+   ],
+   "min": [
+    -5.0,
+    -0.36,
+    -5.0
+   ],
+   "max": [
+    5.0,
+    0.04,
+    5.0
+   ]
+  },
+  "tank": {
+   "triangles": 1812,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent",
+    "st_tank"
+   ],
+   "min": [
+    -10.56,
+    -2.67,
+    -2.73
+   ],
+   "max": [
+    10.56,
+    3.7,
+    2.72
+   ]
+  },
+  "collar": {
+   "triangles": 1792,
+   "materials": [
+    "st_hull",
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -9.584,
+    -9.584,
+    -2.126
+   ],
+   "max": [
+    9.584,
+    9.584,
+    1.0
+   ]
+  },
+  "mast": {
+   "triangles": 1392,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_dark",
+    "st_tank"
+   ],
+   "min": [
+    -5.024,
+    -0.009,
+    -0.9
+   ],
+   "max": [
+    5.024,
+    20.5,
+    0.5
+   ]
+  },
+  "dish": {
+   "triangles": 856,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_dark",
+    "st_tank"
+   ],
+   "min": [
+    -4.56,
+    -1.7,
+    -4.56
+   ],
+   "max": [
+    4.56,
+    4.05,
+    4.56
+   ]
+  },
+  "mouth_frame": {
+   "triangles": 832,
+   "materials": [
+    "st_gunmetal",
+    "st_trim",
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -10.8,
+    -0.4,
+    -1.6
+   ],
+   "max": [
+    10.8,
+    7.9,
+    0.3
+   ]
+  },
+  "thruster": {
+   "triangles": 446,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -1.289,
+    0.0,
+    -1.291
+   ],
+   "max": [
+    1.289,
+    1.45,
+    1.291
+   ]
+  },
+  "radiator": {
+   "triangles": 96,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_accent"
+   ],
+   "min": [
+    -3.09,
+    -5.0,
+    -0.09
+   ],
+   "max": [
+    3.09,
+    5.0,
+    0.09
+   ]
+  },
+  "dock_clamp": {
+   "triangles": 352,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_light",
+    "st_accent",
+    "st_dark"
+   ],
+   "min": [
+    -0.55,
+    0.0,
+    -0.5
+   ],
+   "max": [
+    0.55,
+    3.24,
+    0.583
+   ]
+  },
+  "guide_light": {
+   "triangles": 46,
+   "materials": [
+    "st_light",
+    "st_dark"
+   ],
+   "min": [
+    -0.32,
+    0.0,
+    -0.14
+   ],
+   "max": [
+    0.32,
+    0.062,
+    0.14
+   ]
+  },
+  "greeble_a": {
+   "triangles": 152,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_dark"
+   ],
+   "min": [
+    -0.8,
+    0.0,
+    -0.302
+   ],
+   "max": [
+    0.85,
+    1.443,
+    0.0
+   ]
+  },
+  "greeble_b": {
+   "triangles": 312,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_accent",
+    "st_tank"
+   ],
+   "min": [
+    -0.9,
+    0.0,
+    -0.36
+   ],
+   "max": [
+    0.85,
+    1.6,
+    0.0
+   ]
+  },
+  "greeble_c": {
+   "triangles": 142,
+   "materials": [
+    "st_gunmetal",
+    "st_steel",
+    "st_trim",
+    "st_tank"
+   ],
+   "min": [
+    -0.6,
+    0.0,
+    -0.6
+   ],
+   "max": [
+    0.6,
+    1.45,
+    0.0
+   ]
+  }
+ },
+ "file": "station-kit.glb",
+ "bytes": 2243468,
+ "materials": [
+  "st_hull",
+  "st_wall",
+  "st_deck",
+  "st_gunmetal",
+  "st_steel",
+  "st_trim",
+  "st_leather",
+  "st_glass",
+  "st_light",
+  "st_accent",
+  "st_dark",
+  "st_counter",
+  "st_bottle",
+  "st_marking",
+  "st_tank"
+ ],
+ "regions": {
+  "hazard": [
+   0,
+   0.875,
+   0.5,
+   1
+  ],
+  "vent": [
+   0.5,
+   0.75,
+   0.75,
+   1
+  ],
+  "grate": [
+   0.75,
+   0.75,
+   1,
+   1
+  ],
+  "screen_a": [
+   0,
+   0.625,
+   0.25,
+   0.875
+  ],
+  "screen_b": [
+   0.25,
+   0.625,
+   0.5,
+   0.875
+  ],
+  "win_a": [
+   0.5,
+   0.625,
+   0.625,
+   0.75
+  ],
+  "win_b": [
+   0.625,
+   0.625,
+   0.75,
+   0.75
+  ],
+  "win_c": [
+   0.75,
+   0.625,
+   0.875,
+   0.75
+  ],
+  "win_dark": [
+   0.875,
+   0.625,
+   1,
+   0.75
+  ],
+  "solar": [
+   0,
+   0.375,
+   0.25,
+   0.625
+  ],
+  "cable": [
+   0.25,
+   0.5,
+   0.75,
+   0.625
+  ],
+  "label_a": [
+   0.75,
+   0.5,
+   0.875,
+   0.625
+  ],
+  "label_b": [
+   0.875,
+   0.5,
+   1,
+   0.625
+  ],
+  "label_c": [
+   0.75,
+   0.375,
+   0.875,
+   0.5
+  ],
+  "label_d": [
+   0.875,
+   0.375,
+   1,
+   0.5
+  ],
+  "light_warm": [
+   0.25,
+   0.375,
+   0.5,
+   0.5
+  ],
+  "light_cool": [
+   0.5,
+   0.375,
+   0.75,
+   0.5
+  ],
+  "led_red": [
+   0,
+   0.25,
+   0.125,
+   0.375
+  ],
+  "led_green": [
+   0.125,
+   0.25,
+   0.25,
+   0.375
+  ],
+  "led_amber": [
+   0.25,
+   0.25,
+   0.375,
+   0.375
+  ],
+  "led_white": [
+   0.375,
+   0.25,
+   0.5,
+   0.375
+  ],
+  "chevron": [
+   0.5,
+   0.25,
+   1,
+   0.375
+  ],
+  "rubber": [
+   0,
+   0.125,
+   0.125,
+   0.25
+  ],
+  "keypad": [
+   0.125,
+   0.125,
+   0.25,
+   0.25
+  ],
+  "stripe": [
+   0.25,
+   0.125,
+   0.75,
+   0.25
+  ],
+  "fins": [
+   0.75,
+   0.125,
+   1,
+   0.25
+  ],
+  "marking": [
+   0,
+   0,
+   0.5,
+   0.125
+  ],
+  "bay_no": [
+   0.5,
+   0,
+   0.75,
+   0.125
+  ],
+  "tread": [
+   0.75,
+   0,
+   1,
+   0.125
+  ]
+ }
+}

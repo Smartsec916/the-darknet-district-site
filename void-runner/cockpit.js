@@ -45,6 +45,8 @@ function cockpitMission(dt,velocity){
  missionObjects=missionObjects.filter(o=>!o.dead);
  if(current.kind==='escort'){escortClock-=dt;if(escortClock<=0&&enemies.some(VoidStory.hostile)){const e=enemies.find(VoidStory.hostile);hostile.push({...e,vx:0,vy:0,vz:0,life:5,escort:true,damage:VOID_BALANCE.enemyLaserDamage});const h=hostile[hostile.length-1],escort=typeof escortShip!=='undefined'&&escortShip?escortShip:{x:0,y:5,z:25},d=FM.unit({x:escort.x-e.x,y:escort.y-e.y,z:escort.z-e.z});Object.assign(h,{vx:d.x*VOID_BALANCE.enemyProjectileSpeed*(40/55),vy:d.y*VOID_BALANCE.enemyProjectileSpeed*(40/55),vz:d.z*VOID_BALANCE.enemyProjectileSpeed*(40/55),dead:false});escortClock=3.5/(VOID_BALANCE.enemyFireRate*3);}}
 }
+// Stations: the shared docking movement (docking-flight.js) flies the approach and says when the ship is docked. Planets, and a build without it, keep the timer below.
+function dockingApproach(dt){const docked=globalThis.VoidDockingFlight?.arrivalStep(dt);if(docked===null||docked===undefined){alignDockingFlight(dt);return approachTime+dt>=VoidWarp.config.approachSeconds;}return docked;}
 function alignDockingFlight(dt){
  // The ship itself turns toward the hangar normal. Camera and cockpit follow
  // the flight basis, so this works for every hull without a visual camera swap.
@@ -62,7 +64,7 @@ update=function(dt){
  const route=flight.route,combat=!route||route.phase==='encounter';
  if(combat)elapsed+=dt*FM.clamp(flight.throttle/.8,.5,1.5);
  if(route){const changed=VoidWarp.step(route,dt,typeof navigationReveal!=='undefined'&&route.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)<=0?{x:0,y:0,z:0}:b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;interdictionWave();announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
- if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;alignDockingFlight(dt);approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}return;}
+ if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;const docked=dockingApproach(dt);approachTime+=dt;if(docked)arrive();}return;}
  cockpitMission(dt,velocity);if(mode!=='play')return;
  shot-=dt;if((VoidInput.down('fire')||firing||touchFiring)&&shot<=0&&VoidProgression.consume(weaponBank,state,VoidFlightCraft.systems())){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);globalThis.VoidFlightFx?.muzzle(b);}
  if(route?.phase==='encounter')interdictionWave();spawnClock-=dt;if(spawned<current.enemies&&spawnClock<=0&&enemies.filter(VoidStory.hostile).length<4+Math.floor(current.tier)){spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}
