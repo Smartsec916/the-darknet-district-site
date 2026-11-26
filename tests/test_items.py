@@ -194,6 +194,54 @@ class ItemTests(unittest.TestCase):
         permanent = items.issue_card(item, 'owner', 'a'*64, 0)
         self.assertTrue(items.card_allows(permanent, 'owner', door, 4000000000))
 
+    def test_connected_card_counts_overlapping_tabs_once_and_pauses_offline(self):
+        door = 'apt-avenue-n-16'
+        rules = dict(doors=[door], duration=24*3600, expiryClock='connected',
+                     transferable=False, droppable=True, pickup=True, bearer=False)
+        card = items.issue_card({'id':'home','name':'Home','keycard':rules}, 'owner', 'a'*64, 1)
+        bag = items._clean_player({})
+        items._receive_card(bag, card)
+        clock = bag['connectedClock']
+        for session, now in [('a',100), ('b',105), ('b',120), ('a',125), ('a',125), ('b',129)]:
+            items.connected_heartbeat(clock, session, now)
+        self.assertEqual(clock['total'], 29)
+        items.remove_card(bag, card)
+        items.connected_heartbeat(clock, 'a', 86400)
+        items.connected_heartbeat(clock, 'a', 86415)
+        items._receive_card(bag, card)
+        self.assertEqual(clock['total'], 44)
+        self.assertEqual(card['connectedUntil'], 86400)
+        self.assertTrue(items.card_allows(card, 'owner', door, 99999999, 86399))
+        self.assertFalse(items.card_allows(card, 'owner', door, 99999999, 86400))
+        self.assertFalse(items.card_allows(card, 'other', door, 99999999, 44))
+
+    def test_connected_card_uses_server_time_across_drop_and_reconnect(self):
+        door = 'apt-avenue-n-16'
+        target = 'residence/' + door + '/0'
+        content = catalog()
+        item = content['items'][-1]
+        item.update(kind='keycard', category='keycards', stack=1, consumable=None, animation='none',
+                    keycard=dict(doors=[target], duration=30, expiryClock='connected',
+                                 transferable=False, droppable=True, pickup=True, bearer=False))
+        self.assertEqual(self.publish(content).status_code, 200)
+        self.fund('owner', 1000)
+        self.assertEqual(self.buy().status_code, 200)
+        def heartbeat(now, session):
+            with patch.object(items.time, 'time', return_value=now):
+                return self.get('shop/state?gameMinute=9999&connectedSession='+session*16).json
+        card = heartbeat(100, 'a')['keycards'][0]
+        self.assertEqual(card['connectedRemaining'], 30)
+        move = dict(card=card['id'], door=door)
+        self.assertEqual(self.post('keycards/move', dict(move, action='drop', nonce=self.nonce())).status_code, 200)
+        self.assertTrue(heartbeat(115, 'a')['connectedClockActive'])
+        self.assertTrue(heartbeat(200000, 'b')['connectedClockActive'])
+        pos = {'area':'street','quarter':'avenue','x':16,'z':-5}
+        self.assertEqual(self.post('keycards/move', dict(move, action='pickup', position=pos, nonce=self.nonce())).status_code, 200)
+        self.assertEqual(heartbeat(200010, 'b')['keycards'][0]['connectedRemaining'], 5)
+        self.assertTrue(self.post('keycards/access', {'door':target}).json['allowed'])
+        self.assertFalse(heartbeat(200015, 'b')['connectedClockActive'])
+        self.assertFalse(self.post('keycards/access', {'door':target}).json['allowed'])
+
     def test_two_accounts_racing_to_pick_up_one_card(self):
         from concurrent.futures import ThreadPoolExecutor
         door = 'apt-avenue-n-16'
