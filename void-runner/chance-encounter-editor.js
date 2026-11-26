@@ -1,5 +1,18 @@
 (function(root){
  'use strict';
+ const conversations=[['arrival','Arrival'],['free','Free Lace'],['be_kade','Be Kade'],['wait','Waiting for choice']];
+ const branchOf=line=>conversations.find(([key])=>line.id.startsWith('lace_'+key+'_'))?.[0];
+ const branchLines=(graph,branch)=>graph.dialogue.filter(line=>branchOf(line)===branch);
+ function nextLineId(graph,branch){
+  const prefix='lace_'+branch+'_';let n=1;
+  while(graph.dialogue.some(line=>line.id===prefix+String(n).padStart(2,'0')))n++;
+  return prefix+String(n).padStart(2,'0');
+ }
+ function insertLine(graph,line,branch,before){
+  const last=branchLines(graph,branch).at(-1);
+  const index=before?graph.dialogue.indexOf(before):last?graph.dialogue.indexOf(last)+1:graph.dialogue.length;
+  graph.dialogue.splice(index,0,line);
+ }
  const colors={trigger:'#e3be52',move:'#71aaff',item:'#6cd598',choice:'#c29af7',animation:'#f4a563',location:'#65d5ce',end:'#f17d84'};
  function element(tag,text){
   const e=document.createElement(tag);
@@ -31,7 +44,7 @@
   const records=new Map(catalog.encounters.map(r=>[r.id,r]));
   if(!records.has(seed.id))records.set(seed.id,{id:seed.id,revision:0,draft:seed});
   let id=[...records.values()].find(r=>!r.deleted)?.id,selected,dirty=false,busy=false,status='';
-  let working;
+  let working,addBranch='arrival';
   const record=()=>records.get(id),graph=()=>working;
   const mark=()=>{dirty=true;message.textContent='Unsaved draft';};
   const message=element('p');message.setAttribute('role','status');
@@ -151,17 +164,24 @@
    if(g.dialogue?.length){
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);
     if(g.id==='dropped-cardkey'){
-     const branch=select([['arrival','Arrival'],['wait','While waiting for a decision'],['free','Free Lace'],['be_kade','Be Kade']],'arrival',()=>{});
+     const position=element('select');position.setAttribute('aria-label','Insert new line');
+     const fillPositions=()=>{
+      position.replaceChildren(new Option('End of this conversation',''));
+      for(const line of branchLines(g,addBranch))position.add(new Option('Before '+line.id+(line.text?' — '+line.text.slice(0,45):''),line.id));
+     };
+     const branch=select(conversations,addBranch,v=>{addBranch=v;fillPositions();});
+     fillPositions();
      const arrival=g.dialogue.filter(l=>l.id.startsWith('lace_arrival_'));
      field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],
       ...arrival.map(l=>[l.id,'After '+l.id+(l.text?' — '+l.text.slice(0,55):'')])],g.decisionAfter||'end',v=>{g.decisionAfter=v;mark();}));
-     field(dialogue,'Conversation',branch);
+     field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);
      dialogue.append(element('p','Waiting lines play once in order while the choices are open. Set the delay on each line, or clear the text to keep Lace silent.'));
-     dialogue.append(button('Add Lace line',()=>{
-      const prefix='lace_'+branch.value+'_';let n=1;
-      while(g.dialogue.some(l=>l.id===prefix+String(n).padStart(2,'0')))n++;
-      g.dialogue.push({id:prefix+String(n).padStart(2,'0'),speaker:'lace',text:'',tags:'',delay:0,animation:''});mark();draw();
-     }));
+     const add=button('Add Lace line',()=>{
+      const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};
+      insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();
+      host.querySelector('[data-line-id="'+line.id+'"] input')?.focus();
+     });
+     add.disabled=g.dialogue.length>=100;dialogue.append(add);
     }
     const uploads=new Map();
     dialogue.append(element('p','Enter the spoken text first. For bulk import, name each recording after its line ID, such as lace_arrival_01.ogg.'));
@@ -176,8 +196,31 @@
       }catch(e){issues.push(file.name+' — '+e.message);}
      }}finally{host.inert=false;bulk.value='';report.textContent=[imported+' imported',...issues].join(' · ');}
     };
-    for(const line of g.dialogue){
+    const editable=g.id==='dropped-cardkey';
+    const ordered=editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue;
+    for(const line of ordered){
      const row=element('fieldset');row.append(element('legend',line.id));dialogue.append(row);
+     const currentBranch=editable&&branchOf(line);
+     if(currentBranch){
+      row.dataset.lineId=line.id;
+      const siblings=branchLines(g,currentBranch),index=siblings.indexOf(line);
+      const redrawLine=()=>{mark();draw();host.querySelector('[data-line-id="'+line.id+'"] select')?.focus();};
+      field(row,'Conversation for this line',select(conversations,currentBranch,destination=>{
+       if(g.decisionAfter===line.id)g.decisionAfter=siblings[index-1]?.id||'before';
+       if(currentBranch==='wait')g.waitingDialogueConfigured=true;
+       g.dialogue.splice(g.dialogue.indexOf(line),1);
+       line.id=nextLineId(g,destination);
+       insertLine(g,line,destination);redrawLine();
+      }));
+      for(const [step,label] of [[-1,'Move earlier'],[1,'Move later']]){
+       const adjacent=siblings[index+step];
+       const move=button(label,()=>{
+        const a=g.dialogue.indexOf(line),b=g.dialogue.indexOf(adjacent);
+        [g.dialogue[a],g.dialogue[b]]=[g.dialogue[b],g.dialogue[a]];redrawLine();
+       });
+       move.disabled=!adjacent;row.append(move);
+      }
+     }
      const audio=element('output',line.recording?'Recorded':'No recording');
      for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['tags','Delivery tags'],['delay',line.id.startsWith('lace_wait_')?'Wait before this line (seconds)':'Delay (seconds)'],['animation','Animation']])
       field(row,label,input(line[key],v=>{
