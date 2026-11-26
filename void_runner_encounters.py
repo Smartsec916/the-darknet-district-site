@@ -48,6 +48,10 @@ def validate_playlists(dialogue, decision):
                 if not isinstance(action, str) or not action.startswith('branch_') or action not in by_id or action in owned:
                     raise DraftError('Invalid or shared branch action on ' + key + '.')
                 owned.add(action)
+            start = branch.get('startAction', actions[0])
+            end = branch.get('endAction', actions[-1])
+            if start not in actions or end not in actions or actions.index(start) > actions.index(end):
+                raise DraftError('Choose starting and ending actions in order within the chance playlist on ' + key + '.')
             sections[(key, index)] = [by_id[action] for action in actions]
             total += branch['chance']
         if total > 100 + 1e-9:

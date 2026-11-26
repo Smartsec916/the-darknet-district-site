@@ -245,11 +245,32 @@
      }
      g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));
     }
-    function drawRow(line,parent,owner){
+    const groups=Object.values(api.dialogueSections(g));
+    const membership=new Map();
+    const actionOptions=new Map();
+    const actionLabel=(line,number)=>number+'. '+(line.text||line.animation||line.id).slice(0,70);
+    function refreshMembership(){
+     for(const group of groups){
+      const cycle=api.playlist(group).cycle;
+      for(const line of group){
+       const view=membership.get(line);
+       if(!view)continue;
+       const member=cycle.includes(line)&&api.isRepeat(line);
+       const pending=!line.text.trim()&&!line.animation&&(line.repeatSpeech||line.repeatAnimation);
+       view.row.classList.toggle('encounter-main-member',!!(member||pending));
+       view.add.hidden=!member;
+       view.button.textContent=(member||pending)?'In main playlist':cycle.length?'Add to main playlist':'Create main playlist';
+       view.button.disabled=member||!(line.text.trim()||line.animation);
+      }
+     }
+    }
+    function drawRow(line,parent,owner,depth=0){
      if(!line||drawn.has(line.id))return;
      drawn.add(line.id);
      const row=element('fieldset');row.append(element('legend',line.id));parent.append(row);
      row.dataset.lineId=line.id;
+     if(owner||branchOf(line))row.classList.add('encounter-dialogue-action');
+     if(!owner&&branchOf(line))row.dataset.conversation=branchOf(line);
      if(owner){
       const index=owner.actions.indexOf(line.id);
       for(const [offset,label] of [[-1,'Move earlier'],[1,'Move later']]){
@@ -259,6 +280,7 @@
       }
       const remove=button('Remove action',()=>{
        if(!confirm('Remove this action and its branches?'))return;
+       for(const key of ['startAction','endAction'])if(owner[key]===line.id)delete owner[key];
        owner.actions.splice(index,1);removeActions([line.id]);redraw();
       });remove.disabled=owner.actions.length===1;row.append(remove);
      }
@@ -288,11 +310,37 @@
       {const control=field(row,label,input(line[key],v=>{
        if(key==='text'||key==='speaker'){delete line.recording;audio.textContent='No recording';}
        line[key]=v;mark();
+       if(key==='text'||key==='animation'){
+        refreshMembership();
+        for(const option of actionOptions.get(line.id)||[])option.text=actionLabel(line,option.index);
+       }
       },key==='delay'?'number':'text'));
        if(key==='animation')control.setAttribute('list',motions.id);}
      for(const [key,label] of [['repeatSpeech','Repeat spoken line until canceled'],['repeatAnimation','Repeat animation until canceled']]){
       const toggle=element('input');toggle.type='checkbox';toggle.checked=line[key]===true;
-      toggle.onchange=()=>{line[key]=toggle.checked;if(!line.repeatSpeech&&!line.repeatAnimation){delete line.playlistStart;delete line.playlistEnd;redraw();}else mark();};field(row,label,toggle);
+      toggle.onchange=()=>{line[key]=toggle.checked;if(!line.repeatSpeech&&!line.repeatAnimation){delete line.playlistStart;delete line.playlistEnd;redraw();}else{mark();refreshMembership();}};field(row,label,toggle);
+     }
+     if(currentBranch){
+      const join=button('Create main playlist',()=>{
+       const group=groups.find(rows=>rows.includes(line)),pos=group.indexOf(line);
+       const start=group.findIndex(r=>r.playlistStart),end=group.findIndex(r=>r.playlistEnd);
+       if(!api.isRepeat(line)){
+        if(line.text.trim())line.repeatSpeech=true;
+        if(line.animation)line.repeatAnimation=true;
+       }
+       if(start>pos){delete group[start].playlistStart;line.playlistStart=true;}
+       if(end>=0&&end<pos){delete group[end].playlistEnd;line.playlistEnd=true;}
+       redraw();
+      });
+      const add=button('Add playlist action',()=>{
+       const next={id:nextLineId(g,currentBranch),speaker:'lace',text:'',animation:'',delay:0,tags:'',repeatSpeech:true,repeatAnimation:true};
+       g.dialogue.splice(g.dialogue.indexOf(line)+1,0,next);
+       if(line.playlistEnd){delete line.playlistEnd;next.playlistEnd=true;}
+       if(g.decisionAfter===line.id)g.decisionAfter=next.id;
+       redraw();host.querySelector('[data-line-id="'+next.id+'"] [aria-label="Spoken line"]')?.focus();
+      });
+      add.disabled=g.dialogue.length>=100;
+      membership.set(line,{row,button:join,add});row.append(join,add);
      }
      if(currentBranch||owner){
       const settings=element('details');settings.append(element('summary','Playlist bounds and percentage branches'));row.append(settings);
@@ -306,17 +354,34 @@
         if(check.checked)line[key]=true;redraw();
        };field(settings,label,check);
       }
-      const add=button('Add percentage branch',()=>{
+      const add=button('Create chance playlist',()=>{
        const used=(line.branches||[]).reduce((sum,b)=>sum+b.chance,0);
        (line.branches||=[]).push({chance:Math.max(0,Math.min(25,100-used)),passes:1,actions:[newAction()]});redraw();
       });add.disabled=g.dialogue.length>=100;settings.append(add);
       for(const [index,branch] of (line.branches||[]).entries()){
        const lane=element('fieldset');lane.append(element('legend','Branch playlist '+(index+1)));settings.append(lane);
+       lane.className='encounter-chance-playlist';
+       lane.style.setProperty('--playlist-color',['#f3c55b','#f896cc','#aaafff'][depth%3]);
+       lane.append(element('small','Chance playlist / Level '+(depth+1)));
        const probability=field(lane,'Chance (%)',input(branch.chance,v=>{branch.chance=v;mark();},'number'));
        probability.min=0;probability.max=100;probability.step='any';
        const passes=field(lane,'Playlist passes (0 = until canceled)',input(branch.passes??1,v=>{branch.passes=v;mark();},'number'));
        passes.min=0;passes.max=100;passes.step=1;
-       for(const id of branch.actions)drawRow(g.dialogue.find(r=>r.id===id),lane,branch);
+       for(const [key,label,automatic] of [['startAction','Starting action','Automatic start'],['endAction','Ending action','Automatic end']]){
+        const options=branch.actions.map((id,i)=>{
+         const action=g.dialogue.find(r=>r.id===id);
+         return [id,action?actionLabel(action,i+1):id];
+        });
+        const bound=field(lane,label,select([['',automatic],...options],branch[key]||'',value=>{
+         if(value)branch[key]=value;else delete branch[key];
+         mark();
+        }));
+        for(const option of Array.from(bound.options).slice(1)){
+         if(!actionOptions.has(option.value))actionOptions.set(option.value,[]);
+         actionOptions.get(option.value).push(option);
+        }
+       }
+       for(const id of branch.actions)drawRow(g.dialogue.find(r=>r.id===id),lane,branch,depth+1);
        const addAction=button('Add branch action',()=>{branch.actions.push(newAction());redraw();});
        addAction.disabled=g.dialogue.length>=100;lane.append(addAction,button('Remove branch',()=>{
         if(!confirm('Remove this playlist and all its actions?'))return;
@@ -365,6 +430,7 @@
      }),audio);
     }
     for(const line of ordered)drawRow(line,dialogue,null);
+    refreshMembership();
    }
    const board=element('div');board.className='encounter-board';board.setAttribute('aria-label','Encounter connections');host.append(board);
    for(const n of g.nodes){

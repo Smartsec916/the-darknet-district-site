@@ -66,6 +66,9 @@
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
   const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
   const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];
+  const main=api.playlist(sections[section||prefix]||[]);
+  const restartMain=Symbol('restart main playlist');
+  let canRestart=main.cycle.length>0;
   async function action(line,signal,replay){
    signal.throwIfAborted();
    const text=replay&&!line.repeatSpeech?'':line.text.trim();
@@ -90,11 +93,14 @@
    }
    signal.throwIfAborted();
    const branch=api.chooseBranch(line);
-   if(branch)await sequence(branch.actions.map(id=>byId.get(id)),branch.passes??1,signal,true);
+   if(branch){
+    const completed=await sequence(api.branchPlaylist(branch,byId),branch.passes??1,signal,true);
+    if(completed&&canRestart)throw restartMain;
+   }
   }
-  async function sequence(rows,passes,parentSignal,child=false){
-   const {before,cycle,after}=api.playlist(rows,child&&passes!==1);
-   for(const row of before)await action(row,parentSignal,false);
+  async function sequence({before,cycle,after},passes,parentSignal,child=false){
+   try{for(const row of before)await action(row,parentSignal,false);}
+   catch(error){if(child||error!==restartMain)throw error;}
    if(cycle.length){
     const controller=new AbortController(),signal=controller.signal,cancel=()=>controller.abort();
     const key=e=>{if(e.code==='Backspace'&&!e.repeat&&controls.at(-1)===button){e.preventDefault();cancel();}};
@@ -110,7 +116,9 @@
      const marked=cycle.filter(api.isRepeat);
      for(let pass=0;passes===0||pass<passes;pass++){
       signal.throwIfAborted();
-      for(const row of pass&&marked.length?marked:cycle)await action(row,signal,pass>0&&marked.length>0);
+      try{
+       for(const row of pass&&marked.length?marked:cycle)await action(row,signal,pass>0&&marked.length>0);
+      }catch(error){if(child||error!==restartMain)throw error;}
       if(passes===0||pass+1<passes)await delay(250,signal);
      }
     }catch(error){if(!signal.aborted)throw error;}
@@ -119,11 +127,13 @@
      if(button){controls.splice(controls.indexOf(button),1);button.remove();document.removeEventListener('keydown',key,true);}
     }
     parentSignal.throwIfAborted();
-    if(child&&signal.aborted)return;
+    if(child&&signal.aborted)return false;
    }
+   if(!child)canRestart=false;
    for(const row of after)await action(row,parentSignal,false);
+   return true;
   }
-  await sequence(sections[section||prefix]||[],0,signal);
+  await sequence(main,0,signal);
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);

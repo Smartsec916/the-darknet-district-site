@@ -76,3 +76,33 @@ test('playlist bounds, branch odds, nested passes and return paths',()=>{
  graph.dialogue.at(-1).branches=[{chance:100,actions:['branch_first']}];
  assert.ok(engine.validate(graph).length);
 });
+
+test('finished bounded and nested branches restart the active main cycle and release their controls',async()=>{
+ const source=require('node:fs').readFileSync(require.resolve('../void-runner/chance-encounter-game.js'),'utf8');
+ for(const nested of [false,true]){
+  const log=[],buttons=new Set(),controller=new AbortController();
+  const document={body:{append:button=>buttons.add(button)},createElement:()=>({style:{},remove(){buttons.delete(this);}}),
+   addEventListener(){},removeEventListener(){}};
+  const context={VoidChanceEncounter:engine,AbortController,document,addEventListener(){},setInterval(){},
+   setTimeout:fn=>setImmediate(fn),clearTimeout:clearImmediate};
+  require('node:vm').runInNewContext(source.replace('root.VoidEncounterGame={','root.VoidEncounterGame={lines,'),context);
+  const row=(id,text,extra={})=>({id,text,speaker:'lace',...extra});
+  const mainBranch={chance:100,passes:2,actions:['branch_skip','branch_b','branch_c','branch_out'],startAction:'branch_b',endAction:'branch_c'};
+  const dialogue=[
+   row('lace_free_00','intro'),row('lace_free_01','first',{repeatSpeech:true}),
+   row('lace_free_02','roll',{repeatSpeech:true,branches:[mainBranch]}),row('lace_free_03','last',{repeatSpeech:true}),
+   row('branch_skip','excluded'),row('branch_b','B'),row('branch_c','C'),row('branch_out','excluded')
+  ];
+  if(nested){
+   dialogue[6].branches=[{chance:100,passes:2,actions:['branch_inner'],startAction:'branch_inner',endAction:'branch_inner'}];
+   dialogue.push(row('branch_inner','inner'));
+  }
+  const done=context.VoidEncounterGame.lines({graph:{dialogue},signal:controller.signal},'free',null,controller.signal,line=>{
+   const text=line.split(' ').at(-1);log.push(text);
+   if(log.length>20||text==='first'&&log.length>2)controller.abort();
+  });
+  await assert.rejects(done,{name:'AbortError'});
+  assert.deepEqual(log,nested?['intro','first','roll','B','C','inner','inner','first']:['intro','first','roll','B','C','B','C','first']);
+  assert.equal(buttons.size,0);
+ }
+});
