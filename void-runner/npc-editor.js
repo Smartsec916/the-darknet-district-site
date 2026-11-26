@@ -248,12 +248,69 @@
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
   if(e.id==='pixel')pixelVRBox(main);
+  if(e.id==='pixel'||e.id==='neon')routineBox(main);
   if(e.made){madeBox(main,e);charLookBox(main,e,asset);}else if(e.kind!=='import')appearanceBox(main,e,asset);
   if(e.kind==='roster'){if(g?.canTalk){interactionBox(main,e);
    main.append(btn('Vendor settings',()=>{const tools=DTX();tools.catalogNpc={id:e.id,name:g.say||e.name||e.id};tools.open('items');}));
   }giverBox(main,e);placeBox(main,e,clips);if(X().MOVABLE[e.id]){scheduleBox(main,e);behaviourBox(main,e);}if(!(X().MOVABLE[e.id]||{}).cat)animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
   else if(e.kind==='crowd')animBox(main,e,asset);
   else requestBox(main,e,asset);}
+ async function routineBox(main){
+  const box=el('section','','me-check');main.append(box);box.append(el('h4','Pixel & Neon · shared activities'));
+  const library=await root.VoidVoiceClips.districtExchanges;if(!box.isConnected)return;
+  if(!library.length){box.append(hint('The conversation library could not be loaded.'));return;}
+  const edits=structuredClone(S().local().pairDialogue||root.VoidLiveContent?.env?.pairDialogue||{});
+  const choose=el('select','','',{'aria-label':'Routine conversation'}),fields=el('div'),note=el('output');
+  for(const e of library)choose.add(new Option(e.lines[0].text+' · '+e.id,e.id));
+  box.append(choose,fields,note);choose.onchange=render;
+  async function preview(id){const r=await root.VoidPixelNeon.testRoutine(edits,id);note.textContent=r?.problem||r?.error||'';}
+  function render(){
+   fields.replaceChildren();note.textContent='';
+   const e=library.find(v=>v.id===choose.value),rule={...e.behavior,...edits[e.id]};
+   const update=(k,v)=>{(edits[e.id]??={})[k]=v;render();};
+   for(const line of e.lines)fields.append(el('p',line.speaker+' · '+line.text));
+   function select(key,title,values,current){
+    const label=el('label',title+' '),control=el('select','','',{'aria-label':title});
+    for(const [value,text] of values)control.add(new Option(text,value));
+    control.value=String(current);control.onchange=()=>update(key,key==='agreement'?Number(control.value):control.value);label.append(control);fields.append(label);
+   }
+   select('phase','Conversation timing',root.VoidGroupActivities.phases.map(v=>[v,v]),rule.phase);
+   select('from','Required location',[['','Any listed location'],...e.locations.map(v=>[v,v])],rule.from||'');
+   select('destination','Next activity',[['','Continue current routine'],['arcade','Play Hotel Headshots'],['vr','Visit the left VR booth'],['bar','Visit the bartender'],['store','Browse the Store']],rule.destination||'');
+   if(rule.destination||rule.motions?.length){
+    select('when','Commit the next activity', [['start','At dialogue start'],['agreement','After the decision line'],['finish','After dialogue finishes'],['after-activity','After the current activity finishes']],rule.when||'agreement');
+    if(!rule.when||rule.when==='agreement')select('agreement','Decision line',e.lines.map((l,i)=>[String(i),(i+1)+' · '+l.speaker+' · '+l.text]),rule.agreement??e.lines.length-1);
+    const field=el('label','Delay after trigger (seconds) '),input=el('input','','',{type:'number',min:0,max:30,step:.5});input.value=rule.delay||0;
+    input.onchange=()=>update('delay',input.valueAsNumber);field.append(input);fields.append(field);
+   }
+   const motionBox=el('details'),summary=el('summary','Character animation sequence');motionBox.append(summary);
+   const actor=rule.actor||(['pixel','neon'].includes(e.lines[0].speaker)?e.lines[0].speaker:'pixel');
+   const actorSelect=el('select','','',{'aria-label':'Actor for animation'});for(const id of ['pixel','neon'])actorSelect.add(new Option(id,id));
+   actorSelect.value=actor;actorSelect.onchange=()=>update('actor',actorSelect.value);motionBox.append(actorSelect);
+   const clips=rule.motions||[];
+   for(const [i,clip] of clips.entries()){
+    const row=el('div');row.append(el('span',(i+1)+' · '+clip),btn('Remove motion',()=>update('motions',clips.filter((_,j)=>j!==i))));motionBox.append(row);
+   }
+   if(clips.length<8){
+    const motion=el('select','','',{'aria-label':'Motion to add'});for(const clip of root.VoidGroupActivities.gestures)motion.add(new Option(clip,clip));
+    motionBox.append(motion,btn('Append motion',()=>{(edits[e.id]??={}).actor=actor;update('motions',[...clips,motion.value]);}));
+   }
+   fields.append(motionBox);
+   select('requires','Required context',[['','No additional condition'],['admin','Admin at the Store'],['iris','Iris at the Store'],['observer','A nearby observer'],['pixel-in-vr','Pixel playing VR']],rule.requires??(e.requiresAdminNearby?'admin':''));
+   const sources=rule.from?[rule.from]:e.locations;
+   const contextPlace=({admin:'store',iris:'store','pixel-in-vr':'bar'})[rule.requires];const conflict=contextPlace&&!sources.includes(contextPlace);
+   if(conflict)fields.append(hint('This conversation cannot run. The selected context requires '+contextPlace+'.'));
+   const activity=el('select','','',{'aria-label':'Activity to test'});for(const [id,title] of [['arcade','Hotel Headshots'],['vr','VR booth and bartender'],['store','Store'],['bar','Bar']])activity.add(new Option(title,id));
+   fields.append(activity,btn('Test activity',()=>preview('@'+activity.value)));
+   fields.append(el('p',(rule.from||e.locations.join(' / '))+' → '+(rule.phase||'during')+' → '+(rule.destination||'continue current routine')));
+   fields.append(btn('Test selected conversation',()=>preview(e.id)),btn('Test Pixel & Neon — Dialogue-Driven Routine',()=>preview(null)),
+    btn('Restore shipped action',()=>{delete edits[e.id];render();}),btn('Save conversation actions to draft',()=>{
+     if(conflict||!root.VoidGroupActivities.valid(edits)){note.textContent='Check the delay and decision settings.';return;}
+     const draft=S().local();draft.pairDialogue=structuredClone(edits);S().saveLocal(draft);note.textContent='Saved. Publish this draft from Mission Editor.';
+    }));
+  }
+  render();
+ }
  function pixelVRBox(main){
   const api=root.VoidPixelNeon;if(!api)return;
   const cfg=structuredClone(S().local().pixelVR||root.VoidLiveContent?.env?.pixelVR||api.vrDefaults);
