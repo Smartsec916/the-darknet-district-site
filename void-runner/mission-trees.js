@@ -56,6 +56,8 @@
  /* The engine a re-voiced line goes through, per character. Default: Kokoro through tools/audio/generate.py --from-queue with the character's registered approved voice.
     Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for the owner's approval. */
  const VOICE_ENGINES={
+  "lace": {"engine":"elevenlabs","voice":"Lace","voiceId":"KR1TkIhkSykEjI4B0DtH","model":"eleven_v4"},
+  "kade-mercer": {"engine":"elevenlabs","voice":"Kade Mercer","voiceId":"Mtmp3KhFIjYpWYRycDe3","model":"eleven_v4"},
   tacta:{"engine": "elevenlabs", "voice": "Owner-selected Tacta voice", "voiceId": "9wuWjGIR6FYAWDzxx9um", "model": "eleven_v4"},
   pixel:{"engine": "elevenlabs", "voice": "Owner-selected pixel voice", "voiceId": "LEnmbrrxYsUYS7vsRRwD", "model": "eleven_v4"},
   neon:{"engine": "elevenlabs", "voice": "Owner-selected neon voice", "voiceId": "k6aNMn2EN3T8vpJSBhQw", "model": "eleven_v4"},

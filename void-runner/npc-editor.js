@@ -747,6 +747,9 @@
  }
  function importDetail(main,rec,pv){
   const prepared=preparedModel(rec);
+  if(prepared?.asset==='npc-lib-eb1d6cc8')main.append(btn('Edit Lace dialogue and recordings',()=>{
+   sessionStorage.setItem('chance-editor-return','dropped-cardkey');DTX().open('encounters');
+  },'me-play'));
   if(S().local().characters?.[rec.id]||root.VoidLiveContent?.current?.content?.characters?.[rec.id]){
    main.append(btn('Open world NPC',()=>{S().editPublishedNpc(rec.id);ui.id=rec.id;ui.start=false;draw();},'me-play'));
   }else if(prepared)main.append(btn('Assign to world draft',()=>{startMake();Object.assign(ui.make,{model:prepared.asset,name:rec.name,step:1});draw();}));
