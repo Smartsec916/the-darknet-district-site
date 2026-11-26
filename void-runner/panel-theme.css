@@ -1,6 +1,7 @@
 /* Shared frame for information surfaces. Keep children's text, icons and focus rings opaque.
    Paint the homepage rail and corner details as backgrounds so they never cover controls. */
-body :is(.panel, .card, .side-panel, .opening-card, .room-caption, .dialogue-window,
+@layer game-frame {
+body :is(button, [role="button"], input[type="button"], input[type="submit"], .panel, .card, .side-panel, .opening-card, .room-caption, .dialogue-window,
   .tea-duo-choices, .social-dialogue, .social-message, .talk-offer,
   .hud-card, .settings-panel, .km-panel, .expansion-panel, .gear-card, .ord-card,
   .pd-card, .pd-panel, .vr-card, .dt-panel, .me-mission-panel, .npc-card,
@@ -17,18 +18,38 @@ body :is(.panel, .card, .side-panel, .opening-card, .room-caption, .dialogue-win
     linear-gradient(#d56cba, #d56cba) right 4px top 4px / 8px 2px,
     linear-gradient(#d56cba, #d56cba) right 4px top 4px / 2px 8px,
     linear-gradient(#428f97, #428f97) right 14px bottom 3px / 26px 2px,
-    linear-gradient(135deg, transparent 7px, rgba(12, 27, 35, .89) 7.8px,
-      rgba(12, 27, 35, .89) calc(100% - 7.8px), transparent calc(100% - 7px)) border-box !important;
+    linear-gradient(135deg, transparent 7px, var(--frame-fill, rgba(12, 27, 35, .89)) 7.8px,
+      var(--frame-fill, rgba(12, 27, 35, .89)) calc(100% - 7.8px), transparent calc(100% - 7px)) border-box !important;
   background-repeat: no-repeat !important;
-  border: 1px solid #38808b;
+  border: 1px solid #38808b !important;
   /* Nine-slice the frame so a wide dialogue window and a small prompt get the same 10px cuts. */
-  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M10.5 .5H31.5V21.5L21.5 31.5H.5V10.5Z' fill='none' stroke='%2338808b'/%3E%3C/svg%3E") 12 / 12px stretch;
-  border-radius: 0;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M10.5 .5H31.5V21.5L21.5 31.5H.5V10.5Z' fill='none' stroke='%2338808b'/%3E%3C/svg%3E") 12 / 12px stretch !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
   animation: none !important;
   transition: none !important;
 }
-
+:is(button, [role="button"], input[type="button"], input[type="submit"]) {
+  --frame-fill: rgba(12, 27, 35, .78);
+  color: #c9ebed !important;
+}
+:is(button, [role="button"], input[type="button"], input[type="submit"]):is(:hover, :focus-visible) {
+  --frame-fill: rgba(26, 64, 71, .88);
+}
+:is(button, [role="button"], input[type="button"], input[type="submit"]):focus-visible {
+  outline: 2px solid #9cfff6 !important;
+  outline-offset: 2px;
+}
+:is(button, [role="button"]):is(.on, .selected, .active, [aria-pressed="true"], [aria-selected="true"], [aria-current="page"]) {
+  --frame-fill: rgba(16, 67, 72, .9);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+:is(button, [role="button"]):is(.danger, .destructive) { color: #ffaaa8 !important; }
+:is(button, [role="button"], input):is(:disabled, [aria-disabled="true"]) {
+  --frame-fill: rgba(23, 32, 36, .72);
+}
+}
 
 #dev-test-banner { color: #ffd27a; }
 #dev-test-banner[data-kind="draft"] { color: #ffb392; }
