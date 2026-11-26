@@ -103,6 +103,55 @@ class ChanceTests(unittest.TestCase):
         self.assertFalse(encounters.resume(self.db,self.uid,self.graph['id'])['active'])
         self.assertFalse(encounters.opportunity(self.db,self.uid,{'id':self.graph['id'],'position':pos})['active'])
 
+    def test_place_start_preserves_probability_interval_and_event_identity(self):
+        cond = self.graph['conditions']
+        cond.update(startTrigger={'kind': 'place', 'target': 'oldtown'}, chance=0)
+        self.edit('publish', 0)
+        body = dict(id=self.graph['id'], position=dict(area='street', quarter='oldtown', x=52, z=-84))
+        pulse = dict(kind='place', target='oldtown', token='d80e6e34-327b-4706-9ab9-c745db108af6')
+        def attempt(**changes):
+            return encounters.opportunity(self.db, self.uid, {**body, **changes})
+        with patch.object(encounters.time, 'time', return_value=100):
+            self.assertFalse(attempt()['active'])
+            self.assertNotIn('rolled', attempt(startEvent={**pulse, 'kind':'leave'}))
+            self.assertNotIn('rolled', attempt(startEvent=pulse, position={**body['position'], 'x':1000}))
+            self.assertEqual(attempt(startEvent=pulse)['rolled'], True)
+        cond['chance'] = 100
+        self.edit('publish', 1)
+        with patch.object(encounters.time, 'time', return_value=300):
+            self.assertFalse(attempt(startEvent=pulse)['active'])
+            self.assertFalse(attempt()['active'])
+            cond['startTrigger']['alsoRandom'] = True
+            self.edit('publish', 2)
+            self.assertTrue(attempt()['active'])
+
+    def test_campaign_start_uses_players_saved_mission_and_clock(self):
+        self.graph['conditions']['startTrigger'] = dict(kind='game-time', target='awakening', minutes=30)
+        self.edit('publish', 0)
+        body = dict(id=self.graph['id'], position=dict(area='street', quarter='oldtown', x=52, z=-84))
+        account = self.db.collection('vr_players').document(items._tag(self.uid))
+        flags = {'gc_awakening':100, 'gameMin':129}
+        self.db.data[account.key] = {'save':{'universe':{'missions':{'awakening':{'completed':True}}}, 'story':{'flags':flags}}}
+        self.assertFalse(encounters.opportunity(self.db,self.uid,body)['active'])
+        flags['gameMin'] = 130
+        self.assertFalse(encounters.opportunity(self.db,'other-player',body)['active'])
+        self.assertTrue(encounters.opportunity(self.db,self.uid,body)['active'])
+
+    def test_trigger_config_and_remaining_mission_starts(self):
+        save = dict(save={'universe':{'missions':{'m':{'completed':True}}}, 'story':{'flags':{'f':True}}})
+        for trigger in [dict(kind='after-mission',target='m'), dict(kind='flag',target='f')]:
+            self.assertTrue(encounters.start_trigger_ready(trigger,None,save,{}))
+            self.assertFalse(encounters.start_trigger_ready(trigger,None,{},{}))
+        for kind in ['near','leave','pod-exit']:
+            trigger=dict(kind=kind) if kind=='pod-exit' else dict(kind=kind,target='admin')
+            event={**trigger, 'token':'d80e6e34-327b-4706-9ab9-c745db108af6'}
+            self.assertTrue(encounters.start_trigger_ready(trigger,event,{},{}))
+            self.assertFalse(encounters.start_trigger_ready(trigger,None,{},{}))
+        for invalid in [dict(kind='near',target='admin',distance=31), dict(kind='leave'), dict(kind='game-time',target='m',minutes=-1),dict(kind='interval',alsoRandom='yes')]:
+            self.graph['conditions']['startTrigger']=invalid
+            with self.assertRaises(encounters.DraftError):
+                encounters.validate(self.graph)
+
     def test_expiry_uses_playtime_even_when_key_has_been_dropped(self):
         identity = self.graph['id']
         ref = self.db.collection('vr_encounter_runs').document(items._tag(self.uid+'/'+identity))

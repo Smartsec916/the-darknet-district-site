@@ -61665,7 +61665,7 @@
       "spawn"
     ]
   },
-  "revision": "511d53f580bd1af3",
+  "revision": "28a9f1e82d93a92b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74402,175 +74402,175 @@
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 148,
+      "line": 176,
       "text": "g.placement?.clip,...(g.dialogue||[]).map(line=>line.animation),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 169,
+      "line": 197,
       "text": "if(g.dialogue?.length){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 170,
+      "line": 198,
       "text": "const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 171,
+      "line": 199,
       "text": "const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 175,
+      "line": 203,
       "text": "position.replaceChildren(new Option('End of this conversation',''));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 178,
+      "line": 206,
       "text": "const branch=select(conversations,addBranch,v=>{addBranch=v;fillPositions();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 180,
+      "line": 208,
       "text": "const arrival=g.dialogue.filter(l=>l.id.startsWith('lace_arrival_'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 181,
+      "line": 209,
       "text": "field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 183,
+      "line": 211,
       "text": "field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 184,
+      "line": 212,
       "text": "dialogue.append(element('p','Checked speech and animations repeat in order between the first and last repeated actions. Each action can lead to a percentage branch. Unused percentage continues directly to the next action. A player choice ends the waiting playlist.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 186,
+      "line": 214,
       "text": "const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 187,
+      "line": 215,
       "text": "insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 190,
+      "line": 218,
       "text": "add.disabled=g.dialogue.length>=100;dialogue.append(add);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 193,
+      "line": 221,
       "text": "dialogue.append(element('p','Enter the spoken text first. For bulk import, name each recording after its line ID, such as lace_arrival_01.ogg.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 195,
+      "line": 223,
       "text": "field(dialogue,'Bulk import recordings',bulk);dialogue.append(report);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 205,
+      "line": 233,
       "text": "const ordered=(editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue).filter(l=>!l.id.startsWith('branch_'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 210,
+      "line": 238,
       "text": "g.dialogue.push({id,speaker:'lace',text:'',animation:'',delay:0,tags:''});return id;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 215,
+      "line": 243,
       "text": "const line=g.dialogue.find(row=>row.id===id);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 218,
+      "line": 246,
       "text": "g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 242,
+      "line": 270,
       "text": "field(row,'Conversation for this line',select(conversations,currentBranch,destination=>{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 245,
+      "line": 273,
       "text": "g.dialogue.splice(g.dialogue.indexOf(line),1);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 252,
+      "line": 280,
       "text": "const a=g.dialogue.indexOf(line),b=g.dialogue.indexOf(adjacent);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 253,
+      "line": 281,
       "text": "[g.dialogue[a],g.dialogue[b]]=[g.dialogue[b],g.dialogue[a]];redrawLine();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 276,
+      "line": 304,
       "text": "const group=owner?g.dialogue.filter(r=>owner.actions.includes(r.id)):Object.values(api.dialogueSections(g)).find(rows=>rows.includes(line));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 284,
+      "line": 312,
       "text": "});add.disabled=g.dialogue.length>=100;settings.append(add);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 291,
+      "line": 319,
       "text": "for(const id of branch.actions)drawRow(g.dialogue.find(r=>r.id===id),lane,branch);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 293,
+      "line": 321,
       "text": "addAction.disabled=g.dialogue.length>=100;lane.append(addAction,button('Remove branch',()=>{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 322,
+      "line": 350,
       "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 339,
+      "line": 367,
       "text": "for(const line of ordered)drawRow(line,dialogue,null);",
       "kind": "source-reference"
     },
@@ -74624,68 +74624,68 @@
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 36,
+      "line": 39,
       "text": "function dialogueProblems(graph){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 37,
+      "line": 40,
       "text": "const errors=[],rows=graph.dialogue??[],seen=new Set();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 38,
+      "line": 41,
       "text": "if(!Array.isArray(rows)||rows.length>100||rows.some(row=>typeof row?.id!=='string'||typeof row.text!=='string'))return ['Use up to 100 valid dialogue actions.'];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 40,
+      "line": 43,
       "text": "if(ids.size!==rows.length)errors.push('Each dialogue action needs a distinct ID.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 47,
+      "line": 50,
       "text": "for(const group of Object.values(dialogueSections(graph)))checkBounds(group);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 49,
+      "line": 52,
       "text": "if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 52,
+      "line": 55,
       "text": "errors.push('Branches must start from conversation actions.');continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 80,
+      "line": 83,
       "text": "const errors=dialogueProblems(encounter||{}),nodes=encounter?.nodes;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 141,
+      "line": 151,
       "text": "if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 142,
+      "line": 152,
       "text": "return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 144,
-      "text": "const api={kinds,validate,createRun,withWaitingDialogue,dialogueSections,playlist,isRepeat,chooseBranch};",
+      "line": 154,
+      "text": "const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,isRepeat,chooseBranch};",
       "kind": "source-reference"
     },
     {
@@ -83171,9 +83171,9 @@
     "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "8b98d9961af3337bd06c12ebe3b6f8fb2d0abd867d42c153500d7aba2df98761",
-    "void-runner/chance-encounter-game.js": "985ce8d9d2562afbe7173141adee13a2d7243d516f5c934388a5b0611e5a5d40",
-    "void-runner/chance-encounter.js": "942c3b790a9f718eba1ee93276be3c0382ade84c78f2d3f3256bc066140b771a",
+    "void-runner/chance-encounter-editor.js": "99678fd8074620dc6214afdfd17cd012997f1b4eacf439871564d45a683a2449",
+    "void-runner/chance-encounter-game.js": "ca2bdff556cd4bfe8b89d316d2cf8ddbfbca71335067e0d460f6424b7ad6241e",
+    "void-runner/chance-encounter.js": "ac9d808b20378924908899e76af2027b06d527c5c724400ac8e9023e850f68bd",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -83286,7 +83286,7 @@
     "void-runner/item-catalog-editor.js": "e205a69c12971d130d7cfec31e2cb8b413c0f9f3967522b4044431714d830180",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
-    "void-runner/live-content.js": "490ceb347484fcbb00a9c4c0e8f7d844f821e4f8e140e1b4332b7099169c669f",
+    "void-runner/live-content.js": "1073e772e270825cb8122c05ef67b9cdadbdff387992de5bd29fc573f52a33ba",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",

@@ -652,22 +652,44 @@
   }
  }
  let catalog=null,refreshAt=0,checking=false,lastUser;
- const nextCheck=new Map();
+ const nextCheck=new Map(),startEvents=new Map(),nearby=new Set(),nearEvents=new Map();
+ let eventUser;
+ function recordStartEvent(kind,target){
+  const user=root.VoidAccount?.user;
+  if(!user||user.isAnonymous||root.VoidDevTest?.active||running?.private)return;
+  if(eventUser!==user.uid){startEvents.clear();eventUser=user.uid;}
+  startEvents.set(kind+'/'+(target||''),{kind,target,token:crypto.randomUUID()});
+ }
+ root.addEventListener('void-place',({detail})=>{
+  for(const id of detail.entered)recordStartEvent('place',id);
+  for(const id of detail.left)recordStartEvent('leave',id);
+ });
  async function opportunities(){
   const user=root.VoidAccount?.user;
   if(lastUser!==user?.uid){
    if(running&&!running.private)stop();
-   catalog=null;nextCheck.clear();refreshAt=0;lastUser=user?.uid;
+   catalog=null;nextCheck.clear();nearby.clear();nearEvents.clear();refreshAt=0;
+   if(eventUser!==user?.uid){startEvents.clear();eventUser=user?.uid;}lastUser=user?.uid;
   }
   if(checking||running||root.VoidDevTest?.active||!user||user.isAnonymous||typeof mode==='undefined'||mode!=='walking')return;
   const inside=walkingLocation?.part==='flat';
-  if(!inside&&walkingLocation?.area!=='street')return;
+
   checking=true;
   try{
    const now=Date.now();
    if(now>=refreshAt){refreshAt=now+60000;catalog=(await root.VoidNetwork.request('chance-encounters')).encounters;}
    for(const graph of catalog||[]){
     const c=graph.conditions,p=graph.playtest;
+    const trigger=c.startTrigger||{},visit=root.VoidChanceEncounter.isVisitTrigger(trigger.kind);
+    // Poll the same moving TALK point as the Mission Editor, including visits outside the staging area.
+    const nearKey=graph.id+'/near/'+trigger.target+'/'+trigger.distance;
+    if(graph.enabled&&trigger.kind==='near'&&root.VoidLiveContent?.nearBlocked()===false){
+     const distance=root.VoidLiveContent.giverDistance(trigger.target,walkingLocation,walker.x,walker.z);
+     if(distance>trigger.distance)nearby.delete(nearKey);
+     else if(!nearby.has(nearKey)){
+      nearby.add(nearKey);nearEvents.set(nearKey,{kind:'near',target:trigger.target,token:crypto.randomUUID()});
+     }
+    }
     if(inside){
      const home=root.VoidLiveContent?.current?.content?.characters?.[graph.residence?.character]?.residence;
      const target=home&&root.VoidApartments.residenceKey(home.door,home.slot);
@@ -679,10 +701,17 @@
       begin(graph,location.id,false,saved.run).catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
      break;
     }
-    if(!graph.enabled||walkingLocation?.quarter!==c.quarter||!walker||Math.hypot(walker.x-p.x,walker.z-p.z)>c.radius||now<(nextCheck.get(graph.id)||0))continue;
+    if(walkingLocation?.area!=='street')continue;
+    const pulse=trigger.kind==='near'?nearEvents.get(nearKey):visit&&startEvents.get(trigger.kind+'/'+(trigger.target||''));
+    const usedKey=graph.id+'/event/'+trigger.kind+'/'+(trigger.target||''),pending=pulse&&pulse.token!==nextCheck.get(usedKey);
+    if(!graph.enabled||walkingLocation?.quarter!==c.quarter||!walker||Math.hypot(walker.x-p.x,walker.z-p.z)>c.radius||(!pending&&now<(nextCheck.get(graph.id)||0))||now<(nextCheck.get(graph.id+'/retry')||0))continue;
     nextCheck.set(graph.id,now+c.intervalSeconds*1000);
     const event=await root.VoidConsumableGame.request('chance-encounters/opportunity',{id:graph.id,
-     position:{area:'street',quarter:walkingLocation.quarter,x:walker.x,z:walker.z}});
+     ...(pending?{startEvent:pulse}:{}),position:{area:'street',quarter:walkingLocation.quarter,x:walker.x,z:walker.z}});
+    if(pending&&user.uid===root.VoidAccount?.user?.uid){
+     if(event.rolled)nextCheck.set(usedKey,pulse.token);
+     else nextCheck.set(graph.id+'/retry',event.next?event.next*1000:now+5000);
+    }
     if(!event.active||root.VoidAccount?.user?.uid!==user.uid||root.VoidDevTest?.active)continue;
     const start=event.stage==='collected'?'flat':event.stage==='dropped'?'drop':graph.start;
     begin(graph,start,false,event.run).catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});break;
@@ -710,7 +739,7 @@
   else position=[run.graph.playtest.x,1,run.graph.playtest.z];
   return position?{position,quarter,key:'encounter:'+run.graph.id+'|'+run.node.id,label:run.node.name,encounter:true}:null;
  }
- root.VoidEncounterGame={playtest,stop,journal,waypoint,setTracked(value){if(running)running.tracked=value;},playerStep(w){
+ root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,setTracked(value){if(running)running.tracked=value;},playerStep(w){
    const pov=running?.pov;if(!pov||pov.w!==w||walkingLocation?.inst!==pov.inst||pov.head.isDisposed())return false;
    pov.head.computeWorldMatrix(true);const eye=pov.head.getAbsolutePosition();w.x=eye.x;w.y=eye.y+.06;w.z=eye.z;return true;
   },hidesResident:id=>running?.graph.residence?.character===id,get privateSession(){return document.getElementById('dev-test-banner')?.dataset.kind==='encounter';},
