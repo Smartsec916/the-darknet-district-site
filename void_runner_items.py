@@ -99,7 +99,7 @@ def effect_problems(e, at):
         out.append(n + 'parameters are missing')
     else:
         out += [n + 'unknown parameter ' + k for k in p if k not in d['params']]
-        out += [n + k + ' out of range' for k, s in d['params'].items() if not _num(p.get(k), s['min'], s['max'])]
+        out += [n + k + ' out of range' for k, s in d['params'].items() if (k in p or not s.get('optional')) and not _num(p.get(k), s['min'], s['max'])]
     return out
 
 

@@ -19,13 +19,13 @@
   'Sensory enhancement':[['lensGrade',.55],['chromaticAberration',.4]],
   'Disorientation':[['doubleVision',1.5],['cameraMotion',.8]],
   'Intoxication':[['wavyVision',.8],['motionTrails',1.15]],
-  'Dreamlike perception':[['particles',.8],['wavyVision',.45],['lensGrade',.6]],
+  'Dreamlike perception':[['peripheralFigures',.45],['particles',.8],['wavyVision',.45],['lensGrade',.6]],
   'Digital corruption':[['signalGlitch',1.5],['chromaticAberration',1.1]],
   'Android sensory malfunction':[['signalGlitch',2],['doubleVision',.75]],
   'Experimental black-market consumable':[['fractalWarp',2],['motionTrails',1.5],['particles',1.4]],
   'Severe visual overload':[['kaleidoscope',1.8],['chromaticAberration',2.4],['wavyVision',1.25]],
   'Tunnel vision':[['tunnelVision',1.3]],
-  'Slow-motion perception':[['motionTrails',1.6],['cameraMotion',.3]]
+  'Slow-motion perception':[['timePerception',1.6],['cameraMotion',.3]]
  };
  function example(key,id){
   const [name,category,effect,stat,amount]=examples[key],R=root.VoidConsumables,it=R.newItem(id,name);
@@ -139,6 +139,7 @@
      const enabled=el('input');enabled.type='checkbox';enabled.checked=layer.intensity>0;const toggle=el('label');toggle.append(enabled,' Enabled ');field.append(toggle);enabled.onchange=()=>{layer.intensity=enabled.checked?spec.common.intensity.def:0;controls();};
      const advanced=el('details');advanced.append(el('summary','Layer parameters'));field.append(advanced);const stack=el('select');stack.setAttribute('aria-label','Stacking');spec.stacking.forEach(value=>option(stack,value,value));stack.value=layer.stacking;stack.onchange=()=>layer.stacking=stack.value;advanced.append(stack);
      for(const [k,p] of Object.entries(config.params)){
+      if(p.optional&&layer.params[k]===undefined)layer.params[k]=p.def;
       const slider=range(advanced,layer.params,k,p);
       action(slider.parentElement,'Reset '+p.label,()=>{layer.params[k]=p.def;controls();});
      }
@@ -266,7 +267,7 @@
    const current=frame(),mods=current.modifiers,[hp,reserve]=vitals(time);const maximum=Math.round(100*(1+Math.max(-.5,Math.min(.5,mods.maxHealth||0))));q('[data-hp]').max=maximum;q('[data-hp]').value=hp*maximum;q('[data-stamina]').value=100*reserve;
    const mobility=1-Math.min(1,mods.movementRestriction||0),speed=mobility*(1+Math.max(-.5,Math.min(.5,mods.walkSpeed||0))),run=mobility*(1+Math.max(-.5,Math.min(.5,mods.runSpeed||0)));
    const walks=root.VoidExplorer?.config||{walk:3.9,sprint:6.4};
-   q('[data-vitals]').textContent=Math.round(hp*maximum)+' / '+maximum+' HP · Walk '+walks.walk+' → '+(walks.walk*speed).toFixed(1)+' m/s · Run '+walks.sprint+' → '+(walks.sprint*run).toFixed(1)+' m/s · '+(current.effects.size+Object.keys(mods).length)+' active types';
+   q('[data-vitals]').textContent=Math.round(hp*maximum)+' / '+maximum+' HP · Walk '+walks.walk+' → '+(walks.walk*speed).toFixed(1)+' m/s · Run '+walks.sprint+' → '+(walks.sprint*run).toFixed(1)+' m/s · '+(current.effects.size+Object.keys(mods).length)+' active types'+(current.effects.size?' · '+[...current.effects.keys()].map(type=>spec.effects[type].label).join(', '):'');
    if(walk){walk.speedRatio=speed*Number(q('[data-rate]').value);if(playing&&!walk.isPlaying)walk.play(true);if(!playing){walk.pause();const length=walk.to-walk.from;if(length>0)walk.goToFrame(walk.from+time*60*speed%length);}}
    if(scene&&!scene.isDisposed){sceneMotion?.(time);room?.tick(time);scene.render();}if(audition&&t-lastAudio>260){audition.rack.apply(frame());lastAudio=t;}raf=requestAnimationFrame(tick);
   }

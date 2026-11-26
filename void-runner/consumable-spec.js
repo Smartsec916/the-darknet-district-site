@@ -18,6 +18,16 @@ globalThis.VoidConsumableSpec = {
  "statuses": ["draft", "published", "retired"],
  "registryItems": {"ward-kit": "Ward kit"},
  "effects": {
+  "peripheralFigures": {"group":"visual","label":"Peripheral silhouettes","help":"Faint humanoid shapes drift through peripheral vision.","params":{
+   "opacity":{"label":"Silhouette opacity","min":0,"max":1,"def":0.5,"step":0.01},
+   "pace":{"label":"Drift speed","min":0,"max":2,"def":0.4,"step":0.01}}},
+  "timePerception": {"group":"visual","label":"Time perception","help":"Hold successive afterimages to give movement a delayed, dreamlike quality.","params":{
+   "interval":{"label":"Time between impressions (s)","min":0.04,"max":0.6,"def":0.18,"step":0.01},
+   "persistence":{"label":"Persistence","min":0.05,"max":0.85,"def":0.55,"step":0.01}}},
+  "depthFocus": {"group":"visual","label":"Depth of field","help":"Blur objects outside the focus distance. Uses scene depth on graphics hardware with floating-point render targets.","params":{
+   "distance":{"label":"Focus distance (m)","min":0.2,"max":80,"def":4,"step":0.1},
+   "width":{"label":"Focus range (m)","min":0.1,"max":20,"def":1.5,"step":0.1},
+   "blur":{"label":"Lens blur","min":0,"max":1,"def":0.6,"step":0.01}}},
   "pixelation": {"group":"visual","label":"Pixelation","help":"Quantizes the rendered scene to larger pixels.","params":{
    "size":{"label":"Pixel size","min":1,"max":32,"def":6,"step":1}}},
   "visualPulse": {"group":"visual","label":"Visual pulsation","help":"Gently pulse the exposure when flashing is enabled.","params":{
@@ -40,6 +50,7 @@ globalThis.VoidConsumableSpec = {
    "pulse": {"label": "Pulse speed", "min": 0, "max": 3, "def": 0.4, "step": 0.05, "help": "Times per second the split swells and shrinks (kept under 3 so it never flashes)."},
    "falloff": {"label": "Edge falloff", "min": 0, "max": 1, "def": 0.5, "step": 0.01, "help": "How quickly the split fades towards the middle of the screen."}}},
   "motionTrails": {"group": "visual", "label": "Motion trails", "help": "Leaves a fading afterimage behind anything that moves, from the frames before.", "params": {
+   "afterimages":{"label":"Number of afterimages","min":1,"max":4,"def":1,"step":1,"optional":true},
    "length": {"label": "Trail length", "min": 0.05, "max": 0.95, "def": 0.6, "step": 0.01, "help": "How much of the earlier frames is kept. Higher is a longer smear."},
    "opacity": {"label": "Trail opacity", "min": 0, "max": 1, "def": 0.7, "step": 0.01, "help": "How visible the afterimage is."},
    "decay": {"label": "Decay speed", "min": 0.5, "max": 8, "def": 3, "step": 0.1, "help": "How quickly the trail fades away (per second)."},

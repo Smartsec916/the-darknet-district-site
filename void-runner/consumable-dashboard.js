@@ -49,7 +49,12 @@
    const row=document.createElement('div'),name=document.createElement('button'),lane=document.createElement('div'),bar=document.createElement('button'),edge=document.createElement('span');
    row.className='cs-row';lane.className='cs-lane';bar.className='cs-bar';edge.className='cs-edge';edge.textContent='↔';bar.append(edge);
    const label=(spec.effects[track.type]||spec.modifiers[track.stat]).label;name.textContent=label;name.onclick=()=>select(track);bar.setAttribute('aria-label',label+' timing');bar.title='Drag to move. Drag the right edge to resize. Use arrow keys to move, Shift + arrow to resize.';
-   row.style.setProperty('--category',groups[group(track)][2]);function paint(){bar.style.left=100*track.delay/end+'%';bar.style.width=100*track.duration/end+'%';bar.setAttribute('aria-description',track.delay+' seconds, duration '+track.duration+' seconds');}
+   row.style.setProperty('--category',groups[group(track)][2]);
+   function paint(){
+    const up=100*(track.fadeIn||0)/track.duration,down=100-100*(track.fadeOut||0)/track.duration;
+    bar.style.background='linear-gradient(90deg,transparent,var(--category) '+up+'%,var(--category) '+down+'%,transparent)';
+    bar.title=label+' · starts at '+track.delay+' s · fade in '+(track.fadeIn||0)+' s · peak '+Math.round((track.intensity??1)*100)+'% · fade out '+(track.fadeOut||0)+' s. Drag to move or resize.';
+bar.style.left=100*track.delay/end+'%';bar.style.width=100*track.duration/end+'%';bar.setAttribute('aria-description',track.delay+' seconds, duration '+track.duration+' seconds');}
    function change(k,value){const min=k==='delay'?0:Math.max(1,(track.fadeIn||0)+(track.fadeOut||0));track[k]=Math.max(min,Math.min(spec.limits[k],Math.round(value*10)/10));paint();}
    bar.onpointerdown=e=>{e.preventDefault();const key=e.target===edge?'duration':'delay',start=e.clientX,base=track[key],width=lane.clientWidth;bar.setPointerCapture(e.pointerId);
     bar.onpointermove=m=>change(key,base+end*(m.clientX-start)/width);

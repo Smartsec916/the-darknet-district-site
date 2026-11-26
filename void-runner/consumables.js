@@ -29,7 +29,7 @@
   if(!S.stacking.includes(e.stacking))out.push(n+'stacking is '+S.stacking.join(', '));
   if(!e.params||typeof e.params!=='object'||Array.isArray(e.params))out.push(n+'parameters are missing');
   else{for(const k of Object.keys(e.params))if(!def.params[k])out.push(n+'unknown parameter "'+k+'"');
-   for(const [k,p] of Object.entries(def.params))if(!num(e.params[k],p.min,p.max))out.push(n+p.label+' is a number from '+p.min+' to '+p.max);}
+   for(const [k,p] of Object.entries(def.params))if(!(p.optional&&!(k in e.params))&&!num(e.params[k],p.min,p.max))out.push(n+p.label+' is a number from '+p.min+' to '+p.max);}
   return out;}
  function modifierProblems(m,at){const n=at+': ';if(!hasOnly(m,MOD_KEYS))return [n+'a modifier has unknown fields'];const d=S.modifiers[m.stat];
   if(!d)return [n+'unknown gameplay modifier "'+m.stat+'"'];if(!d.supported)return [n+d.label+' is not available: '+d.help];
