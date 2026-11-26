@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "b14a936375aceacc",
+  "revision": "b418fdc024c7abbd",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74390,7 +74390,7 @@
     },
     {
       "source": "void-runner/consumable-spec.js",
-      "line": 112,
+      "line": 120,
       "text": "\"audioWhispers\": {\"group\": \"audio\", \"label\": \"Whispers and imagined voices\", \"help\": \"Soft synthetic murmurs round the head. They are made up by the game, are clearly not speech from other players, and are never mixed into voice chat.\", \"params\": {",
       "kind": "source-reference"
     },
@@ -82803,7 +82803,7 @@
     "void-runner/apartments.js": "f9784f206db205426d45e7118b6770a6fcc3fb7c87ac43de28e47632e60598f2",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
-    "void-runner/asset-pipeline.js": "a45b6043af5ec3eadeb565d850af503773b04720a08212e71bfe153accc95e29",
+    "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "1650d87955e576584e78d947d0120708e4bf830893b94815e8e744483c30d8c1",
     "void-runner/babylon-renderer.js": "faa81bd742defa7c187f443b841ac01db3356193b6e8331d7b4e4b0e9cfa74d9",
@@ -82840,10 +82840,10 @@
     "void-runner/consumable-curves.js": "653a4335bc326941f891047817c6c5f30b3f4579c0feee60cfe26c37a96878dc",
     "void-runner/consumable-dashboard.js": "55f3faada5af5aa91a5fc57edc7831209b2e6d7ed3d05a319345e0e131642bdb",
     "void-runner/consumable-gameplay.js": "d6de5f6c7d8f5b305866a5416a8e944ba613cfab5717348a9ae5804c9b09d0de",
-    "void-runner/consumable-renderer.js": "d4558a403b0581a96d3d2b0659205bbe3340d32f7475e69b023c59e8c2bfa6cf",
-    "void-runner/consumable-spec.js": "57bf81ac577986b71c7c563f5c5fed08b41f313f1e325de69672529a1faea824",
-    "void-runner/consumable-studio.js": "9b177b51f845de2d439871230cedfa60ca1d611a995d92560c2d08dd5958ed3e",
-    "void-runner/consumables.js": "c9c8ff7d610dc61e0947adaa84f3b5a2d3b9d2786d27d2c94589c86337e33998",
+    "void-runner/consumable-renderer.js": "5091faa0b876f3b9724dda2aa7643881dd3a9c572e244f9a221e3d6699389a1c",
+    "void-runner/consumable-spec.js": "f73b29623da7f1810a7c3f3f22a731f80e3b58f8f9dd8fca2a02f40ce4241608",
+    "void-runner/consumable-studio.js": "eb614a82a2840ffaadf281079f1ff9e3d19aa438ba57e3ae1ddc7ddd29e22cea",
+    "void-runner/consumables.js": "ab4979f585eed982d90964be2b286cffab7c5b803e409c8d8923adf8bf46b29c",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",

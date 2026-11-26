@@ -41,3 +41,18 @@ test('accessibility, recovery, and signed-in sound expiration use the active tim
  cues.tick([dose],10);cues.tick([dose],11);cues.tick([dose],12);cues.tick([],13);
  assert.deepEqual(events,[['loop',true],'stop',['end',false]]);
 });
+
+test('all visual tracks retain their authored strength through the shared runtime sampler',()=>{
+ const schema=require('../void-runner/consumable-spec.js');
+ for(const [type,config] of Object.entries(schema.effects)){
+  if(config.group==='audio')continue;
+  const effect={...R.newEffect(type),duration:10,fadeIn:0,fadeOut:0};
+  const active=[{startedAt:0,definition:{effects:[effect]}}];
+  for(const strength of [0,.25,.5,1,2,3]){
+   effect.intensity=strength;
+   assert.deepEqual(R.effectProblems(effect,type),[]);
+   assert.equal(renderer.sample(active,5).effects.get(type)?.[0].weight??0,strength,type);
+  }
+  assert.equal(renderer.sample(active,10).effects.size,0,type);
+ }
+});

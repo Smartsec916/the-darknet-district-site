@@ -4,6 +4,7 @@
 globalThis.VoidConsumableSpec = {
  "format": "vr-items",
  "version": 1,
+ "intensityLimits": {"visual": 3, "camera": 3, "audio": 1},
  "limits": {"items": 300, "vendors": 60, "entries": 80, "effects": 8, "modifiers": 6, "categories": 24, "presets": 40, "name": 60, "description": 400, "bytes": 600000, "delay": 600, "duration": 900, "fadeIn": 60, "fadeOut": 120, "price": 1000000, "stock": 9999, "stack": 99, "weight": 500, "cooldown": 3600, "restockEvery": 604800},
  "categories": [{"id":"keycards","name":"Keycards"},
   {"id": "food", "name": "Food"}, {"id": "beverages", "name": "Beverages"}, {"id": "medical", "name": "Medical supplies"}, {"id": "stimulants", "name": "Stimulants"},
@@ -17,6 +18,13 @@ globalThis.VoidConsumableSpec = {
  "statuses": ["draft", "published", "retired"],
  "registryItems": {"ward-kit": "Ward kit"},
  "effects": {
+  "pixelation": {"group":"visual","label":"Pixelation","help":"Quantizes the rendered scene to larger pixels.","params":{
+   "size":{"label":"Pixel size","min":1,"max":32,"def":6,"step":1}}},
+  "visualPulse": {"group":"visual","label":"Visual pulsation","help":"Gently pulse the exposure when flashing is enabled.","params":{
+   "brightness":{"label":"Exposure swing","min":0,"max":0.5,"def":0.18,"step":0.01},
+   "rate":{"label":"Cycles per second","min":0.1,"max":1,"def":0.4,"step":0.05}}},
+  "motionBlur": {"group":"visual","label":"Motion blur","help":"Spread samples along the direction of camera movement.","params":{
+   "length":{"label":"Blur length","min":0,"max":1,"def":0.45,"step":0.01}}},
   "signalGlitch": {"group":"visual","label":"Signal glitch","help":"Horizontal bands displace the image while motion, distortion and flashing are enabled.","params":{
    "amount":{"label":"Band displacement","min":0,"max":1,"def":0.35,"step":0.01}}},
   "lensGrade": {"group":"visual","label":"Lens and lighting","help":"Soften focus and adjust bloom, exposure and grain.","params":{

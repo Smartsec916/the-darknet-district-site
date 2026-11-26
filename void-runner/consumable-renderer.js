@@ -2,6 +2,7 @@
 (function(root){
  'use strict';
  const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+ const spec=typeof module!=='undefined'&&module.exports?require('./consumable-spec.js'):root.VoidConsumableSpec;
  function curveValue(curve,t){
   if(!curve)return 1;
   const points=curve.points;
@@ -16,7 +17,7 @@
  function envelope(e,elapsed){
   const t=elapsed-e.delay;
   if(t<0||t>=e.duration)return 0;
-  return clamp(e.intensity*curveValue(e.curve,t/e.duration)*Math.min(1,e.fadeIn?t/e.fadeIn:1,e.fadeOut?(e.duration-t)/e.fadeOut:1),0,1);
+  return e.intensity*curveValue(e.curve,t/e.duration)*clamp(Math.min(e.fadeIn?t/e.fadeIn:1,e.fadeOut?(e.duration-t)/e.fadeOut:1),0,1);
  }
  function staminaAfter(reserve,running,regen,drain,seconds){
   return clamp(reserve+seconds*(running?-.08*(1+drain):.14*(1+regen)),0,1);
@@ -34,7 +35,8 @@
     if(weight)modifiers[m.stat]=(modifiers[m.stat]||0)+m.amount*weight*gain;
    }
    for(const e of a.definition.effects||[]){
-    const k=Math.min(1,envelope({...e,duration:e.duration+extension},t)*gain);if(k<=0)continue;
+    const limit=spec.intensityLimits[spec.effects[e.type]?.group]??1;
+    const k=Math.min(limit,envelope({...e,duration:e.duration+extension},t)*gain);if(k<=0)continue;
     const values=effects.get(e.type)||[],instance={weight:k,params:e.params,time:(t-e.delay)*e.speed};
     if(e.stacking==='replace')effects.set(e.type,[instance]);
     else if(e.stacking==='max'){if(!values.length||k>=values[0].weight)effects.set(e.type,[instance]);}
@@ -45,16 +47,19 @@
  }
  const shader=`precision highp float;
  varying vec2 vUV; uniform sampler2D textureSampler,historySampler;uniform float trail;
- uniform vec4 grade,hue,tunnel,wave,split,ghost,fold,warp,screen; uniform vec2 eye,motion; uniform float clock;
+ uniform vec4 grade,hue,tunnel,wave,split,ghost,fold,warp,screen; uniform vec2 eye,motion,resolution,velocity; uniform float pixelSize,blurLength,splitView; uniform float clock;
  vec3 hueRotate(vec3 c,float a){vec3 k=vec3(.57735);return c*cos(a)+cross(k,c)*sin(a)+k*dot(k,c)*(1.-cos(a));}
  float noise(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
  void main(){
+ if(splitView>.5 && vUV.x<.5){gl_FragColor=texture2D(textureSampler,vUV);return;}
  vec2 uv=vUV+motion;vec2 center=uv-eye;float r=length(center);
  if(fold.w>0.){float sector=6.28318/max(2.,fold.x);float a=abs(mod(atan(center.y,center.x)+fold.y,sector)-sector*.5);uv=mix(uv,eye+vec2(cos(a),sin(a))*r*fold.z,fold.w);}
  uv+=wave.x*vec2(sin(uv.y*wave.y+wave.z),cos(uv.x*wave.y+wave.z)*wave.w);
  uv+=warp.x*vec2(sin(uv.y*warp.y+clock)*cos(uv.x*warp.z),cos(uv.x*warp.y+clock));
  if(screen.w>0.){float band=noise(vec2(floor(uv.y*32.),floor(clock*6.)));uv.x+=screen.w*step(.82,band)*(band-.82)*.18;}
+ if(pixelSize>1.)uv=(floor(uv*resolution/pixelSize)+.5)*pixelSize/resolution;
  uv=clamp(uv,vec2(.001),vec2(.999));vec4 pixel=texture2D(textureSampler,uv);vec3 col=pixel.rgb;
+ if(blurLength>0.){vec2 d=velocity*blurLength;col=(col*2.+texture2D(textureSampler,clamp(uv+d,0.,1.)).rgb+texture2D(textureSampler,clamp(uv-d,0.,1.)).rgb)*.25;}
  if(split.x>0.){vec2 d=mix(vec2(1.,0.),center,split.y)*split.x;col.r=texture2D(textureSampler,clamp(uv+d,0.,1.)).r;col.b=texture2D(textureSampler,clamp(uv-d,0.,1.)).b;}
  if(ghost.z>0.)col=mix(col,texture2D(textureSampler,clamp(uv+ghost.xy,0.,1.)).rgb,ghost.z);
  if(screen.x>0.){vec2 d=vec2(screen.x);col=(col*4.+texture2D(textureSampler,uv+d).rgb+texture2D(textureSampler,uv-d).rgb+texture2D(textureSampler,uv+vec2(-d.x,d.y)).rgb+texture2D(textureSampler,uv+vec2(d.x,-d.y)).rgb)/8.;}
@@ -64,18 +69,21 @@
  col*=1.-tunnel.z*smoothstep(tunnel.x,tunnel.x+max(.001,tunnel.y),distance(vUV,eye)*1.42);
  if(trail>0.)col=mix(col,texture2D(historySampler,vUV).rgb,trail);gl_FragColor=vec4(clamp(col,0.,1.),pixel.a);}`;
  function uniforms(frame,limits){
-  const u={grade:[1,1,0,0],hue:[0,0,0,0],tunnel:[1,.1,0,0],wave:[0,1,0,0],split:[0,0,0,0],ghost:[0,0,0,0],fold:[2,0,1,0],warp:[0,0,0,0],screen:[0,0,0,0],eye:[.5,.5],motion:[0,0],fov:0,trail:0};
+  const u={grade:[1,1,0,0],hue:[0,0,0,0],tunnel:[1,.1,0,0],wave:[0,1,0,0],split:[0,0,0,0],ghost:[0,0,0,0],fold:[2,0,1,0],warp:[0,0,0,0],screen:[0,0,0,0],eye:[.5,.5],motion:[0,0],fov:0,trail:0,pixelSize:1,blurLength:0};
   const motion=limits.motion?1:0,dist=limits.distortion?1:0,flash=limits.flashing?1:0;
   for(const [type,entries] of frame.effects)for(const {weight:w,params:p,time:t} of entries){
    const rad=Math.PI/180,osc=Math.sin(t*2);
    switch(type){
+    case 'pixelation':u.pixelSize=Math.max(u.pixelSize,1+(p.size-1)*w);break;
+    case 'motionBlur':u.blurLength=Math.max(u.blurLength,p.length*w*motion);break;
+    case 'visualPulse':u.grade[2]+=Math.sin(2*Math.PI*t*p.rate)*p.brightness*Math.min(w,1.5)*flash;break;
     case 'colorShift':u.grade[0]+=(p.saturation-1)*w;u.grade[1]+=(p.contrast-1)*w;u.grade[2]+=p.exposure*w;u.grade[3]+=p.channelSplit*w;
      u.hue[0]+=(p.hue+p.hueSpeed*t*flash)*rad*w;u.hue[1]+=p.invert*w;u.hue[2]=p.tintHue*rad;u.hue[3]+=p.tintAmount*w;break;
     case 'chromaticAberration':u.split=[p.separation*w*dist*(1+osc*p.pulse*.3*flash),p.radial,0,0];u.eye=[p.centerX,p.centerY];break;
     case 'wavyVision':u.wave=[p.amplitude*w*dist,p.frequency,t*motion,p.direction];break;
     case 'fractalWarp':u.warp=[p.distortion*.045*w*dist,p.scale*3,p.complexity*2,0];break;
-    case 'doubleVision':u.ghost=[p.offsetX*(1+osc*p.oscillation*motion),p.offsetY,p.opacity*w*dist,0];break;
-    case 'kaleidoscope':u.fold=[p.segments,p.rotation*t*rad*motion,p.scale,p.blend*w*dist];u.eye=[p.centerX,p.centerY];break;
+    case 'doubleVision':u.ghost=[p.offsetX*Math.max(1,w)*(1+osc*p.oscillation*motion),p.offsetY*Math.max(1,w),clamp(p.opacity*w*dist,0,.85),0];break;
+    case 'kaleidoscope':u.fold=[p.segments,p.rotation*t*rad*motion,p.scale,clamp(p.blend*w*dist,0,1)];u.eye=[p.centerX,p.centerY];break;
     case 'tunnelVision':u.eye=[p.centerX,p.centerY];u.tunnel=[p.radius,p.softness,p.darkness*w*(1+osc*p.pulse*.15*flash),0];break;
     case 'motionTrails':u.trail=clamp(p.length*p.opacity*w*Math.exp(-p.decay/60)*motion,0,.92);break;
     case 'cameraMotion':u.motion=[w*motion*(Math.sin(t*p.swayRate*6.28)*p.sway*.005+Math.sin(t*19)*p.shake*.0015),w*motion*(Math.cos(t)*p.bob*.05+Math.sin(t*.3)*p.drift*.002)];u.fov=(p.fov+osc*p.zoomPulse)*rad*w*motion;break;
@@ -91,7 +99,7 @@
   const B=root.BABYLON;B.Effect.ShadersStore.vrConsumableFragmentShader=shader;
   let pass=null,owner=null,frame=null,clock=0,offset=0,baseFov=0,history=null,output=null,copier=null,valid=false;
   const four=['grade','hue','tunnel','wave','split','ghost','fold','warp','screen'],two=['eye','motion'];
-  let particles=null;
+  let particles=null,previousDirection=null,previousPosition=null,velocity=[0,0];
   function dust(camera,input){
    const entry=input?.frame.effects.get('particles')?.at(-1);
    if(!entry||!input.limits.motion){if(particles){particles.dispose(true);particles=null;}return;}
@@ -106,7 +114,7 @@
    particles.minSize=p.size*.4;particles.maxSize=p.size;particles.direction1=new B.Vector3(-.1,p.drift*.25,-.1);particles.direction2=new B.Vector3(.1,p.drift*.5,.1);
   }
   function freeHistory(){if(output)output.dispose(owner);output=null;history?.dispose();history=null;copier?.dispose();copier=null;valid=false;}
-  function detach(){freeHistory();if(pass)pass.dispose(owner);pass=null;owner=null;}
+  function detach(){previousDirection=null;previousPosition=null;freeHistory();if(pass)pass.dispose(owner);pass=null;owner=null;}
   function trailBuffer(camera){
    const engine=scene.getEngine(),w=Math.max(1,Math.floor(engine.getRenderWidth()/2)),h=Math.max(1,Math.floor(engine.getRenderHeight()/2));
    if(history&&history.width===w&&history.height===h)return;
@@ -117,10 +125,20 @@
   const before=scene.onBeforeCameraRenderObservable.add(camera=>{
    if(camera!==scene.activeCamera)return;
    const input=getFrame();dust(camera,input);if(!input||!input.frame.effects.size){detach();return;}
-   if(camera!==owner){detach();owner=camera;pass=new B.PostProcess('Consumable effects','vrConsumable',[...four,...two,'clock','trail'],['historySampler'],1,camera,B.Texture.BILINEAR_SAMPLINGMODE,scene.getEngine());pass.onApply=fx=>{
-    if(!frame)return;for(const k of four)fx.setFloat4(k,...frame[k]);for(const k of two)fx.setFloat2(k,...frame[k]);fx.setFloat('clock',clock);fx.setFloat('trail',valid?frame.trail:0);if(valid)fx._bindTexture('historySampler',history.texture);
+   if(camera!==owner){detach();owner=camera;pass=new B.PostProcess('Consumable effects','vrConsumable',[...four,...two,'clock','trail','resolution','velocity','pixelSize','blurLength','splitView'],['historySampler'],1,camera,B.Texture.BILINEAR_SAMPLINGMODE,scene.getEngine());pass.onApply=fx=>{
+    if(!frame)return;for(const k of four)fx.setFloat4(k,...frame[k]);for(const k of two)fx.setFloat2(k,...frame[k]);const engine=scene.getEngine();fx.setFloat2('resolution',engine.getRenderWidth(),engine.getRenderHeight());fx.setFloat2('velocity',...velocity);fx.setFloat('splitView',frame.splitView?1:0);fx.setFloat('pixelSize',frame.pixelSize);fx.setFloat('blurLength',frame.blurLength);fx.setFloat('clock',clock);fx.setFloat('trail',valid?frame.trail:0);if(valid)fx._bindTexture('historySampler',history.texture);
    };}
-   clock=input.limits.motion?input.time:0;frame=uniforms(input.frame,input.limits);if(frame.trail&&B.CopyTextureToTexture)trailBuffer(camera);else if(history)freeHistory();baseFov=camera.fov;offset=clamp(frame.fov,-.2,.2);camera.fov=clamp(baseFov+offset,.3,2.2);
+   if(input.frame.effects.has('motionBlur')){
+    const dir=camera.getForwardRay().direction,pos=camera.globalPosition;
+    if(previousDirection){
+     const delta=dir.subtract(previousDirection).add(pos.subtract(previousPosition).scale(.15));
+     const local=B.Vector3.TransformNormal(delta,camera.getViewMatrix());
+     const scale=16.67/Math.max(1,scene.getEngine().getDeltaTime());
+     velocity=[clamp(local.x*scale,-.04,.04),clamp(local.y*scale,-.04,.04)];
+    }else velocity=[0,0];
+    previousDirection=dir.clone();previousPosition=pos.clone();
+   }else previousDirection=null;
+   clock=input.limits.motion?input.time:0;frame=uniforms(input.frame,input.limits);frame.splitView=input.splitView;if(frame.trail&&B.CopyTextureToTexture)trailBuffer(camera);else if(history)freeHistory();baseFov=camera.fov;offset=clamp(frame.fov,-.2,.2);camera.fov=clamp(baseFov+offset,.3,2.2);
   });
   const after=scene.onAfterCameraRenderObservable.add(camera=>{if(camera===owner&&offset){camera.fov=baseFov;offset=0;}});
   function dispose(){scene.onBeforeCameraRenderObservable.remove(before);scene.onAfterCameraRenderObservable.remove(after);if(particles){particles.dispose(true);particles=null;}detach();}
