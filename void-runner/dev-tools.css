@@ -118,3 +118,9 @@
 .mod-address-tile.available{border-color:#467a66}.mod-address-tile small{color:#c9d5dc}
 .me-location-guide h4,.mod-addresses h4{font-size:1.15rem;color:#79e7e6}.mod-addresses{margin:12px 0}
 .me-mission-shortcuts button.me-address-step{text-align:left;white-space:normal;font-size:1rem;text-transform:none;min-height:65px}.me-mission-shortcuts button span{display:block;font-size:.8rem;color:#c5dce6;font-weight:normal}.mod-address-tile button{min-height:36px;white-space:normal}
+
+.encounter-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0}
+.encounter-node{display:flex;flex-direction:column;align-items:stretch;gap:.35rem;padding:.65rem;background:#10232c;border:1px solid #36505d;border-top:3px solid var(--node-color)}
+.encounter-node small{color:var(--node-color)}
+.encounter-node[aria-current=true]{outline:2px solid var(--node-color);outline-offset:2px}
+.encounter-node button{text-align:left;white-space:normal}

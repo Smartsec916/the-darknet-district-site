@@ -1,0 +1,227 @@
+{
+  "id": "dropped-cardkey",
+  "name": "The Dropped Cardkey",
+  "enabled": false,
+  "start": "crossing",
+  "conditions": {
+    "quarter": "oldtown",
+    "chance": 5,
+    "intervalSeconds": 120,
+    "repeatable": false,
+    "radius": 25
+  },
+  "playtest": {
+    "quarter": "oldtown",
+    "delaySeconds": 7,
+    "x": 52,
+    "z": -84,
+    "yaw": 2.1,
+    "pitch": 0.05,
+    "crossing": "ot-mid"
+  },
+  "residence": {
+    "character": "kade-mercer"
+  },
+  "item": "kade-lace-apartment-key",
+  "nodes": [
+    {
+      "id": "crossing",
+      "kind": "trigger",
+      "name": "Old Town crossing",
+      "edges": [
+        {
+          "to": "approach"
+        }
+      ]
+    },
+    {
+      "id": "approach",
+      "kind": "move",
+      "name": "Kade walks to the crossing",
+      "edges": [
+        {
+          "to": "stumble"
+        }
+      ],
+      "character": "kade-mercer"
+    },
+    {
+      "id": "stumble",
+      "action": "stumble",
+      "kind": "animation",
+      "name": "Taxi accident",
+      "edges": [
+        {
+          "to": "drop"
+        }
+      ],
+      "character": "kade-mercer"
+    },
+    {
+      "id": "drop",
+      "kind": "item",
+      "name": "Drop and collect the apartment key",
+      "edges": [
+        {
+          "to": "flat"
+        }
+      ],
+      "item": "kade-lace-apartment-key"
+    },
+    {
+      "id": "flat",
+      "kind": "location",
+      "name": "Enter Kade and Lace’s apartment",
+      "edges": [
+        {
+          "to": "lace"
+        }
+      ],
+      "resident": "kade-mercer"
+    },
+    {
+      "id": "lace",
+      "kind": "choice",
+      "name": "Lace",
+      "edges": [
+        {
+          "label": "Free Lace",
+          "to": "rescue"
+        },
+        {
+          "label": "Be Kade Mercer",
+          "to": "roleplay"
+        },
+        {
+          "label": "Leave",
+          "to": "leave"
+        }
+      ],
+      "speaker": "lace"
+    },
+    {
+      "id": "rescue",
+      "action": "release",
+      "kind": "animation",
+      "name": "Free Lace",
+      "edges": [
+        {
+          "to": "rescued"
+        }
+      ],
+      "character": "lace"
+    },
+    {
+      "id": "roleplay",
+      "action": "roleplay",
+      "kind": "animation",
+      "name": "Be Kade Mercer",
+      "edges": [
+        {
+          "to": "cancel"
+        }
+      ],
+      "character": "kade-mercer",
+      "confirm": true
+    },
+    {
+      "id": "rescued",
+      "kind": "end",
+      "name": "Lace leaves safely",
+      "edges": []
+    },
+    {
+      "id": "cancel",
+      "kind": "end",
+      "name": "Restore the player",
+      "edges": []
+    },
+    {
+      "id": "leave",
+      "kind": "end",
+      "name": "Leave",
+      "edges": []
+    }
+  ],
+  "dialogue": [
+    {
+      "id": "lace_arrival_01",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_arrival_02",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_free_01",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_free_02",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_free_03",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_be_kade_01",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_be_kade_02",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    },
+    {
+      "id": "lace_be_kade_03",
+      "speaker": "lace",
+      "text": "",
+      "tags": "",
+      "delay": 0,
+      "animation": ""
+    }
+  ],
+  "dropPosition": {
+    "x": 57.15,
+    "z": -87.55,
+    "quarter": "oldtown"
+  },
+  "pickupDistance": 2.5,
+  "placement": {
+    "x": 1.5,
+    "y": 0,
+    "z": -0.8,
+    "yaw": -1.57,
+    "scale": 1,
+    "clip": "sz-tiedbf"
+  },
+  "roleplayClip": "sz-tiedbm"
+}

@@ -60,6 +60,7 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox
       - run: node tests/item-catalog-browser.cjs
       - run: node tests/equipment-studio-browser.cjs
+      - run: node tests/chance-encounter-editor-browser.cjs
 
   browser:
     name: Babylon stabilization smoke

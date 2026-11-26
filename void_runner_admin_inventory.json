@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "0c7117a6e19cf706",
+  "revision": "0ed66b7e63af3e04",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74347,6 +74347,66 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 45,
+      "text": "draft.start='start';draft.dialogue=[];delete draft.item;delete draft.residence;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 62,
+      "text": "const recordings=(g.dialogue||[]).flatMap(line=>line.recording?[line.recording]:[]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 151,
+      "text": "if(g.dialogue?.length){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 152,
+      "text": "const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 153,
+      "text": "for(const line of g.dialogue){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 154,
+      "text": "const row=element('fieldset');row.append(element('legend',line.id.replaceAll('_',' ')));dialogue.append(row);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 183,
+      "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-game.js",
+      "line": 51,
+      "text": "for(const line of (run.graph.dialogue||[]).filter(l=>l.id.startsWith('lace_'+prefix+'_')&&l.text.trim())){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-game.js",
+      "line": 60,
+      "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus,recording});}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 5,
+      "text": "trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/character-catalog.js",
       "line": 2,
       "text": "(function(r){r.VoidCharacterCatalog={\"version\":1,\"note\":\"Source of truth for the character creator. Ids only: no file paths are ever accepted from a player or the server. character-catalog.js is generated from this file by tools/assets/build-character-catalog.cjs (a test checks they match). The same file is read by void_runner_api.py to validate appearances. Accessories whose id starts with \\\"gear-\\\" are the cyberpunk gear parts (assets/models/gear): a look lists them with no mesh names because they are separate files skinned to the shared skeleton. None is ever a default.\",\"bases\":{\"male\":{\"label\":\"MALE\",\"height\":1.78,\"eyeHeight\":1.68,\"note\":\"Standard heights in metres. The body is scaled uniformly (never stretched) so its top of head equals this value; eye height places the camera. Change here to retune; nothing else needs editing.\"},\"female\":{\"label\":\"FEMALE\",\"height\":1.66,\"eyeHeight\":1.55}},\"looks\":{\"district-smuggler\":{\"base\":\"male\",\"model\":\"district-smuggler\",\"label\":\"SMUGGLER\",\"preset\":true,\"outfit\":\"district_smuggler.male_casualsuit01\",\"shoes\":\"district_smuggler.shoes03\",\"nativeHair\":\"district_smuggler.short04\",\"accessories\":{\"hat\":[\"district_smuggler.fedora_cocked\"],\"eyewear\":[\"district_smuggler.shades0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"hat\",\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"male\",\"model\":\"district-smuggler\"},\"body\":\"district_smuggler.body\",\"retired\":true,\"replacedBy\":\"street-casual-m\"},\"hacker-01\":{\"base\":\"male\",\"model\":\"hacker-01\",\"label\":\"NETRUNNER\",\"outfit\":\"hacker_01.male_casualsuit05\",\"shoes\":\"hacker_01.shoes03\",\"nativeHair\":\"hacker_01.short02\",\"accessories\":{\"eyewear\":[\"hacker_01.visor0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"eyewear\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"hacker_01.body\",\"retired\":true,\"replacedBy\":\"street-hacker\"},\"regular-01\":{\"base\":\"male\",\"model\":\"regular-01\",\"label\":\"WORKER\",\"outfit\":\"regular_01.male_worksuit01\",\"shoes\":\"regular_01.shoes03\",\"nativeHair\":\"regular_01.short03\",\"accessories\":{\"mask\":[\"regular_01.mask0\",\"regular_01.mask0.slit0\",\"regular_01.mask0.slit1\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"regular_01.body\",\"retired\":true,\"replacedBy\":\"street-office-m\"},\"vesper-trader\":{\"base\":\"male\",\"model\":\"vesper-trader\",\"label\":\"TRADER\",\"outfit\":\"vesper_trader.male_casualsuit03\",\"shoes\":\"vesper_trader.shoes01\",\"nativeHair\":\"vesper_trader.short02\",\"accessories\":{\"hat\":[\"vesper_trader.fedora01\"],\"mask\":[\"vesper_trader.mask0\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"hat\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"body\":\"vesper_trader.body\",\"retired\":true,\"replacedBy\":\"street-office-m-warm\"},\"district-resident\":{\"base\":\"female\",\"model\":\"district-resident\",\"label\":\"RESIDENT\",\"preset\":true,\"outfit\":\"district_resident.female_sportsuit01\",\"shoes\":\"district_resident.shoes04\",\"nativeHair\":\"district_resident.braid01\",\"accessories\":{\"mask\":[\"district_resident.mask0\",\"district_resident.mask0.slit0\",\"district_resident.mask0.slit1\"],\"gear-visor\":[],\"gear-collar\":[],\"gear-shoulders\":[],\"gear-chest\":[]},\"defaultAccessories\":[\"mask\"],\"hairOk\":[\"short01\",\"short02\",\"short03\",\"short04\",\"bob01\",\"bob02\",\"braid01\",\"long01\",\"ponytail01\"],\"legacy\":{\"gender\":\"female\",\"model\":\"district-resident\"},\"body\":\"district_resident.body\",\"retired\":true,\"replacedBy\":\"street-casual-f\"},\"ncz-neon\":{\"base\":\"female\",\"model\":\"ncz-neon\",\"label\":\"NEON\",\"outfit\":\"ncz_neon.female_sportsuit01\",\"shoes\":\"ncz_neon.shoes05\",\"nativeHair\":\"ncz_neon.long01\",\"accessories\":{\"collar\":[\"ncz_neon.co",
@@ -82799,7 +82859,7 @@
     "void-runner/anim-library.js": "b4879bd34b9014a5d73cd566c3fd72b15b81dfc628483b99667e6547aa455a45",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
-    "void-runner/apartment-integration.js": "afca2a806166184b67ded771255e2b291ecd3d5cc017d494ee2053bb308630a6",
+    "void-runner/apartment-integration.js": "1c485837e25f52c8447dfe3c27f8c3a3100a7184709f66f4a4c037ebe055a213",
     "void-runner/apartments.js": "f9784f206db205426d45e7118b6770a6fcc3fb7c87ac43de28e47632e60598f2",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
@@ -82816,6 +82876,10 @@
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
+    "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
+    "void-runner/chance-encounter-editor.js": "bfa56ae269e85fe1d16e329c1879904f49da183ca41fb45c52ea2424c5d36c68",
+    "void-runner/chance-encounter-game.js": "84f310f0f891bfd2ce626ccf8f2a982ea3f79818284d9635b2ffb9691b856b41",
+    "void-runner/chance-encounter.js": "61317223430ed450ec76bf6638a15a7af64a598341d7b782e977ffbabf8de7f0",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -82863,7 +82927,7 @@
     "void-runner/derelict-station.js": "fef89722c796bc18545313d6b37ba76c69ee0abac739fcee15c6da11756b9539",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "3b7d20ed061de37fb8632c808be0b1dc9673845c9d822efcb1841c335e63855f",
-    "void-runner/dev-tools.js": "42c8ce40a3d66f24e41e80f02eacc77f4fc376352287493f19f986d426a744be",
+    "void-runner/dev-tools.js": "ea5950e7065daac0db6656cc9e97f68d5bffb7ae9b48e6138b5cdd5c239d1009",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "69755eb313451dfdc5b9079e21610d4d6283c3142336aa345edd2733e8f07598",
@@ -83079,7 +83143,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "7d7320525c9a5fe8fd96b3464a780377f8c315bd98e33d3c3df6973c07eb5181",
+    "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",

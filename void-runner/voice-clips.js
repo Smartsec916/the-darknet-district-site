@@ -113,8 +113,8 @@
  // now: the line being said ({who, text, ended, endedAt}): a Comms call with recorded lines (personal-device.js) moves on when its line has been heard.
  let now=null;
  async function speak(o){const job={who:o&&o.characterId,text:o&&o.text,ended:false,endedAt:0};now=job;try{return await speakOne(o);}finally{job.ended=true;job.endedAt=performance.now();}}
- async function speakOne({characterId,text,bus,ordinary}){
-  cancel();const mine=seq,im=imported(characterId,text,ordinary),line=im?importLine(im,characterId):lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
+ async function speakOne({characterId,text,bus,ordinary,recording}){
+  cancel();const mine=seq,im=recording||imported(characterId,text,ordinary),line=im?importLine(im,characterId):lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
   // The conversation's line this recording is for (scenes.js speakLine): told when it starts and ends, so a walking conversation moves on when it has been heard.
   const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};
   const ctx=bus.context,data=await clip(ctx,line);if(mine!==seq)return;const cast=manifest?.cast?.[line.speaker]||extraCast[line.speaker]||{};

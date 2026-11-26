@@ -1216,6 +1216,54 @@ def shop_state(db, uid):
     return jsonify(items_service.player_state(db, uid, minute=keycard_minute(), session=session))
 
 
+@api.get('/chance-encounters')
+def chance_encounters():
+    import void_runner_encounters as encounters
+    if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
+        return jsonify(encounters=[])
+    db, _, _ = services()
+    return jsonify(encounters.catalog(db))
+
+
+@api.post('/chance-encounters/opportunity')
+@signed_in
+def encounter_opportunity(db, uid):
+    import void_runner_encounters as encounters
+    return jsonify(encounters.opportunity(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/chance-encounters/resume')
+@signed_in
+def resume_encounter(db, uid):
+    import void_runner_encounters as encounters
+    body = request.get_json(silent=True)
+    return jsonify(encounters.resume(db, uid, body.get('id') if isinstance(body, dict) else None))
+
+
+@api.post('/chance-encounters/drop')
+@signed_in
+def encounter_drop(db, uid):
+    import void_runner_encounters as encounters
+    return jsonify(encounters.residential_drop(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/chance-encounters/outcome')
+@signed_in
+def encounter_outcome(db, uid):
+    import void_runner_encounters as encounters
+    return jsonify(encounters.outcome(db, uid, request.get_json(silent=True)))
+
+
+@api.route('/developer/chance-encounters', methods=['GET', 'POST'])
+@signed_in
+def edit_chance_encounters(db, uid):
+    import void_runner_encounters as encounters
+    items_admin(uid)
+    if request.method == 'POST':
+        return jsonify(encounters.edit(db, uid, request.get_json(silent=True)))
+    return jsonify(encounters.catalog(db, developer=True))
+
+
 @api.get('/keycards/drops/<door>')
 @signed_in
 def keycard_drops(db, uid, door):

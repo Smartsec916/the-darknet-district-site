@@ -103,7 +103,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
   if(!request)return;
   try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.uid=uid;this.receive(data);devButton.hidden=false;this.testCredits();const first=!this.confirmed;this.confirmed=true;
-   this.loadCompanions().then(()=>globalThis.VoidVRCompanionStudio.restore()).catch(console.warn);let tab=null;try{const ret={first,testing:!!T?.active,open:!devPanel.hidden,missions:!!sessionStorage.getItem('mission-editor-return'),npcs:!!sessionStorage.getItem('npc-editor-return')};tab=ES?ES.autoOpen(ret):first&&!ret.testing?(ret.missions?'missions':ret.npcs?'npcs':null):null;}catch{}if(tab)this.open(tab);}catch{/* Fail closed; ordinary players get no private controls. */}
+   this.loadCompanions().then(()=>globalThis.VoidVRCompanionStudio.restore()).catch(console.warn);let tab=null;try{const ret={first,testing:!!T?.active,open:!devPanel.hidden,missions:!!sessionStorage.getItem('mission-editor-return'),npcs:!!sessionStorage.getItem('npc-editor-return')};tab=ES?ES.autoOpen(ret):first&&!ret.testing?(ret.missions?'missions':ret.npcs?'npcs':null):null;}catch{}if(!T?.active&&sessionStorage.getItem('chance-editor-return'))tab='encounters';if(tab)this.open(tab);}catch{/* Fail closed; ordinary players get no private controls. */}
  },
  /* The small bar over everything (21 Nov 2026): "Sign-in expired" with SIGN IN (a silent token refresh first; Google only if signed out), and "Update ready" with
     APPLY UPDATE (the only way a new build reloads the page while the editor was used or a draft plays). Neither closes the editor or touches its work. */
@@ -121,11 +121,11 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  open(tab){if(!this.authorized)return;this.used=true;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
  // Start (the welcome screen with the big task cards) comes first; every other tool is one click away. Plain names; each with an icon.
- sections:[['home','Start'],['missions','Mission Editor'],['world-map','World Map'],['npcs','NPCs'],['companions','VR Companions'],['test','Test & Jump To'],['zones','Zones'],['balance','Combat Balance'],['studios','Studios'],['achievements','Achievements'],['guide','Guide']],
- sectionIcons:{'world-map':'jump',home:'home',missions:'mission',npcs:'people',companions:'people',test:'jump',zones:'balance',balance:'balance',studios:'guide',achievements:'trophy',guide:'guide'},
+ sections:[['home','Start'],['missions','Mission Editor'],['encounters','Chance Encounters'],['world-map','World Map'],['npcs','NPCs'],['companions','VR Companions'],['test','Test & Jump To'],['zones','Zones'],['balance','Combat Balance'],['studios','Studios'],['achievements','Achievements'],['guide','Guide']],
+ sectionIcons:{encounters:'jump','world-map':'jump',home:'home',missions:'mission',npcs:'people',companions:'people',test:'jump',zones:'balance',balance:'balance',studios:'guide',achievements:'trophy',guide:'guide'},
  loadCompanions(){return this.companionLoad??=new Promise((ok,no)=>{const s=document.createElement('script');s.src='void-runner/vr-companion-studio.js';s.onload=ok;s.onerror=()=>{this.companionLoad=null;no(Error('Could not load Companion Studio'));};document.head.append(s);});},
  // The Mission Editor's scripts load only when a confirmed developer opens it (players never download them).
- editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/module-editor.js','void-runner/cult-room-editor.js','void-runner/world-map-editor.js','void-runner/mission-blocks.js','void-runner/mission-blocks-view.js','void-runner/zone-editor.js','void-runner/mission-mechanics-editor.js','void-runner/mission-editor.js','void-runner/npc-behaviour.js','void-runner/npc-library.js','void-runner/npc-editor.js','void-runner/editor-wizard.js','void-runner/editor-home.js'],
+ editorScripts:['void-runner/chance-encounter-editor.js','admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/module-editor.js','void-runner/cult-room-editor.js','void-runner/world-map-editor.js','void-runner/mission-blocks.js','void-runner/mission-blocks-view.js','void-runner/zone-editor.js','void-runner/mission-mechanics-editor.js','void-runner/mission-editor.js','void-runner/npc-behaviour.js','void-runner/npc-library.js','void-runner/npc-editor.js','void-runner/editor-wizard.js','void-runner/editor-home.js'],
  loadGuide(){return this.guideLoad??=new Promise((ok,fail)=>{const s=document.createElement('script');s.src='void-runner/mission-editor-guide.js';s.onload=ok;s.onerror=()=>{this.guideLoad=null;fail(new Error('Could not load void-runner/mission-editor-guide.js'));};document.head.append(s);});},
  loadEditor(){return this.editorLoad??=this.editorScripts.reduce((p,src)=>p.then(()=>new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>fail(new Error('Could not load '+src));document.head.append(s);})),Promise.resolve());},
  render(){
@@ -140,6 +140,11 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   // Developer Tools > NPCs (18 Nov 2026): the same on-demand scripts and the same draft as the Mission Editor (npc-editor.js)
   if(this.tab==='npcs'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidNPCEditor)return VoidNPCEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the NPCs…</p>';this.loadEditor().then(()=>{if(this.tab==='npcs'&&!devPanel.hidden)VoidNPCEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The NPCs tab could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   // Developer Tools > Zones (19 Nov 2026): the owner's table of Friendly / Neutral / Hostile areas and location types (zone-editor.js; saved in the same draft)
+  if(this.tab==='encounters'){
+   devPanel.innerHTML=head+'<section data-encounters>Loading encounters…</section>';
+   const host=devPanel.querySelector('[data-encounters]');
+   this.loadEditor().then(()=>{if(host.isConnected)return VoidEncounterEditor.mount(host,this);}).catch(error=>{host.textContent=error.message;});return;
+  }
   if(this.tab==='world-map'){
    devPanel.innerHTML=head;
    const content=document.createElement('section');devPanel.append(content);
