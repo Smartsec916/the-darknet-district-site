@@ -2254,3 +2254,4 @@ So the 2026-11-11 list below is partly done: the ten pods and entrance fix are l
 5. Update this handoff with commit SHA, run IDs, outcomes, new blockers and release status after each meaningful milestone.
 
 **For historical story decisions and older implementation notes:** `VOID_RUNNER_HANDOFF.md` remains reference material, but its October 15 `main` SHA, tutorial-first start and old mission roadmap are **not current**.
+Tacta is staged in the NPC Library with the tested 95-clip private model from licensed asset PR 11. Her chosen residence is Old Town 35, apartment 101. Staging alone does not spawn her or schedule visits with Iris.
