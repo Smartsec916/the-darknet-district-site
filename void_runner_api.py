@@ -1210,7 +1210,10 @@ def keycard_minute():
 @api.get('/shop/state')
 @signed_in
 def shop_state(db, uid):
-    return jsonify(items_service.player_state(db, uid, minute=keycard_minute()))
+    session = request.args.get('connectedSession')
+    if session is not None and not re.fullmatch('[a-zA-Z0-9_-]{16,64}', session):
+        raise DraftError('Invalid play session.')
+    return jsonify(items_service.player_state(db, uid, minute=keycard_minute(), session=session))
 
 
 @api.get('/keycards/drops/<door>')

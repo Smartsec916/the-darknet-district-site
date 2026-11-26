@@ -2,6 +2,8 @@
 (function(root){
  'use strict';
  let uid=null,active=[],data=null,offset=0,scene=null,audio=null,retryAt=0,revision=0,lastPoll=0,pending=null;
+ let clockSession=null;
+ const inCampaign=()=>!root.VoidDevTest?.active&&typeof mode!=='undefined'&&['walking','walking-info','play','dock','preparing-flight','preparing'].includes(mode);
  const reduced=()=>root.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false;
  const settingsKey='void-runner-consumable-accessibility';
  const defaults=()=>({motion:!reduced(),distortion:!reduced(),flashing:false});
@@ -13,7 +15,8 @@
   const user=root.VoidAccount?.user;if(!user||user.isAnonymous)throw Error('Sign in with a District account.');
   if(!root.VoidDevTest?.active && typeof state!=='undefined' && root.VoidClock &&
      ['shop/state','shop/purchase','keycards/access','keycards/move','keycards/reward'].includes(path)){
-   path+='?gameMinute='+root.VoidClock.minutes(state);
+   const pulse=path==='shop/state'&&inCampaign()&&!document.hidden;
+   path+=(pulse?'?connectedSession='+(clockSession??=crypto.randomUUID())+'&':'?')+'gameMinute='+root.VoidClock.minutes(state);
   }
   const id=user.uid;let token=await user.getIdToken();
   const call=()=>{if(root.VoidAccount?.user?.uid!==id)throw Error('Account changed.');return root.VoidNetwork.request(path,{token,body,scope:id+':shop'});};
@@ -36,7 +39,9 @@
  function loop(){
   const who=root.VoidAccount?.user?.uid;
   if(who!==uid){sounds?.stopAll();uid=who;active=[];data=null;lastPoll=0;retryAt=0;revision++;pending=null;}
-  if(who&&root.VoidAccount.profileReady&&!document.hidden&&Date.now()>retryAt&&Date.now()-lastPoll>60000){
+  if(!inCampaign()||document.hidden)clockSession=null;
+  const interval=data?.connectedClockActive&&inCampaign()?15000:60000;
+  if(who&&root.VoidAccount.profileReady&&!document.hidden&&Date.now()>retryAt&&Date.now()-lastPoll>interval){
    retryAt=Date.now()+15000;refresh().catch(()=>{});
   }
   if(root.VoidAudio?.ready){sounds??=root.VoidConsumableAudio.cues(root.VoidConsumableAudio.playAsset);sounds.tick(active,now());}

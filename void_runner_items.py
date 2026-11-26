@@ -177,10 +177,12 @@ def keycard_problems(card):
         return ['Set the transfer, drop, pickup and bearer permissions.']
     if not all(_plain(card.get(k, ''), 600) for k in ('notes', 'privateNotes')):
         return ['Keycard notes must be plain text of at most 600 characters.']
-    if card.get('expiryClock', 'real') not in ('real', 'game') or not _int(card.get('gameMinutes', 0), 0, 5256000):
+    if card.get('expiryClock', 'real') not in ('real', 'game', 'connected') or not _int(card.get('gameMinutes', 0), 0, 5256000):
         return ['Choose a lifetime clock and a whole number of gameplay minutes.']
     if not _int(card.get('duration', 0), 0, 315360000):
         return ['Choose a valid keycard lifetime in seconds.']
+    if card.get('expiryClock') == 'connected' and (card['transferable'] or card['bearer'] or not card['duration']):
+        return ['Connected-time cards require a duration and a single authorized holder.']
     return []
 
 
@@ -197,7 +199,8 @@ def issue_card(item, owner, identity, now):
         'id': identity, 'template': item['id'], 'name': item['name'], 'icon': item.get('icon', ''),
         'description': item.get('description', ''), 'doors': list(rules['doors']),
         'notes': rules.get('notes', ''), 'discoverable': rules.get('discoverable', True), 'issuedTo': _tag(owner),
-        'expires': int(now) + rules['duration'] if rules.get('duration') and rules.get('expiryClock') != 'game' else 0,
+        'expires': int(now) + rules['duration'] if rules.get('duration') and rules.get('expiryClock', 'real') == 'real' else 0,
+        **({'connectedDuration': rules['duration']} if rules.get('expiryClock') == 'connected' else {}),
         **({'gameRemaining': rules['gameMinutes']} if rules.get('expiryClock') == 'game' and rules.get('gameMinutes') else {}),
         **{flag: rules[flag] for flag in CARD_FLAGS}
     }
@@ -251,7 +254,7 @@ def grant_card(db, editor, body):
                 raise DraftError('This NPC is not registered in the game.', 404)
             holder = db.collection('vr_npc_keycards').document(target)
             bag = _clean_player(holder.get(transaction=tx).to_dict())
-            _receive_card(bag, card)
+            _receive_card(bag, card, npc=True)
             tx.set(holder, bag)
         else:
             if not db.collection('vr_players').document(_tag(target)).get(transaction=tx).to_dict():
@@ -375,7 +378,34 @@ def checkpoint_card_clock(db, tx, uid, prior, campaign):
     tx.set(ref, bag)
 
 
-def timed_inventory(db, uid, minute):
+def start_connected_card(bag, card):
+    if 'connectedDuration' in card:
+        clock = bag.setdefault('connectedClock', {'total': 0, 'sessions': {}})
+        card.setdefault('connectedUntil', clock['total'] + card['connectedDuration'])
+        clock['lastExpiry'] = max(clock.get('lastExpiry', 0), card['connectedUntil'])
+
+
+def connected_heartbeat(clock, session, now):
+    """Count the union of observed session intervals, ignoring gaps and offline time."""
+    sessions = {k: t for k, t in clock['sessions'].items() if now - 45 <= t <= now}
+    prior = sessions.get(session)
+    if prior is not None:
+        recent = [(span['start'], span['end']) for span in clock.get('intervals', []) if span['end'] >= now - 45]
+        overlap = sum(max(0, min(end, now) - max(start, prior)) for start, end in recent)
+        clock['total'] += now - prior - overlap
+        merged = []
+        for start, end in sorted([*recent, (prior, now)]):
+            if merged and start <= merged[-1][1]:
+                merged[-1][1] = max(merged[-1][1], end)
+            else:
+                merged.append([start, end])
+        # Firestore does not store nested arrays.
+        clock['intervals'] = [{'start': start, 'end': end} for start, end in merged]
+    sessions[session] = now
+    clock['sessions'] = dict(sorted(sessions.items(), key=lambda pair: pair[1])[-4:])
+
+
+def timed_inventory(db, uid, minute, session=None):
     from firebase_admin import firestore
     ref = _player_ref(db, uid)
 
@@ -384,14 +414,20 @@ def timed_inventory(db, uid, minute):
         bag = _clean_player(ref.get(transaction=tx).to_dict())
         previous = bag.get('cardMinute')
         tick_inventory(db, uid, bag, tx, minute)
-        if bag.get('cardMinute') != previous:
+        clock = bag.get('connectedClock')
+        pulse = session and clock and clock['total'] < clock.get('lastExpiry', 0)
+        if pulse:
+            connected_heartbeat(clock, session, int(time.time()))
+        if pulse or bag.get('cardMinute') != previous:
             tx.set(ref, bag)
         return bag
     return read(db.transaction())
 
 
-def card_allows(card, holder, target, now):
-    return (target in card['doors'] and card.get('gameRemaining', 1) > 0 and (not card['expires'] or card['expires'] > now)
+def card_allows(card, holder, target, now, connected=0):
+    return (target in card['doors'] and card.get('gameRemaining', 1) > 0
+            and ('connectedDuration' not in card or card.get('connectedUntil', 0) > connected)
+            and (not card['expires'] or card['expires'] > now)
             and (card['bearer'] or card['issuedTo'] == _tag(holder)))
 
 
@@ -407,7 +443,7 @@ def card_access(db, uid, target, now=None, minute=None):
     if not valid_card_door(target):
         raise DraftError('Choose a registered door.')
     player = timed_inventory(db, uid, minute)
-    return any(card_allows(card, uid, target, time.time() if now is None else now)
+    return any(card_allows(card, uid, target, time.time() if now is None else now, player.get('connectedClock', {}).get('total', 0))
                for card in player['cards'].values())
 
 
@@ -505,9 +541,11 @@ def remove_card(player, card):
         player['owned'].pop(card['template'], None)
 
 
-def _receive_card(player, card):
+def _receive_card(player, card, npc=False):
     if len(player['cards']) >= 64:
         raise DraftError('The receiving inventory cannot hold this card.', 409)
+    if not npc:
+        start_connected_card(player, card)
     player['cards'][card['id']] = card
     player['owned'][card['template']] = player['owned'].get(card['template'], 0) + 1
 
@@ -981,7 +1019,7 @@ def _player_ref(db, uid):
 def _clean_player(rec):
     rec = rec or {}
     owned = {k: v for k, v in (rec.get('owned') or {}).items() if isinstance(k, str) and type(v) is int and v > 0}
-    return {**({'cardMinute': rec['cardMinute']} if 'cardMinute' in rec else {}), 'claimedCards': dict(rec.get('claimedCards') or {}), 'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
+    return {**{k: rec[k] for k in ('cardMinute', 'connectedClock') if k in rec}, 'claimedCards': dict(rec.get('claimedCards') or {}), 'cards': dict(rec.get('cards') or {}), 'owned': owned, 'active': list(rec.get('active') or []), 'nonces': list(rec.get('nonces') or []), 'last': dict(rec.get('last') or {}), 'service': rec.get('service')}
 
 
 def _span(defn):
@@ -1022,16 +1060,20 @@ def modifiers_now(active, now):
     return {k: max(SPEC['modifiers'][k]['min'], min(SPEC['modifiers'][k]['max'], v)) for k, v in total.items()}
 
 
-def player_state(db, uid, now=None, minute=None):
+def player_state(db, uid, now=None, minute=None, session=None):
     now = now or time.time()
     content = live(db)['content']
-    p = timed_inventory(db, uid, minute)
+    p = timed_inventory(db, uid, minute, session)
+    clock = p.get('connectedClock', {})
+    for card in p['cards'].values():
+        if 'connectedUntil' in card:
+            card['connectedRemaining'] = max(0, card['connectedUntil'] - clock['total'])
     active = _active_view(p, content, now)
     items = {i['id']: {k: i.get(k) for k in ['id', 'name', 'description', 'icon', 'category', 'kind', 'rarity', 'stack', 'animation', 'registryId', 'useSound']} for i in content['items']}
     rewards = [i for i in content['items'] if reward_mission(i) and reward_mission(i)+'/'+i['id'] not in p['claimedCards']]
     campaign = db.collection('vr_players').document(_tag(uid)).get().to_dict() or {} if rewards else {}
     available = [{'id': i['id'], 'name': i['name']} for i in rewards if completed_mission(campaign, reward_mission(i))]
-    return {'cardRewards': available, 'keycards': [{k:v for k,v in c.items() if k != 'issuedTo' and (k != 'doors' or c.get('discoverable', True))} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
+    return {'connectedClockActive': clock.get('lastExpiry', 0) > clock.get('total', 0), 'cardRewards': available, 'keycards': [{k:v for k,v in c.items() if k != 'issuedTo' and (k != 'doors' or c.get('discoverable', True))} for c in p['cards'].values()], 'service': p['service'] if p['service'] and p['service'].get('expires', 0) > now else None, 'owned': p['owned'], 'items': {k: v for k, v in items.items() if k in p['owned']}, 'active': active, 'modifiers': modifiers_now(active, now), 'now': now, 'version': live(db)['version']}
 
 
 def _nonce(payload):
@@ -1121,6 +1163,7 @@ def purchase(db, uid, payload, now=None, minute=None):
                 raise DraftError('Your keycard inventory is full.', 409)
             card_id = _tag(uid + '/' + nonce)
             card = issue_card(item, uid, card_id, now)
+            start_connected_card(p, card)
             advance_cards(p, max(saved_minute(campaign), minute or 0))
             p['cards'][card_id] = card
         if not service:

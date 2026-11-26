@@ -92,6 +92,7 @@
    });
    if(card.notes)line(card.notes);
    if(Number.isInteger(card.gameRemaining))line(card.gameRemaining ? card.gameRemaining+' gameplay minutes remaining' : 'Expired');
+   if(Number.isInteger(card.connectedRemaining))line(card.connectedRemaining ? Math.ceil(card.connectedRemaining/60)+' minutes of play remaining' : 'Expired');
    if(card.expires)line('Expires '+new Date(card.expires*1000).toLocaleString());
    if(card.transferable){
     const recipient=document.createElement('input');recipient.setAttribute('aria-label','Recipient account ID');recipient.placeholder='Recipient account ID';
