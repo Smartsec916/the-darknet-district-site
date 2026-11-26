@@ -276,7 +276,7 @@
     }
     group.append(btn('Preview this sequence in booth',async()=>{
      const sample=structuredClone(cfg);sample.sequences=[{...sample.sequences[i],weight:1}];
-     const result=await api.previewVR(sample);if(result?.problem||result?.why)note.textContent=result.problem||result.why;
+     const result=await api.previewVR(sample);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
     }));
     if(s.clips.length<16)group.append(btn('Add motion',()=>{s.clips.push(api.clipIds[0]);render();}));
     if(cfg.sequences.length>1)group.append(btn('Remove sequence',()=>{cfg.sequences.splice(i,1);render();}));
@@ -284,7 +284,7 @@
    if(cfg.sequences.length<12)tracks.append(btn('Add sequence',()=>{cfg.sequences.push({weight:1,speed:1,clips:[api.clipIds[0]]});render();}));
   }
   box.append(tracks,btn('Play full VR visit',async()=>{
-   const result=await api.previewVR(cfg);if(result?.problem||result?.why)note.textContent=result.problem||result.why;
+   const result=await api.previewVR(cfg);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
   }),btn('Save VR routine to draft',()=>{
    if(!api.validVR(cfg)){note.textContent='Check the field ranges and enable at least one sequence.';return;}
    const d=S().local();d.pixelVR=structuredClone(cfg);S().saveLocal(d);note.textContent='Saved. Publish the draft from Mission Editor.';
