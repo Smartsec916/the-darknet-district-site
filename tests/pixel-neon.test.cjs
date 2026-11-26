@@ -63,7 +63,7 @@ test('Pixel enters the left VR booth while Neon reaches the bar, and both paths 
 
 test('authored VR visit uses the same timing for late joiners and zero-weight sequences stay disabled',()=>{
  const {activityPose,makeRoute,validVR,vrDefaults}=require('../void-runner/pixel-neon.js');
- const c={...vrDefaults,duration:80,yaw:-20,x:-12.75,sequences:[{clips:['missf'],speed:1,weight:0},{clips:['doubleactf1'],speed:1.5,weight:3}]};
+ const c={...vrDefaults,duration:80,yaw:-20,x:-12.75,sequences:[{clips:['missf'],speed:1,weight:0},{clips:['missf','doubleactf1'],enabled:[false,true],speed:1.5,weight:3}]};
  assert.ok(validVR(c));assert.equal(validVR({...c,sequences:[]}),false);
  const route=makeRoute(life,c),other=makeRoute(life,structuredClone(c));let samples=0;
  for(let t=0;t<3000;t+=1.5){

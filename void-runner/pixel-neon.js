@@ -24,13 +24,14 @@
   const range=(v,a,b)=>Number.isFinite(v)&&v>=a&&v<=b;
   return !!c&&range(c.x,-13,-12)&&range(c.z,32,33)&&range(c.yaw,-180,180)&&range(c.fade,.05,2)&&range(c.duration,50,300)&&
    Array.isArray(c.sequences)&&c.sequences.length>0&&c.sequences.length<=12&&c.sequences.some(s=>s?.weight>0)&&
-   c.sequences.every(s=>s&&Number.isInteger(s.weight)&&range(s.weight,0,100)&&range(s.speed,.25,2)&&Array.isArray(s.clips)&&s.clips.length>0&&s.clips.length<=16&&s.clips.every(id=>Object.hasOwn(vrLengths,id)));
+   c.sequences.every(s=>s&&Number.isInteger(s.weight)&&range(s.weight,0,100)&&range(s.speed,.25,2)&&Array.isArray(s.clips)&&s.clips.length>0&&s.clips.length<=16&&s.clips.every(id=>Object.hasOwn(vrLengths,id))&&
+    (s.enabled===undefined||(Array.isArray(s.enabled)&&s.enabled.length===s.clips.length&&s.enabled.every(v=>typeof v==='boolean')&&(!s.weight||s.enabled.some(Boolean)))));
  }
  function vrFrame(visit,time,remaining,config){
   const total=config.sequences.reduce((n,s)=>n+s.weight,0);
   let ticket=((visit*.61803398875)%1+1)%1*total;
   const selected=config.sequences.find(s=>{ticket-=s.weight;return ticket<0;});
-  const sequence=selected.clips.map(id=>[id==='doubleactf1'?'doggyf':id,vrLengths[id]/selected.speed]);
+  const sequence=selected.clips.filter((_,i)=>selected.enabled?.[i]!==false).map(id=>[id==='doubleactf1'?'doggyf':id,vrLengths[id]/selected.speed]);
   const duration=sequence.reduce((n,step)=>n+step[1],0)+2;
   let phase=time%duration;
   if(remaining<1||phase<1)return {clip:'idle'};

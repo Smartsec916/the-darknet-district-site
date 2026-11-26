@@ -261,6 +261,12 @@ def _pixel_vr_valid(config):
             return False
         if not 1 <= len(s['clips']) <= 16 or not all(c in names for c in s['clips']):
             return False
+        if 'enabled' in s:
+            enabled = s['enabled']
+            if not isinstance(enabled, list) or len(enabled) != len(s['clips']) or not all(type(v) is bool for v in enabled):
+                return False
+            if s['weight'] and not any(enabled):
+                return False
     return any(s['weight'] for s in sequences)
 
 

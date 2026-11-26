@@ -271,14 +271,21 @@
     for(const [j,id] of s.clips.entries()){
      const row=el('div'),select=el('select','','',{'aria-label':'Animation '+(j+1)});
      for(const name of api.clipIds)select.add(new Option(name,name));select.value=id;select.onchange=()=>{s.clips[j]=select.value;};row.append(select);
-     if(j)row.append(btn('Move earlier',()=>{[s.clips[j-1],s.clips[j]]=[s.clips[j],s.clips[j-1]];render();}));
-     if(s.clips.length>1)row.append(btn('Remove motion',()=>{s.clips.splice(j,1);render();}));group.append(row);
+     const enabled=el('input','','',{type:'checkbox'});enabled.checked=s.enabled?.[j]!==false;
+     enabled.onchange=()=>{s.enabled??=s.clips.map(()=>true);s.enabled[j]=enabled.checked;};
+     const label=el('label','Enabled ');label.append(enabled);row.append(label);
+     row.append(btn('Preview motion in booth',async()=>{
+      const sample=structuredClone(cfg);sample.sequences=[{clips:[s.clips[j]],weight:1,speed:s.speed}];
+      const result=await api.previewVR(sample);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
+     }));
+     if(j)row.append(btn('Move earlier',()=>{[s.clips[j-1],s.clips[j]]=[s.clips[j],s.clips[j-1]];if(s.enabled)[s.enabled[j-1],s.enabled[j]]=[s.enabled[j],s.enabled[j-1]];render();}));
+     if(s.clips.length>1)row.append(btn('Remove motion',()=>{s.clips.splice(j,1);s.enabled?.splice(j,1);render();}));group.append(row);
     }
     group.append(btn('Preview this sequence in booth',async()=>{
      const sample=structuredClone(cfg);sample.sequences=[{...sample.sequences[i],weight:1}];
      const result=await api.previewVR(sample);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
     }));
-    if(s.clips.length<16)group.append(btn('Add motion',()=>{s.clips.push(api.clipIds[0]);render();}));
+    if(s.clips.length<16)group.append(btn('Add motion',()=>{s.clips.push(api.clipIds[0]);s.enabled?.push(true);render();}));
     if(cfg.sequences.length>1)group.append(btn('Remove sequence',()=>{cfg.sequences.splice(i,1);render();}));
    }
    if(cfg.sequences.length<12)tracks.append(btn('Add sequence',()=>{cfg.sequences.push({weight:1,speed:1,clips:[api.clipIds[0]]});render();}));
