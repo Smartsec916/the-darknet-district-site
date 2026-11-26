@@ -47,6 +47,7 @@
     },
     {
       "id": "stumble",
+      "action": "stumble",
       "kind": "animation",
       "name": "Taxi accident",
       "edges": [
@@ -100,6 +101,7 @@
     },
     {
       "id": "rescue",
+      "action": "release",
       "kind": "animation",
       "name": "Free Lace",
       "edges": [
@@ -111,6 +113,7 @@
     },
     {
       "id": "roleplay",
+      "action": "roleplay",
       "kind": "animation",
       "name": "Be Kade Mercer",
       "edges": [

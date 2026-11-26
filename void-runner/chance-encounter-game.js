@@ -195,14 +195,22 @@
  async function roleplay(run){
   if(!run.lace)await flat(run,true);
   if(await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
-  await lines(run,'be_kade');
-  const figure=await model(run,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
-  const p=run.lace.parent.position;standing(figure,{x:p.x-1.25,y:p.y,z:p.z,yaw:Math.PI/2});
+  const sceneController=new AbortController(),phase={...run,controller:sceneController,signal:sceneController.signal,owned:new Set()};
+  const cancel=()=>sceneController.abort(new DOMException('Roleplay ended','AbortError'));
+  run.signal.addEventListener('abort',cancel,{once:true});
   try{
-   await assignedClip(figure,kadeLook,run.graph.roleplayClip);
-   await prompt(run,'Playing as Kade Mercer',['Cancel and leave apartment']);
+   const animate=async()=>{
+    await lines(phase,'be_kade');
+    const figure=await model(phase,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
+    const p=run.lace.parent.position;standing(figure,{x:p.x-1.25,y:p.y,z:p.z,yaw:Math.PI/2});
+    await assignedClip(figure,kadeLook,run.graph.roleplayClip);
+    await until(()=>walkingLocation?.part!=='flat',phase.signal);
+   };
+   await Promise.race([prompt(phase,'Playing as Kade Mercer',['Cancel and leave apartment']),animate()]);
   }finally{
-   figure.parent.dispose();run.owned.delete(figure.parent);
+   cancel();run.signal.removeEventListener('abort',cancel);
+   for(const obj of phase.owned)obj.dispose();
+   if(run.panel)run.panel.hidden=true;
    if(walkingLocation?.part==='flat')await root.VoidApartments.backToHall();
   }
  }
@@ -213,14 +221,20 @@
    run.signal.throwIfAborted();
    const node=sequence.node;let choice;
    if(node.kind==='move')await walk(run);
-   if(node.kind==='item'){if(run.actor)play(run.actor,'floor-knees-down',false);await drop(run);}
+   if(node.kind==='item')await drop(run);
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
    if(node.kind==='choice'){
-    if(!run.lace&&run.graph.id==='dropped-cardkey'){run.holds=true;await flat(run,true);}
+    if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}
     choice=await prompt(run,node.name,node.edges.map(e=>e.label));
    }
-   if(node.kind==='animation'&&node.id==='rescue')await releaseLace(run);
-   if(node.kind==='animation'&&node.id==='roleplay')await roleplay(run);
+   if(node.kind==='animation'){
+    if(node.action==='release')await releaseLace(run);
+    else if(node.action==='roleplay')await roleplay(run);
+    else if(node.action==='stumble'){
+     if(!run.actor)await walk(run);
+     play(run.actor,'floor-knees-down',false);
+    }else throw Error('Choose a supported animation action for '+node.name+'.');
+   }
    if(node.kind==='end'){
     if(!run.private)await root.VoidConsumableGame.request('chance-encounters/outcome',{id:run.graph.id,run:run.token,outcome:node.id});
     break;

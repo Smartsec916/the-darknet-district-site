@@ -60,6 +60,8 @@ def validate(graph):
             raise DraftError('Each node needs a distinct ID.')
         if not isinstance(node.get('kind'), str) or node['kind'] not in KINDS or not _plain(node.get('name'), 100):
             raise DraftError('Choose a supported type and label for each node.')
+        if node['kind'] == 'animation' and node.get('action') not in ('stumble', 'release', 'roleplay'):
+            raise DraftError('Choose a supported animation action for '+node['name']+'.')
         by_id[node['id']] = node
     if not identifier(graph.get('start')) or graph['start'] not in by_id:
         raise DraftError('Choose a starting node.')

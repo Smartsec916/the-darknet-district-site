@@ -75,7 +75,10 @@
    const g=graph();if(!g){host.append(message);return;}
    bar.append(button('Duplicate',()=>newGraph(true)),button('Save draft',()=>send('save')),button('Publish',()=>send('publish')),button('Delete',()=>send('delete')));
    const launch=async(start)=>{
-    try{await root.VoidEncounterGame.playtest(structuredClone(g),start);}
+    try{
+     sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
+     await root.VoidEncounterGame.playtest(structuredClone(g),start);
+    }
     catch(e){message.textContent=e.message;}
    };
    bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
@@ -93,13 +96,27 @@
     field(conditions,label+' (comma separated)',input((g.conditions[key]||[]).join(', '),v=>{g.conditions[key]=v.split(',').map(s=>s.trim()).filter(Boolean);mark();}));
    const names=g.nodes.map(n=>[n.id,n.name]);field(props,'First node',select(names,g.start,v=>{g.start=v;mark();draw();}));
    const setup=element('details');setup.append(element('summary','Playtest starting position'));host.append(setup);
+   const coords={},marker=()=>({id:'player',x:g.playtest.x,z:g.playtest.z,yaw:g.playtest.yaw,color:'#4debd5',label:'Player start',drag:true,facing:true});
+   let map;
+   const updateStart=changes=>{
+    Object.assign(g.playtest,changes);
+    for(const [key,value] of Object.entries(changes))if(coords[key])coords[key].value=value;
+    map?.set({area:g.playtest.quarter,markers:[marker()]});mark();
+   };
    for(const [key,label] of [['x','East / west'],['z','North / south'],['yaw','Facing (radians)'],['pitch','Camera pitch'],['delaySeconds','Activation delay (seconds)']]){
-    field(setup,label,input(g.playtest[key],v=>{g.playtest[key]=v;mark();},'number'));
+    coords[key]=field(setup,label,input(g.playtest[key],v=>updateStart({[key]:v}),'number'));
    }
    setup.append(button('Set From Current Player Position',()=>{
     if(typeof walker==='undefined'||!walker||walkingLocation?.area!=='street'){message.textContent='Stand on the street at the desired starting point.';return;}
-    Object.assign(g.playtest,{x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch,quarter:walkingLocation.quarter});mark();draw();
+    updateStart({x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch,quarter:walkingLocation.quarter});
    }));
+   setup.addEventListener('toggle',()=>{
+    if(!setup.open||map||!root.VoidNPCMap)return;
+    map=root.VoidNPCMap.create({npc:null,area:g.playtest.quarter,markers:[marker()],selected:'player',
+     onArea:quarter=>{g.playtest.quarter=quarter;mark();},onPick:(x,z)=>updateStart({x,z}),
+     onDrag:(_,x,z)=>updateStart({x,z}),onFacing:(_,yaw)=>updateStart({yaw})});
+    setup.append(map.el);
+   });
    if(g.dialogue?.length){
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);
     for(const line of g.dialogue){
@@ -126,6 +143,9 @@
    if(!n)return;
    const detail=element('fieldset');detail.append(element('legend',api.kinds[n.kind]));host.append(detail);
    field(detail,'Node name',input(n.name,v=>{n.name=v;mark();}));
+   if(n.kind==='animation'){
+    field(detail,'Action',select([['','Choose an action'],['stumble','Fall at the crossing'],['release','Release and leave the apartment'],['roleplay','Optional Kade roleplay']],n.action||'',v=>{n.action=v;mark();}));
+   }
    n.edges.forEach((edge,index)=>{
     const row=element('div');
     if(n.kind==='choice')field(row,'Choice',input(edge.label,v=>{edge.label=v;mark();}));
@@ -142,6 +162,16 @@
    }));
   }
   const returned=sessionStorage.getItem('chance-editor-return');sessionStorage.removeItem('chance-editor-return');
+  let restore;
+  try{restore=JSON.parse(sessionStorage.getItem('chance-playtest-draft'));}catch{}
+  sessionStorage.removeItem('chance-playtest-draft');
+  if(restore?.uid===uid&&returned&&restore.graph?.id===returned&&restore.dirty){
+   if(!records.has(returned)&&restore.revision===0)records.set(returned,{id:returned,draft:restore.graph,revision:0});
+   const saved=records.get(returned);
+   if(saved&&!saved.deleted&&saved.revision===restore.revision){
+    choose(returned);working=restore.graph;selected=restore.selected||working.start;dirty=true;draw();return;
+   }
+  }
   choose(records.has(returned)?returned:id);
  }
  root.VoidEncounterEditor={mount};

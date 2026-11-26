@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "ee97b3443fe897fe",
+  "revision": "edf5696945f7aae4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74354,25 +74354,25 @@
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 103,
+      "line": 120,
       "text": "if(g.dialogue?.length){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 104,
+      "line": 121,
       "text": "const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 105,
+      "line": 122,
       "text": "for(const line of g.dialogue){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 106,
+      "line": 123,
       "text": "const row=element('fieldset');row.append(element('legend',line.id.replaceAll('_',' ')));dialogue.append(row);",
       "kind": "source-reference"
     },
@@ -82865,8 +82865,8 @@
     "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "e7360bc4881187a285b5683af001ebeffb5e0c1e6c0d041df09e2acc17269faf",
-    "void-runner/chance-encounter-game.js": "4172c6bf2f710fcee9ef969e7be5462dea5cad62acbab2dc81e7738ff2494606",
+    "void-runner/chance-encounter-editor.js": "716859d0e4e8aa17fe6efbb17dd434605daaa9ef959fd9d6667e8fb5d345ff5c",
+    "void-runner/chance-encounter-game.js": "b4d23df055b28e1accca3f0fc6ef47e680ae0b13f6d7a180a005217f450ef390",
     "void-runner/chance-encounter.js": "61317223430ed450ec76bf6638a15a7af64a598341d7b782e977ffbabf8de7f0",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
