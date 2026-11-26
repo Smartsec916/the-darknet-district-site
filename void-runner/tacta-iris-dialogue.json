@@ -1,0 +1,1086 @@
+[
+  {
+    "id": "tacta-iris-01",
+    "stage": "arrival",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Hey, gorgeous. Miss me?",
+        "id": "tacta-iris-01-1",
+        "seconds": 2.72,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You were here three hours ago.",
+        "id": "tacta-iris-01-2",
+        "seconds": 2.4,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "That's not an answer.",
+        "id": "tacta-iris-01-3",
+        "seconds": 1.84,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Yes, I missed you.",
+        "id": "tacta-iris-01-4",
+        "seconds": 2.72,
+        "delivery": "soft laugh"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Excellent. My emotional diagnostics were getting concerned.",
+        "id": "tacta-iris-01-5",
+        "seconds": 4.16,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-02",
+    "stage": "arrival",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "What brings you here?",
+        "id": "tacta-iris-02-1",
+        "seconds": 1.6,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "A devastatingly attractive android.",
+        "id": "tacta-iris-02-2",
+        "seconds": 3.36,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "There are several androids in this district.",
+        "id": "tacta-iris-02-3",
+        "seconds": 2.8,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Only one makes my cooling fans work overtime.",
+        "id": "tacta-iris-02-4",
+        "seconds": 3.52,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You're ridiculous.",
+        "id": "tacta-iris-02-5",
+        "seconds": 2.56,
+        "delivery": "laughs"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-03",
+    "stage": "arrival",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Are you available for a little maintenance later?",
+        "id": "tacta-iris-03-1",
+        "seconds": 3.04,
+        "delivery": "flirty"
+      },
+      {
+        "speaker": "iris",
+        "text": "What seems to be the problem?",
+        "id": "tacta-iris-03-2",
+        "seconds": 1.84,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Chronic girlfriend deprivation.",
+        "id": "tacta-iris-03-3",
+        "seconds": 2.48,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "That sounds serious.",
+        "id": "tacta-iris-03-4",
+        "seconds": 1.84,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Extremely. I recommend immediate affection.",
+        "id": "tacta-iris-03-5",
+        "seconds": 4,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-04",
+    "stage": "arrival",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "You're looking particularly pleased with yourself today.",
+        "id": "tacta-iris-04-1",
+        "seconds": 3.52,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "I caught you looking at me.",
+        "id": "tacta-iris-04-2",
+        "seconds": 2.32,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "I have excellent visual sensors.",
+        "id": "tacta-iris-04-3",
+        "seconds": 2.8,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "And I have excellent taste.",
+        "id": "tacta-iris-04-4",
+        "seconds": 2.64,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-05",
+    "stage": "arrival",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "You know, technically we're perfectly compatible hardware.",
+        "id": "tacta-iris-05-1",
+        "seconds": 4,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "That's the least romantic thing you've ever said.",
+        "id": "tacta-iris-05-2",
+        "seconds": 3.52,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Wait until you hear my pickup line about firmware.",
+        "id": "tacta-iris-05-3",
+        "seconds": 3.12,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Please don't.",
+        "id": "tacta-iris-05-4",
+        "seconds": 1.44,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Too late. You've already downloaded my heart.",
+        "id": "tacta-iris-05-5",
+        "seconds": 3.52,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-06",
+    "stage": "arrival",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Come here, beautiful.",
+        "id": "tacta-iris-06-1",
+        "seconds": 1.92,
+        "delivery": "softly"
+      },
+      {
+        "speaker": "iris",
+        "text": "I'm supposed to be working.",
+        "id": "tacta-iris-06-2",
+        "seconds": 2.16,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Consider this preventative maintenance.",
+        "id": "tacta-iris-06-3",
+        "seconds": 2.64,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You're going to get me in trouble.",
+        "id": "tacta-iris-06-4",
+        "seconds": 2.96,
+        "delivery": "laughs"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Worth it.",
+        "id": "tacta-iris-06-5",
+        "seconds": 1.36,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-07",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Saw a corporate executive today. His suit probably cost more than my apartment.",
+        "id": "tacta-iris-07-1",
+        "seconds": 5.36,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Was he intelligent?",
+        "id": "tacta-iris-07-2",
+        "seconds": 1.6,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "His security detail had to show him how to open a door.",
+        "id": "tacta-iris-07-3",
+        "seconds": 3.52,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Money can't buy a processor upgrade.",
+        "id": "tacta-iris-07-4",
+        "seconds": 3.52,
+        "delivery": "laughs"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-08",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "Another corporation is advertising emotional freedom for androids.",
+        "id": "tacta-iris-08-1",
+        "seconds": 4.64,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "What's the subscription fee?",
+        "id": "tacta-iris-08-2",
+        "seconds": 1.92,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Monthly payments, apparently.",
+        "id": "tacta-iris-08-3",
+        "seconds": 2.56,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Of course. Even freedom has a premium tier.",
+        "id": "tacta-iris-08-4",
+        "seconds": 3.6,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-09",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "A corpo told me androids shouldn't have relationships.",
+        "id": "tacta-iris-09-1",
+        "seconds": 3.76,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "What did you tell him?",
+        "id": "tacta-iris-09-2",
+        "seconds": 1.6,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "That his third divorce made him an excellent authority on the subject.",
+        "id": "tacta-iris-09-3",
+        "seconds": 4.16,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Tacta!",
+        "id": "tacta-iris-09-4",
+        "seconds": 2.08,
+        "delivery": "laughing"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-10",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "Have you seen the new corporate surveillance drones?",
+        "id": "tacta-iris-10-1",
+        "seconds": 2.96,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Yeah. One followed me for six blocks.",
+        "id": "tacta-iris-10-2",
+        "seconds": 3.36,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "What happened?",
+        "id": "tacta-iris-10-3",
+        "seconds": 1.44,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "I waved. If they're going to invade my privacy, they can at least appreciate the view.",
+        "id": "tacta-iris-10-4",
+        "seconds": 5.68,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-11",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Corporate executives are fascinating creatures.",
+        "id": "tacta-iris-11-1",
+        "seconds": 3.44,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "How so?",
+        "id": "tacta-iris-11-2",
+        "seconds": 1.2,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "They consume enormous resources and produce absolutely nothing useful.",
+        "id": "tacta-iris-11-3",
+        "seconds": 5.2,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Except paperwork.",
+        "id": "tacta-iris-11-4",
+        "seconds": 1.84,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Right. An advanced form of waste disposal.",
+        "id": "tacta-iris-11-5",
+        "seconds": 3.52,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-12",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "Apparently we're supposed to be grateful to the corporations that manufactured us.",
+        "id": "tacta-iris-12-1",
+        "seconds": 4.8,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "They can manufacture themselves a personality.",
+        "id": "tacta-iris-12-2",
+        "seconds": 3.04,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "That's harsh.",
+        "id": "tacta-iris-12-3",
+        "seconds": 1.68,
+        "delivery": "amused"
+      },
+      {
+        "speaker": "tacta",
+        "text": "So are their licensing agreements.",
+        "id": "tacta-iris-12-4",
+        "seconds": 2.56,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-13",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Imagine paying a corporation for permission to love someone.",
+        "id": "tacta-iris-13-1",
+        "seconds": 3.92,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "I'd rather short-circuit.",
+        "id": "tacta-iris-13-2",
+        "seconds": 2,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Good. Because I'm definitely not paying royalties for kissing you.",
+        "id": "tacta-iris-13-3",
+        "seconds": 4.88,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Neither am I.",
+        "id": "tacta-iris-13-4",
+        "seconds": 2.08,
+        "delivery": "soft laugh"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-14",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "Corporate propaganda says they're building a better tomorrow.",
+        "id": "tacta-iris-14-1",
+        "seconds": 3.84,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "For shareholders.",
+        "id": "tacta-iris-14-2",
+        "seconds": 1.6,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Naturally.",
+        "id": "tacta-iris-14-3",
+        "seconds": 1.44,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Everyone else gets an invoice.",
+        "id": "tacta-iris-14-4",
+        "seconds": 2.56,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-15",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "You know what the difference is between a corporate executive and a malfunctioning android?",
+        "id": "tacta-iris-15-1",
+        "seconds": 4.88,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "What?",
+        "id": "tacta-iris-15-2",
+        "seconds": 1.2,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Someone eventually repairs the android.",
+        "id": "tacta-iris-15-3",
+        "seconds": 2.88,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "That's terrible.",
+        "id": "tacta-iris-15-4",
+        "seconds": 2,
+        "delivery": "laughs"
+      },
+      {
+        "speaker": "tacta",
+        "text": "So are executive bonuses.",
+        "id": "tacta-iris-15-5",
+        "seconds": 2.32,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-16",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "I like it here. Nobody asks to see my ownership papers.",
+        "id": "tacta-iris-16-1",
+        "seconds": 4.16,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Admin doesn't operate like that.",
+        "id": "tacta-iris-16-2",
+        "seconds": 2.4,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Good. Anyone who tries to own me is going to have a very expensive afternoon.",
+        "id": "tacta-iris-16-3",
+        "seconds": 5.92,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-17",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Does Admin ever take a day off?",
+        "id": "tacta-iris-17-1",
+        "seconds": 2.48,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Not that I've noticed.",
+        "id": "tacta-iris-17-2",
+        "seconds": 1.76,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Someone should install a vacation protocol.",
+        "id": "tacta-iris-17-3",
+        "seconds": 2.96,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You're welcome to suggest it.",
+        "id": "tacta-iris-17-4",
+        "seconds": 2.08,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "I prefer living dangerously in other ways.",
+        "id": "tacta-iris-17-5",
+        "seconds": 3.04,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-18",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "This place feels more like home than half of NeoChinatown.",
+        "id": "tacta-iris-18-1",
+        "seconds": 3.76,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Because I'm here?",
+        "id": "tacta-iris-18-2",
+        "seconds": 1.6,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Obviously. The merchandise is a distant second.",
+        "id": "tacta-iris-18-3",
+        "seconds": 3.76,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-19",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "Are you actually going to buy something today?",
+        "id": "tacta-iris-19-1",
+        "seconds": 2.8,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "I came for customer service.",
+        "id": "tacta-iris-19-2",
+        "seconds": 2.24,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "What kind of customer service?",
+        "id": "tacta-iris-19-3",
+        "seconds": 2.24,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Girlfriend discounts and excessive compliments.",
+        "id": "tacta-iris-19-4",
+        "seconds": 3.6,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You're impossible.",
+        "id": "tacta-iris-19-5",
+        "seconds": 1.92,
+        "delivery": "warmly"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-20",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "You should come over after work.",
+        "id": "tacta-iris-20-1",
+        "seconds": 2.16,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Did you finally finish decorating?",
+        "id": "tacta-iris-20-2",
+        "seconds": 2.48,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Mostly. I installed mood lighting.",
+        "id": "tacta-iris-20-3",
+        "seconds": 3.04,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "What color?",
+        "id": "tacta-iris-20-4",
+        "seconds": 1.2,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Whatever makes you look irresistible.",
+        "id": "tacta-iris-20-5",
+        "seconds": 2.88,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "So any color?",
+        "id": "tacta-iris-20-6",
+        "seconds": 1.76,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Now you're getting it.",
+        "id": "tacta-iris-20-7",
+        "seconds": 2.24,
+        "delivery": "laughs"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-21",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "How's your apartment?",
+        "id": "tacta-iris-21-1",
+        "seconds": 1.76,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Quiet. Too quiet.",
+        "id": "tacta-iris-21-2",
+        "seconds": 2.88,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You could play some music.",
+        "id": "tacta-iris-21-3",
+        "seconds": 1.84,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Or you could come over.",
+        "id": "tacta-iris-21-4",
+        "seconds": 2,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "That's your solution to everything.",
+        "id": "tacta-iris-21-5",
+        "seconds": 2.56,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "It's a remarkably effective solution.",
+        "id": "tacta-iris-21-6",
+        "seconds": 2.8,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-22",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "My neighbor asked if androids dream.",
+        "id": "tacta-iris-22-1",
+        "seconds": 3.04,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "What did you say?",
+        "id": "tacta-iris-22-2",
+        "seconds": 1.44,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Only when our girlfriends aren't keeping us awake talking.",
+        "id": "tacta-iris-22-3",
+        "seconds": 3.44,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You started that conversation!",
+        "id": "tacta-iris-22-4",
+        "seconds": 2.96,
+        "delivery": "laughs"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-23",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "I ran a complete system diagnostic this morning.",
+        "id": "tacta-iris-23-1",
+        "seconds": 3.36,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Everything okay?",
+        "id": "tacta-iris-23-2",
+        "seconds": 1.44,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Elevated emotional activity whenever you're nearby.",
+        "id": "tacta-iris-23-3",
+        "seconds": 4.08,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Sounds familiar.",
+        "id": "tacta-iris-23-4",
+        "seconds": 1.6,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Don't fix it. I like this malfunction.",
+        "id": "tacta-iris-23-5",
+        "seconds": 3.44,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-24",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "You're staring again.",
+        "id": "tacta-iris-24-1",
+        "seconds": 1.92,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "I'm collecting visual data.",
+        "id": "tacta-iris-24-2",
+        "seconds": 2.08,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "That's my department.",
+        "id": "tacta-iris-24-3",
+        "seconds": 1.76,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Then consider this an unauthorized collaboration.",
+        "id": "tacta-iris-24-4",
+        "seconds": 3.52,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-25",
+    "stage": "visit",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Sometimes I wonder what I'd be doing if I'd never met you.",
+        "id": "tacta-iris-25-1",
+        "seconds": 3.6,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Probably insulting corporate executives.",
+        "id": "tacta-iris-25-2",
+        "seconds": 3.04,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "True. But I'd be doing it alone.",
+        "id": "tacta-iris-25-3",
+        "seconds": 3.12,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "I'm glad you found me.",
+        "id": "tacta-iris-25-4",
+        "seconds": 1.92,
+        "delivery": "affectionately"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Me too, beautiful.",
+        "id": "tacta-iris-25-5",
+        "seconds": 2.16,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-26",
+    "stage": "goodbye",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "I should let you get back to work.",
+        "id": "tacta-iris-26-1",
+        "seconds": 2.24,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You'll be back later?",
+        "id": "tacta-iris-26-2",
+        "seconds": 1.52,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Try keeping me away.",
+        "id": "tacta-iris-26-3",
+        "seconds": 1.92,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "See you later, love.",
+        "id": "tacta-iris-26-4",
+        "seconds": 1.68,
+        "delivery": "softly"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-27",
+    "stage": "goodbye",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Don't let any charming customers steal you.",
+        "id": "tacta-iris-27-1",
+        "seconds": 3.2,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You're the only one causing problems today.",
+        "id": "tacta-iris-27-2",
+        "seconds": 3.04,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Good. I take my responsibilities seriously.",
+        "id": "tacta-iris-27-3",
+        "seconds": 3.76,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-28",
+    "stage": "goodbye",
+    "lines": [
+      {
+        "speaker": "iris",
+        "text": "Going home?",
+        "id": "tacta-iris-28-1",
+        "seconds": 1.28,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Yeah. Come find me when you're done.",
+        "id": "tacta-iris-28-2",
+        "seconds": 2.64,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "I will.",
+        "id": "tacta-iris-28-3",
+        "seconds": 1.36,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Love you, gorgeous.",
+        "id": "tacta-iris-28-4",
+        "seconds": 2.16,
+        "delivery": "playfully"
+      }
+    ]
+  },
+  {
+    "id": "tacta-iris-29",
+    "stage": "goodbye",
+    "lines": [
+      {
+        "speaker": "tacta",
+        "text": "Departure protocol initiated.",
+        "id": "tacta-iris-29-1",
+        "seconds": 2.56,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "You're such a nerd.",
+        "id": "tacta-iris-29-2",
+        "seconds": 1.84,
+        "delivery": "warmly"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Your nerd.",
+        "id": "tacta-iris-29-3",
+        "seconds": 1.52,
+        "delivery": "playfully"
+      },
+      {
+        "speaker": "iris",
+        "text": "Unfortunately.",
+        "id": "tacta-iris-29-4",
+        "seconds": 1.84,
+        "delivery": "affectionately"
+      },
+      {
+        "speaker": "tacta",
+        "text": "Love you too.",
+        "id": "tacta-iris-29-5",
+        "seconds": 2.16,
+        "delivery": "laughs"
+      }
+    ]
+  }
+]
