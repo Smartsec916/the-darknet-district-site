@@ -384,13 +384,13 @@
   try{
    const animate=async()=>{
     const figure=await model(phase,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
+    // Keep the POV rig invisible even while its animation pack is loading.
+    for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
     const p=run.lace.parent.position;standing(figure,{x:p.x-.77,y:0,z:p.z,yaw:Math.PI/2});
     await assignedClip(figure,kadeLook,run.graph.roleplayClip);
     phase.signal.throwIfAborted();
     const head=joint(figure,'head');
     if(!head)throw Error('The player animation rig is missing its head joint.');
-    // The rig drives the player's viewpoint. Free look still uses normal walking input.
-    for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
     const w=walker;
     run.pov={w,head,inst:walkingLocation.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
     head.computeWorldMatrix(true);const eye=head.getAbsolutePosition();
