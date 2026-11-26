@@ -52,7 +52,14 @@
    if(line.delay)await delay(line.delay*1000,run.signal);
    run.signal.throwIfAborted();announce(line.speaker+' · '+line.text);
    if(line.animation&&run.lace)await assignedClip(run.lace,laceLook,line.animation);
-   if(root.VoidVoiceClips?.has(line.speaker,line.text))await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text});
+   const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
+   const bus=root.VoidAudio?.bus('voice');
+   if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
+    const cancel=()=>root.VoidVoiceClips.cancel();
+    run.signal.addEventListener('abort',cancel,{once:true});
+    try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus,recording});}
+    finally{run.signal.removeEventListener('abort',cancel);}
+   }
   }
  }
  function standing(figure,pose){

@@ -71,6 +71,11 @@ def validate(graph):
         labels.add(line['id'])
         if not identifier(line.get('speaker')) or not _plain(line.get('text'), 1000) or not _num(line.get('delay', 0), 0, 300):
             raise DraftError('Check the speaker, line and delay for '+line['id']+'.')
+        if 'recording' in line:
+            from void_runner_live_content import clip_problems
+            clip = line['recording']
+            if clip_problems([clip]) or clip['who'] != line['speaker'] or clip['text'] != line['text']:
+                raise DraftError('Attach a recording that matches '+line['id']+'.')
     nodes = graph.get('nodes')
     if not isinstance(nodes, list) or not 1 <= len(nodes) <= 128:
         raise DraftError('An encounter needs 1 to 128 nodes.')
@@ -145,6 +150,10 @@ def edit(db, user, body):
             raise DraftError('Choose a valid encounter draft.')
         if action == 'publish':
             validate(graph)
+            from void_runner_live_content import clips_missing
+            hashes = {line['recording']['hash'] for line in graph.get('dialogue', []) if 'recording' in line}
+            if hashes and clips_missing(db, sorted(hashes)):
+                raise DraftError('Upload the dialogue recordings before publishing.')
     ref = refs(db).document(body['id'])
 
     @firestore.transactional

@@ -58,6 +58,10 @@
    if(action==='delete'&&!confirm('Delete '+g.name+' and remove it from live encounters?'))return;
    busy=true;host.inert=true;
    try{
+    if(action==='save'||action==='publish'){
+     const recordings=(g.dialogue||[]).flatMap(line=>line.recording?[line.recording]:[]);
+     if(recordings.length)await root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),recordings);
+    }
     const saved=await tools.request('developer/chance-encounters',{action,id,revision:r.revision,graph:g});
     if(!current())return;
     records.set(id,saved);dirty=false;
@@ -148,8 +152,50 @@
     const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);
     for(const line of g.dialogue){
      const row=element('fieldset');row.append(element('legend',line.id.replaceAll('_',' ')));dialogue.append(row);
-     for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['delay','Delay (seconds)'],['animation','Animation']])
-      field(row,label,input(line[key],v=>{line[key]=v;mark();},key==='delay'?'number':'text'));
+     const audio=element('output',line.recording?'Recorded':'No recording');
+     for(const [key,label] of [['text','Spoken line'],['speaker','Speaker'],['tags','Delivery tags'],['delay','Delay (seconds)'],['animation','Animation']])
+      field(row,label,input(line[key],v=>{
+       if(key==='text'||key==='speaker'){delete line.recording;audio.textContent='No recording';}
+       line[key]=v;mark();
+      },key==='delay'?'number':'text'));
+     const attach=async file=>{
+      if(!line.text.trim())throw Error('Enter the spoken line first.');
+      const who=line.speaker,text=line.text,I=root.VoidVoiceImports,p=await I.prepare(file);
+      if(!p.ok)throw Error(p.why);
+      if(!await I.store(p.hash,p.type,p.data,p.duration))throw Error('Could not store the recording.');
+      if(line.speaker!==who||line.text!==text)throw Error('The line changed during import.');
+      line.recording={who,text,hash:p.hash,type:p.type,bytes:p.bytes,duration:p.duration};mark();audio.textContent='Recorded';
+     };
+     const upload=element('input');upload.type='file';upload.accept='audio/*,.ogg,.mp3,.wav';
+     upload.onchange=async()=>{try{if(upload.files[0])await attach(upload.files[0]);}catch(e){audio.textContent=e.message;}finally{upload.value='';}};
+     field(row,'Import recording',upload);
+     const generate=button('Generate voice',async()=>{
+      if(generate.disabled)return;
+      try{
+       const who=line.speaker,text=line.text,tags=(line.tags||'').trim();
+       const voice=root.VoidMissionEditor?.shared?.voiceNow(who);
+       if(!text.trim())throw Error('Enter the spoken line first.');
+       if(!voice?.voiceId||voice.kind!=='elevenlabs')throw Error('Choose an ElevenLabs voice for '+who+' under NPCs → Lines & voice, or import a recording.');
+       const spoken=(tags?(tags.startsWith('[')?tags:'['+tags+']')+' ':'')+text;
+       if(spoken.length>700||root.VoidNPCVoices?.tagProblems(spoken).length)throw Error('Check the delivery tags and keep the tagged line under 701 characters.');
+       if(!confirm('Generate this line using '+voice.name+' ('+spoken.length+' input characters)? This uses ElevenLabs credits.'))return;
+       generate.disabled=true;
+       const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});
+       if(line.speaker!==who||line.text!==text)throw Error('The line changed during generation.');
+       const bytes=Uint8Array.from(atob(response.audio),c=>c.charCodeAt(0));
+       await attach(new File([bytes],line.id+'.mp3',{type:'audio/mpeg'}));
+      }catch(e){audio.textContent=e.message;}finally{generate.disabled=false;}
+     });
+     row.append(generate);
+     row.append(button('Play recording',async()=>{
+      try{
+       if(!line.recording)throw Error('Import a recording first.');
+       const data=await root.VoidVoiceImports.getData(line.recording.hash);
+       const url=URL.createObjectURL(new Blob([data],{type:line.recording.type})),player=new Audio(url);
+       player.onended=player.onerror=()=>URL.revokeObjectURL(url);
+       try{await player.play();}catch(e){URL.revokeObjectURL(url);throw e;}
+      }catch(e){audio.textContent=e.message;}
+     }),audio);
     }
    }
    const board=element('div');board.className='encounter-board';board.setAttribute('aria-label','Encounter connections');host.append(board);

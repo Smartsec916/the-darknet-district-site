@@ -61659,7 +61659,7 @@
       "spawn"
     ]
   },
-  "revision": "107e9e92177e93cc",
+  "revision": "0ed66b7e63af3e04",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74354,26 +74354,38 @@
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 147,
+      "line": 62,
+      "text": "const recordings=(g.dialogue||[]).flatMap(line=>line.recording?[line.recording]:[]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 151,
       "text": "if(g.dialogue?.length){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 148,
+      "line": 152,
       "text": "const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));host.append(dialogue);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 149,
+      "line": 153,
       "text": "for(const line of g.dialogue){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 150,
+      "line": 154,
       "text": "const row=element('fieldset');row.append(element('legend',line.id.replaceAll('_',' ')));dialogue.append(row);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 183,
+      "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
       "kind": "source-reference"
     },
     {
@@ -74384,8 +74396,8 @@
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 55,
-      "text": "if(root.VoidVoiceClips?.has(line.speaker,line.text))await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text});",
+      "line": 60,
+      "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus,recording});}",
       "kind": "source-reference"
     },
     {
@@ -82865,8 +82877,8 @@
     "void-runner/campaign.js": "a37189477466da95cfc27302fe54880cd07f481b6f72935b8574fb24357a9825",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "6801def0088786bbdf0b0bef10159b510bb06abed835e3b6306a53d6991236c7",
-    "void-runner/chance-encounter-game.js": "914b70bdf0530e5001a25e1c7241545e0d33b9f9e30bf612172f999ed68c5b75",
+    "void-runner/chance-encounter-editor.js": "bfa56ae269e85fe1d16e329c1879904f49da183ca41fb45c52ea2424c5d36c68",
+    "void-runner/chance-encounter-game.js": "84f310f0f891bfd2ce626ccf8f2a982ea3f79818284d9635b2ffb9691b856b41",
     "void-runner/chance-encounter.js": "61317223430ed450ec76bf6638a15a7af64a598341d7b782e977ffbabf8de7f0",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -83131,7 +83143,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "7d7320525c9a5fe8fd96b3464a780377f8c315bd98e33d3c3df6973c07eb5181",
+    "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
