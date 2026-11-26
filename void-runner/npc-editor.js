@@ -274,7 +274,7 @@
     for(const [value,text] of values)control.add(new Option(text,value));
     control.value=String(current);control.onchange=()=>update(key,key==='agreement'?Number(control.value):control.value);label.append(control);fields.append(label);
    }
-   select('phase','Conversation timing',root.VoidSharedActivities.phases.map(v=>[v,v]),rule.phase);
+   select('phase','Conversation timing',root.VoidGroupActivities.phases.map(v=>[v,v]),rule.phase);
    select('from','Required location',[['','Any listed location'],...e.locations.map(v=>[v,v])],rule.from||'');
    select('destination','Next activity',[['','Continue current routine'],['arcade','Play Hotel Headshots'],['vr','Visit the left VR booth'],['bar','Visit the bartender'],['store','Browse the Store']],rule.destination||'');
    if(rule.destination||rule.motions?.length){
@@ -292,7 +292,7 @@
     const row=el('div');row.append(el('span',(i+1)+' · '+clip),btn('Remove motion',()=>update('motions',clips.filter((_,j)=>j!==i))));motionBox.append(row);
    }
    if(clips.length<8){
-    const motion=el('select','','',{'aria-label':'Motion to add'});for(const clip of root.VoidSharedActivities.gestures)motion.add(new Option(clip,clip));
+    const motion=el('select','','',{'aria-label':'Motion to add'});for(const clip of root.VoidGroupActivities.gestures)motion.add(new Option(clip,clip));
     motionBox.append(motion,btn('Append motion',()=>{(edits[e.id]??={}).actor=actor;update('motions',[...clips,motion.value]);}));
    }
    fields.append(motionBox);
@@ -305,7 +305,7 @@
    fields.append(el('p',(rule.from||e.locations.join(' / '))+' → '+(rule.phase||'during')+' → '+(rule.destination||'continue current routine')));
    fields.append(btn('Test selected conversation',()=>preview(e.id)),btn('Test Pixel & Neon — Dialogue-Driven Routine',()=>preview(null)),
     btn('Restore shipped action',()=>{delete edits[e.id];render();}),btn('Save conversation actions to draft',()=>{
-     if(conflict||!root.VoidSharedActivities.valid(edits)){note.textContent='Check the delay and decision settings.';return;}
+     if(conflict||!root.VoidGroupActivities.valid(edits)){note.textContent='Check the delay and decision settings.';return;}
      const draft=S().local();draft.pairDialogue=structuredClone(edits);S().saveLocal(draft);note.textContent='Saved. Publish this draft from Mission Editor.';
     }));
   }

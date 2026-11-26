@@ -84,5 +84,5 @@
    (v.delay===undefined||Number.isFinite(v.delay)&&v.delay>=0&&v.delay<=30));
  }
  const api={contextFits,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
- if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidSharedActivities=api;
+ if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidGroupActivities=api;
 })(globalThis);

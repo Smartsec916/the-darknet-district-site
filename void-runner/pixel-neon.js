@@ -43,7 +43,7 @@
   return {clip:'idle'};
  }
  const modelFile=id=>(id==='npc-pixel'||id==='npc-neon')?'assets/models/crowd/'+id+'.vrpak':null;
- const shared=typeof module==='object'&&module.exports?require('./shared-activities.js'):root.VoidSharedActivities;
+ const shared=typeof module==='object'&&module.exports?require('./shared-activities.js'):root.VoidGroupActivities;
  function makeRoute(life,config=vrDefaults,library=[],edits={}){
   const legs=[];let total=0;
   function travel(points){

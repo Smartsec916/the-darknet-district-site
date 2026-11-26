@@ -163,7 +163,7 @@
   if(content.interactions!=null)for(const p of interactionProblems(content.interactions,ctx.givers,ctx.places))err(p);
   if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
-  if(content.pairDialogue!=null&&!(typeof module!=='undefined'?require('./shared-activities.js'):root.VoidSharedActivities)?.valid(content.pairDialogue))err('Check the shared dialogue actions.');
+  if(content.pairDialogue!=null&&!(typeof module!=='undefined'?require('./shared-activities.js'):root.VoidGroupActivities)?.valid(content.pairDialogue))err('Check the shared dialogue actions.');
   if(content.pixelVR!=null){
    const api=typeof module!=='undefined'?require('./pixel-neon.js'):root.VoidPixelNeon;
    if(!api?.validVR(content.pixelVR))err('Check the Pixel VR sequence settings.');
