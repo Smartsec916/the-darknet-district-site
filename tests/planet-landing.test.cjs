@@ -31,12 +31,12 @@ test('always a way home: from every place the map can reach, in every marker mod
 
 test('every planet location on the map is landable: a descent, a landing area, a walkable scene with a BOARD point',()=>{
  const s=pilot();N.grant(s,'t');for(const id of ['vigil','nexus','holdfast','order-homeworld'])U.discover(s,id);const reach=explore(s,()=>[]).seen;
- const planets=Object.keys(U.locations).filter(U.planetside);assert.deepEqual(planets.sort(),['earth','mars','nexus','order-homeworld','vesper'].sort());
+ const planets=Object.keys(U.locations).filter(U.planetside);assert.deepEqual(planets.sort(),['cinder-landing','earth','mars','nexus','order-homeworld','vesper'].sort());
  for(const id of planets){assert.ok(L.landable(id),id);assert.ok(reach.includes(id),id+' can be flown to');const b=L.biome(id);assert.ok(b.pad&&b.planet&&b.at.length===3,id);}
  // the walkable scene dock() enters for each (world-integration.js dock, homeworld-scenes.js), each with BOARD
- const scene={earth:NC.layout('street','port'),mars:ED.locations['mars-terminal'],nexus:PL.layout('nexus'),'order-homeworld':PL.layout('order-homeworld')};
+ const scene={'cinder-landing':PL.layout('cinder-landing'),earth:NC.layout('street','port'),mars:ED.locations['mars-terminal'],nexus:PL.layout('nexus'),'order-homeworld':PL.layout('order-homeworld')};
  for(const [id,l] of Object.entries(scene))assert.ok(l.interactions.some(i=>i.action==='board'),id+' has a BOARD point');
- assert.match(read('void-runner/world-integration.js'),/state\.location==='mars'\?'mars-terminal'/);assert.match(read('void-runner/homeworld-scenes.js'),/VoidUniverse\.locations\[state\.location\]\?\.planet\)return enterWalking\('planet-'/);
+ assert.match(read('void-runner/world-integration.js'),/state\.location==='mars'\?'mars-terminal'/);assert.match(read('void-runner/homeworld-scenes.js'),/VoidPlanets\.worlds\[state\.location\]\)return enterWalking\('planet-'/);
  for(const id of Object.keys(U.locations))if(!U.planetside(id))assert.equal(L.landable(id),false,'no descent at a station: '+id);
 });
 

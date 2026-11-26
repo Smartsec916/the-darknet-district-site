@@ -6,6 +6,7 @@ const flightBasis=()=>FM.basis(flight.yaw,flight.pitch,flight.roll);
 const flightPoint=o=>FM.project(o,flightBasis(),W,H);
 const cockpitLaunch=launch;
 launch=function(){VoidDevTools?.applyPending();VoidFlightCraft.initialize();cockpitLaunch();if(mode!=='play')return;Object.assign(flight,{yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,nav:{x:0,y:0,z:140}});VoidPilotFlight.reset(flight);flight.route=trialGear?null:VoidWarp.restore(state.travel,state.location,current.destination,current.id||state.quest,current.enemies>0||['salvage','hazard','escort'].includes(current.kind));
+ flight.arrivalHeading=VoidUniverse.locations[state.location]?.type==='arrival'?[flight.yaw,flight.pitch]:null;
  // Modern departure has no bitmap asset dependency.
  if(flight.route){state.travel=flight.route;flight.nav={x:flight.route.vector.x*140,y:flight.route.vector.y*140,z:flight.route.vector.z*140};if(flight.route.encounter.state==='cleared')spawned=resolved=current.enemies;save();}
  resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';$('weapon').textContent=VoidFlightCraft.stats().piercing?'WRAITH / PIERCING':`PULSE MK ${VoidFlightCraft.upgrades().guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · '+VoidInput.label(VoidInput.bindings.fire)+' primary · '+VoidInput.label(VoidInput.bindings.missile)+' missile · '+VoidInput.label(VoidInput.bindings.pause)+' menu');};
@@ -63,8 +64,18 @@ update=function(dt){
  const b=flightBasis(),velocity=flight.velocity,speed=FM.length(velocity);flight.travel+=speed*dt;
  const route=flight.route,combat=!route||route.phase==='encounter';
  if(combat)elapsed+=dt*FM.clamp(flight.throttle/.8,.5,1.5);
- if(route){const changed=VoidWarp.step(route,dt,typeof navigationReveal!=='undefined'&&route.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)<=0?{x:0,y:0,z:0}:b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;interdictionWave();announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
- if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;const docked=dockingApproach(dt);approachTime+=dt;if(docked)arrive();}return;}
+ if(flight.arrivalHeading&&(route?.phase!=='align'||Math.hypot(flight.yaw-flight.arrivalHeading[0],flight.pitch-flight.arrivalHeading[1])>.025))flight.arrivalHeading=null;
+ if(route){const changed=VoidWarp.step(route,dt,flight.arrivalHeading||typeof navigationReveal!=='undefined'&&route.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)<=0?{x:0,y:0,z:0}:b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;interdictionWave();announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
+ if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'&&VoidUniverse.locations[route.destination]?.type==='arrival'){
+  const completed=C.complete(state);
+  if(completed?.connection){
+   const next=completed.finalDestination||VoidNav.shown()[0]||VoidUniverse.destinations(state)[0];
+   if(next)setFlightDestination(next);
+   flight.arrivalHeading=[flight.yaw,flight.pitch];
+   save();hud();announce('Entered '+VoidUniverse.systems[VoidUniverse.system(state.location)].name+'. Align with a destination.');
+  }
+  return;
+ }if(route.phase==='arrived'){elapsed=current.duration;const docked=dockingApproach(dt);approachTime+=dt;if(docked)arrive();}return;}
  cockpitMission(dt,velocity);if(mode!=='play')return;
  shot-=dt;if((VoidInput.down('fire')||firing||touchFiring)&&shot<=0&&VoidProgression.consume(weaponBank,state,VoidFlightCraft.systems())){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);globalThis.VoidFlightFx?.muzzle(b);}
  if(route?.phase==='encounter')interdictionWave();spawnClock-=dt;if(spawned<current.enemies&&spawnClock<=0&&enemies.filter(VoidStory.hostile).length<4+Math.floor(current.tier)){spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}

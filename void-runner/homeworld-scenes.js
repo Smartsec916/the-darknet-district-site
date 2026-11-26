@@ -2,13 +2,13 @@
    Order homeworld receive Elara's and Marcus's shipments and offer optional work for a faction ship
    module. Dialogue is the owner's script; lines marked UNREVIEWED are Claude's placeholders. */
 (function(){
- for(const id of ['nexus','order-homeworld'])VoidExplorationData.locations['planet-'+id]=VoidPlanets.layout(id);
+ for(const id of Object.keys(VoidPlanets.worlds))VoidExplorationData.locations['planet-'+id]=VoidPlanets.layout(id);
  Object.assign(characters,{kess:{name:'Dr. Adrian Kess',role:'NEXUS INFRASTRUCTURE RECOVERY COORDINATOR'},mercer:{name:'Daniel Mercer',role:'AGRICULTURAL SUPPLY COORDINATOR'}});
  const line=who=>text=>({who,text}),you=line('pilot'),kess=line('kess'),mercer=line('mercer');
  const H=C.homeworlds,factionOf={kess:'communion',mercer:'natural-order'};
  // Land on a homeworld into its own walkable area instead of a station hangar.
  const homeDock=dock;
- dock=async function(tab='dock'){if(tab==='dock'&&!(walkingLocation&&walker)&&VoidUniverse.locations[state.location]?.planet)return enterWalking('planet-'+state.location);return homeDock(tab);};
+ dock=async function(tab='dock'){if(tab==='dock'&&!(walkingLocation&&walker)&&VoidPlanets.worlds[state.location])return enterWalking('planet-'+state.location);return homeDock(tab);};
  const say=(lines,after)=>talk('',lines,()=>{after?.();resumeWalking();},'RETURN','');
  const choose=(lines,options)=>{let choices=null;const menu=()=>{const last=lines[lines.length-1];talk('',[last],menu,'','');speech.shown=last.text.length;$('speech-next').style.display='none';screen.querySelector('.dialogue-window')?.classList.add('choice-menu');choices=options;
    screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',options.map((o,i)=>button(o.label,'home-choice:'+i,o.quiet===true)).join(''));

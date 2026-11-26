@@ -90,14 +90,14 @@ test('flight navigation: this system’s places, warp markers to other systems, 
  const N=require('../void-runner/flight-nav.js'),U=require('../void-runner/universe.js');
  const s=district();C.awardStarterShip(s);s.location='earth';s.universe.discoveredLocations=[...new Set([...s.universe.discoveredLocations,'earth','sol-belt','mars','meridian','kepler','vigil'])];
  const e=N.entries(s),by=id=>e.find(x=>x.id===id);
- assert.equal(by('sol-belt').kind,'station');assert.equal(by('mars').kind,'planet');assert.equal(by('meridian').kind,'warp','Erebus’s hub is the warp marker to that system');assert.equal(by('vigil').kind,'warp');
- assert.equal(by('kepler').direct,false);assert.equal(by('kepler').marker,'meridian','a far station is reached through its system’s warp marker');assert.equal(N.markerFor(s,'kepler'),U.nextHop('earth','kepler'));
- assert.equal(N.select(s,'kepler'),true);assert.equal(N.target(s),'kepler');assert.equal(N.markerFor(s,N.target(s)),'meridian');
+ assert.equal(by('sol-belt').kind,'anchorage');assert.equal(by('mars').kind,'planet');assert.equal(by('erebus-arrival').kind,'warp','Erebus’s hub is the warp marker to that system');assert.equal(by('communion-arrival').kind,'warp');
+ assert.equal(by('kepler').direct,false);assert.equal(by('kepler').marker,'erebus-arrival','a far station is reached through its system’s warp marker');assert.equal(N.markerFor(s,'kepler'),U.nextHop('earth','kepler'));
+ assert.equal(N.select(s,'kepler'),true);assert.equal(N.target(s),'kepler');assert.equal(N.markerFor(s,N.target(s)),'erebus-arrival');
  assert.equal(N.select(s,'holdfast'),false,'an unknown place cannot be chosen');
  const r=roundTrip(s);assert.equal(N.target(r),'kepler','kept in the save (story.flags.navTarget)');
  r.location='meridian';assert.equal(N.markerFor(r,'kepler'),'kepler','after the warp the square moves to the station itself');
  r.location='kepler';assert.equal(N.arrived(r),true);assert.equal(N.target(r),null,'arriving ends it');
  const mm=N.missionMarkers(s,[{id:'m',title:'Job',destination:'kepler'},{id:'n',title:'Local',destination:'sol-belt'},{id:'o',title:'Done',destination:'vigil',completed:true}]);
- assert.deepEqual(mm,[{marker:'meridian',mission:'Job',destination:'kepler'}],'only missions in another system, on the warp marker toward them');
+ assert.deepEqual(mm,[{marker:'erebus-arrival',mission:'Job',destination:'kepler'}],'only missions in another system, on the warp marker toward them');
  assert.equal(N.select(s,''),true);assert.equal(N.target(s),null);
 });

@@ -685,11 +685,11 @@
     roomRoot=stationModel(def.id,null,false,def);room=def;actors=[];waitingCrowd=[];stationActivity=def.activityPoints?VoidStationActivities.create(def):null;lastActivityTime=null;
     const ship=shipModel(def.ship,'friendly',roomRoot,{landed:true});ship.position.set(-7,2,-9);ship.scaling.setAll(2);landBoarding(def);
     for(const item of def.interactions)if(item.character)characterModel(item.character,roomRoot,item.visualPosition||item.position);
-    if(stationActivity){for(const a of stationActivity.actors){const node=characterModel('crew-'+a.id,roomRoot,[a.x,0,a.z],true);actors[actors.length-1].activity=a;const cup=box('crew-cup',[.1,.16,.1],[.4,1.4,.2],material('cup','#b7b2a1'),node);cup.setEnabled(false);actors[actors.length-1].cup=cup;}}else for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
+    if(stationActivity){for(const a of stationActivity.actors){const node=characterModel('crew-'+a.id,roomRoot,[a.x,0,a.z],true);actors[actors.length-1].activity=a;const cup=box('crew-cup',[.1,.16,.1],[.4,1.4,.2],material('cup','#b7b2a1'),node);cup.setEnabled(false);actors[actors.length-1].cup=cup;}}else if(!VoidUniverse.locations[def.id]?.placeholder)for(let i=0;i<4;i++)characterModel('crew-'+i,roomRoot,[i<2?-13:13,0,i<2?-8+i*7:20+i*3],true);
     for(let i=0;i<5;i++)box('cargo-crate',[1.3,1.3,1.3],[12+(i%2)*1.5,.65,-17+Math.floor(i/2)*1.5],material('cargo','#716b56'),roomRoot);
     const colors=['#d47575','#78a5cf','#d39865','#84bd94','#b398cf'];
-    const shelfZ=def.furniture?.store?.shelves;colors.forEach((c,i)=>shelfZ?box('outfitter-category',[.12,.6,.9],[-17.55,3.35,shelfZ[0]-.6+i*(shelfZ[shelfZ.length-1]-shelfZ[0]+1.2)/4],material('shop',c,true),roomRoot):box('outfitter-category',[.55,.9,.12],[-14+i*1.5,1.7,29],material('shop',c,true),roomRoot));
-    for(let z=-20;z<32;z+=7){box('floor-guide',[.12,.025,3],[0,.03,z],material('guide','#80baaa',true),roomRoot);if(z<4||z>18)box('ceiling-light',[8,.06,.2],[0,z<4?8.7:5.7,z],material('lamp','#d1d4be',true),roomRoot);}
+    const shelfZ=def.furniture?.store?.shelves;if(!VoidUniverse.locations[def.id]?.placeholder)colors.forEach((c,i)=>shelfZ?box('outfitter-category',[.12,.6,.9],[-17.55,3.35,shelfZ[0]-.6+i*(shelfZ[shelfZ.length-1]-shelfZ[0]+1.2)/4],material('shop',c,true),roomRoot):box('outfitter-category',[.55,.9,.12],[-14+i*1.5,1.7,29],material('shop',c,true),roomRoot));
+    for(let z=-20;z<(VoidUniverse.locations[def.id]?.placeholder?4:32);z+=7){box('floor-guide',[.12,.025,3],[0,.03,z],material('guide','#80baaa',true),roomRoot);if(z<4||z>18)box('ceiling-light',[8,.06,.2],[0,z<4?8.7:5.7,z],material('lamp','#d1d4be',true),roomRoot);}
     for(const signDef of def.signs)sign(signDef,roomRoot);
     // Hangar / Maintenance is a real console: install, remove and configure equipment here (the outfitter only sells).
     for(const item of def.interactions.filter(i=>i.action==='maintenance'))maintenanceTerminal(item.position,roomRoot);
@@ -868,6 +868,8 @@
       surfaceHandle.ship.setEnabled(false); // The player is now inside this ship.
       sky.setEnabled(false);planet.setEnabled(false);
       for(const mesh of spaceRoot.getChildMeshes())if(mesh.name==='star')mesh.setEnabled(false);
+    }else if(VoidUniverse.locations[id]?.type==='arrival'){
+      station=new b.TransformNode('open-space-origin',scene);station.parent=spaceRoot;
     }else station = stationModel(id, spaceRoot,true);
     station.position.set(0, 0, -100);
     rockSource = b.MeshBuilder.CreateIcoSphere('rock-source', {

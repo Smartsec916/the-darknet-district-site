@@ -3,8 +3,9 @@ const C=require('../void-runner/campaign.js'),M=require('../void-runner/mission-
 // A pilot standing in The Darknet District after meeting Admin.
 function district(){const s=C.fresh();s.quest='open';s.location='earth';s.progression.completed=true;s.progression.flags.missileFired=true;s.universe=U.restore({...s.universe,freeTravel:true},s);s.universe.freeTravel=true;s.story.flags.metAdmin=true;return s;}
 const mission=(s,id)=>M.all(s,C).find(m=>m.id===id);
-function deliverAndPay(s,faction){const d=C.factionDeliveries[faction];C.complete(s);assert.equal(s.location,d.destination);assert(C.deliverFaction(s,faction));s.location='earth';return C.collectFactionPayment(s);}
+function deliverAndPay(s,faction){const d=C.factionDeliveries[faction];completeJourney(s);assert.equal(s.location,d.destination);assert(C.deliverFaction(s,faction));s.location='earth';return C.collectFactionPayment(s);}
 
+const completeJourney=require('./helpers/complete-journey.cjs');
 test('the two faction systems and outposts exist with their approved names',()=>{
   assert.equal(U.systems.communion.name,'Cantor System');assert.equal(U.systems.communion.hub,'vigil');assert.equal(U.locations.vigil.name,'The Vigil');
   assert.equal(U.systems['natural-order'].name,'Garrow System');assert.equal(U.systems['natural-order'].hub,'holdfast');assert.equal(U.locations.holdfast.name,'Holdfast');
@@ -22,12 +23,12 @@ test('accepting one delivery opens only that system and leaves the other untouch
   assert(s.universe.discoveredSystems.includes('communion'));assert(!s.universe.discoveredSystems.includes('natural-order'));
   assert.equal(s.story.flags.orderDelivery,undefined);assert.deepEqual(C.factionOffers(s),[]);assert(!C.acceptFaction(s,'natural-order'));
   assert(M.track(s,'communion-delivery',C));assert.equal(mission(s,'communion-delivery').destination,'vigil');
-  assert(U.destinations(s).includes('vigil'));
+  assert(U.destinations(s).includes('communion-arrival'));
 });
 test('arriving does not pay; the recipient takes the cargo and the goal returns to the District',()=>{
   const s=district();C.acceptFaction(s,'communion');M.track(s,'communion-delivery',C);
-  const f=C.flight(s);assert.equal(f.destination,'vigil');assert.equal(f.reward,0);
-  const credits=s.credits;C.complete(s);
+  const f=C.flight(s);assert.equal(f.destination,'communion-arrival');assert.equal(f.reward,0);
+  const credits=s.credits;completeJourney(s);
   assert.equal(s.location,'vigil');assert.equal(s.contract,null);assert(s.credits<=credits);
   let m=mission(s,'communion-delivery');assert(!m.completed);assert.equal(m.objective,'Deliver the equipment to Dr. Elara Voss');assert.equal(m.interaction,'elara');
   assert(C.deliverFaction(s,'communion'));assert(!C.deliverFaction(s,'communion'));
@@ -53,8 +54,8 @@ test('generic contract acceptance cannot bypass the District offer rules',()=>{
 });
 test('faction progress survives save and load at every stage',()=>{
   const s=district();C.acceptFaction(s,'communion');
-  let r=C.restore(JSON.stringify(s));assert.equal(r.contract,'communion-delivery');assert(r.universe.discoveredSystems.includes('communion'));assert.equal(C.flight(r).destination,'vigil');
-  C.complete(s);r=C.restore(JSON.stringify(s));assert.equal(r.location,'vigil');assert(C.deliverFaction(r,'communion'));
+  let r=C.restore(JSON.stringify(s));assert.equal(r.contract,'communion-delivery');assert(r.universe.discoveredSystems.includes('communion'));assert.equal(C.flight(r).destination,'communion-arrival');
+  completeJourney(s);r=C.restore(JSON.stringify(s));assert.equal(r.location,'vigil');assert(C.deliverFaction(r,'communion'));
   r=C.restore(JSON.stringify(r));assert.equal(r.story.flags.communionDelivery,'delivered');assert.equal(mission(r,'communion-delivery').destination,'earth');
   r.location='earth';C.collectFactionPayment(r);r=C.restore(JSON.stringify(r));assert(mission(r,'communion-delivery').completed);assert.deepEqual(C.factionOffers(r),['natural-order']);
   assert(r.universe.discoveredLocations.includes('vigil'));
@@ -70,9 +71,9 @@ test('older saves without faction state are unchanged',()=>{
 });
 test('Admin is only away while the first payment waits, then always back at the counter',()=>{
   const Story=require('../void-runner/story.js'),s=district(),present={notFlags:{adminOccupied:true}};
-  assert(Story.matches(s,present));C.acceptFaction(s,'communion');assert(Story.matches(s,present));C.complete(s);C.deliverFaction(s,'communion');assert(!Story.matches(s,present),'occupied while Iris pays the first delivery');
+  assert(Story.matches(s,present));C.acceptFaction(s,'communion');assert(Story.matches(s,present));completeJourney(s);C.deliverFaction(s,'communion');assert(!Story.matches(s,present),'occupied while Iris pays the first delivery');
   s.location='earth';C.collectFactionPayment(s);assert(Story.matches(s,present));
-  C.acceptFaction(s,'natural-order');C.complete(s);C.deliverFaction(s,'natural-order');assert(Story.matches(s,present),'present for the second delivery');
+  C.acceptFaction(s,'natural-order');completeJourney(s);C.deliverFaction(s,'natural-order');assert(Story.matches(s,present),'present for the second delivery');
   // Saves from before this change (adminAway) load with Admin present.
   s.story.flags.adminAway=true;const r=C.restore(JSON.stringify(s));assert(Story.matches(r,present));assert.equal(r.story.flags.adminAway,undefined);
 });

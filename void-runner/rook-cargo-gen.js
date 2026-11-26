@@ -69,7 +69,7 @@
   const payment=Number(m[2]);if(payment<1)return null;
   return {units:Number(m[1]),payment,weightKg:Number(m[3]),cargo:m[4],title:m[5]||undefined};
  }
- const destinations=Object.keys(U.locations).filter(id=>!RC.never.includes(id));
+ const destinations=Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&!RC.never.includes(id));
  const defaults=()=>({destinations:[...destinations],excluded:[],cargo:RC.procedural.goods.map(g=>g.name),
   difficulties:[...RC.districtBoard],minReward:350,maxReward:3500,unlockMission:'',
   dialogue:[RC.lines.board,'You know the lanes. Pick a load and bring the delivery receipt back to me.']});

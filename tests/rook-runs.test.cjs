@@ -8,7 +8,7 @@ test('saves that still used the old undertow id are retired with the rest; Rusth
 test('Rook keeps offering numbered freight runs and sends the first one into a newly opened system',()=>{
   const s=open();s.story.flags.rookSystems='erebus';
   assert.equal(C.rookRunTarget(s),'sol-belt');
-  assert(C.accept(s,'rook-run'));const f=C.flight(s);assert.equal(f.destination,'sol-belt');assert.equal(f.id,'rook-run-1');assert(f.reward>0);
+  assert(C.accept(s,'rook-run'));const connection=C.complete(s);assert.equal(connection.destination,'sol-arrival');assert.equal(connection.reward,0);const f=C.flight(s);assert.equal(f.destination,'sol-belt');assert.equal(f.id,'rook-run-1');assert(f.reward>0);
   assert(M.all(s,C).some(m=>m.id==='rook-run-1'&&!m.completed));
   const credits=s.credits;C.complete(s);assert.equal(s.location,'sol-belt');assert(s.credits>credits-1000);assert.equal(s.contract,null);
   assert.equal(s.story.flags.rookRuns,1);assert.match(s.story.flags.rookSystems,/sol/);

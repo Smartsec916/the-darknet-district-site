@@ -88,7 +88,15 @@ function play(x,s0){let s=s0;const id=n=>x.MS['M0'+String(n).padStart(2,'0')].id
  assert.equal(place(x,s,['port','landing-pad']).objective,null,'the Port waits until the Ship Loadout app has been opened');const lo=ev(x,s,{type:'v1-app',app:'loadout'});assert.equal(lo.objective,'loadout');assert.match(lo.messages[0].text,/review your ship's equipment/);
  place(x,s,['port']);const pad=place(x,s,['port','landing-pad']);assert.equal(pad.messages[0].text.split('\n')[0],x.MS.IRIS_OK.there);ev(x,s,{type:'flight',stage:'board'});
  for(let i=0;i<4;i++){for(const t of x.MC.timersNow(s,x.e))x.MC.timerSet(s,t,0);ev(x,s,{type:'timer'});}assert.equal(step(x,s,'M012'),'set-course','the cockpit walkthrough: four short calls, then the course');
- ev(x,s,{type:'flight',stage:'launch'});ev(x,s,{type:'flight',stage:'jump',place:'meridian'});const dk=place(x,s,['meridian']);assert.equal(dk.messages[0].text,x.MS.IRIS_OK.nicely+'\n'+x.MS.IRIS_OK.rook);
+ ev(x,s,{type:'flight',stage:'launch'});
+ assert.equal(x.C.chooseDestination(s,'erebus-arrival'),true);
+ const firstLeg=x.C.flight(s);
+ ev(x,s,{type:'flight',stage:'jump',place:firstLeg.destination});
+ assert.equal(x.C.complete(s).connection,true);assert.equal(s.location,'erebus-arrival');
+ place(x,s,[s.location]);assert.equal(step(x,s,'M012'),'jump','arriving in Erebus does not complete the local jump');
+ s=reload(x,s);assert.equal(x.C.chooseDestination(s,'meridian'),true);
+ ev(x,s,{type:'flight',stage:'jump',place:x.C.flight(s).destination});x.C.complete(s);
+ assert.equal(s.location,'meridian');const dk=place(x,s,[s.location]);assert.equal(dk.messages[0].text,x.MS.IRIS_OK.nicely+'\n'+x.MS.IRIS_OK.rook);
  assert.equal(step(x,s,'M012'),'meet-rook');const c2=s.credits;talk(x,s,'rook');ev(x,s,{type:'heard',mission:x.MS.M012.id});assert.ok(done(s,x.MS.M012.id));assert.equal(s.credits,c2+500,'Rook pays once');assert.equal(s.story.flags['rook-first-delivery-done'],true,'the shared flag for the flight Map and Rook\'s cargo board');assert.equal(x.M.definitions[x.MS.M012.id].destination,'meridian','the first delivery keeps Meridian as its destination');
  return s;}
 test('from a character who has just finished Mission 003: 004 to 012 in order, with reloads; rewards and the Kestrel once',()=>{const x=env(),s=through003(x,newChar(x));const out=play(x,s);
@@ -122,7 +130,7 @@ test('the flight Map and Rook after the real Mission 012: route-only to Meridian
  const x=env(),N=require(R('void-runner/nav-coords.js')),s=play(x,through003(x,newChar(x)));
  assert.equal(s.story.flags.navCoords,false,'the Kestrel came with a route-only Map');
  const r=reload(x,s);assert.equal(r.story.flags.navCoords,false,'reloading after the trip to Meridian does not upgrade it');
- r.location='earth';assert.deepEqual(N.markers(r,[{id:'m',destination:'meridian'}]),['meridian'],'a mission to Meridian from NeoChinatown: only its warp marker');
+ r.location='earth';assert.deepEqual(N.markers(r,[{id:'m',destination:'meridian'}]),['erebus-arrival'],'a mission to Meridian from NeoChinatown: only its warp marker');
  r.location='meridian';assert.equal(x.C.rookOpen(r),true,'Mission 012 opened Rook\'s side missions');const board=x.C.rookBoard(r);assert.ok(board.length>=3);
  assert.equal(N.grant(r,'rook'),true);assert.equal(N.mode(r,[]),'full');assert.ok(x.C.accept(r,'rook-job:routine'));assert.ok(x.M.track(r,x.C.rookRun(r).id,x.C));assert.equal(x.M.tracked(r,x.C).type,'side');});
 

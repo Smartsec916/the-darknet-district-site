@@ -24,9 +24,9 @@ test('the ship plumbing stays: awarding twice is a no-op and it persists through
  const rt=C.restore(JSON.stringify(t));assert.equal(S.hasShip(rt),true);assert.equal(rt.universe.freeTravel,true);assert.equal(rt.quest,'open');assert.deepEqual(C.restore(JSON.stringify(rt)).ownedShips,['starter']);
 });
 test('a ship owner can pick destinations; without the award nothing can be chosen',()=>{
- const s=fresh();assert.equal(C.chooseDestination(s,'meridian'),false);C.awardStarterShip(s);assert.equal(C.chooseDestination(s,'meridian'),true);assert.equal(s.destination,'meridian');
- const f=C.flight(s);assert.equal(f.kind,'transit');assert.equal(f.destination,'meridian');
- const U=require('../void-runner/universe.js');assert.deepEqual(U.destinations(s).sort(),['mars','meridian','sol-belt'].sort());assert.equal(U.route('earth','meridian').interdiction,false,'the first trip to Meridian has no raiders');
+ const s=fresh();assert.equal(C.chooseDestination(s,'meridian'),false);C.awardStarterShip(s);assert.equal(C.chooseDestination(s,'meridian'),true);assert.equal(s.destination,'erebus-arrival');
+ const f=C.flight(s);assert.equal(f.kind,'transit');assert.equal(f.destination,'erebus-arrival');
+ const U=require('../void-runner/universe.js');assert.deepEqual(U.destinations(s).sort(),['mars','erebus-arrival','sol-belt'].sort());assert.equal(U.route('earth','meridian').interdiction,false,'the first trip to Meridian has no raiders');
 });
 test('content rules: only existing characters and places; every interaction exists in the District or the street; no new voices',()=>{
  const N=require('../void-runner/neochinatown.js'),ids=new Set([...N.layout('interior').interactions,...N.layout('street').interactions].map(i=>i.id));

@@ -58,11 +58,13 @@
     keeps its name; the NeoChinatown street (with the alley and NULL nightclub, which are part of it) is one room; every other place is a room named by its own id.
     The hub refuses a name it does not know (tools/district-hub/protocol.cjs ROOMS), and then this place is simply played alone. */
  const PLACES=new Set(['corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld']);
- const roomOf=wl=>!wl||wl.kind==='vr'||wl.private?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
+ const spaceRoom=()=>!root.VoidDevTest?.active&&typeof mode!=='undefined'&&['play','pause','mission-log'].includes(mode)&&
+  typeof state!=='undefined'&&root.VoidUniverse?.locations[state.location]?.type==='arrival'&&typeof flight!=='undefined'&&flight.route?.phase==='align'?state.location:null;
+ const roomOf=wl=>!wl||wl.kind==='vr'||wl.private?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:root.VoidUniverse?.locations[wl.location||wl.id]?.placeholder?(wl.location||wl.id):null;
  const QZ=root.VoidQuarters||null;
- const roomNow=()=>{try{return typeof walkingLocation!=='undefined'?roomOf(walkingLocation):null;}catch{return null;}};
+ const roomNow=()=>{try{return spaceRoom()||(typeof walkingLocation!=='undefined'?roomOf(walkingLocation):null);}catch{return null;}};
  let joinedRoom=null,refusedRoom=null;
- const inRoom=()=>typeof walker!=='undefined'&&walker&&(ROOM_MODES.has(mode)||(mode==='dock'&&!!root.VoidMenu?.returnTo))&&((!!roomNow()&&roomNow()!==refusedRoom)||(inVrWorld()&&hubVr));
+ const inRoom=()=>!!spaceRoom()&&spaceRoom()!==refusedRoom||typeof walker!=='undefined'&&walker&&(ROOM_MODES.has(mode)||(mode==='dock'&&!!root.VoidMenu?.returnTo))&&((!!roomNow()&&roomNow()!==refusedRoom)||(inVrWorld()&&hubVr));
  // What the others are told about where I am. A pod is private: while I lie in mine they see me standing at its door, never inside it.
  /* THE UNDERGROUND (ncz-underground.js, 20 Nov 2026) is a quarter of the street, so it shares the street's room on the hub (no hub change), but it lies UNDER the city in the same
     x / z: a player down there reports x + UNDER_SHIFT (the hub's rooms accept +-3000 m), so everyone can tell the two levels apart and draws only the people on their own level. */
@@ -94,7 +96,7 @@
  const npcTurns=new Map();
  function clearPeers(){teaState=null;npcTurns.clear();for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
-  const scene=root.VoidBabylon?.scene;if(!scene||!walker||!consistent())return false;if(p.node&&!p.node.isDisposed())return true;
+  const scene=root.VoidBabylon?.scene;if(spaceRoom()||!scene||!walker||!consistent())return false;if(p.node&&!p.node.isDisposed())return true;
   // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
   if(p.appearance&&root.VoidCharacterAssembler&&root.VoidCharacterAppearance?.validate(p.appearance)){
    const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);mark(parent,p);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
@@ -210,12 +212,12 @@
   if(!ws&&wantOn&&!retryTimer)connect();
   // While a simulation loads (my screen and the hub briefly disagree about where I am) no position is sent; a small question keeps the connection alive instead.
   if(ws?.readyState===1&&status==='in'&&!consistent()){if(hubVr&&now-lastSend>=4000){lastSend=now;ws.send('{"t":"vr-list"}');}}
-  else if(ws?.readyState===1&&status==='in'&&now-lastSend>=SEND_MS){lastSend=now;const at=reported();ws.send(JSON.stringify({t:'state',x:+at[0].toFixed(3),z:+at[1].toFixed(3),yaw:+at[2].toFixed(4)}));}
+  else if(!spaceRoom()&&ws?.readyState===1&&status==='in'&&now-lastSend>=SEND_MS){lastSend=now;const at=reported();ws.send(JSON.stringify({t:'state',x:+at[0].toFixed(3),z:+at[1].toFixed(3),yaw:+at[2].toFixed(4)}));}
   return true;
  }
  function frame(now){
   requestAnimationFrame(frame);
-  if(!syncNetwork(now))return;
+  if(!syncNetwork(now)||spaceRoom())return;
   const k=1-Math.exp(-SMOOTH*Math.min(.1,(now-(frame.last||now))/1000));frame.last=now;
   for(const p of peers.values()){
    if(!p.node||p.node.isDisposed()){p.node=null;place(p);if(!p.node)continue;}
@@ -274,6 +276,7 @@
   endNpcTurn(turn){if(status==='in'&&ws?.readyState===1)ws.send(JSON.stringify({t:'npc-end',group:turn.group,token:turn.token}));},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
   nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed()||p.elsewhere)continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
+  get arrivalPilots(){return spaceRoom()===joinedRoom&&status==='in'?[...peers.values()].map(p=>p.name):[];},
   get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,under:p.under,yaw:p.yaw,clip:p.clip,dev:p.dev||null,devPose:p.devPose||null,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
   // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
   async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},
