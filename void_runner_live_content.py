@@ -247,17 +247,23 @@ def interaction_problems(table, givers=None, places=None):
 def _pair_dialogue_valid(edits):
     if not isinstance(edits, dict) or len(edits) > 128:
         return False
-    enums = {'phase': ('before', 'during', 'after', 'general'),
+    enums = {'actor': ('pixel', 'neon'), 'when': ('start', 'agreement', 'finish', 'after-activity'),
+             'phase': ('before', 'during', 'after', 'general'),
              'destination': ('', 'arcade', 'vr', 'store', 'bar'),
-             'from': ('district', 'arcade', 'vr', 'store', 'bar'),
+             'from': ('', 'district', 'arcade', 'vr', 'store', 'bar'),
              'requires': ('', 'admin', 'iris', 'observer', 'pixel-in-vr')}
     for key, rule in edits.items():
         if not re.fullmatch(r'pn-[a-z0-9-]{1,80}', key) or not isinstance(rule, dict):
             return False
-        if set(rule) - (set(enums) | {'agreement', 'delay'}):
+        if set(rule) - (set(enums) | {'agreement', 'delay', 'motions'}):
             return False
         if any(name in rule and rule[name] not in values for name, values in enums.items()):
             return False
+        if 'motions' in rule:
+            motions = rule['motions']
+            gestures = ('watch', 'look', 'talk', 'interact', 'wave', 'shrug', 'laugh', 'head-tilt', 'glance-back')
+            if not isinstance(motions, list) or len(motions) > 8 or not all(clip in gestures for clip in motions):
+                return False
         if 'agreement' in rule and (type(rule['agreement']) is not int or not 0 <= rule['agreement'] < 32):
             return False
         if 'delay' in rule and (type(rule['delay']) not in (int, float) or not 0 <= rule['delay'] <= 30):

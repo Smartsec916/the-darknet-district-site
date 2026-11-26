@@ -107,3 +107,28 @@ test('context and timing keep recordings with their actors and activities',()=>{
  assert.equal(a.valid({'pn-night-vr-next':{delay:-1}}),false);
  assert.deepEqual(a.conversationAt(data,{},ctx,1000,1),a.conversationAt(data,{},structuredClone(ctx),1000,1));
 });
+
+test('authored trigger times change departure and retain the remaining recorded lines en route',()=>{
+ const e=data.find(e=>e.id==='pn-night-vr-next'),api=require('../void-runner/pixel-neon.js');
+ function transition(when){
+  const route=api.makeRoute(life,api.vrDefaults,data,{[e.id]:{when,delay:2}});
+  const leg=route.legs.find(l=>l.place&&l.decision?.entry.id===e.id);
+  return {route,leg,duration:leg.end-leg.start-leg.decisionAt};
+ }
+ const early=transition('start'),late=transition('finish');
+ assert.ok(Math.abs(early.duration-2)<1e-9);assert.ok(late.duration>early.duration);
+ const traveling=early.route(early.leg.end+.1);
+ assert.equal(traveling.kind,'district');assert.equal(traveling.decision.entry.id,e.id);
+ assert.ok(traveling.decisionAt<0);
+});
+
+test('animation sequences respect the assigned speaker, clip lengths and trigger delay',()=>{
+ const a=require('../void-runner/shared-activities.js'),e=data[0];
+ const rule={when:'start',actor:'neon',delay:2,motions:['look','wave']};
+ assert.ok(a.valid({[e.id]:rule}));
+ assert.equal(a.motionAt(rule,e,1,'neon',()=>1),null);
+ assert.equal(a.motionAt(rule,e,2.4,'pixel',()=>1),null);
+ assert.equal(a.motionAt(rule,e,2.4,'neon',()=>1),'look');
+ assert.equal(a.motionAt(rule,e,3.4,'neon',()=>1),'wave');
+ assert.equal(a.motionAt(rule,e,4.4,'neon',()=>1),null);
+});

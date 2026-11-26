@@ -275,18 +275,37 @@
     control.value=String(current);control.onchange=()=>update(key,key==='agreement'?Number(control.value):control.value);label.append(control);fields.append(label);
    }
    select('phase','Conversation timing',root.VoidSharedActivities.phases.map(v=>[v,v]),rule.phase);
-   select('from','Required location',e.locations.map(v=>[v,v]),rule.from||e.locations[0]);
+   select('from','Required location',[['','Any listed location'],...e.locations.map(v=>[v,v])],rule.from||'');
    select('destination','Next activity',[['','Continue current routine'],['arcade','Play Hotel Headshots'],['vr','Visit the left VR booth'],['bar','Visit the bartender'],['store','Browse the Store']],rule.destination||'');
-   if(rule.destination){
-    select('agreement','Decision line',e.lines.map((l,i)=>[String(i),(i+1)+' · '+l.speaker+' · '+l.text]),rule.agreement??e.lines.length-1);
-    const field=el('label','Delay after conversation (seconds) '),input=el('input','','',{type:'number',min:0,max:30,step:.5});input.value=rule.delay||0;
+   if(rule.destination||rule.motions?.length){
+    select('when','Commit the next activity', [['start','At dialogue start'],['agreement','After the decision line'],['finish','After dialogue finishes'],['after-activity','After the current activity finishes']],rule.when||'agreement');
+    if(!rule.when||rule.when==='agreement')select('agreement','Decision line',e.lines.map((l,i)=>[String(i),(i+1)+' · '+l.speaker+' · '+l.text]),rule.agreement??e.lines.length-1);
+    const field=el('label','Delay after trigger (seconds) '),input=el('input','','',{type:'number',min:0,max:30,step:.5});input.value=rule.delay||0;
     input.onchange=()=>update('delay',input.valueAsNumber);field.append(input);fields.append(field);
    }
-   select('requires','Required context',[['','No additional condition'],['admin','Admin at the Store'],['iris','Iris at the Store'],['observer','A nearby observer'],['pixel-in-vr','Pixel playing VR']],rule.requires||'');
+   const motionBox=el('details'),summary=el('summary','Character animation sequence');motionBox.append(summary);
+   const actor=rule.actor||(['pixel','neon'].includes(e.lines[0].speaker)?e.lines[0].speaker:'pixel');
+   const actorSelect=el('select','','',{'aria-label':'Actor for animation'});for(const id of ['pixel','neon'])actorSelect.add(new Option(id,id));
+   actorSelect.value=actor;actorSelect.onchange=()=>update('actor',actorSelect.value);motionBox.append(actorSelect);
+   const clips=rule.motions||[];
+   for(const [i,clip] of clips.entries()){
+    const row=el('div');row.append(el('span',(i+1)+' · '+clip),btn('Remove motion',()=>update('motions',clips.filter((_,j)=>j!==i))));motionBox.append(row);
+   }
+   if(clips.length<8){
+    const motion=el('select','','',{'aria-label':'Motion to add'});for(const clip of root.VoidSharedActivities.gestures)motion.add(new Option(clip,clip));
+    motionBox.append(motion,btn('Append motion',()=>{(edits[e.id]??={}).actor=actor;update('motions',[...clips,motion.value]);}));
+   }
+   fields.append(motionBox);
+   select('requires','Required context',[['','No additional condition'],['admin','Admin at the Store'],['iris','Iris at the Store'],['observer','A nearby observer'],['pixel-in-vr','Pixel playing VR']],rule.requires??(e.requiresAdminNearby?'admin':''));
+   const sources=rule.from?[rule.from]:e.locations;
+   const contextPlace=({admin:'store',iris:'store','pixel-in-vr':'bar'})[rule.requires];const conflict=contextPlace&&!sources.includes(contextPlace);
+   if(conflict)fields.append(hint('This conversation cannot run. The selected context requires '+contextPlace+'.'));
+   const activity=el('select','','',{'aria-label':'Activity to test'});for(const [id,title] of [['arcade','Hotel Headshots'],['vr','VR booth and bartender'],['store','Store'],['bar','Bar']])activity.add(new Option(title,id));
+   fields.append(activity,btn('Test activity',()=>preview('@'+activity.value)));
    fields.append(el('p',(rule.from||e.locations.join(' / '))+' → '+(rule.phase||'during')+' → '+(rule.destination||'continue current routine')));
    fields.append(btn('Test selected conversation',()=>preview(e.id)),btn('Test Pixel & Neon — Dialogue-Driven Routine',()=>preview(null)),
     btn('Restore shipped action',()=>{delete edits[e.id];render();}),btn('Save conversation actions to draft',()=>{
-     if(!root.VoidSharedActivities.valid(edits)){note.textContent='Check the delay and decision settings.';return;}
+     if(conflict||!root.VoidSharedActivities.valid(edits)){note.textContent='Check the delay and decision settings.';return;}
      const draft=S().local();draft.pairDialogue=structuredClone(edits);S().saveLocal(draft);note.textContent='Saved. Publish this draft from Mission Editor.';
     }));
   }

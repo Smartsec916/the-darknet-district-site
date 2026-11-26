@@ -57,10 +57,12 @@
    const replay=visits[i+1]?.replay?visits[++i]:null;
    const nextPlace=visits[i].next,path=life.route(place,nextPlace);
    const seconds=place.kind==='vr'?config.duration:place.seconds;
-   const extra=replay?40:0;
    const lead=decision?shared.duration(decision.entry)+2+(decision.rule.delay||0):0;
    const decisionAt=decision?Math.max(1,seconds-lead-(place.kind==='arcade'?5:0)):null;
-   legs.push({place,lap,decision,decisionAt,next:nextPlace.kind,start:total,end:total+seconds+extra});total+=seconds+extra;
+   const release=decision&&decision.rule.when?decisionAt+shared.triggerTime(decision.entry,decision.rule,seconds-decisionAt):seconds;
+   const stay=Math.max(1,release)+(replay?40:0);
+   legs.push({place,lap,decision,decisionAt,activityEnd:seconds,next:nextPlace.kind,start:total,end:total+stay});total+=stay;
+   const firstTravel=legs.length;
    if(lap===1&&place.kind==='arcade'&&place.door>54&&nextPlace.door<52){
     const k=path.findIndex((b,j)=>j&&path[j-1][1]>54&&b[1]<52);
     const bay=[1.72,53];
@@ -68,15 +70,22 @@
     legs.push({place:{kind:'kiss',at:bay,face:[1.72,52]},start:total,end:total+5});total+=5;
     travel([bay,[1.72,51.5],...path.slice(k)]);
    }else travel(path);
-   const leg=legs[legs.length-1];leg.next=nextPlace.kind;
-   if(nextPlace.kind==='arcade'&&(!decision||lap%2===1)){
+   for(const travelLeg of legs.slice(firstTravel)){
+    travelLeg.next=nextPlace.kind;
+    if(decision){
+     const at=legs[firstTravel-1].start+decisionAt-travelLeg.start;
+     if(at<0&&-at<shared.duration(decision.entry)){travelLeg.decision=decision;travelLeg.decisionAt=at;}
+    }
+   }
+   const leg=legs[legs.length-1];
+   if(!leg.decision&&nextPlace.kind==='arcade'&&(!decision||lap%2===1)){
     const approach=library.find(e=>e.locations.includes('district')&&({...e.behavior,...edits[e.id]}).destination==='arcade');
     if(approach&&leg.end-leg.start>shared.duration(approach)+1){leg.decision={entry:approach,rule:{...approach.behavior,...edits[approach.id]}};leg.decisionAt=.2;}
    }
   }
   const sample=seconds=>{
    const t=((seconds%total)+total)%total,leg=legs.find(s=>t<s.end),elapsed=t-leg.start;
-   const intention={nextActivity:leg.next||null,decision:leg.decision||null,decisionAt:leg.decisionAt??null,legStart:seconds-elapsed};
+   const intention={activityEnd:leg.activityEnd??leg.end-leg.start,nextActivity:leg.next||null,decision:leg.decision||null,decisionAt:leg.decisionAt??null,legStart:seconds-elapsed};
    if(leg.path){
     const distance=elapsed*life.SPEED,len=(leg.end-leg.start)*life.SPEED;
     const width=Math.min(.42,distance,len-distance),point=d=>life.along(leg.path,d);
@@ -177,17 +186,17 @@
   const decision=p.decision,scheduled=decision?.entry;
   const beatTime=p.elapsed-p.decisionAt;
   const reserved=!!scheduled&&beatTime>=-1&&beatTime<shared.duration(scheduled)+.5;
-  const slot=Math.floor(ctx.elapsed/shared.interval);
-  const key=[Math.round(p.legStart),slot,venue,admin,ctx.iris,ctx.split,ctx.approaching,ctx.observer].join('|');
+  const slot=shared.slotStart(ctx);
+  const key=[Math.round(p.legStart),Math.round(slot*2),venue,admin,ctx.iris,ctx.split,ctx.approaching,ctx.observer].join('|');
   if(key!==slotKey){
    slotKey=key;
    const freeUntil=scheduled&&beatTime<0?Math.min(ctx.remaining,-beatTime-1):ctx.remaining;
-   slotEntry=shared.conversationAt(script,routineEdits,{...ctx,remaining:freeUntil},Math.round(p.legStart),p.visit)?.entry;
+   slotEntry=shared.conversationAt(script,routineEdits,{...ctx,freeUntil},Math.round(p.legStart),p.visit)?.entry;
   }
-  const ambient=slotEntry&&{entry:slotEntry,time:ctx.elapsed-slot*shared.interval-3};
+  const ambient=slotEntry&&{entry:slotEntry,time:ctx.elapsed-slot-3};
   const forced=forcedExchange&&{entry:forcedExchange,time:clock-exchangeStart};
   const beat=forced|| (reserved?{entry:scheduled,time:beatTime}:ambient);
-  const committed=!!scheduled&&beatTime>=scheduled.lines.slice(0,(decision.rule.agreement??scheduled.lines.length-1)+1).reduce((n,l)=>n+l.seconds+.45,0);
+  const committed=!!scheduled&&beatTime>=shared.triggerTime(scheduled,decision.rule,p.activityEnd-p.decisionAt);
   currentState={activity:p.kind,destination:committed?decision.rule.destination:p.nextActivity,initiator:scheduled?.lines[0].speaker||null,
    exchange:null,scheduled:scheduled?.id||null,movement:p.kind==='district'||solo?.walking?'walking':'at destination',
    accepted:committed,remaining:p.remaining};
@@ -197,7 +206,7 @@
    for(const [i,line] of beat.entry.lines.entries()){
     const age=beat.time-elapsed;elapsed+=line.seconds+.45;
     if(age<0||age>=line.seconds)continue;
-    const key=Math.round(p.legStart)+':'+beat.entry.id+':'+Math.round((p.elapsed-beat.time)*2)+':'+i;
+    const key=Math.round(p.legStart+p.elapsed-beat.time)+':'+beat.entry.id+':'+i;
     currentState.exchange=beat.entry.id;
     if(lastBeat!==key){
      lastBeat=key;
@@ -220,7 +229,9 @@
    }
    f.node.rotationQuaternion=root.BABYLON.Quaternion.RotationYawPitchRoll(f.heading,0,0);
    const talking=own&&status?.active&&spoken?.speaker===id;
-   const clip=walking?'walk':pose?.controls?'interact':pose?.vr?pose.clip:talking?'talk':pose?.clip||(p.kind==='store'?'look':'idle');
+   const rule=beat&&{...beat.entry.behavior,...routineEdits[beat.entry.id]};
+   const gesture=rule&&!walking&&!pose?.vr&&!pose?.controls&&!kissing?shared.motionAt(rule,beat.entry,beat.time,id,clip=>f.motionSeconds[clip]):null;
+   const clip=walking?'walk':gesture|| (pose?.controls?'interact':pose?.vr?pose.clip:talking?'talk':pose?.clip||(p.kind==='store'?'look':'idle'));
    if(f.clip!==clip){
     if(id==='pixel'&&(pose?.vr||f.inBooth)){
      f.blendFrom=f.poseTargets.map(({target,property})=>target[property].clone());
@@ -305,7 +316,12 @@
     const poseTargets=(sample?.targetedAnimations||[]).map(a=>({target:a.target,property:a.animation.targetProperty}))
      .filter(({target,property})=>(property==='position'||property==='rotationQuaternion')&&target[property]);
     for(const group of vrClips.values())if(group)group.enableBlending=false;
-    figs.set(id,{node,ctrl,walk,hands,vrClips,poseTargets,arm:arm.every(n=>n?.rotationQuaternion)?arm:null,clip:'idle'});
+    const motionSeconds={};
+    for(const clip of shared.gestures){
+     const g=made.metadata.animationGroups.find(group=>group.name.endsWith('-'+clip));
+     if(g&&ctrl.has(clip))motionSeconds[clip]=(g.to-g.from)/(g.targetedAnimations[0]?.animation.framePerSecond||30);
+    }
+    figs.set(id,{node,ctrl,walk,hands,motionSeconds,vrClips,poseTargets,arm:arm.every(n=>n?.rotationQuaternion)?arm:null,clip:'idle'});
    }
    tick();observer=scene.onBeforeRenderObservable.add(tick);
   }catch(error){drop();retry=Date.now()+15000;console.warn('[District residents]',error.message);}
@@ -321,9 +337,10 @@
   refreshConfig();
   const entry=script.find(e=>e.id===id);
   const rule=entry&&{...entry.behavior,...routineEdits[id]};
-  const leg=route.legs.find(l=>l.decision?.entry.id===id)||
+  const activity=id?.startsWith('@')?id.slice(1):null;
+  const leg=route.legs.find(l=>activity&&l.place?.kind===activity)||route.legs.find(l=>l.decision?.entry.id===id)||
    route.legs.find(l=>l.place&&entry?.locations.includes(l.place.kind)&&(!rule?.from||rule.from===l.place.kind))||route.legs[0];
-  const timed=leg.decision?.entry.id===id;
+  const timed=!!id&&leg.decision?.entry.id===id;
   const offset=timed?leg.decisionAt:rule?.phase==='after'?Math.max(1,leg.end-leg.start-32):rule?.phase==='before'?2:30;
   const t=leg.start+(id?Math.max(0,offset-(timed?1:0)):0);
   root.VoidDistrictLife.offset=t-Date.now()/1000;
