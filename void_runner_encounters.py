@@ -71,6 +71,9 @@ def validate(graph):
         labels.add(line['id'])
         if not identifier(line.get('speaker')) or not _plain(line.get('text'), 1000) or not _num(line.get('delay', 0), 0, 300):
             raise DraftError('Check the speaker, line and delay for '+line['id']+'.')
+        for flag in ('repeatSpeech', 'repeatAnimation'):
+            if flag in line and not isinstance(line[flag], bool):
+                raise DraftError('Choose on or off for dialogue repeats.')
         if 'recording' in line:
             from void_runner_live_content import clip_problems
             clip = line['recording']
