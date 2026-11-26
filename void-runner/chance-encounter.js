@@ -28,6 +28,13 @@
   const last=rows.indexOf(selected.find(row=>row.playlistEnd)||selected.at(-1));
   return {before:rows.slice(0,first),cycle:rows.slice(first,last+1),after:rows.slice(last+1)};
  }
+ function branchPlaylist(branch,byId){
+  const rows=branch.actions.map(id=>byId.get(id));
+  if(branch.startAction===undefined&&branch.endAction===undefined)return playlist(rows,(branch.passes??1)!==1);
+  const first=branch.startAction===undefined?0:branch.actions.indexOf(branch.startAction);
+  const last=branch.endAction===undefined?rows.length-1:branch.actions.indexOf(branch.endAction);
+  return {before:[],cycle:rows.slice(first,last+1),after:[]};
+ }
  function chooseBranch(row,roll=Math.random()){
   let limit=0;
   for(const branch of row.branches||[]){
@@ -60,6 +67,9 @@
      errors.push('Give each branch at '+row.id+' a percentage and at least one action.');continue;
     }
     if(branch.passes!==undefined&&(!Number.isInteger(branch.passes)||branch.passes<0||branch.passes>100))errors.push('Use 0 to 100 passes for a branch playlist.');
+    const first=branch.actions.indexOf(branch.startAction===undefined?branch.actions[0]:branch.startAction);
+    const last=branch.actions.indexOf(branch.endAction===undefined?branch.actions.at(-1):branch.endAction);
+    if(first<0||last<first)errors.push('Choose starting and ending actions in order within the chance playlist on '+row.id+'.');
     checkBounds(branch.actions.map(id=>byId.get(id)).filter(Boolean));
     total+=branch.chance;
     for(const id of branch.actions){
@@ -151,7 +161,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);

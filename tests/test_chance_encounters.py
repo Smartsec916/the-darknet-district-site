@@ -50,6 +50,18 @@ class ChanceTests(unittest.TestCase):
         with self.assertRaises(encounters.DraftError):
             self.edit('publish',3)
 
+    def test_chance_bounds_survive_publication_and_stay_in_their_own_playlist(self):
+        row = self.graph['dialogue'][0]
+        ids = ['branch_a', 'branch_b', 'branch_c']
+        self.graph['dialogue'].extend(dict(id=i, text=i, speaker='lace') for i in ids)
+        branch = dict(chance=80, passes=3, actions=ids, startAction=ids[1], endAction=ids[2])
+        row['branches'] = [branch]
+        self.assertEqual(self.edit('publish', 0)['live']['dialogue'][0]['branches'], [branch])
+        for end in [ids[0], row['id'], None]:
+            branch['endAction'] = end
+            with self.assertRaises(encounters.DraftError):
+                encounters.validate(self.graph)
+
     def test_repeat_options_survive_publication_and_require_booleans(self):
         line = self.graph['dialogue'][0]
         line.update(repeatSpeech=True, repeatAnimation=False)
