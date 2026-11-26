@@ -61128,7 +61128,7 @@
       "spawn"
     ]
   },
-  "revision": "a565b5154ab8d80f",
+  "revision": "38d5864389aecaf9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74201,19 +74201,19 @@
     },
     {
       "source": "void-runner/district-life.js",
-      "line": 256,
+      "line": 265,
       "text": "function say(line){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/district-life.js",
-      "line": 269,
+      "line": 278,
       "text": "if(cue&&v.elapsed-cue.start<1.5&&cue.line!==lastLine&&!status?.active&&!document.hidden)say(cue.line);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/district-life.js",
-      "line": 292,
+      "line": 301,
       "text": "if(r.line)say(r.line);",
       "kind": "source-reference"
     },
@@ -79565,19 +79565,19 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 328,
+      "line": 329,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 352,
+      "line": 353,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 426,
+      "line": 427,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -82263,7 +82263,7 @@
     "void-runner/district-arcade.js": "d87ede7efe30433b77f2bd3db5ae0e44ce7e03714d56e37d5e9f784ca9586208",
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
-    "void-runner/district-life.js": "eef14ab9eeb2dafd2c9bb320bf7750760995fd72809603de9fc97f82f8870b2d",
+    "void-runner/district-life.js": "43f9aeb303d38467f0d5b7951c8afefb7a498c21ecff685a6c862c1612bc87ec",
     "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
     "void-runner/district-people.js": "14bc80f15ded29f9dc47f4976387d7866bc6aed60322f2356e7b3865407012d7",
     "void-runner/district-rooms.js": "03178692e6f969a25be4447aa8197758da8ab527b9921d21e02a7e493fa0850c",
@@ -82394,7 +82394,7 @@
     "void-runner/npc-library.js": "e844f74f5cc952adea5b83494d9ab29b9d4344ff29fd283a6d6560a1a9f408b2",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
-    "void-runner/npc-made.js": "f4d591c628cf027b4257c185b5858726eb88e9198bd84b116c588ba2e36b1b74",
+    "void-runner/npc-made.js": "a9962a59fcf381c4b6e9728a138417e30741c70ac7c995b204b533a9a96897dc",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "496e3f744ce890e386121ac77ea1bbe970c1d43ec7041bc8d800b03cad51d96c",
     "void-runner/npc-preview.js": "010794e80d91b5473cd453fa8e43a818c09eabdb14af18bc7e975de8720192c2",
@@ -82425,7 +82425,7 @@
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
     "void-runner/relay.js": "9d6ddf78aba19d66545431c4eb87d23e974991792851191548039b80f2097b3f",
-    "void-runner/remote-players.js": "361473739c61d38e52eb19e2ef3325bbd2d7d3075f26b103b02f5072326158ec",
+    "void-runner/remote-players.js": "ad2503fbc93f78863867684f8bb7498edde43fd387e85bd2ddf109e16c1c85c6",
     "void-runner/road-taxi-rules.js": "1b8ff8145d975777eee18b76bffbe971cf42ed5462f0392e6a73ecc81bc4a947",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "4e386484bda8d6b5297320510c2fd1183f88e71a46c904c6fce8251bed38e1b6",

@@ -152,7 +152,7 @@
   }
   return null;
  }
- function visitDialogue(key,seconds,recordings){
+ function visitDialogue(key,seconds,recordings,walkSeconds=0){
   const [day,visit]=key.split('-').map(Number),used=new Set(),timeline=[];
   function select(stage){
    const pool=recordings.filter(e=>e.stage===stage&&!used.has(e.id));
@@ -169,8 +169,8 @@
   }
   const hello=select('arrival'),bye=select('goodbye');
   if(!hello||!bye)return timeline;
-  const goodbyeAt=seconds-duration(bye)-2;
-  let t=add(hello,8);
+  const goodbyeAt=seconds-duration(bye)-walkSeconds-2;
+  let t=add(hello,Math.max(8,walkSeconds+1));
   while(t<goodbyeAt){
    t+=14+10*rnd(day,used.size+visit);
    const next=select('visit');
@@ -218,9 +218,16 @@
    mask(f,s.kind==='stay'&&s.mask);}}
  setInterval(()=>{const scene=root.VoidBabylon?.scene;if(sceneRef&&(scene!==sceneRef||!interior()))drop();
   if(!sceneRef&&scene&&interior()&&root.VoidCrowd?.controller){sceneRef=scene;lastScan=0;observer=scene.onBeforeRenderObservable.add(step);}},1000);
- let visitMemory;
+ let visitMemory,activeVisitLine=null;
+ function visitGesture(speaker){
+  const audio=root.VoidAudio?.voiceStatus,line=activeVisitLine;
+  if(!audio?.active||line?.speaker!==speaker||audio.text!==line.text)return 'idle';
+  if(/laugh|giggl/i.test(line.delivery||''))return 'laugh';
+  if(/sarcast|dry|deadpan/i.test(line.delivery||''))return 'shrug';
+  return 'talk';
+ }
  function shopVisit(iris){
-  let progress=0,clip='',recordings=[],duo=null,lastLine=null,currentStage='',sharedKey='',sharedScript=[];
+  let progress=0,clip='',recordings=[],duo=null,lastLine=null,currentStage='',sharedKey='',sharedScript=[],lastTick=null;
   root.VoidVoiceClips?.tactaExchanges?.then(lines=>{recordings=lines;});
   const path=[iris.home,[15.1,48.6],[15.1,45.4],[13.1,45.4],[13.1,46]];
   const metres=length(path);
@@ -232,7 +239,9 @@
    const available=walking&&!root.VoidWarFlyingScanner?.installed;
    const shared=Number.isFinite(root.VoidRemotePlayers?.serverNow?.());
    const goal=visiting&&available?(shared?Math.min(metres,v.elapsed*SPEED,v.remaining*SPEED):metres):0;
-   const next=progress<goal?Math.min(goal,progress+dt*SPEED):Math.max(goal,progress-dt*SPEED);
+   const now=performance.now(),step=shared&&lastTick!==null?Math.min(1,(now-lastTick)/1000):dt;
+   const next=shared&&lastTick===null?goal:progress<goal?Math.min(goal,progress+step*SPEED):Math.max(goal,progress-step*SPEED);
+   lastTick=now;
    const moving=next!==progress,hadVisit=progress>0;
    if(moving||next>0){
     const pose=along(path,next),h=iris.holder,dir=next<progress?-1:1;
@@ -241,7 +250,7 @@
     h.rotation.y+=Math.atan2(Math.sin(yaw-h.rotation.y),Math.cos(yaw-h.rotation.y))*Math.min(1,dt*6);
    }
    progress=next;
-   const wanted=moving?'walk':progress?'talk':'idle';
+   const wanted=moving?'walk':progress?visitGesture('iris'):'idle';
    if((hadVisit||progress)&&clip!==wanted){iris.play(wanted);clip=wanted;}
    const camera=iris.holder.getScene().activeCamera?.globalPosition;
    const nearby=!!camera&&visiting&&Math.hypot(camera.x-v.x,camera.z-v.z)<9;
@@ -254,7 +263,7 @@
     return;
    }
    function say(line){
-    lastLine=line;
+    lastLine=line;activeVisitLine=line;
     const {speaker,text}=line;
     if(typeof announce==='function')announce((speaker==='iris'?'Iris':'Tacta')+' · '+text);
     const source=speaker==='iris'?iris.holder.getAbsolutePosition():v;
@@ -262,7 +271,7 @@
    }
    if(shared){
     if(sharedKey!==v.key&&recordings.length){
-     sharedScript=visitDialogue(v.key,v.elapsed+v.remaining,recordings);
+     sharedScript=visitDialogue(v.key,v.elapsed+v.remaining,recordings,metres/SPEED);
      sharedKey=v.key;
     }
     const cue=sharedScript.find(c=>v.elapsed>=c.start&&v.elapsed<c.end);
@@ -292,5 +301,5 @@
    if(r.line)say(r.line);
   }};
  }
- root.VoidDistrictLife={...pure,shopVisit,offset:0,get driven(){return [...figs.values()].filter(f=>f.driven).map(f=>f.id);},get masked(){return [...figs.values()].filter(f=>f.mask&&!f.mask.isDisposed()).map(f=>f.id);},get figures(){return [...figs.keys()];}};
+ root.VoidDistrictLife={...pure,shopVisit,visitGesture,offset:0,get driven(){return [...figs.values()].filter(f=>f.driven).map(f=>f.id);},get masked(){return [...figs.values()].filter(f=>f.mask&&!f.mask.isDisposed()).map(f=>f.id);},get figures(){return [...figs.keys()];}};
 })(typeof globalThis!=='undefined'?globalThis:this);

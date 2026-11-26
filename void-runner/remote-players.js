@@ -262,7 +262,7 @@
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   get teaState(){return teaState;},
-  serverNow(){return status==='in'&&serverClock?serverClock.server+performance.now()-serverClock.local:null;},
+  serverNow(){return wantOn&&serverClock?serverClock.server+performance.now()-serverClock.local:null;},
   teaPose(data){if(ws?.readyState===1&&status==='in'&&features.teaRoom&&teaState?.owner===selfId)ws.send(JSON.stringify({...data,t:'tea-pose'}));},
   npcTurn(group,cooldown){
    if(status!=='in'||!features.npcDialogue||ws?.readyState!==1)return null;
