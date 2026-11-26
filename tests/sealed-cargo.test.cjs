@@ -3,12 +3,13 @@ const C=require('../void-runner/campaign.js'),M=require('../void-runner/mission-
 const ID='admin-sealed-cargo-01';
 function district(){const s=C.fresh();s.quest='open';s.location='earth';s.progression.completed=true;s.progression.flags.missileFired=true;s.universe=U.restore({...s.universe,freeTravel:true},s);s.universe.freeTravel=true;s.story.flags.metAdmin=true;return s;}
 // The first District delivery delivered and paid, so Admin is free again.
-function afterFirstPayment(){const s=district();assert(C.acceptFaction(s,'communion'));C.complete(s);assert(C.deliverFaction(s,'communion'));s.location='earth';C.collectFactionPayment(s);return s;}
+function afterFirstPayment(){const s=district();assert(C.acceptFaction(s,'communion'));completeJourney(s);assert(C.deliverFaction(s,'communion'));s.location='earth';C.collectFactionPayment(s);return s;}
 const rng=seq=>{let i=0;return ()=>seq[i++%seq.length];};
 
+const completeJourney=require('./helpers/complete-journey.cjs');
 test('Admin offers the sealed crate only after the first District delivery is paid',()=>{
   const s=district();assert(!C.sealedOffered(s));
-  assert(C.acceptFaction(s,'communion'));C.complete(s);C.deliverFaction(s,'communion');
+  assert(C.acceptFaction(s,'communion'));completeJourney(s);C.deliverFaction(s,'communion');
   // Delivered but unpaid: Admin is "occupied" and offers nothing.
   assert(!C.sealedOffered(s));
   s.location='earth';C.collectFactionPayment(s);assert(C.sealedOffered(s));
@@ -16,9 +17,9 @@ test('Admin offers the sealed crate only after the first District delivery is pa
 test('accepting loads the crate for Rook at Meridian with pay held until the handover',()=>{
   const s=afterFirstPayment(),credits=s.credits;assert(C.accept(s,ID));
   assert.equal(s.contract,ID);assert.equal(s.story.flags.sealedCargo,'accepted');assert(!C.sealedOffered(s));
-  const f=C.flight(s);assert.equal(f.destination,'meridian');assert.equal(f.reward,0);assert.equal(f.enemies,0);assert.equal(f.legal,false);
+  const f=C.flight(s);assert.equal(f.destination,'erebus-arrival');assert.equal(f.reward,0);assert.equal(f.enemies,0);assert.equal(f.legal,false);
   assert(M.track(s,ID,C));
-  C.complete(s);assert.equal(s.location,'meridian');
+  completeJourney(s);assert.equal(s.location,'meridian');
   assert.equal(s.contract,null);assert(C.sealedDeliverable(s));assert.equal(s.universe.missions[ID].objectives.arrive,true);assert(!s.universe.missions[ID].completed);
   const before=s.credits;assert(C.deliverSealed(s));assert.equal(s.credits,before+1800);assert.equal(s.story.flags.sealedCargo,'delivered');
   assert(s.universe.missions[ID].completed);assert(!C.deliverSealed(s),'paid once');assert(!C.sealedOffered(s));

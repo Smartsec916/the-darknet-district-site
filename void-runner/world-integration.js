@@ -26,7 +26,8 @@ const worldLaunch=launch;
 launch=async function(){const owner=VoidFlightSession.active;if(modernMenuPending){VoidPreparation.cancel?.();await new Promise(resolve=>{const check=()=>modernMenuPending&&VoidFlightSession.owns(owner)?setTimeout(check,20):resolve();check();});}if(!VoidFlightSession.owns(owner))return;if(state.universe.freeTravel&&!originalFlight(state)){state.destination=VoidUniverse.destinations(state)[0]||null;}return worldLaunch();};
 const worldEnterWalking=enterWalking;
 async function resumeSavedWorld(){
- C.socialEntry(state);
+ if(VoidUniverse.locations[state.location]?.type==='arrival')return launch();
+ if(!state.story?.flags?.flightCheckpoint)C.socialEntry(state);
  await dock();
 }
 const physicalResumeWalking=resumeWalking;
@@ -123,6 +124,7 @@ async function showPodWake(){
 }
 dock=async function(tab='dock'){
  if(VoidGraphics.busy){VoidPreparation.cancel?.();preparationGeneration++;await Promise.allSettled([preparingLaunch,destinationPreparation].filter(Boolean));VoidGraphics.busy=false;walkingLocation=walker=null;}
+ if(VoidUniverse.locations[state.location]?.type==='arrival')return launch();
  if(tab==='shop'){shop();return;}
  if(walkingLocation&&walker&&!state.story.flags.podWakePending){resumeWalking();return;}
  // NeoChinatown is two environments (street and District interior); a save inside the District resumes inside it (district-area.js).
@@ -286,7 +288,7 @@ setInterval(()=>{try{const c=$('credits'),n=document.querySelector('header .wide
 const missionTracker=document.createElement('div');missionTracker.id='mission-tracker';missionTracker.hidden=true;document.body.append(missionTracker);
 const missionLogButton=document.createElement('button');missionLogButton.id='mission-log-button';missionLogButton.type='button';missionLogButton.textContent='MISSION LOG';missionLogButton.setAttribute('aria-keyshortcuts','L');missionLogButton.hidden=true;missionLogButton.addEventListener('click',()=>openMissionLog());document.body.append(missionLogButton);
 // Which markers: nav-coords.js (every location once Rook's coordinates are in; before that only the route to the mission and the way home). The angle follows the full list, so a marker never moves when the set changes.
-function flightRoutes(){const all=VoidUniverse.destinations(state),shown=globalThis.VoidNav?new Set(VoidNav.shown()):null;return all.map((id,i)=>{const angle=-1.05+i*.42;return {id,vector:VoidWarp.skyward(state.location,{x:Math.sin(angle),y:0,z:Math.cos(angle)})};}).filter(r=>!shown||shown.has(r.id));}
+function flightRoutes(){const all=VoidUniverse.destinations(state),shown=globalThis.VoidNav?new Set(VoidNav.shown()):null;return all.map(id=>{const angle=VoidUniverse.locations[id].bearing;return {id,vector:VoidWarp.skyward(state.location,{x:Math.sin(angle),y:0,z:Math.cos(angle)})};}).filter(r=>!shown||shown.has(r.id));}
 const worldUpdate=update;
 update=function(dt){
  if(mode==='play'&&flight.route?.phase==='departure'&&!globalThis.VoidDockingFlight?.departureStep(dt)){const speed=Math.max(0,Math.min(18,(flight.route.departure-1)*9));flight.velocity={x:0,y:0,z:speed};}

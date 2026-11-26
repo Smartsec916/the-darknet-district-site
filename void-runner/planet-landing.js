@@ -43,6 +43,7 @@
   vesper:{id:'vesper',planet:'Vesper',place:'Ward Freight Workshop',pad:'WORKSHOP YARD',at:[12,25,0],eye:3.4,face:[Math.sin(Math.PI+.4),Math.cos(Math.PI+.4)],arrive:[Math.sin(Math.PI+.4),Math.cos(Math.PI+.4)],leave:[-Math.sin(Math.PI+.4),-Math.cos(Math.PI+.4)],light:'day',weather:'dust',
    sky:['#6f8296','#9aaab9','#cfb99c'],fog:['#cfb99c',.0011],clouds:'#e2d6c4',cloudGlow:'#fff3de',ground:'dust',
    orbit:{ocean:'#8f8270',land:'#c2a584',lights:'#ffe0a8',cloud:'#e8dccb',rim:'#e9cfa8',night:false,density:.03}}};
+ BIOMES['cinder-landing']={...BIOMES.nexus,id:'cinder-landing',planet:'Cinder Ring',place:'Ring Survey Site',pad:'Survey Landing',weather:'none'};
  const biome=id=>Object.hasOwn(BIOMES,id)?BIOMES[id]:null;
  /* A location with a descent: on the ground (universe.js planetside) and with a landing area here. */
  const landable=id=>!!(U&&U.planetside(id)&&biome(id));
@@ -350,6 +351,12 @@
   // farmsteads, solar arrays and windbreaks out to the horizon
   for(const [x,z,a,c] of scatter(41,q==='low'?40:80,1600,(x,z)=>Math.hypot(x,z)<60)){if(a<.4){bt.box('ob',c<.5?red:wood,x,3,z,10+c*8,6,8);bt.box('or',metal,x,6.3,z,11+c*8,.6,9);}else if(a<.7){for(let i=0;i<6;i++)bt.box('op',panel,x+i*5,1.1,z,4,.2,9,0);}else{for(let i=0;i<10;i++)bt.box('ot',tree,x+i*7,5,z,4.5,10,4.5);}}
   bt.build();buildPad(scene,b,'#c9a24a',false);return {tick(){}};}
+ function buildSurveyPad(scene,b){
+  const ground=BABYLON.MeshBuilder.CreateGround('survey-ground',{width:6000,height:6000},scene);
+  const material=new BABYLON.StandardMaterial('survey-ground',scene);
+  material.diffuseColor=BABYLON.Color3.FromHexString('#4c4946');ground.material=material;
+  buildPad(scene,b,'#909da2',false);return {tick(){}};
+ }
  function buildVesper(scene,b,q){const B=BABYLON,bt=batcher(scene,q);terrain(scene,b,'#a88a64','#d1b38a',5);
   const metal=litMat(scene,'shed','#7a6a58'),rust=litMat(scene,'rust','#8a4a2a'),rock=litMat(scene,'ridge','#b0916a');
   // the Ward Freight workshop (opening-scene.js): sheds and a yard around the Kestrel's stand; ridges all round
@@ -362,7 +369,7 @@
   const hemi=new B.HemisphericLight('ls-hemi',new B.Vector3(0,1,0),scene),sun=new B.DirectionalLight('ls-sun',new B.Vector3(-.6,-.5,.4),scene);
   const ip=scene.imageProcessingConfiguration;ip.contrast=1.25;ip.exposure=b.light==="night"?1.45:1;ip.vignetteEnabled=true;ip.vignetteWeight=1.6;ip.vignetteColor=new B.Color4(0,0,0,0);
   const stars=buildStars(scene,q),orbit=buildPlanet(scene,b,q),sky=buildSky(scene,b),clouds=buildClouds(scene,b,q);
-  const area=b.id==='neochinatown'?buildCity(scene,b,q):b.id==='vantor'?buildVantor(scene,b,q):b.id==='nexus'?buildNexus(scene,b,q):b.id==='order'?buildOrder(scene,b,q):buildVesper(scene,b,q);
+  const area=b.id==='cinder-landing'?buildSurveyPad(scene,b):b.id==='neochinatown'?buildCity(scene,b,q):b.id==='vantor'?buildVantor(scene,b,q):b.id==='nexus'?buildNexus(scene,b,q):b.id==='order'?buildOrder(scene,b,q):buildVesper(scene,b,q);
   let glow=null;if(q!=='low'){try{glow=new B.GlowLayer('ls-glow',scene,{mainTextureRatio:q==='medium'?.25:.4,blurKernelSize:q==='medium'?24:40});glow.intensity=b.light==='night'?.75:.35;}catch{glow=null;}}
   const cityMeshes=scene.meshes.filter(m=>m!==stars&&m!==sky&&!clouds.includes(m)&&!orbit.root.getChildMeshes().includes(m));
   // orbit geometry: the camera's line in and the sun (night landings come in over the dark side with a lit crescent; day landings over the lit side)

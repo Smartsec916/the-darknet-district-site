@@ -16,14 +16,14 @@
  function markerFor(s,id,U=Uof(),act){if(!id||!U.locations[id]||id===s.location)return null;const hop=U.nextHop(s.location,id),list=shownList(s,U,act);return list.includes(hop)?hop:null;}
  /* What the Map app lists in flight. kind: 'station' | 'planet' | 'warp' (the jump to another system's hub). */
  function entries(s,U=Uof(),act){const here=U.system(s.location),N=Nav(),routeOnly=!!N&&N.mode(s,act||[])==='route',known=routeOnly?[]:s.universe?.discoveredLocations||[],out=[];
-  for(const id of shownList(s,U,act)){const other=U.system(id)!==here,l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:other?'warp':(l.surface||l.planet)?'planet':'station',marker:id,direct:true});}
+  for(const id of shownList(s,U,act)){const other=U.system(id)!==here,l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:other?'warp':l.type==='anchorage'?'anchorage':(l.surface||l.planet)?'planet':'station',marker:id,direct:true});}
   // known places in other systems that are not their hub: reached through that system's warp marker
-  for(const id of known)if(id!==s.location&&U.system(id)!==here&&!out.some(e=>e.id===id)){const m=markerFor(s,id,U,act);if(!m)continue;const l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:(l.surface||l.planet)?'planet':'station',marker:m,direct:false});}
+  for(const id of known)if(U.locations[id]?.type!=='arrival'&&id!==s.location&&U.system(id)!==here&&!out.some(e=>e.id===id)){const m=markerFor(s,id,U,act);if(!m)continue;const l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:(l.surface||l.planet)?'planet':'station',marker:m,direct:false});}
   return out;}
  /* Active missions whose destination is in another system: the warp marker toward it, with the mission's title. */
  function missionMarkers(s,active,U=Uof()){const here=U.system(s.location),out=new Map();for(const m of active||[]){if(!m||m.completed||!m.destination||!U.locations[m.destination]||U.system(m.destination)===here)continue;const mk=markerFor(s,m.destination,U,active);if(mk&&!out.has(mk))out.set(mk,{marker:mk,mission:m.title||m.id,destination:m.destination});}return [...out.values()];}
  const target=s=>{const t=s?.story?.flags?.navTarget;return typeof t==='string'&&Uof().locations[t]?t:null;};
- function select(s,id,U=Uof()){if(!s?.story?.flags)return false;if(id==null||id===''){delete s.story.flags.navTarget;return true;}if(!U.locations[id]||!(s.universe?.discoveredLocations||[]).includes(id)||id===s.location)return false;s.story.flags.navTarget=id;return true;}
+ function select(s,id,U=Uof()){if(!s?.story?.flags)return false;if(id==null||id===''){delete s.story.flags.navTarget;return true;}if(!U.locations[id]||!U.destinations(s).includes(id)&&!(s.universe?.discoveredLocations||[]).includes(id)||id===s.location)return false;s.story.flags.navTarget=id;return true;}
  /* Arriving where the target is ends it. */
  function arrived(s){if(target(s)&&s.story.flags.navTarget===s.location){delete s.story.flags.navTarget;return true;}return false;}
  const api={markerFor,entries,missionMarkers,target,select,arrived};
@@ -51,11 +51,22 @@
  function view(){const s=st(),U=Uof();if(!s)return '<div class="pd-empty">Not available.</div>';const t=target(s),miss=missionMarkers(s,active()),list=entries(s,U,active()),navMode=Nav()?Nav().mode(s,active()):'full',here=U.systems[U.system(s.location)]?.name||'';
   const missOn=id=>miss.find(m=>m.marker===id);
   const row=e=>{const sel=t===e.id,m=missOn(e.marker),hereMission=active().find(x=>!x.completed&&x.destination===e.id);
-   return '<button type="button" class="fn-row'+(sel?' fn-sel':'')+'" data-nav="'+esc(e.id)+'" aria-pressed="'+sel+'"><span class="fn-kind">'+({station:'STATION',planet:'PLANET',warp:'WARP'}[e.kind])+'</span><b>'+esc(e.name)+'</b>'
+   return '<button type="button" class="fn-row'+(sel?' fn-sel':'')+'" data-nav="'+esc(e.id)+'" aria-pressed="'+sel+'"><span class="fn-kind">'+({station:'▣ STATION',planet:'◉ LANDING PAD',anchorage:'◇ ANCHORAGE',warp:'✧ SYSTEM WARP'}[e.kind])+'</span><b>'+esc(e.name)+'</b>'
     +(e.kind==='warp'?'<small>warp marker to '+esc(e.systemName)+'</small>':!e.direct?'<small>in '+esc(e.systemName)+' · through the warp marker to '+esc(nameOf(U,e.marker))+'</small>':'')
     +(sel?'<em class="fn-tag fn-blue">■ NAV TARGET</em>':'')+((m&&e.kind==='warp')||hereMission?'<em class="fn-tag fn-yellow">◆ MISSION'+(hereMission?' · '+esc(hereMission.title):m?' · '+esc(m.mission):'')+'</em>':'')+'</button>';};
   const inSys=list.filter(e=>e.kind!=='warp'&&e.direct),warps=list.filter(e=>e.kind==='warp'),far=list.filter(e=>!e.direct);
-  return '<div class="pd-note">FLIGHT NAVIGATION · '+esc(here.toUpperCase())+' · choose a place: its marker gets a <b style="color:'+BLUE+'">blue ■ square</b>. A mission in another system marks its warp marker with a <b style="color:'+YELLOW+'">yellow ◆ square</b>. Fly into a marker to set course.</div>'
+  const pilots=root.VoidRemotePlayers?.arrivalPilots||[];
+  const universe=Object.entries(U.systems).map(([key,region])=>{
+   const local=key===U.system(s.location),accessible=local||list.some(e=>e.id===region.arrival);
+   const bodies=Object.values(U.planets).filter(p=>p.system===key);
+   const lines=bodies.map(p=>{
+    const known=s.universe.discoveredLocations.includes(p.pad)||s.location===p.pad;
+    return '<li>◉ '+esc(p.name)+(p.provisional?' (provisional)':'')+'<ul><li>'+esc(p.settlement)+' · '+esc(p.facility)+(known?'':' · locked')+'</li><li>▣ '+esc(nameOf(U,p.orbital))+'</li></ul></li>';
+   }).join('');
+   const other=Object.entries(U.locations).filter(([,p])=>p.system===key&&!p.parentPlanet&&p.type!=='arrival').map(([id,p])=>'<li>'+esc(nameOf(U,id))+' · '+esc(p.type)+'</li>').join('');
+   return '<details'+(local?' open':'')+'><summary>✧ '+esc(region.name)+' · '+esc(region.ownerFaction||'Independent')+(local?' · here':accessible?'':' · locked')+'</summary><p>'+esc(region.name)+' arrival · open space</p><ul>'+lines+other+'</ul></details>';
+  }).join('');
+  return (pilots.length?'<p>Other pilots at this arrival point · '+pilots.map(esc).join(', ')+'</p>':'')+'<details><summary>Universe map</summary>'+universe+'</details><div class="pd-note">FLIGHT NAVIGATION · '+esc(here.toUpperCase())+' · choose a place: its marker gets a <b style="color:'+BLUE+'">blue ■ square</b>. A mission in another system marks its warp marker with a <b style="color:'+YELLOW+'">yellow ◆ square</b>. Fly into a marker to set course.</div>'
    +(navMode==='route'?'<div class="pd-note" data-nav-mode="route">ROUTE ONLY · the markers on the way to your mission, and the way home. Other locations are added when you receive their nav data.</div>':navMode==='known'?'<div class="pd-note" data-nav-mode="known">KNOWN PLACES · the places you have already found. Other locations are added when you receive their nav data.</div>':'<div class="pd-note" data-nav-mode="full">ALL LOCATIONS · nav data received.</div>')
    +'<h2>IN THIS SYSTEM</h2>'+(inSys.length?inSys.map(row).join(''):'<div class="pd-empty">'+(navMode==='route'?'None on your route.':'No other known places in this system.')+'</div>')
    +'<h2>WARP MARKERS TO OTHER SYSTEMS</h2>'+(warps.length?warps.map(row).join(''):'<div class="pd-empty">No other system known yet.</div>')

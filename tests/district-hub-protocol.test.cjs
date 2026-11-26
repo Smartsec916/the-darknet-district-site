@@ -127,3 +127,17 @@ test('a device change goes to the room once, never to the sender; too-fast chang
  const v=hub.view(hub.byConn.get(a));assert.equal(v.dev,null);assert.ok(!('pose' in v));
  assert.equal(hub.dev({},{t:'dev',dev:'v1'}),false,'no session, nothing');
 });
+
+test('pilots at each open-space arrival see joins and departures without reporting walking positions',()=>{
+ const U=require('../void-runner/universe.js');
+ for(const {arrival} of Object.values(U.systems)){
+  const r=rig(),a={},b={};
+  assert.ok(r.hub.join(a,{...hello,room:arrival},who('one',{handle:'First_Pilot'})));
+  assert.ok(r.hub.join(b,{...hello,room:arrival},who('two',{handle:'Next_Pilot'})));
+  const welcome=r.msgs(b).find(m=>m.t==='welcome');
+  assert.deepEqual(welcome.peers.map(p=>p.name),['First_Pilot']);
+  assert.equal(r.last(a).peer.name,'Next_Pilot');
+  r.hub.drop(b,1000,'left arrival');
+  assert.equal(r.last(a).t,'leave');
+ }
+});

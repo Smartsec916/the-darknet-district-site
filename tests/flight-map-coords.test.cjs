@@ -15,13 +15,13 @@ const rookReady=()=>{const s=newPilot();s.location='meridian';U.visit(s);s.story
 
 test('a new pilot starts in route-only mode: only the way to Meridian (and home)',()=>{
  const s=newPilot();assert.equal(s.story.flags.navCoords,false,'the ship grant starts the Map in route-only mode');
- assert.equal(N.mode(s,toMeridian),'route');sameSet(N.markers(s,toMeridian),['meridian'],'from NeoChinatown only the warp marker to Meridian’s system (Meridian itself)');
+ assert.equal(N.mode(s,toMeridian),'route');sameSet(N.markers(s,toMeridian),['erebus-arrival'],'from NeoChinatown only the Erebus arrival marker');
  assert.ok(U.destinations(s).length>1,'other places are known, but not shown');
- s.location='sol-belt';sameSet(N.markers(s,toMeridian),['meridian','earth'],'elsewhere: the route plus the way home');
- s.location='meridian';sameSet(N.markers(s,[{id:'h',destination:'earth'}]),['sol-belt'],'from Meridian, home is the warp marker to Tessaly');
+ s.location='sol-belt';sameSet(N.markers(s,toMeridian),['erebus-arrival','earth'],'elsewhere: the route plus the way home');
+ s.location='meridian';sameSet(N.markers(s,[{id:'h',destination:'earth'}]),['sol-arrival'],'from Meridian, home is the warp marker to Tessaly');
  // the flight Map app lists the same set
- s.location='earth';sameSet(FN.entries(s,U,toMeridian).map(e=>e.id),['meridian']);
- assert.equal(FN.markerFor(s,'kepler',U,toMeridian),'meridian');assert.equal(FN.markerFor(s,'mars',U,toMeridian),null,'a hidden marker gets no square');
+ s.location='earth';sameSet(FN.entries(s,U,toMeridian).map(e=>e.id),['erebus-arrival']);
+ assert.equal(FN.markerFor(s,'kepler',U,toMeridian),'erebus-arrival');assert.equal(FN.markerFor(s,'mars',U,toMeridian),null,'a hidden marker gets no square');
  // still route-only after a reload, and after flying to Meridian
  const r=reload(s);assert.equal(r.story.flags.navCoords,false);r.location='meridian';U.visit(r);assert.equal(reload(r).story.flags.navCoords,false,'the migration never upgrades a new pilot');
 });
@@ -34,12 +34,12 @@ test('no mission and no coordinates: the places already discovered (never zero m
 
 test('full mode: every location in this system and the warp marker to every reachable system',()=>{
  const s=newPilot();assert.equal(N.grant(s,'test'),true);assert.equal(N.mode(s,toMeridian),'full');
- sameSet(N.markers(s,toMeridian),['sol-belt','mars','meridian']);
- s.location='meridian';sameSet(N.markers(s,[]),['vesper','kepler','rusthaven','foundry','sol-belt'],'every Erebus place plus the Tessaly warp marker');
+ sameSet(N.markers(s,toMeridian),['sol-belt','mars','servo-orbital','vantor-relay','erebus-arrival']);
+ s.location='meridian';sameSet(N.markers(s,[]),['vesper','kepler','rusthaven','foundry','cinder-landing','vesper-relay','sol-arrival'],'every Erebus place plus the Tessaly warp marker');
  for(const id of Object.keys(U.locations).filter(id=>['erebus','sol'].includes(U.system(id))))assert.ok(s.universe.discoveredLocations.includes(id),id);
  assert.ok(!s.universe.discoveredLocations.includes('vigil')&&!s.universe.discoveredLocations.includes('nexus'),'faction systems stay closed until their own story opens them');
- s.universe.discoveredLocations.push('vigil');s.universe.discoveredSystems.push('communion');assert.ok(N.markers(s,[]).includes('vigil'),'an opened faction system gets its warp marker');
- s.location='earth';const kinds=Object.fromEntries(FN.entries(s,U,[]).map(e=>[e.id,e.kind]));assert.equal(kinds['sol-belt'],'station');assert.equal(kinds.mars,'planet');assert.equal(kinds.meridian,'warp');assert.equal(kinds.vigil,'warp');
+ s.universe.discoveredLocations.push('vigil');s.universe.discoveredSystems.push('communion');assert.ok(N.markers(s,[]).includes('communion-arrival'),'an opened faction system gets its warp marker');
+ s.location='earth';const kinds=Object.fromEntries(FN.entries(s,U,[]).map(e=>[e.id,e.kind]));assert.equal(kinds['sol-belt'],'anchorage');assert.equal(kinds.mars,'planet');assert.equal(kinds['erebus-arrival'],'warp');assert.equal(kinds['communion-arrival'],'warp');
  // flight can fly to every marker
  for(const id of N.markers(s,[]))assert.ok(C.chooseDestination({...s,universe:s.universe},id),id);
 });
@@ -60,7 +60,7 @@ test('save migration: saves that already fly freely keep (and gain) all markers;
  const d=district();C.awardStarterShip(d);delete d.story.flags.navCoords;U.discover(d,'vigil');assert.equal(reload(d).story.flags.navCoords,true);
  // an older (open mission pool) campaign flying freely
  const legacy=C.fresh();legacy.quest='open';legacy.location='meridian';legacy.progression.checkpoint={location:'meridian'};legacy.progression.completed=true;legacy.progression.flags.missileFired=true;legacy.universe=U.restore({...legacy.universe,freeTravel:true},legacy);
- const lr=reload(legacy);assert.equal(lr.story.flags.navCoords,true);sameSet(N.markers(lr,[]),U.destinations(legacy));
+ const lr=reload(legacy);assert.equal(lr.story.flags.navCoords,true);sameSet(N.markers(lr,[]),U.destinations(lr));assert.ok(N.markers(lr,[]).includes('cinder-landing'));
  // no ship, or a ship never flown beyond NeoChinatown: no change
  assert.equal(reload(district()).story.flags.navCoords,undefined);
  const parked=district();C.awardStarterShip(parked);delete parked.story.flags.navCoords;assert.equal(reload(parked).story.flags.navCoords,undefined);
@@ -127,4 +127,28 @@ test('wiring: scripts load before campaign.js, flight and Rook use them, the ser
  assert.ok(at('nav-coords.js')>at('universe.js')&&at('nav-coords.js')<at('campaign.js')&&at('rook-cargo-jobs.js')<at('campaign.js'));
  const wi=fs.readFileSync('void-runner/world-integration.js','utf8');assert.match(wi,/VoidNav\.shown\(\)/);assert.match(wi,/grantCoordinates\('rook'\)/);assert.match(wi,/rookNavSent/);
  const api=fs.readFileSync('void_runner_api.py','utf8');assert.match(api,/rook-first-delivery-done/);
+});
+
+test('each system arrival restores open space; each registered landing has a unique orbital and returns a local route',()=>{
+ const {checkpoint}=require('../void-runner/progression.js');
+ const pilot=newPilot(),orbitals=new Set(),pads=new Set();
+ for(const [id,region] of Object.entries(U.systems)){
+  U.discover(pilot,region.arrival);pilot.location=region.arrival;U.visit(pilot);checkpoint(pilot,pilot.location);
+  const restored=reload(pilot);
+  assert.equal(restored.location,region.arrival);
+  assert.equal(restored.universe.currentSystem,id);
+  assert.equal(restored.universe.station,null);
+  assert.equal(U.destinations(restored).includes(region.arrival),false);
+ }
+ for(const planet of Object.values(U.planets)){
+  assert.ok(!pads.has(planet.pad)&&!orbitals.has(planet.orbital));
+  pads.add(planet.pad);orbitals.add(planet.orbital);
+  assert.equal(U.locations[planet.pad].type,'pad');
+  assert.equal(U.locations[planet.orbital].type,'station');
+  assert.equal(U.system(planet.pad),U.system(planet.orbital));
+  assert.equal(U.route(planet.pad,planet.orbital).kind,'local');
+  for(const id of [planet.pad,planet.orbital]){
+   pilot.location=id;U.visit(pilot);checkpoint(pilot,id);assert.equal(reload(pilot).location,id);
+  }
+ }
 });

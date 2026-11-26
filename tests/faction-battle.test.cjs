@@ -13,6 +13,7 @@ function run(faction,seed,velocity={x:0,y:0,z:0},seconds=B.config.duration+20){
 }
 function district(){const s=C.fresh();s.quest='open';s.location='earth';s.progression.completed=true;s.progression.flags.missileFired=true;s.universe=U.restore({...s.universe,freeTravel:true},s);s.universe.freeTravel=true;s.story.flags.metAdmin=true;return s;}
 
+const completeJourney=require('./helpers/complete-journey.cjs');
 test('each delivery gets its own small battle with two ships per faction',()=>{
   for(const faction of ['communion','natural-order']){const b=B.create(faction,undefined,seeded(1));
     assert.equal(b.ships.filter(s=>s.side==='communion').length,2);assert.equal(b.ships.filter(s=>s.side==='natural-order').length,2);
@@ -54,7 +55,7 @@ test('the outbound jump drops out once, halfway, only while carrying that delive
   route.phase='warp';route.progress=.6;assert.equal(B.due(s,mission,route),null,'never repeats');
   const r=C.restore(JSON.stringify(s));assert.equal(r.story.flags.communionBattle,true,'survives save and load');
   // Skipping the battle never blocks the delivery.
-  C.complete(s);assert(C.deliverFaction(s,'communion'));
+  completeJourney(s);assert(C.deliverFaction(s,'communion'));
 });
 test('no battle on other routes or after the cargo is delivered',()=>{
   const s=district();const route={phase:'warp',progress:.6,aligned:0};
