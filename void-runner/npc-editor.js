@@ -55,11 +55,13 @@
   wear:'Which look the game uses for everyone drawn with this model: none (as made), one of your looks, or a mix (each person keeps one of your looks).'};
  // ---------------------------------------------------------------- who is in the list
  const people=()=>root.VoidDistrictPeople?.npcs?.()||root.VoidDistrictPeople?.NPCS||[];
- function lookOf(id){const tea=root.VoidTeaDuo?.PEOPLE?.[id];if(tea)return tea.model;const M=X().MOVABLE[id];if(M)return M.asset;const p=people().find(n=>n.id===id);if(p)return p.model||p.own||p.figure||p.look||null;
+ function lookOf(id){if(id==='pixel'||id==='neon')return 'npc-'+id;const tea=root.VoidTeaDuo?.PEOPLE?.[id];if(tea)return tea.model;const M=X().MOVABLE[id];if(M)return M.asset;const p=people().find(n=>n.id===id);if(p)return p.model||p.own||p.figure||p.look||null;
   const MM=root.VoidMilked?.MODELS||{};for(const k in MM)if(MM[k].id===id)return MM[k].asset||MM[k].look||null;if(root.VoidTemple?.MODEL?.id===id)return root.VoidTemple.MODEL.asset||null;return null;}
  const clipsOf=asset=>(root.VoidCrowd?.clips?.[asset]||[]).slice();
  function entries(){const g=S().givers||[],out=[];
   for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',made:!!x.made,group:x.made?'made':mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
+  for(const [id,name] of [['pixel','Pixel'],['neon','Neon']])if(!out.some(entry=>entry.id===id))
+   out.push({id,name,kind:'resident',group:'district',look:lookOf(id),giver:{where:'The Darknet District'}});
   for(const [id,character] of Object.entries(root.VoidLiveContent?.current?.content?.characters||{})){
    if((id.startsWith('imp-')||character.residence)&&!out.some(row=>row.id===id))out.push({id,name:character.name,kind:'published',group:'made',look:character.model});
   }
@@ -245,12 +247,56 @@
    if(g.shift)facts.append(el('p',S().G().shiftText(g),'me-small me-warn'));}
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
+  if(e.id==='pixel')pixelVRBox(main);
   if(e.made){madeBox(main,e);charLookBox(main,e,asset);}else if(e.kind!=='import')appearanceBox(main,e,asset);
   if(e.kind==='roster'){if(g?.canTalk){interactionBox(main,e);
    main.append(btn('Vendor settings',()=>{const tools=DTX();tools.catalogNpc={id:e.id,name:g.say||e.name||e.id};tools.open('items');}));
   }giverBox(main,e);placeBox(main,e,clips);if(X().MOVABLE[e.id]){scheduleBox(main,e);behaviourBox(main,e);}if(!(X().MOVABLE[e.id]||{}).cat)animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
   else if(e.kind==='crowd')animBox(main,e,asset);
   else requestBox(main,e,asset);}
+ function pixelVRBox(main){
+  const api=root.VoidPixelNeon;if(!api)return;
+  const cfg=structuredClone(S().local().pixelVR||root.VoidLiveContent?.env?.pixelVR||api.vrDefaults);
+  const box=el('section','','me-check'),tracks=el('div'),note=el('output');main.append(box);box.append(el('h4','Left VR booth'));
+  function number(parent,obj,key,label,min,max,step){
+   const input=el('input','','',{type:'number',min,max,step,'aria-label':label});input.value=obj[key];
+   input.oninput=()=>{obj[key]=input.valueAsNumber;};const field=el('label',label+' ');field.append(input);parent.append(field);
+  }
+  for(const [key,label,min,max,step] of [['duration','Visit seconds',50,300,1],['fade','Blend seconds',.05,2,.05],['x','Booth X',-13,-12,.05],['z','Booth Z',32,33,.05],['yaw','Facing degrees',-180,180,1]])number(box,cfg,key,label,min,max,step);
+  function render(){
+   tracks.replaceChildren();
+   for(const [i,s] of cfg.sequences.entries()){
+    const group=el('fieldset');group.append(el('legend','Sequence '+(i+1)));tracks.append(group);
+    number(group,s,'weight','Visit weight (0 disables)',0,100,1);number(group,s,'speed','Speed',.25,2,.05);
+    for(const [j,id] of s.clips.entries()){
+     const row=el('div'),select=el('select','','',{'aria-label':'Animation '+(j+1)});
+     for(const name of api.clipIds)select.add(new Option(name,name));select.value=id;select.onchange=()=>{s.clips[j]=select.value;};row.append(select);
+     const enabled=el('input','','',{type:'checkbox'});enabled.checked=s.enabled?.[j]!==false;
+     enabled.onchange=()=>{s.enabled??=s.clips.map(()=>true);s.enabled[j]=enabled.checked;};
+     const label=el('label','Enabled ');label.append(enabled);row.append(label);
+     row.append(btn('Preview motion in booth',async()=>{
+      const sample=structuredClone(cfg);sample.sequences=[{clips:[s.clips[j]],weight:1,speed:s.speed}];
+      const result=await api.previewVR(sample);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
+     }));
+     if(j)row.append(btn('Move earlier',()=>{[s.clips[j-1],s.clips[j]]=[s.clips[j],s.clips[j-1]];if(s.enabled)[s.enabled[j-1],s.enabled[j]]=[s.enabled[j],s.enabled[j-1]];render();}));
+     if(s.clips.length>1)row.append(btn('Remove motion',()=>{s.clips.splice(j,1);s.enabled?.splice(j,1);render();}));group.append(row);
+    }
+    group.append(btn('Preview this sequence in booth',async()=>{
+     const sample=structuredClone(cfg);sample.sequences=[{...sample.sequences[i],weight:1}];
+     const result=await api.previewVR(sample);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
+    }));
+    if(s.clips.length<16)group.append(btn('Add motion',()=>{s.clips.push(api.clipIds[0]);s.enabled?.push(true);render();}));
+    if(cfg.sequences.length>1)group.append(btn('Remove sequence',()=>{cfg.sequences.splice(i,1);render();}));
+   }
+   if(cfg.sequences.length<12)tracks.append(btn('Add sequence',()=>{cfg.sequences.push({weight:1,speed:1,clips:[api.clipIds[0]]});render();}));
+  }
+  box.append(tracks,btn('Play full VR visit',async()=>{
+   const result=await api.previewVR(cfg);if(result?.error||result?.problem)note.textContent=result.error||result.problem;
+  }),btn('Save VR routine to draft',()=>{
+   if(!api.validVR(cfg)){note.textContent='Check the field ranges and enable at least one sequence.';return;}
+   const d=S().local();d.pixelVR=structuredClone(cfg);S().saveLocal(d);note.textContent='Saved. Publish the draft from Mission Editor.';
+  }),note);render();
+ }
  function interactionBox(main,e){const box=el('section','','me-check',{'data-npc-interactions':e.id}),r=S().local().interactions?.[e.id]||{};box.append(el('h4','Conversations & Interactions'),hint('Ordinary dialogue, not a mission. Up to 100 alternatives per dialogue box, 500 characters per line. Mission dialogue takes priority. Save to your draft and use PLAY THIS DRAFT to test.'));
   const field=(label,key,max,area=true)=>{const w=el('label','','me-field'),i=el(area?'textarea':'input','','',{'aria-label':label,maxlength:String(max)});i.value=r[key]||'';w.append(el('span',label),i);box.append(w);return i;};
   const near=field('Approach greetings (one alternative per line)','near',50100),talk=field('TALK dialogue (one alternative per line)','talk',50100),choice=field('Optional player response button','choice',60,false),reply=field('NPC replies (one alternative per line)','reply',50100);

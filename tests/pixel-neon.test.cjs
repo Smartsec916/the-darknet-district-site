@@ -44,7 +44,7 @@ test('Pixel enters the left VR booth while Neon reaches the bar, and both paths 
  const {activityPose}=require('../void-runner/pixel-neon.js'),city=require('../void-runner/neochinatown.js');
  const route=makeRoute(life),solids=city.layout('interior').solids;
  const poses=new Set();
- for(let t=0;t<500;t+=.15){
+ for(let t=0;t<4000;t+=.15){
   const p=route(t);
   for(const id of ['pixel','neon']){
    const pose=activityPose(id,p,life);
@@ -58,5 +58,22 @@ test('Pixel enters the left VR booth while Neon reaches the bar, and both paths 
    if(p.kind==='arcade'&&p.elapsed>3&&p.remaining>3)assert.equal(!!pose.controls,id==='neon');
   }
  }
- assert.deepEqual([...poses].sort(),['idle','vr-aim','vr-duck','vr-shoot']);
+ assert.deepEqual([...poses].sort(),['idle','sz-bananaf','sz-cowgirlf','sz-doggyf','sz-missf','sz-pgf','sz-rodeof','sz-teddyf']);
+});
+
+test('authored VR visit uses the same timing for late joiners and zero-weight sequences stay disabled',()=>{
+ const {activityPose,makeRoute,validVR,vrDefaults}=require('../void-runner/pixel-neon.js');
+ const c={...vrDefaults,duration:80,yaw:-20,x:-12.75,sequences:[{clips:['missf'],speed:1,weight:0},{clips:['missf','doubleactf1'],enabled:[false,true],speed:1.5,weight:3}]};
+ assert.ok(validVR(c));assert.equal(validVR({...c,sequences:[]}),false);
+ const route=makeRoute(life,c),other=makeRoute(life,structuredClone(c));let samples=0;
+ for(let t=0;t<3000;t+=1.5){
+  const p=route(t);if(p.kind!=='vr')continue;
+  assert.ok(Math.abs(p.elapsed+p.remaining-80)<1e-8);
+  const a=activityPose('pixel',p,life,c);if(!a.vr)continue;
+  assert.equal(a.x,c.x);assert.equal(a.yaw,-20*Math.PI/180);
+  assert.deepEqual(a,activityPose('pixel',other(t),life,c));
+  if(a.clip==='idle')continue;
+  assert.equal(a.clip,'sz-doggyf');assert.ok(a.phase>=0&&a.phase<1);samples++;
+ }
+ assert.ok(samples>30);
 });
