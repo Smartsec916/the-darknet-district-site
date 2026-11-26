@@ -108,6 +108,16 @@ const root=path.resolve(__dirname,'..');
    }
    console.log('PASS: prepared folder import and simultaneous Babylon animation previews');
   }
+  await page.evaluate(()=>{
+   const S=VoidMissionEditor.shared,r=VoidCrowd.prepared.find(x=>x.name==='Lace');
+   S.editPublishedNpc(r.id,{characters:{[r.id]:{name:r.name,model:r.asset}},npcs:{[r.id]:{mode:'stay',x:100,z:-6.4,yaw:0,actions:['idle']}}});
+   S.openNpcTab(r.id);
+  });
+  const world=page.locator('[data-npc-made]').filter({hasText:'Publish world NPC changes'});
+  await world.waitFor();
+  await world.getByText('Apartment and home hours').click();
+  await world.getByRole('button',{name:'Save residence'}).waitFor();
+  assert.equal(await page.locator('[data-npc-interactions]').count(),1);
   console.log('PASS: import, stable rename, duplicate evidence, archive/restore, unchanged world draft, referenced delete refused, registered model assigned to world draft');
  }finally{await browser?.close();server.closeAllConnections();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

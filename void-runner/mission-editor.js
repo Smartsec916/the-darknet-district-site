@@ -1258,12 +1258,27 @@
   playTree(id,step){return play('tree:'+id,step||null);},playStart,fresh,blocksKit,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,voiceSummary,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
+  editPublishedNpc(id,content=root.VoidLiveContent?.current?.content){
+   const d=local(),character=content?.characters?.[id],placement=content?.npcs?.[id];
+   if(!character||!placement)return;
+   d.characters[id]??=structuredClone(character);d.npcs[id]??=structuredClone(placement);
+   if(content.interactions?.[id]){d.interactions??={};d.interactions[id]??=structuredClone(content.interactions[id]);}
+   d.clips??={};
+   for(const clip of content.clips||[])if(clip.who===id)d.clips['companion-profile:'+VI().keyOf(id,clip.text)]??=structuredClone(clip);
+   saveLocal(d);
+  },
+  async publishWorldNpc(id){
+   if(!server.live?.enabled)throw Error('World publishing is unavailable.');
+   const d=local();
+   const result=await call('developer/live-content/publish',{expected:server.live?.version||0,worldNpc:{id,character:d.characters[id],placement:d.npcs[id]}});
+   await refreshServer();return result;
+  },
   async publishImportedNpc(edit){
    const live=await call('developer/live-content');
    if(!live?.enabled)throw Error('World publishing is unavailable.');
    if(edit.clips.length)await VI().upload(call,edit.clips);
    const result=await call('developer/live-content/publish',{expected:live.version||0,importedNpc:edit});
-   await refreshServer();return result;
+   this.editPublishedNpc(edit.id,result.content);await refreshServer();return result;
   },
   async publishInteraction(id,value){if(!server.live?.enabled)throw Error('Publishing is unavailable.');const expected=server.live.version||0;if(value?.clips?.length)await VI().upload(call,value.clips);const rec=await call('developer/live-content/publish',{expected,interaction:{npc:id,value}});await refreshServer();return rec;},
   addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;
