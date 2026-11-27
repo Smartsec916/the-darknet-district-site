@@ -74,7 +74,8 @@
   async function instance(st,src,key,at){const c=await A.loadContainer({src},scene,null,'vesper-site:'+key);
    const holder=new B.TransformNode('vesper-site-'+key,scene);holder.parent=parent;holder.position.set(...at);holder.setEnabled(false);
    const inst=c.instantiateModelsToScene(n=>'vesper-site-'+key+'-'+n,false);for(const r of inst.rootNodes)r.parent=holder;
-   for(const mat of c.materials){if('environmentIntensity' in mat)mat.environmentIntensity=.45;if('maxSimultaneousLights' in mat)mat.maxSimultaneousLights=6;}
+   for(const mat of c.materials){if('environmentIntensity' in mat)mat.environmentIntensity=.45;if('maxSimultaneousLights' in mat)mat.maxSimultaneousLights=6;
+    if(mat.name==='v_mesh'){mat.alpha=.38;mat.transparencyMode=2;mat.backFaceCulling=false;}}   // chain-link fence panels: see-through (2: alpha blend)
    const meshes=holder.getChildMeshes(false);for(const m of meshes){m.isPickable=false;m.receiveShadows=false;}
    return {c,holder,meshes};}
   const compile=meshes=>Promise.all(meshes.filter(m=>m.material&&m.getTotalVertices()>0).map(m=>m.material.forceCompilationAsync?.(m).catch(()=>{})));

@@ -26,10 +26,12 @@
   [640,-82],[715,-112],[790,-145],[862,-176],[925,-198],[985,-210],[1045,-214],[1105,-207],[1170,-196],[1240,-190],
   // the long road (phase 2): east and north-east for about 8 km along the valleys between the ranges (tools/assets/vesper/plan_route.cjs, A* over the natural land;
   // edited by hand where the village stands so its street runs due east for ~120 m: x 1790..1850, z 664)
-  [1326,-117],[1497,-78],[1598,45],[1589,214],[1569,362],[1546,466],[1676,602],[1730,660],[1790,664],[1850,664],[1910,670],[1975,722],[2040,768],[2114,783],[2288,838],[2386,977],[2429,1146],[2560,1172],[2702,1062],[2852,998],[2968,885],[3058,748],[3195,658],[3357,626],[3529,672],[3686,718],[3872,732],[4038,797],[4160,915],[4242,1086],[4352,1217],[4517,1289],[4691,1329],[4854,1378],[5031,1372],[5194,1374],[5348,1468],[5483,1555],[5522,1706],[5458,1860],[5482,2035],[5543,2188],[5680,2280],[5846,2334],[6012,2348],[6168,2303],[6337,2314],[6438,2448],[6532,2582],[6691,2609],[6863,2620],[7023,2660],[7192,2692],[7311,2700]];
+  [1326,-117],[1497,-78],[1598,45],[1589,214],[1569,362],[1546,466],[1676,602],[1730,660],[1790,664],[1850,664],[1910,670],[1975,722],[2040,768],[2114,783],[2288,838],[2386,977],[2429,1146],[2560,1172],[2702,1062],[2852,998],[2968,885],[3058,748],[3195,658],[3357,626],[3529,672],[3686,718],[3872,732],[4038,797],[4160,915],[4242,1086],[4352,1217],[4517,1289],[4691,1329],[4854,1378],[5031,1372],[5194,1374],[5348,1468],[5483,1555],[5522,1706],[5458,1860],[5482,2035],[5543,2188],[5680,2280],[5846,2334],[6012,2348],[6168,2303],[6337,2314],[6438,2448],[6532,2582],[6691,2609],[6863,2620],[7023,2660],[7192,2692],[7311,2700],
+  // the road's end (phase 5): down into the flat basin under the cliff, past the guard shack and through the facility's gateway (vesper-sites-data.js 'facility')
+  [7372,2701],[7432,2700],[7470,2700]];
  const PEAKS=[{x:1025,z:55,lift:42,r:95},{x:1165,z:-495,lift:42,r:110}];   // the two high points either side of the pass (raised so they frame it)
  const PASS={x:995,z:-208,r:260,rx:300,rz:150,floor:38,keep:.2};                // the saddle: the ridge is lowered toward `floor` here (broad across the ridge, narrow along it), and the road's banks are widest and gentlest
- const WIDTH=7,SURFACE_Y=.02,SHOULDER=1.6,X_LIMIT=232,TAPER=60,MAX_GRADE=.09,YARD_R=245,FLOOR=.03;
+ const WIDTH=7,SURFACE_Y=.02,SHOULDER=1.6,X_LIMIT=232,TAPER=12,END_FLAT=60,MAX_GRADE=.09,YARD_R=245,FLOOR=.03;
  const WALK_MARGIN=4;            // how far beyond the shoulder a person may walk off the road edge (the bench is flat for 1 m past the shoulder, then the bank rises)
 
  function catmull(p0,p1,p2,p3,t){const t2=t*t,t3=t2*t;return [0,1].map(k=>.5*(2*p1[k]+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3));}
@@ -78,6 +80,9 @@
    for(let i=n-2;i>=0;i--){const ds=L[i+1].s-L[i].s;E[i]=Math.min(E[i+1]+MAX_GRADE*ds,Math.max(E[i+1]-MAX_GRADE*ds,E[i]));}
    for(let i=0;i<n&&L[i].s<=u;i++)E[i]=SURFACE_Y;}
   const F=gauss(E,14);for(let i=0;i<n;i++)F[i]=Math.max(SURFACE_Y,F[i]);
+  // the road's end runs level for END_FLAT metres through the facility's gateway into its yard (the guard shack and the barrier stand on the level), the
+  // descent before it held to the same grade limit (a deeper cut on the last ridge if need be)
+  {const endY=F[n-1];for(let i=n-1;i>=0&&L[n-1].s-L[i].s<=END_FLAT;i--)F[i]=endY;for(let i=n-2;i>=0;i--){const ds=L[i+1].s-L[i].s;F[i]=Math.min(F[i],F[i+1]+MAX_GRADE*ds*.97);}}
   return profile=F;}
  // Road surface height at arc length s (or at a nearest() result).
  function roadY(s){const L=centreline(),E=profile||buildProfile();if(s<=0)return E[0];if(s>=L[L.length-1].s)return E[E.length-1];

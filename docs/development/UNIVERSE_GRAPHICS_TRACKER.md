@@ -98,6 +98,7 @@ Recommendation by asset type (a judgement from this one test, not a general law)
 | vesper-road-2 | Vesper road phase 2: 8 km more around the mountains (9.6 km), moons follow the camera | `2026-11-28-vesper-road-2` | pending |
 | vesper-village-3 | Vesper road phase 3: the village (houses, enterable bar and store, lamps, water tower), streamed site models | `2026-11-28-vesper-village-3` | pending |
 | vesper-mine-4 | Vesper road phase 4: the mine (portal in a cut, adit inside the mountain, cage down a placeholder-depth shaft to the bottom level) | `2026-11-28-vesper-mine-4` | pending |
+| vesper-facility-5 | Vesper road phase 5: the road's end: guard shack and barrier, the warehouse-looking facility, the shared housing unit | `2026-11-28-vesper-facility-5` | pending |
 
 ## Low Quay, Stale System (new location, 27 Nov 2026)
 
