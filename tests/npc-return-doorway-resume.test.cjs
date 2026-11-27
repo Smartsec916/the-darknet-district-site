@@ -63,3 +63,50 @@ test('actual mounted adapter retains the issued driver in shifted scene coordina
  assert.equal(b.resumeReturn(actor.id,actor.c,plan),null);
  assert.ok(source.includes('driver:resumed.driver||root.VoidNPCReturn.createMountedReturn()'));
 });
+
+test('mounted driver and suspension registry resume twice in real Old Town public-pavement transit, both directions',()=>{
+ const A=require('../void-runner/npc-areas.js');
+ const api=require('../void-runner/npc-return.js');
+ const area='oldtown',options={made:true,adult:false};
+ const legal=(p,passing=false)=>{
+  const c=A.check(p,area,passing?A.CLEAR-.1:undefined,{...options,passing});
+  return c.ok&&c.area===area;
+ };
+ const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+ // Use the established real pedestrian geometry fixture, not a synthetic opening.
+ let fixture;
+ for(let i=517;i<=524&&!fixture;i++){
+  const x=i/10,a={x,z:-63},b={x,z:-54};
+  if(!legal(a)||!legal(b)||A.leg(a,b,options).length)continue;
+  const samples=Array.from({length:46},(_,j)=>({x,z:-63+j*.2}));
+  if(samples.every(p=>legal(p,true))&&samples.some(p=>!legal(p)))fixture={a,b};
+ }
+ assert.ok(fixture,'real passing-only public pavement leg must exist');
+ for(const [from,to] of [[fixture.a,fixture.b],[fixture.b,fixture.a]]){
+  const driver=api.createMountedReturn(),registry=api.createReturnSuspensions();
+  const destination={...to,area,key:'routine'},session={},user={},character={};
+  let position={...from},suspensions=0,total=0,arrived=false;
+  for(let i=0;i<1000;i++){
+   const result=driver.tick({position,area,destination,dt:.05,speed:1,options});
+   if(result.status==='arrived'){arrived=true;break;}
+   assert.equal(result.status,'walking',JSON.stringify({position,result}));
+   const step=distance(position,result.position);
+   assert.ok(step<=.05000001);
+   assert.deepEqual(A.leg(position,result.position,options),[]);
+   assert.ok(legal(result.position,true));
+   total+=step;position=result.position;
+   if(!legal(position)&&suspensions<2){
+    const args={session,user,character,id:'fixture',area,key:'routine',position,yaw:0,driver,destination,options,eligible:true};
+    assert.equal(registry.save(args),true,'driver-issued transit observation must survive unloading');
+    const resumed=registry.take(args);
+    assert.ok(resumed);assert.equal(resumed.driver,driver);
+    assert.ok(distance(resumed,position)<1e-8,'resume must retain exact observed position');
+    assert.equal(registry.take(args),null,'resume record is single-use');
+    suspensions++;position={x:resumed.x,z:resumed.z};
+   }
+  }
+  assert.ok(arrived&&distance(position,to)<=.025,'physical arrival required');
+  assert.equal(suspensions,2,'exercise repeat unloading inside passing-only geometry');
+  assert.ok(total+.025>=distance(from,to),'no skipped distance');
+ }
+});
