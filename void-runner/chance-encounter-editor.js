@@ -68,6 +68,10 @@
    draft.id=key;draft.name=duplicate?draft.name+' (copy)':'New encounter';draft.enabled=false;
    records.set(key,{id:key,revision:0,draft});choose(key);mark();
   }
+  const importedSounds=g=>api.soundLists(g).flatMap(cues=>Array.isArray(cues)?cues:[]).flatMap(cue=>{
+   const hash=api.importedSoundHash(cue?.src);
+   return hash?[{hash,type:cue.type,text:cue.name||'sound effect'}]:[];
+  });
   async function send(action){
    if(!current()||busy)return;
    const g=graph(),r=record();
@@ -76,8 +80,8 @@
     if(errors.length){message.textContent=errors.join(' ');return;}
    }
    if(action==='publish'){
-    const invalidSound=api.soundLists(g).some(cues=>Array.isArray(cues)&&cues.some(cue=>!soundLibrary.includes(cue?.src)));
-    const errors=[...api.validate(g),...api.castProblems(g,true),...(invalidSound?['Choose sound files from the packaged audio library.']:[])];
+    const invalidSound=api.soundLists(g).some(cues=>Array.isArray(cues)&&cues.some(cue=>!soundLibrary.includes(cue?.src)&&!api.importedSoundHash(cue?.src)));
+    const errors=[...api.validate(g),...api.castProblems(g,true),...(invalidSound?['Choose a packaged sound or import an audio file.']:[])];
     if(errors.length){message.textContent=[...new Set(errors)].join(' ');return;}
     if(!confirm('Publish '+g.name+' for all players?'))return;
    }
@@ -87,7 +91,12 @@
    try{
     if(action==='save'||action==='publish'){
      const recordings=[...(g.dialogue||[]),...(g.savedActions||[]).flat()].flatMap(line=>line.recording?[line.recording]:[]);
-     if(recordings.length)await root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),recordings);
+     const upload=clips=>root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),clips);
+     if(recordings.length)await upload(recordings);
+     if(action==='publish'){
+      const sounds=importedSounds(g);
+      for(let i=0;i<sounds.length;i+=200)await upload(sounds.slice(i,i+200));
+     }
     }
     const payload={action,id,revision:r.revision};
     if(action==='save'||action==='publish')payload.graph=g;
@@ -342,7 +351,28 @@
       const number=(label,value,min,max,change)=>{
        const control=field(form,label,input(value,v=>{change(v);mark();},'number'));control.min=min;control.max=max;control.step='any';
       };
-      const file=field(form,'Sound file',input(cue.src,value=>{cue.src=value.trim();mark();}));file.setAttribute('list',soundFiles.id);
+      const imported=api.importedSoundHash(cue.src);
+      const file=field(form,'Sound file',input(imported?'':cue.src,value=>{cue.src=value.trim();delete cue.name;delete cue.type;mark();}));file.setAttribute('list',soundFiles.id);
+      if(imported)file.placeholder='Imported: '+(cue.name||'Local sound');
+      const imports=root.VoidVoiceImports;
+      if(imports){
+       const local=element('input');local.type='file';local.accept='audio/*,.ogg,.mp3,.wav,.m4a,.webm,.flac';
+       field(form,'Import local sound file',local);
+       const feedback=element('small',imported?(cue.name||'Local sound'):'');feedback.setAttribute('role','status');form.append(feedback);
+       local.onchange=async()=>{
+        const chosen=local.files[0];if(!chosen)return;
+        local.disabled=file.disabled=true;
+        try{
+         const prepared=await imports.prepare(chosen,v=>{feedback.textContent=v;});
+         if(!prepared.ok)throw Error(prepared.why);
+         await imports.store(prepared.hash,prepared.type,prepared.data,prepared.duration);
+         if(!current()||graph()!==g||!get()?.includes(cue))return;
+         cue.src='imported:'+prepared.hash;cue.name=prepared.name.replace(/<[^>]*>|[\u0000-\u001f]/g,'').trim()||'Sound effect';cue.type=prepared.type;mark();
+         if(form.isConnected)update();else draw();
+        }catch(error){feedback.textContent=error.message;}
+        finally{local.value='';local.disabled=file.disabled=false;}
+       };
+      }
       field(form,'Cue moment',select([['start','Start'],['end','End']],cue.when,when=>{
        cue.when=when;if(when==='end'&&cue.loop)cue.stop='seconds';mark();update();
       }));
@@ -358,7 +388,7 @@
        if(cue.stop==='seconds')number('Loop duration (seconds)',cue.seconds,.01,3600,v=>{cue.seconds=v;});
       }
       if(root.VoidSoundStudio)form.append(button('Preview sound',()=>{
-       audition?.dispose();if(soundLibrary.includes(cue.src))audition=api.playSound({...cue,loop:false});
+       audition?.dispose();if(soundLibrary.includes(cue.src)||api.importedSoundHash(cue.src))audition=api.playSound({...cue,loop:false});
       }),button('Stop preview',()=>audition?.dispose()));
       form.append(button('Remove sound effect',()=>{set(cues.filter(value=>value!==cue));mark();update();}));
      }

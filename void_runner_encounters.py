@@ -142,13 +142,20 @@ def validate_sound_cues(graph, rows):
         lists.append(owner.get('soundCues', []))
     if any(not isinstance(cues, list) for cues in lists):
         raise DraftError('Choose a list of sound effects.')
+    imported = set()
     if not any(lists):
-        return
+        return imported
     library = set(json.loads((Path(__file__).parent / 'void-runner' / 'sound-library.json').read_text(encoding='utf-8')))
     for cues in lists:
         for cue in cues:
-            if not isinstance(cue, dict) or not isinstance(cue.get('src'), str) or cue['src'] not in library:
-                raise DraftError('Choose a sound effect from the packaged audio library.')
+            src = cue.get('src') if isinstance(cue, dict) else None
+            local = re.fullmatch(r'imported:([a-f0-9]{64})', src) if isinstance(src, str) else None
+            if not local and (not isinstance(src, str) or src not in library):
+                raise DraftError('Choose a sound effect from the packaged audio library or import a file.')
+            if local:
+                if cue.get('type') not in ('audio/ogg', 'audio/mpeg', 'audio/wav') or not _plain(cue.get('name'), 120):
+                    raise DraftError('Import a supported audio file for the sound effect.')
+                imported.add(local[1])
             if cue.get('when') not in ('start', 'end') or not _num(cue.get('offset'), 0, 3600) or not _num(cue.get('volume'), 0, 1) or not isinstance(cue.get('loop'), bool):
                 raise DraftError('Check the sound effect timing and volume.')
             if cue['loop']:
@@ -157,6 +164,7 @@ def validate_sound_cues(graph, rows):
                     raise DraftError('Choose when the sound effect loop ends.')
                 if stop == 'seconds' and (not _num(cue.get('seconds'), 0, 3600) or cue['seconds'] == 0):
                     raise DraftError('Enter a positive loop duration.')
+    return imported
 
 
 def validate(graph):
@@ -332,7 +340,7 @@ def validate(graph):
     visit(graph['start'])
     if len(reached) != len(nodes):
         raise DraftError('Connect all nodes to the starting node.')
-    validate_sound_cues(graph, dialogue + stored)
+    return validate_sound_cues(graph, dialogue + stored)
 
 
 def refs(db):
@@ -366,11 +374,13 @@ def edit(db, user, body):
         if not isinstance(graph, dict) or graph.get('id') != body['id'] or len(json.dumps(graph).encode()) > 65536:
             raise DraftError('Choose a valid encounter draft.')
         if action == 'publish':
-            validate(graph)
+            effects = validate(graph)
             from void_runner_live_content import clips_missing
             hashes = {line['recording']['hash'] for line in graph.get('dialogue', []) + [row for group in graph.get('savedActions', []) for row in group] if 'recording' in line}
             if hashes and clips_missing(db, sorted(hashes)):
                 raise DraftError('Upload the dialogue recordings before publishing.')
+            if effects and clips_missing(db, sorted(effects)):
+                raise DraftError('Upload the imported sound effects before publishing.')
     ref = refs(db).document(body['id'])
 
     @firestore.transactional

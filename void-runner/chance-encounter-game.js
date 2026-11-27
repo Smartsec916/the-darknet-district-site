@@ -726,7 +726,8 @@
   const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
   run.participating=graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
   run.tracked=run.participating;running=run;
-  run.sounds=root.VoidChanceEncounter.soundTimeline();run.endSounds=run.sounds.open(graph.soundCues);
+  const encounters=root.VoidChanceEncounter;
+  run.sounds=encounters.soundTimeline((cue,done)=>encounters.playSound(cue,done,privateTest));run.endSounds=run.sounds.open(graph.soundCues);
   let completed=false;
   try{
    const location=graph.cast&&typeof walkingLocation!=='undefined'?walkingLocation:null;

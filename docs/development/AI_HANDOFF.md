@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Local files for encounter sound effects
+
+Each sound cue can import a local audio file or use the packaged library. Draft audio is stored in the authoring browser. Publishing uploads the audio through the existing content-addressed audio service, and live playback uses the Effects channel and the existing cue timing and loop controls. Build `2026-11-27-encounter-sound-import-1`.
+
 ## 27 Nov 2026 — Low Quay map and taxi encounter polish
 
 The V1 Map App shows Low Quay, the landing pad and city rail stops, the stairs, and Plug & Play. Delivery tags stay in the voice inputs and are hidden from encounter captions. A quiet tire squeal leads into the collision, the keycard model prepares during the approach, and the physical drop starts while issuance is pending. The taxi-rating witness line is retired. Build `2026-11-27-taxi-squeal-keycard-drop-2`.
