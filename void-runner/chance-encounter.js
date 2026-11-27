@@ -42,7 +42,7 @@
    const key=row.mainPlaylist||(legacy.includes(row)?'legacy':'');
    if(!key){segments.push({rows:[row],passes:1});continue;}
    if(!groups.has(key)){
-    const segment={key,rows:[],passes:key==='legacy'?0:row.mainPasses,legacy:key==='legacy'};
+    const segment={key,rows:[],passes:key==='legacy'?0:row.mainPasses,chance:row.mainContinueChance,legacy:key==='legacy'};
     segments.push(segment);groups.set(key,segment);
    }
    groups.get(key).rows.push(row);
@@ -94,7 +94,7 @@
     index=target;
    }
   }
-  async function sequence({before,cycle,after},passes,signal,child,legacy=false,legacyReturn=legacy){
+  async function sequence({before,cycle,after},passes,signal,child,legacy=false,legacyReturn=legacy,chance){
    await actions(before,signal,!child,legacyReturn);
    if(cycle.length){
     const result=await repeat(signal,{child,show:passes!==1||!child},async local=>{
@@ -106,6 +106,12 @@
       catch(error){
        if(child||!legacy||error!==restart)throw error;
        observe({type:'return',mode:'start',target:cycle[0]});
+      }
+      if(chance!==undefined){
+       local.throwIfAborted();
+       const roll=random(),continued=chance===100||roll*100<chance;
+       observe({type:'continue-roll',roll,chance,continued,row:cycle[cycle.length-1]});
+       if(continued)break;
       }
       if(passes===0||pass+1<passes)await pause(250,local);
      }
@@ -120,7 +126,7 @@
    if(jumpToLegacy&&!segment.legacy)continue;
    jumpToLegacy=false;
    if(segment.key){
-    await sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy);
+    await sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy,segment.legacy,segment.chance);
     if(segment.legacy)legacyActive=false;
    }else{
     try{await actions(segment.rows,signal,false,legacyActive);}
@@ -166,7 +172,7 @@
     if(!segment.key)continue;
     for(const row of segment.rows)mainByRow.set(row.id,segment.rows);
     if(segment.legacy)continue;
-    if(mainGroups.has(segment.key)||segment.rows.some(row=>row.mainPasses!==segment.passes))
+    if(mainGroups.has(segment.key)||segment.rows.some(row=>row.mainPasses!==segment.passes||row.mainContinueChance!==segment.chance))
      errors.push('Keep playlist members in one conversation section with matching passes.');
     mainGroups.set(segment.key,segment);
    }
@@ -174,6 +180,8 @@
   for(const row of rows){
    if((row.mainPlaylist!==undefined||row.mainPasses!==undefined)&&(!mainByRow.has(row.id)||typeof row.mainPlaylist!=='string'||!/^main_[a-z0-9]{1,59}$/.test(row.mainPlaylist)||!Number.isInteger(row.mainPasses)||row.mainPasses<0||row.mainPasses>100))
     errors.push('Choose a valid main playlist and 0 to 100 passes for '+row.id+'.');
+   if(row.mainContinueChance!==undefined&&(!row.mainPlaylist||row.mainPasses!==0||!Number.isFinite(row.mainContinueChance)||row.mainContinueChance<0||row.mainContinueChance>100))
+    errors.push('Choose a continuation chance from 0% to 100% for '+row.id+'.');
    if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');
    if(!row.branches)continue;
    if(!Array.isArray(row.branches)||!/^(lace_(arrival|free|be_kade|wait)|branch)_/.test(row.id)){

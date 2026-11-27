@@ -73,7 +73,7 @@
    busy=true;host.inert=true;
    try{
     if(action==='save'||action==='publish'){
-     const recordings=(g.dialogue||[]).flatMap(line=>line.recording?[line.recording]:[]);
+     const recordings=[...(g.dialogue||[]),...(g.savedActions||[]).flat()].flatMap(line=>line.recording?[line.recording]:[]);
      if(recordings.length)await root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),recordings);
     }
     const saved=await tools.request('developer/chance-encounters',{action,id,revision:r.revision,graph:g});
@@ -191,13 +191,14 @@
    if(g.item){
     const prop=element('details');prop.append(element('summary','Dropped keycard'));host.append(prop);
     field(prop,'Items & Vendors item ID',input(g.item,v=>{g.item=v;mark();}));
+    if(g.id==='dropped-cardkey')field(prop,'Pickup notification duration (seconds)',input(g.pickupNoticeSeconds??8,v=>{g.pickupNoticeSeconds=v;mark();},'number'));
     field(prop,'Pickup distance (metres)',input(g.pickupDistance,v=>{g.pickupDistance=v;mark();},'number'));
     field(prop,'Kade recovery delay (seconds)',input(g.recoverySeconds??8,v=>{g.recoverySeconds=v;mark();},'number'));
     for(const [key,label] of [['x','Street X'],['z','Street Z']])
      field(prop,label,input(g.dropPosition[key],v=>{g.dropPosition[key]=v;mark();},'number'));
     const drop=g.nodes.find(n=>n.kind==='item');if(drop)prop.append(button('Preview keycard drop',()=>launch(drop.id)));
    }
-   if(g.dialogue?.length){
+   if(Array.isArray(g.dialogue)){
     const dialogue=element('details');dialogue.className='encounter-playlist-editor';dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=dialogueOpen;dialogue.ontoggle=()=>{if(dialogue.isConnected)dialogueOpen=dialogue.open;};host.insertBefore(dialogue,props);
     const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));
     if(editable){
@@ -258,7 +259,181 @@
     const sections=api.dialogueSections(g),selectionControls=[];
     const byId=new Map(g.dialogue.map(line=>[line.id,line])),actionOptions=new Map();
     const actionLabel=(line,n)=>n+' · '+(line.text||line.animation||line.id).slice(0,70);
+    const saved=g.savedActions||[];
+    const selectionBar=element('div');selectionBar.className='encounter-selection-bar';dialogue.append(selectionBar);
+    const savedPanel=element('details');savedPanel.append(element('summary','Saved Actions ('+saved.flat().length+')'));dialogue.append(savedPanel);
+    savedPanel.open=closed.has('saved-actions-open');
+    savedPanel.ontoggle=()=>{if(savedPanel.isConnected){if(savedPanel.open)closed.add('saved-actions-open');else closed.delete('saved-actions-open');}};
+    const targets=[];
+    function collect(rows,owner,section,segment){
+     const target={rows,owner,section,segment};targets.push(target);
+     for(const row of rows)for(const branch of row.branches||[])
+      collect(branch.actions.map(id=>byId.get(id)).filter(Boolean),branch,section,null);
+    }
+    for(const [section,rows] of Object.entries(sections)){
+     const segments=api.playlistSegments(rows);
+     collect(segments.filter(segment=>!segment.key).flatMap(segment=>segment.rows),null,section,null);
+     for(const segment of segments.filter(segment=>segment.key))collect(segment.rows,null,section,segment);
+    }
+    const sourceOf=row=>targets.find(target=>target.rows.includes(row));
+    function bundle(root,include){
+     const rows=[root];
+     if(include)for(const row of rows)for(const branch of row.branches||[])
+      for(const id of branch.actions)rows.push(byId.get(id));
+     return rows;
+    }
+    function unlink(row,preserve=new Set()){
+     const source=sourceOf(row);
+     if(branchOf(row)==='wait')g.waitingDialogueConfigured=true;
+     if(!source)return;
+     if(source.owner){
+      const branch=source.owner;
+      branch.actions=branch.actions.filter(id=>id!==row.id);
+      for(const key of ['startAction','endAction'])if(branch[key]===row.id)delete branch[key];
+      if(!branch.actions.length)for(const parent of g.dialogue)
+       if(parent.branches?.includes(branch))parent.branches=parent.branches.filter(item=>item!==branch);
+     }
+     if(g.decisionAfter===row.id){
+      const arrival=branchLines(g,'arrival');
+      g.decisionAfter=arrival[arrival.indexOf(row)-1]?.id||'before';
+     }
+     for(const parent of g.dialogue)for(const branch of parent.branches||[])
+      if(!preserve.has(parent)&&branch.returnAction===row.id){delete branch.returnAction;branch.completion='next';}
+    }
+    function park(rows){
+     const chosen=new Set(rows);
+     const descendants=new Set(rows.flatMap(row=>bundle(row,true).slice(1)));
+     g.savedActions=saved;
+     for(const row of chosen){
+      if(descendants.has(row))continue;
+      const stored=bundle(row,true),members=new Set(stored);unlink(row,members);
+      g.dialogue=g.dialogue.filter(action=>!members.has(action));
+      saved.push(stored);
+     }
+     checked.clear();redraw();
+    }
+    function destination(rows,mode){
+     dialogue.querySelector('.encounter-action-destination')?.remove();
+     const form=element('fieldset');form.className='encounter-action-destination';
+     form.append(element('legend',mode==='clone'?'Clone actions':mode==='restore'?'Restore actions':'Move actions'));
+     selectionBar.after(form);
+     const original=sourceOf(rows[0]);
+     const sameSource=rows.every(row=>sourceOf(row)===original);
+     const options=targets.filter(target=>mode!=='move'||target.segment||target.owner);
+     const label=target=>{
+      const name=names[target.section]||target.section;
+      if(target.owner){
+       const parent=g.dialogue.find(line=>line.branches?.includes(target.owner));
+       return name+' / Chance playlist after '+(parent?.text||parent?.id||'action').slice(0,55);
+      }
+      return name+(target.segment?' / Main playlist '+(target.segment.rows[0].text||target.segment.key).slice(0,55):' / Conversation');
+     };
+     const defaults=mode==='clone'&&sameSource&&(original||saved.some(group=>group[0]===rows[0]));
+     const entries=[...(defaults?[['same','Immediately after the original']]:[]),...options.map((target,i)=>[String(i),label(target)]),...(mode==='clone'?[['saved','Saved Actions']]:[])];
+     const position=select([['','End']], '',()=>{});
+     const targetControl=select(entries,entries[0]?.[0]||'',fill);
+     function fill(){
+      const target=options[Number(targetControl.value)];
+      position.hidden=!target||['same','saved'].includes(targetControl.value);
+      position.replaceChildren(new Option('End of destination',''),...(target?.rows||[]).map(row=>new Option('Before '+(row.text||row.animation||row.id).slice(0,55),row.id)));
+     }
+     const include=element('input');include.type='checkbox';
+     field(form,'Destination',targetControl);form.append(position);position.setAttribute('aria-label','Position');
+     if(mode==='clone'&&rows.some(row=>row.branches?.length))field(form,'Include attached chance playlists',include);
+     const feedback=element('output');
+     form.append(button('Apply',()=>{
+      const same=targetControl.value==='same',toSaved=targetControl.value==='saved'||same&&!original;
+      const target=same?original:options[Number(targetControl.value)];
+      if(!target&&!toSaved)return;
+      const actions=rows.map(row=>saved.find(group=>group[0]===row)||
+       bundle(row,mode!=='clone'||include.checked));
+      const copies=actions.map(group=>mode==='clone'?structuredClone(include.checked?group:group.slice(0,1)):group);
+      const adding=copies.reduce((sum,group)=>sum+group.length,0);
+      if(!toSaved&&mode!=='move'&&g.dialogue.length+adding>100){feedback.textContent='The encounter can have up to 100 active actions.';return;}
+      if(toSaved&&saved.reduce((sum,group)=>sum+group.length,0)+adding>100){feedback.textContent='The encounter can have up to 100 saved actions.';return;}
+      if(mode==='move'){
+       const moved=new Set(actions.flat());
+       if(moved.size!==adding){feedback.textContent='Select either a parent action or its attached actions.';return;}
+       if(target.rows.some(row=>moved.has(row))||g.dialogue.some(row=>moved.has(row)&&row.branches?.includes(target.owner))){
+        feedback.textContent='Choose a different playlist.';return;
+       }
+       for(const row of rows)unlink(row,moved);
+       g.dialogue=g.dialogue.filter(row=>!moved.has(row));
+      }
+      if(mode==='restore')for(const group of actions)saved.splice(saved.indexOf(group),1);
+      let after=same?(target?.rows.filter(row=>rows.includes(row)).at(-1)||rows.at(-1)):null;
+      const before=target?.rows.find(row=>row.id===position.value);
+      const conversation=target?.section==='opening'||target?.section==='remaining'?'arrival':target?.section;
+      const membership=target?.segment?.legacy?newKey():target?.segment?.key;
+      if(target?.segment?.legacy)setMembers(target.segment.rows,membership,0,target.segment.rows);
+      for(const [index,group] of copies.entries()){
+       const row=group[0],ids=new Map();
+       for(const [i,item] of group.entries()){
+        const id=i||toSaved||target.owner?branchId():nextLineId(g,conversation);
+        ids.set(item.id,id);item.id=id;
+       }
+       if(mode==='clone'&&!include.checked)delete row.branches;
+       for(const item of group)for(const branch of item.branches||[]){
+        branch.actions=branch.actions.map(id=>ids.get(id));
+        for(const key of ['startAction','endAction'])if(branch[key])branch[key]=ids.get(branch[key]);
+        if(branch.returnAction){
+         const own=ids.get(branch.returnAction);
+         if(own||target?.segment?.rows.some(member=>member.id===branch.returnAction))branch.returnAction=own||branch.returnAction;
+         else{delete branch.returnAction;branch.completion='next';}
+        }
+        if(branch.completion==='start'&&!membership&&!toSaved)branch.completion='next';
+       }
+       if(toSaved){
+        g.savedActions=saved;
+        const originalIndex=saved.indexOf(actions[index]);
+        saved.splice(same&&originalIndex>=0?originalIndex+1:saved.length,0,group);
+        continue;
+       }
+       if(mode==='clone'||!same){delete row.playlistStart;delete row.playlistEnd;}
+       if(membership)setMembers([row],membership,target.segment.passes,[],target.segment.chance);
+       else{delete row.mainPlaylist;delete row.mainPasses;delete row.mainContinueChance;}
+       if(target.owner){
+        const links=target.owner.actions,at=after?links.indexOf(after.id)+1:before?links.indexOf(before.id):links.length;
+        links.splice(at,0,row.id);g.dialogue.push(row);
+       }else{
+        const last=after||(!before&&target.rows.at(-1));
+        const boundary=target.section==='opening'&&g.decisionAfter==='before'?sections.remaining[0]:null;
+        const at=last?g.dialogue.indexOf(last)+1:before||boundary?g.dialogue.indexOf(before||boundary):g.dialogue.length;
+        g.dialogue.splice(at,0,row);
+        if(target.section==='opening'&&(g.decisionAfter==='before'||g.decisionAfter===last?.id))g.decisionAfter=row.id;
+        if(target.section==='wait')g.waitingDialogueConfigured=true;
+       }
+       g.dialogue.push(...group.slice(1));after=row;
+      }
+      checked.clear();redraw();
+     }),button('Cancel',()=>form.remove()),feedback);fill();
+     form.scrollIntoView({block:'nearest'});
+    }
+    for(const group of saved){
+     const row=group[0],entry=element('div'),check=element('input');check.type='checkbox';check.checked=checked.has(row.id);
+     check.onchange=()=>{if(check.checked)checked.add(row.id);else checked.delete(row.id);refresh();};
+     field(entry,row.text||row.animation||row.id,check);
+     entry.append(button('Restore action',()=>destination([row],'restore')),button('Clone action',()=>destination([row],'clone')));
+     savedPanel.append(entry);
+    }
     function refresh(){
+     const orderedActive=[...targets.flatMap(target=>target.rows),...g.dialogue.filter(row=>!sourceOf(row))].filter(row=>checked.has(row.id));
+     const stored=saved.map(group=>group[0]).filter(row=>checked.has(row.id));
+     selectionBar.hidden=!checked.size;selectionBar.replaceChildren(element('strong',checked.size+' selected'));
+     const actions=stored.length?stored:orderedActive;
+     if(actions.length&&actions.length===checked.size){
+      selectionBar.append(button('Clone selected actions',()=>destination(actions,'clone')));
+      if(stored.length)selectionBar.append(button('Restore selected actions',()=>destination(stored,'restore')));
+      else{
+       const source=sourceOf(actions[0]);
+       if(source&&!source.owner&&!source.segment&&actions.every(row=>sourceOf(row)===source))
+        selectionBar.append(button('Create playlist from selected',()=>{setMembers(actions,newKey(),0);checked.clear();redraw();}));
+       if(targets.some(target=>target.owner||target.segment))
+        selectionBar.append(button('Move to existing playlist',()=>destination(actions,'move')));
+       selectionBar.append(button('Move to Saved Actions',()=>park(actions)));
+      }
+     }
+     selectionBar.append(button('Clear selection',()=>{checked.clear();draw();}));
      for(const [button,eligible] of selectionControls)button.disabled=!eligible.some(line=>checked.has(line.id));
     }
     function keepOpen(details,key){
@@ -266,9 +441,10 @@
      details.ontoggle=()=>{if(details.isConnected){if(details.open)closed.delete(key);else closed.add(key);}};
     }
     const newKey=()=> 'main_'+crypto.randomUUID().replaceAll('-','');
-    function setMembers(rows,key,passes,legacyRows=[]){
+    function setMembers(rows,key,passes,legacyRows=[],chance){
      for(const row of rows){
       row.mainPlaylist=key;row.mainPasses=passes;
+      if(chance===undefined)delete row.mainContinueChance;else row.mainContinueChance=chance;
       delete row.playlistStart;delete row.playlistEnd;
       for(const branch of row.branches||[])if(branch.completion===undefined)branch.completion=legacyRows.includes(row)?'start':'next';
      }
@@ -280,7 +456,7 @@
      for(const line of actions){
       checked.delete(line.id);
       for(const key of ['repeatSpeech','repeatAnimation','playlistStart','playlistEnd'])delete line[key];
-      delete line.mainPlaylist;delete line.mainPasses;
+      delete line.mainPlaylist;delete line.mainPasses;delete line.mainContinueChance;
       for(const branch of line.branches||[]){
        if(['start','action'].includes(branch.completion)){delete branch.returnAction;branch.completion='next';}
       }
@@ -329,6 +505,12 @@
      }
      const choice=element('input');choice.type='checkbox';choice.checked=checked.has(line.id);
      choice.onchange=()=>{if(choice.checked)checked.add(line.id);else checked.delete(line.id);refresh();};
+     toolbar.append(button('Clone action',()=>destination([line],'clone')));
+     toolbar.append(button('Delete action permanently',()=>{
+      if(!confirm('Permanently delete this action and its attached chance playlists?'))return;
+      if(segment?.key)detach([line],segment);
+      unlink(line);removeActions([line.id]);checked.delete(line.id);redraw();
+     }));
      field(toolbar,'Select action',choice);toolbar.append(element('small',line.id));
      if(segment?.key)toolbar.append(button('Remove from main playlist',()=>{detach([line],segment);redraw();}));
      row.dataset.lineId=line.id;
@@ -438,8 +620,10 @@
        }
        function release(actions){
         const conversation=branchOf(anchor);
-        const section=Object.values(sections).find(rows=>rows.includes(anchor));
-        let last=section.at(-1);
+        let last=anchor;
+        const parent=api.playlistSegments(Object.values(sections).find(rows=>rows.includes(anchor))).find(segment=>segment.rows.includes(anchor));
+        const parentKey=parent.legacy?newKey():parent.key;
+        if(parent.legacy)setMembers(parent.rows,parentKey,0,parent.rows);
         for(const action of actions){
          const oldId=action.id;
          branch.actions.splice(branch.actions.indexOf(oldId),1);checked.delete(oldId);
@@ -447,6 +631,7 @@
          for(const flag of ['repeatSpeech','repeatAnimation','playlistStart','playlistEnd'])delete action[flag];
          g.dialogue.splice(g.dialogue.indexOf(action),1);
          action.id=nextLineId(g,conversation);
+         if(parentKey)setMembers([action],parentKey,parent.passes,[],parent.chance);
          g.dialogue.splice(g.dialogue.indexOf(last)+1,0,action);
          if(g.decisionAfter===last.id)g.decisionAfter=action.id;
          last=action;
@@ -466,6 +651,8 @@
           const arrival=branchLines(g,'arrival');
           g.decisionAfter=arrival[arrival.indexOf(action)-1]?.id||'before';
          }
+         const member=api.playlistSegments(Object.values(sections).find(rows=>rows.includes(action))||[]).find(segment=>segment.rows.includes(action));
+         detach([action],member);
          for(const flag of ['playlistStart','playlistEnd'])delete action[flag];
          action.id=branchId();branch.actions.push(action.id);
         }
@@ -474,7 +661,7 @@
        selectionControls.push([addSelected,candidates]);
        const addAction=button('Add branch action',()=>{branch.actions.push(newAction());redraw();});
        const branchTools=element('div');branchTools.className='encounter-action-tools';lane.append(branchTools);
-       addAction.disabled=g.dialogue.length>=100;branchTools.append(moveSelected,addSelected,addAction,button('Delete chance playlist',()=>{
+       addAction.disabled=g.dialogue.length>=100;branchTools.append(moveSelected,addSelected,addAction,button('Delete chance playlist permanently',()=>{
         if(!confirm('Remove this playlist and all its actions?'))return;
         removeActions(branch.actions);line.branches.splice(index,1);redraw();
        }));
@@ -550,16 +737,21 @@
        keepOpen(lane,key+':'+segment.key);
        const controls=element('div');controls.className='encounter-action-fields';lane.append(controls);
        const membership=()=>segment.legacy?newKey():segment.key;
-       field(controls,'Repeat',select([['0','Until canceled'],['count','Number of passes']],segment.passes?'count':'0',value=>{
-        setMembers(segment.rows,membership(),value==='0'?0:1,segment.legacy?segment.rows:[]);redraw();
+       field(controls,'Repeat',select([['0','Until canceled'],['count','Number of passes'],['chance','Chance to continue (%)']],segment.chance!==undefined?'chance':segment.passes?'count':'0',value=>{
+        setMembers(segment.rows,membership(),value==='count'?1:0,segment.legacy?segment.rows:[],value==='chance'?50:undefined);redraw();
        }));
+       if(segment.chance!==undefined){
+        const chance=field(controls,'Chance to continue (%)',input(segment.chance,value=>{
+         for(const row of segment.rows)row.mainContinueChance=value;segment.chance=value;mark();
+        },'number'));chance.min=0;chance.max=100;chance.step='any';
+       }
        if(segment.passes){
         const passes=field(controls,'Main playlist passes',input(segment.passes,value=>{
          for(const row of segment.rows)row.mainPasses=value;segment.passes=value;mark();
         },'number'));passes.min=1;passes.max=100;passes.step=1;
        }
        controls.append(selectedAction('Add selected to this playlist',rows=>{
-        setMembers(group.filter(row=>segment.rows.includes(row)||rows.includes(row)),membership(),segment.passes,segment.legacy?segment.rows:[]);
+        setMembers(group.filter(row=>segment.rows.includes(row)||rows.includes(row)),membership(),segment.passes,segment.legacy?segment.rows:[],segment.chance);
        }));
        const remove=button('Remove selected from main playlist',()=>{
         detach(segment.rows.filter(row=>checked.has(row.id)),segment);redraw();
@@ -570,7 +762,7 @@
         const line={id,speaker:'lace',text:'',animation:'',delay:0,tags:''};
         g.dialogue.splice(g.dialogue.indexOf(last)+1,0,line);
         if(g.decisionAfter===last.id)g.decisionAfter=id;
-        setMembers([...segment.rows,line],membership(),segment.passes,segment.legacy?segment.rows:[]);redraw();
+        setMembers([...segment.rows,line],membership(),segment.passes,segment.legacy?segment.rows:[],segment.chance);redraw();
         host.querySelector('[data-line-id="'+id+'"] textarea')?.focus();
        });
        add.disabled=g.dialogue.length>=100;controls.append(add);
@@ -606,7 +798,9 @@
          active?.removeAttribute('aria-current');active=node(event.row);
          active?.setAttribute('aria-current','step');status.textContent='Playing '+describe(event.row);return;
         }
-        const text=event.type==='roll'
+        const text=event.type==='continue-roll'
+         ? 'Rolled '+(event.roll*100).toFixed(2)+'% against '+event.chance+'% to continue. '+(event.continued?'Continue':'Repeat')
+         : event.type==='roll'
          ? 'Rolled '+(event.roll*100).toFixed(2)+'% after '+describe(event.row)+' · '+(event.branch?'Branch taken ('+event.branch.chance+'%)':'Continue')
          : (event.mode==='reroll'?'Reroll after ':'Return to ')+describe(event.target);
         trace.prepend(element('li',text));if(trace.children.length>12)trace.lastElementChild.remove();
