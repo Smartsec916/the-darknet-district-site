@@ -15,7 +15,7 @@ import vantor_textures  # noqa: E402
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OUTDIR = os.path.join(REPO, 'void-runner', 'assets', 'models', 'stations')
 from vcore import Mat  # noqa: E402
-MATS = MATS + [Mat('p_light', color=(.62, .64, .67), rough=.5, metal=.35), Mat('p_rust', color=(.44, .22, .12), rough=.85, metal=.2), Mat('p_scrap', color=(.40, .39, .38), rough=.7, metal=.5), Mat('p_ind', color=(.30, .29, .29), rough=.65, metal=.55)]
+MATS = MATS + [Mat('p_pale', color=(.80, .84, .87), rough=.35, metal=.25), Mat('p_wood', color=(.33, .21, .12), rough=.9, metal=0.0), Mat('p_leaf', color=(.16, .30, .12), rough=.8, metal=0.0), Mat('lamp_cyan', emissive=(.45, .9, 1.0), strength=1.8), Mat('glass_green', emissive=(.35, .8, .35), strength=.9), Mat('p_light', color=(.62, .64, .67), rough=.5, metal=.35), Mat('p_rust', color=(.44, .22, .12), rough=.85, metal=.2), Mat('p_scrap', color=(.40, .39, .38), rough=.7, metal=.5), Mat('p_ind', color=(.30, .29, .29), rough=.65, metal=.55)]
 
 
 def space_builder():
@@ -179,12 +179,81 @@ def foundry():
     return B
 
 
+def vigil():
+    """The Vigil (Communion): precise, pale, advanced. A slim halo ring, a spire, floating monolith arrays on thin tethers, lit in cyan."""
+    B = space_builder()
+    C = np.array([14.0, 24.0, 20.0]); R = 135.0
+    N = 96
+    for k in range(N):                                   # thin halo ring standing on edge behind the hull
+        a0, a1 = 2 * math.pi * k / N, 2 * math.pi * (k + 1) / N
+        p0 = C + np.array([R * math.cos(a0), R * math.sin(a0), 90.0]); p1 = C + np.array([R * math.cos(a1), R * math.sin(a1), 90.0])
+        B.beam(p0, p1, 5, 2.4, 'p_pale', up=(0, 0, 1))
+        if k % 3 == 0:
+            m = (p0 + p1) / 2
+            B.beam(m + (0, 0, -1.3), m + (0, 0, -1.4), 1.2, .5, 'lamp_cyan', up=(0, 0, 1))
+    for k in range(6):                                   # spokes of light-weight truss to the hull
+        a = 2 * math.pi * k / 6 + .4
+        p = C + np.array([R * math.cos(a), R * math.sin(a), 90.0])
+        B.beam(p, np.array([14 + 10 * math.cos(a), 20 + 8 * math.sin(a), 52.0]), .5, .5, 'p_pale')
+    # spire above the spine
+    B.cyl((22, 46, 40), (22, 150, 40), 2.2, 'p_pale', 24, r2=.15)
+    for k in range(6):
+        B.cyl((22, 60 + k * 14, 40), (22, 60.5 + k * 14, 40), 5.5 - k * .6, 'lamp_cyan', 24)
+    B.lamp((22, 100, 40), np.array([.5, .9, 1.0]), 1.6, 80)
+    # monolith arrays: tall pale slabs with a cyan seam, in a loose arc, each on a thin tether
+    for k in range(9):
+        a = math.radians(-70 + k * 17)
+        c = np.array([14 + 120 * math.sin(a), 6 + 12 * math.sin(k * 1.7), 40 + 70 * math.cos(a) * .5 + 60])
+        B.box(c + (-1.4, -9, -.6), c + (1.4, 9, .6), 'p_pale')
+        B.box(c + (-.12, -8, -.65), c + (.12, 8, -.6), 'lamp_cyan')
+        B.beam(c + (0, -9, 0), np.array([14 + (c[0] - 14) * .2, -4, 52.0]), .08, .08, 'trim_dark')
+    return B
+
+
+def holdfast():
+    """Holdfast (Natural Order): rugged and protective, natural materials with practical infrastructure. A layered timber-and-plate shield wall, greenhouse domes on arms, scaffolds, lamp posts."""
+    B = space_builder()
+    # shield wall: stacked, overlapping plates in timber brown and weathered steel, standing off the hull's rear
+    for row in range(5):
+        for col in range(14):
+            x = -60 + col * 9.0 + (row % 2) * 4.0
+            y = -14 + row * 11.5
+            B.box((x, y, 76 + row * .6), (x + 8.6, y + 11, 78 + row * .6), 'p_wood' if (row + col) % 3 else 'p_scrap')
+            B.box((x, y, 75.6 + row * .6), (x + 8.6, y + .5, 76 + row * .6), 'trim_dark')
+            B.box((x + 4.1, y + .8, 75.4 + row * .6), (x + 4.5, y + 10.4, 75.6 + row * .6), 'p_ind')
+    for col in range(8):                                  # buttresses
+        x = -55 + col * 16
+        B.beam((x, -14, 70), (x + 1, 40, 76), .9, .9, 'p_wood')
+    # greenhouse domes on arms
+    for k, (x, y, z) in enumerate(((-70, 14, 28), (96, 10, 52), (118, 22, 20), (-52, -10, 58))):
+        for la in range(8):
+            a0, a1 = math.pi / 2 * la / 8, math.pi / 2 * (la + 1) / 8
+            for lo in range(16):
+                b0, b1 = 2 * math.pi * lo / 16, 2 * math.pi * (lo + 1) / 16
+                r = 9
+                P = [np.array([x, y, z]) + r * np.array([math.cos(a) * math.cos(b), math.sin(a), math.cos(a) * math.sin(b)]) for a, b in ((a0, b0), (a1, b0), (a1, b1), (a0, b1))]
+                B.quad(P, 'glass_green' if (la + lo) % 3 else 'p_leaf', sum(P) / 4 - np.array([x, y, z]), True)
+        B.cyl((x, y - 4, z), (x, y, z), 9.4, 'p_wood', 20)
+        B.beam((x, y - 3, z), (14 + (x - 14) * .3, 4, 40), 1.4, 1.4, 'p_ind')
+        B.lamp((x, y + 6, z), np.array([.6, 1.0, .5]), 1.0, 40)
+    # scaffolds and lamp posts
+    for k in range(7):
+        x = -30 + k * 24
+        for dz in (0, 3):
+            B.box((x - .2, -18, 66 + dz), (x + .2, 12 + (k % 3) * 4, 66.4 + dz), 'p_wood')
+        for j in range(4):
+            B.box((x - .2, -14 + j * 8, 66), (x + .2, -13.6 + j * 8, 69.4), 'p_wood')
+        B.box((x - .8, 12 + (k % 3) * 4, 64.8), (x + .8, 13 + (k % 3) * 4, 65.4), 'lamp_amber')
+        B.lamp((x, 12 + (k % 3) * 4, 64), np.array([1.0, .65, .3]), .8, 28)
+    return B
+
+
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else OUTDIR
     os.makedirs(out, exist_ok=True)
     if not os.path.isdir(TEXTMP):
         vantor_textures.build(TEXTMP)
-    for name, fn in (('meridian', meridian), ('rusthaven', rusthaven), ('foundry', foundry)):
+    for name, fn in (('meridian', meridian), ('rusthaven', rusthaven), ('foundry', foundry), ('vigil', vigil), ('holdfast', holdfast)):
         B = fn()
         n = B.write(os.path.join(out, name + '-surroundings.glb'), TEXTMP)
         print(name, 'faces', n, 'KB', os.path.getsize(os.path.join(out, name + '-surroundings.glb')) // 1024)
