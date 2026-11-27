@@ -61754,7 +61754,7 @@
       "spawn"
     ]
   },
-  "revision": "f4481fa5ed32ebb1",
+  "revision": "7b55f965662953d3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82296,6 +82296,24 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/vehicle-rules.js",
+      "line": 9,
+      "text": "- enter / exit: enter only from on foot with the game's ordinary exploration controls (not during a menu, dialogue or cutscene); exit places the player",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vehicle.js",
+      "line": 6,
+      "text": "kept, on-foot movement, jumping, weapons and game shortcuts off), the same policy the tea-room seat and VR seats use. So menus, dialogue, the V1 device and",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vehicle.js",
+      "line": 7,
+      "text": "every other UI keep working and pause the vehicle; nothing drives while a text field, menu or conversation has the input.",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/voice-clips.js",
       "line": 1,
       "text": "/* Recorded NPC dialogue (Kokoro-82M, rendered offline by tools/audio/generate.py). Each fixed line",
@@ -83669,6 +83687,8 @@
     "void-runner/universe.js": "21853b2a7ca50512d33be6ae16cd835638e3fd1e224e401667a6024c67e2f0d6",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
+    "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
+    "void-runner/vehicle.js": "55e562463d132ef86bd01975d73287cff17306a1435a96436c19391a4fb057ca",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
