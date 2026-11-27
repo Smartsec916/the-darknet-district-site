@@ -61705,7 +61705,7 @@
       "spawn"
     ]
   },
-  "revision": "36e6245ca510bd89",
+  "revision": "2765b1bcf3f41e7c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83322,7 +83322,7 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
     "void-runner/ad-screens.js": "5792c93ef49ad52000b82b2a8e73e216d1d1430e1e111f1db295b83d8f5ab944",
-    "void-runner/anchorage.js": "5ff2ba7ec1c1b9be225e3967b0bc4dcddabb405c3022e8a7a826c73cfdf1c314",
+    "void-runner/anchorage.js": "d14cb16e54a7d807696eed2f4a1492168e66b62aff9fe46e121283caee54570c",
     "void-runner/anim-library.js": "3c8856db93b375570f00f37993ae04571ae0bdc93dfd66aa609e1b9beedbfa74",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
