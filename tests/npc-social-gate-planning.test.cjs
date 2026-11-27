@@ -13,9 +13,13 @@ function fixture(){
  const cross=(p=plan(),over={},actor={},pol=policy)=>E.socialGateCross(p,{...p.to,key:p.key,area:p.area,...actor},{key:p.key,from:p.area,to:p.next,via:p.via,onFoot:true,riding:false,player:p.to,...over},pol);
  return {E,root,policy,from,dest,plan,cross};
 }
-test('opted-in tier 2 plans first canonical foot gate of a multi-leg route',()=>{const f=fixture(),p=f.plan();assert.equal(p.via,'gate:ab');assert.equal(p.next,'b');assert.equal(p.final,false);assert.equal(p.to.x,6.4);assert.equal(f.E.socialGateLeg('npc',{area:'b',x:14,z:0},f.dest,f.policy).via,'gate:bc');});
-test('tier 1, missing opt-in, unknown tier and missing gate authority fail closed',()=>{const f=fixture();for(const policy of [{...f.policy,tier:1},{...f.policy,enabled:false},{...f.policy,tier:4},{...f.policy,allowGate:undefined},{...f.policy,allowGate:()=>1}])assert.equal(f.E.socialGateLeg('npc',f.from,f.dest,policy),null);});
-test('placement-only and cat cannot acquire a social gate route',()=>{const f=fixture();for(const id of ['dax','cat'])assert.equal(f.E.socialGateLeg(id,f.from,f.dest,{...f.policy,session:'social:'+id+':1'}),null);});
+test('opted-in NPC plans first canonical foot gate of a multi-leg route',()=>{const f=fixture(),p=f.plan();assert.equal(p.via,'gate:ab');assert.equal(p.next,'b');assert.equal(p.final,false);assert.equal(p.to.x,6.4);assert.equal(f.E.socialGateLeg('npc',{area:'b',x:14,z:0},f.dest,f.policy).via,'gate:bc');});
+test('missing opt-in and missing gate authority fail closed',()=>{const f=fixture();for(const policy of [{...f.policy,enabled:false},{...f.policy,allowGate:undefined},{...f.policy,allowGate:()=>1}])assert.equal(f.E.socialGateLeg('npc',f.from,f.dest,policy),null);});
+test('a procedural cat can use a foot gate while a placement-only actor cannot',()=>{const f=fixture();
+ assert.equal(f.E.socialGateLeg('dax',f.from,f.dest,{...f.policy,session:'social:dax:1'}),null);
+ assert.equal(f.E.socialGateLeg('cat',f.from,f.dest,{...f.policy,session:'social:cat:1'}).next,'b');
+ for(const tier of [undefined,1,2,3])assert.equal(f.E.socialGateLeg('npc',f.from,f.dest,{...f.policy,tier}).next,'b');
+ });
 test('denied later gate, throwing authority and wrong actor area reject whole route',()=>{const f=fixture();assert.equal(f.E.socialGateLeg('npc',f.from,f.dest,{...f.policy,allowGate:(_,id)=>id!=='gate:bc'}),null);assert.equal(f.E.socialGateLeg('npc',f.from,f.dest,{...f.policy,allowGate:()=>{throw Error('locked');}}),null);assert.equal(f.E.socialGateLeg('npc',{...f.from,area:'b'},f.dest,f.policy),null);});
 test('actual gate crossing returns canonical arrival and no taxi or spawn fallback',()=>{const f=fixture(),p=f.plan(),r=f.cross(p);assert.equal(r.area,'b');assert.equal(r.x,14.4);assert.equal(r.ride,null);assert.equal(r.key,p.key);});
 test('reject stale generation, wrong transition and taxi or ambiguous movement',()=>{const f=fixture(),p=f.plan();for(const t of [{via:'gate:bc'},{from:'b'},{to:'c'},{riding:true},{riding:undefined},{onFoot:false}])assert.equal(f.cross(p,t),null);assert.equal(f.cross(p,{}, {key:'old'}),null);assert.equal(f.cross(p,{}, {},{...f.policy,session:'social:npc:2'}),null);});

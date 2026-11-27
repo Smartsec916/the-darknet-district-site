@@ -3479,6 +3479,7 @@
           "corporate",
           "temple"
         ],
+        "cat": true,
         "ledges": [
           {
             "x": 90.5,
@@ -17755,34 +17756,60 @@
       },
       "cat": {
         "avenue": [
+          "district",
           "far-south",
           "oldtown",
           "outskirts",
-          "port"
+          "port",
+          "underground"
         ],
         "oldtown": [
           "avenue",
+          "district",
           "far-south",
           "outskirts",
-          "port"
+          "port",
+          "underground"
         ],
         "far-south": [
           "avenue",
+          "district",
           "oldtown",
           "outskirts",
-          "port"
+          "port",
+          "underground"
         ],
         "outskirts": [
           "avenue",
+          "district",
           "far-south",
           "oldtown",
-          "port"
+          "port",
+          "underground"
         ],
         "port": [
           "avenue",
+          "district",
           "far-south",
           "oldtown",
-          "outskirts"
+          "outskirts",
+          "underground"
+        ],
+        "district": [
+          "avenue",
+          "far-south",
+          "oldtown",
+          "outskirts",
+          "port",
+          "underground"
+        ],
+        "underground": [
+          "avenue",
+          "district",
+          "far-south",
+          "oldtown",
+          "outskirts",
+          "port"
         ]
       }
     },
@@ -17857,50 +17884,72 @@
         },
         "cab": false,
         "into": false,
-        "youthful": false,
+        "restrictedRooms": true,
         "reach": {
           "avenue": [
             "avenue",
+            "district",
             "far-south",
             "oldtown",
             "outskirts",
-            "port"
+            "port",
+            "underground"
           ],
           "oldtown": [
             "avenue",
+            "district",
             "far-south",
             "oldtown",
             "outskirts",
-            "port"
+            "port",
+            "underground"
           ],
           "far-south": [
             "avenue",
+            "district",
             "far-south",
             "oldtown",
             "outskirts",
-            "port"
+            "port",
+            "underground"
           ],
           "outskirts": [
             "avenue",
+            "district",
             "far-south",
             "oldtown",
             "outskirts",
-            "port"
+            "port",
+            "underground"
           ],
           "port": [
             "avenue",
+            "district",
             "far-south",
             "oldtown",
             "outskirts",
-            "port"
+            "port",
+            "underground"
           ],
           "district": [
-            "district"
+            "avenue",
+            "district",
+            "far-south",
+            "oldtown",
+            "outskirts",
+            "port",
+            "underground"
           ],
           "milked": [
             "milked"
           ],
           "underground": [
+            "avenue",
+            "district",
+            "far-south",
+            "oldtown",
+            "outskirts",
+            "port",
             "underground"
           ],
           "corporate": [
@@ -17927,7 +17976,7 @@
         },
         "cab": false,
         "into": true,
-        "youthful": false,
+        "restrictedRooms": false,
         "reach": {
           "avenue": [
             "avenue",
@@ -19593,7 +19642,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -19810,7 +19859,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -20031,7 +20080,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -20248,7 +20297,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -20469,7 +20518,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -20686,7 +20735,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -20910,7 +20959,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -21130,7 +21179,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -21351,7 +21400,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -21568,7 +21617,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -21789,7 +21838,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -22006,7 +22055,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -22227,7 +22276,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -22444,7 +22493,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -22665,7 +22714,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -22882,7 +22931,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -23103,7 +23152,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -23320,7 +23369,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -23541,7 +23590,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -23758,7 +23807,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -23979,7 +24028,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -24196,7 +24245,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -24417,7 +24466,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -24634,7 +24683,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -24855,7 +24904,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -25072,7 +25121,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -25293,7 +25342,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -25510,7 +25559,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -25731,7 +25780,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -25948,7 +25997,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -26169,7 +26218,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -26386,7 +26435,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -26607,7 +26656,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -26824,7 +26873,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -27045,7 +27094,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -27262,7 +27311,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -27483,7 +27532,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -27700,7 +27749,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -27921,7 +27970,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -28138,7 +28187,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -28359,7 +28408,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -28576,7 +28625,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -28797,7 +28846,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -29014,7 +29063,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -29235,7 +29284,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -29452,7 +29501,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -29673,7 +29722,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -29890,7 +29939,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -30111,7 +30160,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -30328,7 +30377,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -30549,7 +30598,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -30766,7 +30815,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -30993,7 +31042,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -31216,7 +31265,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -31437,7 +31486,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -31654,7 +31703,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -31875,7 +31924,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -32092,7 +32141,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -32313,7 +32362,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -32530,7 +32579,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -32751,7 +32800,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -32968,7 +33017,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -33178,7 +33227,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -33384,7 +33433,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -33599,7 +33648,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -33810,7 +33859,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -34025,7 +34074,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -34236,7 +34285,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -34446,7 +34495,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -34652,7 +34701,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -34867,7 +34916,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -35078,7 +35127,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -35288,7 +35337,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -35494,7 +35543,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -35709,7 +35758,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -35920,7 +35969,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -36134,7 +36183,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -36344,7 +36393,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -36620,7 +36669,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -36892,7 +36941,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -37103,7 +37152,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -37310,7 +37359,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -37525,7 +37574,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -37736,7 +37785,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -37945,7 +37994,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -38150,7 +38199,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -38360,7 +38409,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -38566,7 +38615,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -38776,7 +38825,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -38982,7 +39031,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -39192,7 +39241,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -39398,7 +39447,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -39612,7 +39661,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -39822,7 +39871,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -40036,7 +40085,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -40246,7 +40295,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -40507,7 +40556,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -40764,7 +40813,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -40979,7 +41028,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -41190,7 +41239,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -41405,7 +41454,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -41616,7 +41665,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -41830,7 +41879,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -42040,7 +42089,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -42301,7 +42350,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -42558,7 +42607,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -42773,7 +42822,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -42984,7 +43033,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -43194,7 +43243,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -43400,7 +43449,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -43609,7 +43658,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -43814,7 +43863,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -44023,7 +44072,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -44228,7 +44277,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -44442,7 +44491,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -44652,7 +44701,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -44862,7 +44911,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -45068,7 +45117,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -45275,7 +45324,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -45478,7 +45527,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -45691,7 +45740,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -45900,7 +45949,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -46114,7 +46163,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -46324,7 +46373,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -46534,7 +46583,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -46740,7 +46789,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -46952,7 +47001,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -47160,7 +47209,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -47369,7 +47418,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -47574,7 +47623,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -47783,7 +47832,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -47988,7 +48037,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -48197,7 +48246,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -48402,7 +48451,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -48618,7 +48667,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -48830,7 +48879,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -49045,7 +49094,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -49256,7 +49305,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -49467,7 +49516,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -49674,7 +49723,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -49883,7 +49932,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -50088,7 +50137,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -50297,7 +50346,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -50502,7 +50551,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -50716,7 +50765,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -50926,7 +50975,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -51136,7 +51185,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -51342,7 +51391,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -51554,7 +51603,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -51762,7 +51811,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -51970,7 +52019,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -52174,7 +52223,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -52373,7 +52422,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -52568,7 +52617,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -52780,7 +52829,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -52988,7 +53037,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -53200,7 +53249,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -53408,7 +53457,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -53623,7 +53672,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -53834,7 +53883,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -54045,7 +54094,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -54252,7 +54301,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -54464,7 +54513,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -54672,7 +54721,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -54882,7 +54931,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -55088,7 +55137,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -55300,7 +55349,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -55508,7 +55557,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -55720,7 +55769,7 @@
           },
           "cab": false,
           "into": true,
-          "youthful": true,
+          "restrictedRooms": true,
           "reach": {
             "avenue": [
               "avenue",
@@ -55928,7 +55977,7 @@
             },
             "cab": false,
             "into": true,
-            "youthful": false,
+            "restrictedRooms": false,
             "reach": {
               "avenue": [
                 "avenue",
@@ -61713,7 +61762,7 @@
       "spawn"
     ]
   },
-  "revision": "259403c46bf9ad2d",
+  "revision": "f921df8a4a35e372",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79856,19 +79905,19 @@
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 150,
+      "line": 162,
       "text": "return false;}   // sitting at a point, or held for a conversation: the ordinary steps below",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 297,
+      "line": 308,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 406,
+      "line": 417,
       "text": "VoidInteractions.register(CAT_ACTION,()=>{talk('',CAT_REACTION.map(text=>({who:CAT_ID,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});",
       "kind": "source-reference"
     },
@@ -80037,7 +80086,7 @@
     {
       "source": "void-runner/npc-editor.js",
       "line": 30,
-      "text": "place:'Where they are in the game. Pick the AREA on the map first (The Avenue, Old Town, Far South, The Outskirts, The Port or inside The Darknet District): she can be put anywhere green; red places (Milked, NULL, the District bar, the VR area) are never used for her. “Let her do her usual thing”: what she does now (on The Avenue). “Keep her at one spot”: she stands where you put her on the map (drag her; turn her with the round handle) and does the things you tick. “Make her walk a route”: she walks your points in order, does what each point says, then starts again.',",
+      "text": "place:'Where they are in the game. Choose an area from the map. Green shows walkable ground for this character. Select a blocked spot to see the reason. “Let her do her usual thing”: what she does now (on The Avenue). “Keep her at one spot”: she stands where you put her on the map (drag her; turn her with the round handle) and does the things you tick. “Make her walk a route”: she walks your points in order, does what each point says, then starts again.',",
       "kind": "source-reference"
     },
     {
@@ -80049,7 +80098,7 @@
     {
       "source": "void-runner/npc-editor.js",
       "line": 53,
-      "text": "chatgpt:'Say in your own words what this character should do, and let ChatGPT write it as a “behaviour recipe”: plain data the editor checks (never a program). Only places in the city’s walkable areas (never Milked, NULL, the District bar or the VR area) and actions they really have are accepted.',",
+      "text": "chatgpt:'Say in your own words what this character should do, and let ChatGPT write it as a “behaviour recipe”: plain data the editor checks (never a program). The recipe uses the same placement and animation checks as the map.',",
       "kind": "source-reference"
     },
     {
@@ -80139,7 +80188,7 @@
     {
       "source": "void-runner/npc-editor.js",
       "line": 363,
-      "text": "function advancedSocialBox(box,r){const d=el('details','','me-check',{'data-npc-advanced-social':'1'}),oldF=r.advanced?.follow||{},oldG=r.advanced?.group||{},P=root.VoidPlaces;d.open=!!(oldF.role||oldG.id);d.append(el('summary','Advanced · follow, lead and groups'),hint('Optional. They follow you, or lead you to a place, using the existing walk and obstacle routing. Mission escort and mission dialogue take priority and send them back. A linked group speaks one at a time. Each player keeps their own copy; other players are not moved.'));const role=el('select','','',{'aria-label':'Follow or lead'});for(const [id,name] of [['','Disabled'],['follow','They follow you'],['lead','They lead you to a place']]){const o=el('option',name);o.value=id;role.append(o);}role.value=oldF.role||'';const roleLab=el('label','','me-field');roleLab.append(el('span','Follow or lead'),role);d.append(roleLab);const travel=el('input','','',{type:'checkbox'});travel.checked=oldF.districtTravel===true;const travelLab=el('label','','me-field');travelLab.append(travel,el('span','Allow Tier 2 and Tier 3 escorts through district gates on foot or in a shared taxi'));d.append(travelLab);const place=el('select','','',{'aria-label':'Lead destination'});const put=(id,name)=>{const o=el('option',name);o.value=id;place.append(o);};put('','Choose a place');for(const o of P?.options?.()||[]){const n=P.node(o.id);if(o.id==='district-pods'||!o.selectable||!n?.rects?.length||!['place','venue','area'].includes(o.level))continue;put(o.id,o.label);}if(oldF.place&&![...place.options].some(o=>o.value===oldF.place))put(oldF.place,P?.label?.(oldF.place)||oldF.place);place.value=oldF.place||'';const placeLab=el('label','','me-field');placeLab.append(el('span','Destination, required when they lead'),place);d.append(placeLab);const text=(label,value,area=true,max=area?50100:60)=>{const w=el('label','','me-field'),i=el(area?'textarea':'input','','',{'aria-label':label,maxlength:String(max)});i.value=value||'';w.append(el('span',label),i);d.append(w);return i;};const invite=text('Invitation',oldF.invite),accept=text('Accept button',oldF.accept,false),decline=text('Decline button',oldF.decline,false),arrive=text('Arrival line',oldF.arrive),cancel=text('Cancel line',oldF.cancel),wait=el('input','','',{type:'number',min:'5',max:'120',step:'1','aria-label':'Invitation wait'});wait.value=String(oldF.maxWait??30);const waitLab=el('label','','me-field');waitLab.append(el('span','Invitation wait (seconds)'),wait);d.append(waitLab);d.append(el('h5','Linked group'));const gid=text('Group id, the same on every member',oldG.id,false,80),order=el('select','','',{'aria-label':'Group speaking order'});for(const [id,name] of [['alternate','Take turns'],['authored','Authored order']]){const o=el('option',name);o.value=id;order.append(o);}order.value=oldG.order==='authored'?'authored':'alternate';const orderLab=el('label','','me-field');orderLab.append(el('span','Speaking order'),order);d.append(orderLab);const members=text('Members, including this NPC, one id per line',(oldG.members||[]).join('\\n')),lines=text('This NPC’s lines in the group',oldG.lines),cool=el('input','','',{type:'number',min:'5',max:'600',step:'1','aria-label':'Group cooldown'});cool.value=String(oldG.cooldown??20);const coolLab=el('label','','me-field');coolLab.append(el('span','Group cooldown (seconds)'),cool);d.append(coolLab);box.append(d);return ()=>{const out={};if(role.value){const follow={role:role.value,invite:invite.value.trim(),accept:accept.value.trim(),decline:decline.value.trim(),maxWait:Number(wait.value)};if(travel.checked)follow.districtTravel=true;if(place.value)follow.place=place.value;if(arrive.value.trim())follow.arrive=arrive.value.trim();if(cancel.value.trim())follow.cancel=cancel.value.trim();out.follow=follow;}const ids=members.value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);if(gid.value.trim()||ids.length||lines.value.trim())out.group={id:gid.value.trim(),members:ids,order:order.value,cooldown:Number",
+      "text": "function advancedSocialBox(box,r){const d=el('details','','me-check',{'data-npc-advanced-social':'1'}),oldF=r.advanced?.follow||{},oldG=r.advanced?.group||{},P=root.VoidPlaces;d.open=!!(oldF.role||oldG.id);d.append(el('summary','Advanced · follow, lead and groups'),hint('Optional. They follow you, or lead you to a place, using the existing walk and obstacle routing. Mission escort and mission dialogue take priority and send them back. A linked group speaks one at a time. Each player keeps their own copy; other players are not moved.'));const role=el('select','','',{'aria-label':'Follow or lead'});for(const [id,name] of [['','Disabled'],['follow','They follow you'],['lead','They lead you to a place']]){const o=el('option',name);o.value=id;role.append(o);}role.value=oldF.role||'';const roleLab=el('label','','me-field');roleLab.append(el('span','Follow or lead'),role);d.append(roleLab);const travel=el('input','','',{type:'checkbox'});travel.checked=oldF.districtTravel===true;const travelLab=el('label','','me-field');travelLab.append(travel,el('span','Allow travel through district gates on foot or in a shared taxi'));d.append(travelLab);const place=el('select','','',{'aria-label':'Lead destination'});const put=(id,name)=>{const o=el('option',name);o.value=id;place.append(o);};put('','Choose a place');for(const o of P?.options?.()||[]){const n=P.node(o.id);if(o.id==='district-pods'||!o.selectable||!n?.rects?.length||!['place','venue','area'].includes(o.level))continue;put(o.id,o.label);}if(oldF.place&&![...place.options].some(o=>o.value===oldF.place))put(oldF.place,P?.label?.(oldF.place)||oldF.place);place.value=oldF.place||'';const placeLab=el('label','','me-field');placeLab.append(el('span','Destination, required when they lead'),place);d.append(placeLab);const text=(label,value,area=true,max=area?50100:60)=>{const w=el('label','','me-field'),i=el(area?'textarea':'input','','',{'aria-label':label,maxlength:String(max)});i.value=value||'';w.append(el('span',label),i);d.append(w);return i;};const invite=text('Invitation',oldF.invite),accept=text('Accept button',oldF.accept,false),decline=text('Decline button',oldF.decline,false),arrive=text('Arrival line',oldF.arrive),cancel=text('Cancel line',oldF.cancel),wait=el('input','','',{type:'number',min:'5',max:'120',step:'1','aria-label':'Invitation wait'});wait.value=String(oldF.maxWait??30);const waitLab=el('label','','me-field');waitLab.append(el('span','Invitation wait (seconds)'),wait);d.append(waitLab);d.append(el('h5','Linked group'));const gid=text('Group id, the same on every member',oldG.id,false,80),order=el('select','','',{'aria-label':'Group speaking order'});for(const [id,name] of [['alternate','Take turns'],['authored','Authored order']]){const o=el('option',name);o.value=id;order.append(o);}order.value=oldG.order==='authored'?'authored':'alternate';const orderLab=el('label','','me-field');orderLab.append(el('span','Speaking order'),order);d.append(orderLab);const members=text('Members, including this NPC, one id per line',(oldG.members||[]).join('\\n')),lines=text('This NPC’s lines in the group',oldG.lines),cool=el('input','','',{type:'number',min:'5',max:'600',step:'1','aria-label':'Group cooldown'});cool.value=String(oldG.cooldown??20);const coolLab=el('label','','me-field');coolLab.append(el('span','Group cooldown (seconds)'),cool);d.append(coolLab);box.append(d);return ()=>{const out={};if(role.value){const follow={role:role.value,invite:invite.value.trim(),accept:accept.value.trim(),decline:decline.value.trim(),maxWait:Number(wait.value)};if(travel.checked)follow.districtTravel=true;if(place.value)follow.place=place.value;if(arrive.value.trim())follow.arrive=arrive.value.trim();if(cancel.value.trim())follow.cancel=cancel.value.trim();out.follow=follow;}const ids=members.value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);if(gid.value.trim()||ids.length||lines.value.trim())out.group={id:gid.value.trim(),members:ids,order:order.value,cooldown:Number(cool.value),lines:",
       "kind": "source-reference"
     },
     {
@@ -80606,61 +80655,61 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 143,
+      "line": 142,
       "text": "out[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim():id,group:'district',say:id,made:true,role:typeof c.role==='string'?c.role:'',model:c.model,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 180,
-      "text": "const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validShift,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};",
+      "line": 179,
+      "text": "const api={deletionReferences,deleteCharacter,BUILTIN,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validShift,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 265,
+      "line": 264,
       "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 283,
+      "line": 282,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 285,
+      "line": 284,
       "text": "const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 318,
+      "line": 317,
       "text": "if(!p.near){p.near=true;p.nearTarget=null;const last=p.lastRemark??-Infinity;if(clock-last>=(traits.remarkCooldown??30)){p.lastRemark=clock;const lines=rel?.r.lines.length?[rel.r.lines[Math.floor(rnd()*rel.r.lines.length)]]:conversationLines(p.c,rnd);if(lines[0]!=='…'&&rnd()<(rel?rel.r.affection:traits.initiative??.5)&&(!rel||rel.r.target==='player'||player&&Math.hypot(player.x-origin.x,player.z-origin.z)<8)){try{if(typeof announce==='function')announce(p.c.name+(rel&&rel.r.target!=='player'?' → '+rel.r.target:'')+' · '+lines[0]);}catch{}}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 333,
+      "line": 332,
       "text": "if(near&&!p.wasNear&&!talk)root.VoidNPCServices?.greet?.(p.c.residence?.vendorShift?.greetingCooldown??root.VoidDistrictLife.PATCH_SHIFT.greetingCooldown);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 356,
+      "line": 355,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 385,
+      "line": 384,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 458,
+      "line": 457,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();const contextual=root.VoidNPCServices?.conversation?.(id);talk('',(contextual?[contextual]:conversationLines(chars()[id])).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -80708,19 +80757,19 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 136,
+      "line": 133,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 303,
+      "line": 311,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 332,
+      "line": 339,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
       "kind": "source-reference"
     },
@@ -81003,18 +81052,18 @@
     {
       "source": "void-runner/pixel-neon.js",
       "line": 237,
-      "text": "slotEntry=shared.conversationAt(script,routineEdits,{...ctx,freeUntil},Math.round(p.legStart),p.visit)?.entry;",
+      "text": "slotEntry=shared.conversationAt(script,routineEdits,slotContext,Math.round(p.legStart),p.visit)?.entry;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pixel-neon.js",
-      "line": 401,
+      "line": 404,
       "text": "if(!shared.valid(edits))return {problem:'Check the conversation action settings.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pixel-neon.js",
-      "line": 403,
+      "line": 406,
       "text": "if(!script.length)return {problem:'The conversation recordings are unavailable.'};",
       "kind": "source-reference"
     },
@@ -81548,14 +81597,14 @@
     },
     {
       "source": "void-runner/shared-activities.js",
-      "line": 63,
+      "line": 82,
       "text": "function conversationAt(library,edits,context,legStart,visit){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/shared-activities.js",
-      "line": 86,
-      "text": "const api={contextFits,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};",
+      "line": 105,
+      "text": "const api={contextFits,publicContext,slotKey,reservedAt,ambientSlotContext,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};",
       "kind": "source-reference"
     },
     {
@@ -83473,7 +83522,7 @@
     "void-runner/item-catalog-editor.js": "e205a69c12971d130d7cfec31e2cb8b413c0f9f3967522b4044431714d830180",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
-    "void-runner/live-content.js": "8b271bcff9d5484b392f1d257cc130628a03ee3c3b77a41c21e7ed993637f24f",
+    "void-runner/live-content.js": "55a767e74069e0f19b224d0e87dd7cfbe40a8a41aa800537e18a1279d640e20a",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/low-quay-city.js": "4689eb8364c993fc0a6b7001722192dbb30723fc1b7f914c767613b87b8506fd",
@@ -83534,7 +83583,7 @@
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
-    "void-runner/ncz-street-pair.js": "bf31f9b97a84b58d05b9e80631aed093b868a8952f074a6d5db2b1f03003471f",
+    "void-runner/ncz-street-pair.js": "4859b9966e7c126b085fd1dd93c0c133b720c57fc933a0e38861f5b242f7571b",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
     "void-runner/neochinatown.js": "cd61e6cf2345a675a0c1378e892d20fce0428e28cf3f9909da6bab5ae368a53f",
@@ -83543,20 +83592,20 @@
     "void-runner/npc-advanced-interactions.js": "d794457d9800046f2e5a39826017264d0275ce976cfa4208dcd8542329c3f818",
     "void-runner/npc-areas.js": "a1102366ca7373562b66be2634d27e67b3a02ca71e8d6805923352dc3222fdd2",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
-    "void-runner/npc-behaviour.js": "da2a6aa446947446d3a8c57c4653f01ac82ea1c276452ffb56b8d1f9da9ada32",
+    "void-runner/npc-behaviour.js": "6775dd9da8524828963be74a3ec45ba24c0dbd324d86889438a303533f3021db",
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "787ce29652ca8ad6210d0877e0afc29552f403e4d09599328214eb3ba57f99df",
-    "void-runner/npc-escort-across.js": "1868ddb6152f7439c3c57f24d3152691d510771b2122e462ad269e57ca1ec184",
+    "void-runner/npc-editor.js": "b18519826beca121e108ddc6be7834dc46a9817501c41096b1f3744380b5c930",
+    "void-runner/npc-escort-across.js": "a1c21e16ceaf86318ff57077c2f31475645ff02d4bec45816fcf9e97428f5aa4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "777b2182d9dd75c54ac98ed26154bcba465e6c91686e6e7a35fb0f281bd55ccc",
+    "void-runner/npc-escort.js": "1cda0c47c3b3eff3560da0bc52cd3e745bdd1313df113796f810e641c20708f9",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
     "void-runner/npc-library.js": "e844f74f5cc952adea5b83494d9ab29b9d4344ff29fd283a6d6560a1a9f408b2",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
-    "void-runner/npc-made.js": "22253bd31e26bd40d09b3d1b4b1b0891878651d8bd63d1901736a14eb6022488",
+    "void-runner/npc-made.js": "e3fbcd885a16a20b6eccc8a410f0c2942dc64ccd2f1c9a7677226bb2b1e63c9d",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
-    "void-runner/npc-paths.js": "496e3f744ce890e386121ac77ea1bbe970c1d43ec7041bc8d800b03cad51d96c",
+    "void-runner/npc-paths.js": "21ab0e120380fbaff1ae48a4f5385f6db68ee9b26e590863022424dad01cc3ae",
     "void-runner/npc-preview.js": "d02e7fd47d5e3aaff55ef9ad619b46e83e71c05f371ed5869013a112bb1fc2c5",
     "void-runner/npc-services.js": "282c73a088563bb7b5edd9d66b53d92e57ca0c5fef45242df7acee4e6785d2f2",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
@@ -83569,7 +83618,7 @@
     "void-runner/personal-device.js": "f1d9d66becd050cb1b0d8e3a74f7b43c863a4e805aa5e6ca975fb233bc69d309",
     "void-runner/personal-hud.js": "a9126fc52339462d86eb60228b6fbfe96deb02b57df991b13e57514b486d6be5",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/pixel-neon.js": "833388fac7102af2e33c98411daa18d0e61999e7052b2dc4316cf6c170c02f3a",
+    "void-runner/pixel-neon.js": "41192cc6dd889113e7ebc05833119e505172c51170267555b7d98561fc0a7001",
     "void-runner/places.js": "fb594ef1498a6548df2e7cc5dc6681cf24d191e6f30061294db0c8ecb472c268",
     "void-runner/planet-landing.js": "67b2111aa65ec14b409c8c74a9110751ca7bde8335cbcfba430c61bde5dc1682",
     "void-runner/planets.js": "d7e09f3f8af53f791c91368925b8b96f52d5f26f63a9623cda262e065f5413c7",
@@ -83594,7 +83643,7 @@
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
-    "void-runner/shared-activities.js": "75937d75605e3c7cf955d0ea39ddaef86140f7702752201e7d526b3ca0c992f6",
+    "void-runner/shared-activities.js": "9e55cf50935747ccb18878eb8ee429c6a00e7b0b3f4266a919ba1f847631b33b",
     "void-runner/shared-rig.js": "ed6a486e5c700a37ce9c1ade441724795c0336d9d5815c0425cb9186023285a0",
     "void-runner/ship-audio.js": "5ef30c299d02e4771755016bc5775e11a1b32c6dfe6d0fb486cd53cb79f78db6",
     "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",

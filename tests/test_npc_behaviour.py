@@ -42,7 +42,7 @@ class NpcBehaviourServerTests(unittest.TestCase):
         bad(with_block(**{'from': '14:00', 'to': '14:00', 'mode': 'original'}), 'same time')
         bad(with_block(**{'from': '25:00', 'to': '14:00', 'mode': 'original'}), '24-hour clock')
         bad(with_block(**{'from': '14:00', 'to': '15:00', 'mode': 'original', 'code': 'eval(1)'}), 'unknown fields')
-        bad(with_block(**{'from': '14:00', 'to': '15:00', 'mode': 'original', 'name': '<script>'}), 'simple punctuation')
+        bad(with_block(**{'from': '14:00', 'to': '15:00', 'mode': 'original', 'name': '<script>'}), 'single-line name')
         bad(with_block(**{'from': '14:00', 'to': '15:00', 'mode': 'dance'}), 'unknown kind of time block')
         bad(with_block(**{'from': '14:00', 'to': '15:00', 'mode': 'stay', 'x': 100, 'z': -12, 'yaw': 0, 'actions': ['idle']}), 'the road')
         bad(with_block(**{'from': '14:00', 'to': '15:00', 'mode': 'stay', 'x': 100, 'z': -6.4, 'yaw': 0, 'actions': ['pole-dance']}), 'not something she can do')

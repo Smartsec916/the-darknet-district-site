@@ -129,6 +129,16 @@ class WorkspaceBackupTests(unittest.TestCase):
         return {'schemaVersion': 1, 'kind': 'workspace', 'adapter': 'mission-editor', 'sourceKey': drafts.WORKSPACE_ID, 'baseRevision': 0,
                 'data': {'id': drafts.WORKSPACE_ID, 'title': 'Mission Editor workspace', 'bundle': bundle}}
 
+    def test_workspace_round_trip_keeps_tier_one_schedule_opt_in(self):
+        plan = {'mode': 'original', 'tier': 1, 'schedule': [
+            {'from': '12:00', 'to': '14:00', 'mode': 'stay', 'name': '夜の巡回 🌙',
+             'x': 73, 'z': -58.5, 'yaw': 0, 'actions': ['idle'], 'cross': True},
+        ]}
+        r = self.post(self.ws(npcs={'tea-host': plan}), name=drafts.WORKSPACE_ID)
+        self.assertEqual(r.status_code, 200, r.json)
+        got = self.client.get(self.url + '/' + drafts.WORKSPACE_ID, headers=self.header).json
+        self.assertEqual(got['document']['data']['bundle']['npcs']['tea-host'], plan)
+
     def test_workspace_round_trip_keeps_an_empty_tree_and_revisions(self):
         r = self.post(self.ws(), name=drafts.WORKSPACE_ID)
         self.assertEqual(r.status_code, 200, r.json)

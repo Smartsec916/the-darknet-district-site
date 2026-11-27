@@ -32,30 +32,27 @@
  /* Movable NPCs. asset: the crowd file (crowd.js clips[asset] is the clip list); device: the npc-device.js poses they use. */
  const MOVABLE={
   // Dax's ONE existing licensed interior actor now follows editor plans; this does not spawn a second model.
-  'dax':{name:'Dax',asset:'npc-dax',area:'city',quarter:'district',device:false,sit:false,youthful:false,adult:true,combatAnimations:false,placementOnly:true,areas:['district'],home:{x:125.3,z:-96.4,yaw:-Math.PI/2,actions:['idle']}},
+  'dax':{name:'Dax',asset:'npc-dax',area:'city',quarter:'district',device:false,sit:false,adult:true,placementOnly:true,areas:['district'],home:{x:125.3,z:-96.4,yaw:-Math.PI/2,actions:['idle']}},
   // the street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): moved by its own code in ncz-street-pair.js (no clips: a procedural pose), so its actions are its own (CAT_ACTIONS)
-  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,youthful:false,combatAnimations:false,cat:true,it:true},
+  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,cat:true,it:true},
   // THE TEA ROOM HOST (the owner, 20 Nov 2026: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): a
   // character of the game drawn by the made-giver runtime (npc-made.js BUILTIN: builtin, made), always at his post behind the tea station of the underground tea room
   // (`home`: a spot of ncz-underground.js spots(); his own routine). The NPCs tab can move him like anyone here. Placeholder name; no lines of his own.
-  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',adultPerformer:true,area:'city',quarter:'underground',device:false,sit:false,youthful:false,combatAnimations:true,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
+  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',adultPerformer:true,area:'city',quarter:'underground',device:false,sit:false,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
  // Ordinary, non-sexual shared clips verified against the current public rig index (24 joints, rest offset <=25°).
  // Keep these exact allowlists so a missing index never widens the permission to untested assets.
- // Combat is an ordinary gameplay capability, independent of age-sensitive source and venue rules.
- const COMBAT=/^vr-|aim|shoot|punch|fight/;
- const combatAllowed=(id,clip)=>!COMBAT.test(String(clip).split('/').pop())||!!MOVABLE[id]?.combatAnimations;
  // Verified per-rig shared mission motions; the fallback is needed during game startup before the clip index loads.
  const AREAS={'avenue-north':AVENUE_NORTH};
  /* MISSION GIVERS MADE IN THE EDITOR (Developer Tools > NPCs > Create a mission giver, npc-made.js; 19 Nov 2026): content.characters[id] are moved by data (their placement is
     content.npcs[id], the same plan as Reverie's), so they join MOVABLE: made:true, the model they were made from as `asset`, a V1 / V2 / V3 if they carry one (device poses),
-    never the ledge's sit (their runtime has no seated transitions), and Reverie's content rule (youthful: casual street clips only; the forbidden places of npc-areas.js).
+    verified seating and animation capabilities, and the adult eligibility declared for the character.
     setMade(chars) replaces every made entry (the draft in the editor, the content in force in the game) and returns the ones it replaced (a check puts them back). */
  let MADE={};
- /* An adult made character (the owner, 19 Nov 2026): marked "adult (18+)" in the creator, on a model that does not read youthful (never Reverie's or Lace's). */
- const YOUNG_MODELS=['npc-street-cat'],adultOk=c=>!!c&&c.adult===true&&!YOUNG_MODELS.includes(c.model);
+ /* A human adult is explicitly declared by the editor. The procedural cat is outside that human age setting. */
+ const NON_HUMANOID_MODELS=['npc-street-cat'],adultOk=c=>!!c&&c.adult===true&&!NON_HUMANOID_MODELS.includes(c.model);
  function setMade(chars){const before=MADE;for(const id of Object.keys(MADE))if(MOVABLE[id]&&MOVABLE[id].made&&!MOVABLE[id].builtin)delete MOVABLE[id];MADE={};
   for(const [id,c] of Object.entries(chars&&typeof chars==='object'&&!Array.isArray(chars)?chars:{})){if(!/^[a-z][a-z0-9-]{1,39}$/.test(id)||!c||typeof c!=='object'||typeof c.model!=='string'||(MOVABLE[id]&&(!MOVABLE[id].made||MOVABLE[id].builtin)))continue;
-   MOVABLE[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim().slice(0,40):id,asset:c.model,area:'city',quarter:null,device:['v1','v2','v3'].includes(c.device),sit:true,youthful:!adultOk(c),combatAnimations:adultOk(c),adult:adultOk(c),made:true};MADE[id]=c;}
+   MOVABLE[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim().slice(0,40):id,asset:c.model,area:'city',quarter:null,device:['v1','v2','v3'].includes(c.device),sit:true,adult:adultOk(c),made:true};MADE[id]=c;}
   return before;}
  const madeNow=()=>MADE;
  const ar=M=>({made:!!M?.made,adult:!!M?.adult});
@@ -106,7 +103,7 @@
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
  /* Every clip the game has, for NPC id, with whether she can use it: {id, title, source, category, status ('own' | 'shared' | 'library' | 'no'), ok, why}. */
  function adultMotionTarget(id,asset){
-  const actor=MOVABLE[id];if(actor)return (actor.adult===true||actor.adultPerformer===true)&&!actor.youthful;
+  const actor=MOVABLE[id];if(actor)return actor.adult===true||actor.adultPerformer===true;
   const made=node?require('./npc-made.js'):root.VoidMadeNPCs;
   return ADULT.test(asset)||made?.teaResident?.(asset)?.adult===true;
  }
@@ -181,7 +178,7 @@
  function waitAtProblems(giver,w){if(w==null)return [];if(!MOVABLE[giver]||MOVABLE[giver].placementOnly)return ['“Giver waits at” works only for a giver the editor can move.'];
   if(!keysOk(w,['x','z','yaw']))return ['“Giver waits at” has unknown fields.'];return spotProblems(giver,w);}
  /* A plan (content.npcs[id]). Returns problems (empty: fine). A daily schedule (p.schedule) is checked block by block with the same rules (scheduleProblems). */
- function planProblems(id,p){if(p&&typeof p==='object'&&!Array.isArray(p)&&'schedule' in p){const {schedule,...rest}=p,M=MOVABLE[id];const out=planOnly(id,rest);if(M)out.push(...scheduleProblems(id,schedule,rest.anims,rest.tier,rest));return out;}return planOnly(id,p);}
+ function planProblems(id,p){if(p&&typeof p==='object'&&!Array.isArray(p)&&'schedule' in p){const {schedule,...rest}=p,M=MOVABLE[id];const out=planOnly(id,rest);if(M)out.push(...scheduleProblems(id,schedule,rest.anims,rest));return out;}return planOnly(id,p);}
  function planOnly(id,p){const M=MOVABLE[id];if(!M)return [(id||'?')+': this NPC cannot be moved by the editor yet.'];const w=M.name+': ',out=[];
   if(!p||typeof p!=='object'||!['stay','path','original'].includes(p.mode))return [w+'unknown kind of placement (stay, path or her own routine).'];
   if(p.tier!=null&&!(p.tier===1||p.tier===2||p.tier===3))out.push(w+'the tier is 1, 2 or 3.');
@@ -221,8 +218,8 @@
   if(p.mode==='stay')return {...an,...sc,...tier,...awareness,mode:'stay',x:r1(+p.x),z:r1(+p.z),yaw:wrap(+p.yaw||0),actions:(Array.isArray(p.actions)?p.actions:[]).filter(a=>typeof a==='string').slice(0,LIMIT.actions[1])};
   if(p.mode==='path')return {...an,...sc,...tier,...awareness,mode:'path',points:(Array.isArray(p.points)?p.points:[]).slice(0,LIMIT.points[1]).map(q=>({x:r1(+q.x),z:r1(+q.z),action:String(q.action||'wait'),seconds:Math.round(+q.seconds||0)}))};
   return null;}
- /* One schedule block, tidied: {from, to, name?, mode, ...that mode's fields}. cross: walk through the gates into this block (Tier 2 or 3 only). */
- function cleanBlock(b){if(!b||typeof b!=='object')return null;const head={from:String(b.from||''),to:String(b.to||''),...(typeof b.name==='string'&&b.name.trim()?{name:b.name.trim().slice(0,40)}:{}),...(b.cross===true?{cross:true}:{})};
+ /* One schedule block, tidied: {from, to, name?, mode, ...that mode's fields}. cross: walk through the gates into this block when the areas are connected. */
+ function cleanBlock(b){if(!b||typeof b!=='object')return null;const head={from:String(b.from||''),to:String(b.to||''),...(typeof b.name==='string'&&b.name.trim()?{name:[...b.name.trim()].slice(0,40).join('')}:{}),...(b.cross===true?{cross:true}:{})};
   if(b.mode==='original')return {...head,mode:'original'};const {from,to,name,schedule,anims,...rest}=b,c=clean(rest);return c?{...head,...c}:{...head,mode:String(b.mode||'')};}
  const cleanWait=w=>w&&num(+w.x)&&num(+w.z)?{x:r1(+w.x),z:r1(+w.z),yaw:wrap(+w.yaw||0)}:null;
  /* What the game should do with a movable NPC now (ncz-street-pair.js). waiting: a mission's waitAt for her, or null; plan: content.npcs[id] or null.
@@ -231,11 +228,22 @@
   if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {area:AR().areaOf(waiting)||null,key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:MOVABLE[id]&&MOVABLE[id].cat?CAT_STAY.slice():homeOf(id)?homeOf(id).actions:l?(SP()&&SP().posesOf&&!SP().posesOf(l).includes('chair')?['idle',ACTIONS.find(a=>a.pose===SP().posesOf(l)[0]).id]:[...STAY_DEFAULT,'sit']):STAY_DEFAULT.slice(),why:'waiting'};}
   // a daily schedule: the block for this in-game minute of the day (minute: game-clock.js now(state).minuteOfDay); "her usual thing" in a block is her own routine
   if(plan&&Array.isArray(plan.schedule)&&num(minute)){const i=blockAt(plan.schedule,minute);if(i>=0){const b=plan.schedule[i];if(b.mode==='original')return homePlan(id);const r=planNow(id,{plan:b});if(r){r.key='sched:'+i+':'+b.from+'-'+b.to+':'+r.key;r.why='schedule';r.block=i;
-    const tier=plan.tier||1;if(b.cross===true&&tier>=2&&b.mode==='stay'){const prev=earlierBlock(plan.schedule,i)||plan,from=blockArea(prev),dest=r.area,src=prev.mode==='path'&&prev.points?prev.points[0]:prev;if(from&&dest&&from!==dest&&num(src.x)){const E=ESC(),leg=E&&E.legOf?E.legOf(id,from,{x:src.x,z:src.z},{x:r.x,z:r.z},dest):null,link=leg&&leg.via&&E.linkById?E.linkById(leg.via):null,ahead=link&&leg.next&&link.ends[leg.next]&&link.ends[leg.next].ahead;if(leg&&leg.to&&!leg.final){r.depart={area:from,x:leg.to.x,z:leg.to.z,via:leg.via||null,next:leg.next||null};if(ahead&&num(ahead.x)&&num(ahead.z))r.arrive={x:ahead.x,z:ahead.z};r.key+=':cross';}}}
+    if(b.cross===true){const prev=earlierBlock(plan.schedule,i)||plan,from=blockArea(prev),dest=r.area,src=prev.mode==='path'&&prev.points?prev.points[0]:prev;if(from&&dest&&from!==dest&&num(src.x)){const target=r.mode==='path'?r.points[0]:r,E=ESC(),legs=E?.areaRoute(id,{...src,area:from},{...target,area:dest});
+     if(legs?.length){r.crossings={};for(const {link,a,b} of legs){
+      r.crossings[a]={...r.crossings[a],depart:link.ends[a].wait};
+      r.crossings[b]={entry:link.ends[b].ahead};
+     }r.key+=':cross';}}}
     if(plan.tier>=2)r.tier=plan.tier;if(plan.awareness)r.awareness=plan.awareness;}return r;}}
   if(plan&&plan.mode==='stay')return {area:AR().areaOf(plan)||null,key:'stay:'+plan.x+':'+plan.z+':'+plan.yaw+':'+plan.actions.join(','),mode:'stay',x:plan.x,z:plan.z,yaw:plan.yaw,actions:plan.actions.slice(),why:'stay',...(plan.tier>=2?{tier:plan.tier}:{}),...(plan.awareness?{awareness:plan.awareness}:{})};
   if(plan&&plan.mode==='path')return {area:AR().areaOf(plan.points[0]||{})||null,key:'path:'+plan.points.map(q=>q.x+','+q.z+','+q.action+','+q.seconds).join(';'),mode:'path',points:plan.points.map(q=>({...q})),why:'path',...(plan.tier>=2?{tier:plan.tier}:{}),...(plan.awareness?{awareness:plan.awareness}:{})};
   return homePlan(id);}
+ /* Project the itinerary onto the active scene. Only a registered link supplies an arrival. */
+ function scheduledScenePlan(id,P,here){if(!P?.crossings)return P;
+  const area=Object.keys(P.crossings).find(a=>here.has(a));if(!area)return P;
+  const {entry,depart}=P.crossings[area];
+  if(!depart)return {...P,entry};
+  return {...P,entry,area,key:P.key+':'+area,mode:'stay',...depart,yaw:0,actions:MOVABLE[id]?.cat?['cat-look']:['idle','look']};
+ }
  /* No placement (or "his own routine"): an NPC with a post of his own (the tea room host) stands at it; everyone else follows their own routine (null). */
  function homePlan(id){const h=homeOf(id);if(!h)return null;return {area:AR().areaOf(h)||null,key:'home:'+h.x+':'+h.z+':'+h.yaw+':'+h.actions.join(','),mode:'stay',x:h.x,z:h.z,yaw:h.yaw,actions:h.actions,why:'home'};}
  /* Map data (the editor's top-down map): the walkable area, the road, the gates, the ledges, the taxi posts, the shopfront names, her usual stretch. */
@@ -259,7 +267,7 @@
  function snap(id,p,area){if(!p)return p;const r=pick(id,p,area);return r.spot?{...p,x:r.spot.x,z:r.spot.z}:p;}
  /* For the admin inventory (the server's copy of these rules). */
  function crossMap(){const E=ESC(),ids=AR().IDS,out={walker:{},cat:{}};if(!E||!E.reach)return out;for(const [kind,who] of [['walker','tea-host'],['cat','street-cat']])for(const a of ids){const reach=[...E.reach(who,a)].filter(x=>x!==a).sort();if(reach.length)out[kind][a]=reach;}return out;}
- function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:(M.areas||AR().IDS).slice(),...(M.placementOnly?{placementOnly:true,adult:M.adult}:{}),
+ function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:(M.areas||AR().IDS).slice(),...(M.placementOnly?{placementOnly:true,adult:M.adult}:{}),...(M.cat?{cat:true}:{}),
   ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),seats:seatList(),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,areas:AR().inventory(),limits:LIMIT,cross:crossMap(),import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
  /* IMPORT MODEL (the owner, 18 Nov 2026: "import new models, then place them in" and "just have a cap on poly counts for each import"): the caps, in ONE place (the
     server reads the same numbers from the admin inventory for the "Add to the game" package). The triangle budget can be waived per import. The byte cap always applies.
@@ -308,14 +316,14 @@
  const inBlock=(b,m)=>{const f=toMin(b.from),t=toMin(b.to);if(f==null||t==null||f===t)return false;return f<t?m>=f&&m<t:m>=f||m<t;};
  /* The index of the block that covers in-game minute-of-day m (-1: none). */
  function blockAt(sched,m){if(!Array.isArray(sched)||!num(m))return -1;m=((Math.floor(m)%1440)+1440)%1440;return sched.findIndex(b=>b&&typeof b==='object'&&inBlock(b,m));}
- const NAME_OK=/^[A-Za-z0-9 .,'’()&!?\-\/]{1,40}$/;   // a block's name: plain words only (shown as text)
+ const NAME_OK=/^[^<>\x00-\x1f\x7f-\x9f\u2028\u2029]{1,40}$/u;   // a block's name: plain words only (shown as text)
  const BLOCK_KEYS={original:['from','to','name','mode'],stay:['from','to','name','mode','x','z','yaw','actions','cross'],path:['from','to','name','mode','points','cross']};
  const ESC=()=>node?require('./npc-escort.js'):root.VoidNPCEscort,AW=()=>node?require('./npc-awareness.js'):root.VoidNPCAwareness;
  const blockArea=b=>{if(!b||b.mode==='original')return null;const p=b.mode==='path'&&b.points?b.points[0]:b;return p&&num(p.x)&&num(p.z)&&AR()?AR().areaOf(p):null;};
  /* The placed block that ends closest before this one starts (across midnight). Null when this block is the only placed part of the day. */
  function earlierBlock(sched,i){const f=toMin(sched[i]&&sched[i].from);let best=null,bd=1440;sched.forEach((b,k)=>{if(k===i||!b||b.mode==='original')return;const t=toMin(b.to);if(f==null||t==null)return;const d=(f-t+1440)%1440;if(d<bd){bd=d;best=b;}});return best;}
  const blockLabel=(b,i)=>'Time block '+(i+1)+(b&&typeof b==='object'&&toMin(b.from)!=null&&toMin(b.to)!=null?' ('+b.from+'–'+b.to+')':'')+': ';
- function scheduleProblems(id,sched,anims,tier,base){const M=MOVABLE[id];if(!M)return [];const w=M.name+': ';if(sched==null)return [];tier=tier==null?1:tier;
+ function scheduleProblems(id,sched,anims,base){const M=MOVABLE[id];if(!M)return [];const w=M.name+': ';if(sched==null)return [];
   if(!Array.isArray(sched))return [w+'the daily schedule has an unknown shape.'];if(!sched.length)return [w+'the daily schedule is empty (remove it, or add a time block).'];
   if(sched.length>LIMIT.blocks)return [w+'a daily schedule has '+LIMIT.blocks+' time blocks at most (this one has '+sched.length+').'];
   const out=[],used=new Array(1440).fill(-1);
@@ -325,14 +333,13 @@
    const f=toMin(b.from),t=toMin(b.to);if(f==null)out.push(bw+'the start time must look like 08:00 (24-hour clock).');if(t==null)out.push(bw+'the end time must look like 12:00 (24-hour clock).');
    if(f!=null&&t!=null){if(f===t)out.push(bw+'it starts and ends at the same time.');else if(span(b)<LIMIT.blockMin)out.push(bw+'a time block lasts at least '+LIMIT.blockMin+' minutes.');
     else{let clash=-1;for(let m=f,k=0;k<span(b);k++,m=(m+1)%1440){if(used[m]>=0&&clash<0)clash=used[m];used[m]=i;}if(clash>=0)out.push(bw+'it overlaps time block '+(clash+1)+': change one of their times.');}}
-   if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'the name may use letters, numbers and simple punctuation only (40 at most).');
+   if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'use a single-line name of 40 characters or fewer.');
    if(b.cross!=null&&b.cross!==true)out.push(bw+'“Walk through the gates” is on or left off.');
-   if(b.cross===true){if(M.placementOnly)out.push(bw+'Dax stays in the District.');else if(!(tier>=2))out.push(bw+'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.');
-    else if(b.mode==='original')out.push(bw+'walking through the gates needs a spot in the area she is going to.');
+   if(b.cross===true){if(M.placementOnly)out.push(bw+'Dax’s movement runtime is loaded only in the District.');else if(b.mode==='original')out.push(bw+'walking through the gates needs a spot in the area she is going to.');
     else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');
      else if(from!==dest){const why=ESC()&&ESC().reachWhy?ESC().reachWhy(id,from,dest):'there is no way through.';if(why)out.push(bw+why);}}}
    if(b.mode!=='original'){const {from,to,name,cross,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={adultMotionTarget,combatAllowed,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
+ const api={adultMotionTarget,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,NON_HUMANOID_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,scheduledScenePlan,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

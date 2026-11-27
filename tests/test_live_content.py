@@ -94,6 +94,20 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual([h['action'] for h in state['history']], ['publish', 'publish', 'rollback', 'rollback'])
         self.assertTrue(all(k.startswith(('vr_live_content_state/', 'vr_live_content_versions/')) for k in self.db.data))
 
+    def test_publish_and_load_tier_one_schedule_without_an_all_day_placement(self):
+        actor = 'test-traveller'
+        schedule = [
+            {'from': '08:00', 'to': '12:00', 'mode': 'stay', 'x': 103.5, 'z': -6.4, 'yaw': 0, 'actions': ['idle']},
+            {'from': '12:00', 'to': '14:00', 'mode': 'stay', 'x': 73, 'z': -58.5, 'yaw': 0,
+             'actions': ['idle'], 'cross': True, 'name': '夜の巡回 🌙'},
+        ]
+        plan = {'mode': 'original', 'tier': 1, 'schedule': schedule}
+        body = content(characters={actor: {'name': 'Test Traveller', 'model': 'npc-casual-m'}},
+                       npcs={actor: plan})
+        published = self.post('live-content/publish', {'expected': 0, 'content': body})
+        self.assertEqual(published.status_code, 200, published.json)
+        self.assertEqual(self.get('live-content', token=None).json['content']['npcs'][actor], plan)
+
     def test_imported_npc_publish(self):
         previous = content()
         self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': previous}).status_code, 200)

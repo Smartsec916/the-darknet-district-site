@@ -47,7 +47,7 @@ test('the figures: kept out for her mission, held while the conversation has her
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8'),md=fs.readFileSync(R('void-runner/npc-made.js'),'utf8');
  // never popped in or out in front of the player: main's hold (holdCheck / p.going, 19 Nov 2026) is kept; a follow step is never held
  assert.match(sp,/function holdCheck\(/);assert.match(sp,/if\(k===body\.key\|\|\(R&&R\.mode==='escort'\)\|\|!seen\)return false;/,'a follow step starts at once; the end of one is held while seen');
- assert.match(sp,/P\.mode==='escort'\?ok\(P\.resume\)\|\|ok\(P\.from\):planSpot\(P\)/);assert.match(sp,/const P=planOf\(CAT_ID\),t=appearAt\(P\)/);
+ assert.match(sp,/P\.mode==='escort'\?ok\(P\.resume\)\|\|ok\(P\.from\):ok\(P\.entry\)\|\|planSpot\(P\)/);assert.match(sp,/const P=planOf\(CAT_ID\),t=appearAt\(P\)/);
  assert.match(md,/ok\(P\.resume\)\|\|ok\(P\.from\)\|\|ok\(P\.to\)/);assert.match(md,/chatWho=t&&t\.action===ACTION\?t\.character:speaker\(\);/);
  assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='20\d\d-\d\d-\d\d-[a-z0-9-]+'/);});
 
