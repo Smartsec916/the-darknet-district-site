@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const kinds=Object.freeze({
-  trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',
+  trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',cast:'Cast conversation',
   animation:'Animation',location:'Location and access',end:'Cleanup'
  });
 
@@ -20,7 +20,7 @@
  const startTriggers={interval:'Nearby percentage roll',near:'Walking near an NPC',place:'Entering a place',leave:'Leaving a place','pod-exit':'Exiting a Sleeping Pod',
   'after-mission':'After a mission is completed','game-time':'After in-game time following a mission',flag:'A story flag is set'};
  const isVisitTrigger=kind=>['near','place','leave','pod-exit'].includes(kind);
- const isRepeat=row=>!!((row.repeatSpeech&&row.text?.trim())||(row.repeatAnimation&&row.animation));
+ const isRepeat=row=>!!((row?.repeatSpeech&&row.text?.trim())||(row?.repeatAnimation&&row.animation));
  function playlist(rows,repeatAll=false){
   const selected=rows.filter(isRepeat);
   if(!selected.length)return repeatAll?{before:[],cycle:rows,after:[]}:{before:rows,cycle:[],after:[]};
@@ -50,7 +50,7 @@
   return segments;
  }
 
- async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},repeat=(parent,_,run)=>run(parent)}){
+ async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},scope=(_kind,_item,_signal,work)=>work(),repeat=(parent,_,run)=>run(parent)}){
   const restart=Symbol('legacy main restart');
   const segments=playlistSegments(rows);
   let legacyActive=segments.some(segment=>segment.legacy);
@@ -63,7 +63,7 @@
     signal.throwIfAborted();
     const row=items[index];
     observe({type:'action',row});
-    await play(row,signal,marked?.has(row)===true);
+    await scope('line',row,signal,()=>play(row,signal,marked?.has(row)===true));
     let target=next(index+1);
     for(;;){
      signal.throwIfAborted();
@@ -72,7 +72,7 @@
      observe({type:'roll',row,roll,branch});
      if(!branch)break;
      const child=branchPlaylist(branch,byId);
-     const complete=await sequence(child,branch.passes??1,signal,true,false,legacyReturn);
+     const complete=await scope('chance',branch,signal,()=>sequence(child,branch.passes??1,signal,true,false,legacyReturn));
      if(!complete)break;
      const mode=branch.completion;
      if(mode===undefined&&legacyReturn)throw restart;
@@ -126,7 +126,7 @@
    if(jumpToLegacy&&!segment.legacy)continue;
    jumpToLegacy=false;
    if(segment.key){
-    await sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy,segment.legacy,segment.chance);
+    await scope('main',segment,signal,()=>sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy,segment.legacy,segment.chance));
     if(segment.legacy)legacyActive=false;
    }else{
     try{await actions(segment.rows,signal,false,legacyActive);}
@@ -227,8 +227,148 @@
   return [...rows,...saved].filter(row=>row?.animationSpeed!==undefined&&!validAnimationSpeed(row.animationSpeed))
    .map(row=>'Enter a playback speed greater than 0 for '+row.id+'.');
  }
+ function lineSeconds(row,clipSeconds=()=>undefined,replay=false){
+  const text=(!replay||row.repeatSpeech)&&row.text?.trim();
+  const animation=(!replay||row.repeatAnimation)&&row.animation;
+  const speech=text?(row.recording?.duration||Math.max(1.5,text.length*.055)):0;
+  const clip=animation?(row.animationSeconds??clipSeconds(row)):0;
+  return {seconds:(text||animation||row.soundCues?.length?row.delay||0:0)+Math.max(speech,(clip||0)/(validAnimationSpeed(row.animationSpeed)?row.animationSpeed:1)),
+   unknown:!!animation&&!Number.isFinite(clip),variable:!!row.branches?.some(branch=>branch.chance>0)};
+ }
+ function timing(sequence,passes=1,clipSeconds,partial=false,chance){
+  const total={seconds:0,unknown:false,variable:false,loop:passes===0&&sequence.cycle.length>0&&!chance};
+  const repeatOnly=partial&&sequence.cycle.some(isRepeat);
+  function add(rows,replay,multiplier){
+   for(const row of rows){
+    if(!row||(replay&&repeatOnly&&!isRepeat(row)))continue;
+    const t=lineSeconds(row,clipSeconds,replay&&repeatOnly);
+    total.seconds+=t.seconds*multiplier;total.unknown||=t.unknown;total.variable||=t.variable;
+   }
+  }
+  add(sequence.before,false,1);add(sequence.cycle,false,1);
+  if(passes!==1&&sequence.cycle.length&&chance>0&&chance<100)total.variable=true;
+  if(passes>1&&sequence.cycle.length){
+   if(!chance){add(sequence.cycle,true,passes-1);total.seconds+=(passes-1)*.25;}
+  }
+  add(sequence.after,false,1);return total;
+ }
+ const soundPath=/^assets\/audio\/[A-Za-z0-9_/-]+\.(ogg|mp3|wav|m4a|webm)$/;
+ function validSound(cue){
+  return !!cue&&typeof cue.src==='string'&&soundPath.test(cue.src)&&['start','end'].includes(cue.when)&&
+   Number.isFinite(cue.offset)&&cue.offset>=0&&cue.offset<=3600&&Number.isFinite(cue.volume)&&cue.volume>=0&&cue.volume<=1&&
+   typeof cue.loop==='boolean'&&(!cue.loop||(['scope','encounter','seconds'].includes(cue.stop)&&
+    (cue.when==='start'||cue.stop==='seconds')&&(cue.stop!=='seconds'||(Number.isFinite(cue.seconds)&&cue.seconds>0&&cue.seconds<=3600))));
+ }
+ function soundLists(graph){
+  const rows=[...(Array.isArray(graph.dialogue)?graph.dialogue:[]),...(Array.isArray(graph.savedActions)?graph.savedActions.flat():[])];
+  return [graph.soundCues,...Object.values(graph.sectionSounds||{}),...Object.values(graph.playlistSounds||{}),
+   ...(Array.isArray(graph.nodes)?graph.nodes:[]).map(node=>node?.soundCues),
+   ...rows.flatMap(row=>[row?.soundCues,...(Array.isArray(row?.branches)?row.branches:[]).map(branch=>branch?.soundCues)])].filter(list=>list!==undefined);
+ }
+ function soundProblems(graph){
+  return soundLists(graph||{}).some(list=>!Array.isArray(list)||list.some(cue=>!validSound(cue)))?
+   ['Choose a sound effect and valid timing for every cue.']:[];
+ }
+ function playSound(cue,done){
+  const studio=root.VoidSoundStudio;
+  if(!studio)return null;
+  return studio.player(studio.asset('',cue.src,'','Mission effects'),'effects',cue.volume,{loop:cue.loop,done});
+ }
+ function soundTimeline(play=playSound,timers=root){
+  const pending=new Set(),active=new Map();
+  let closed=false,finished=false;
+  function schedule(seconds,work){
+   if(closed)return null;
+   if(!seconds){work();return null;}
+   const id=timers.setTimeout(()=>{pending.delete(id);if(!closed)work();},seconds*1000);
+   pending.add(id);return id;
+  }
+  function clear(id){if(id!==null){timers.clearTimeout(id);pending.delete(id);}}
+  function stop(player){const item=active.get(player);clear(item?.timer??null);
+   if(item?.arm)player.media?.removeEventListener('playing',item.arm);active.delete(player);player.dispose();}
+  function fire(cue,owner){
+   if((owner.ended&&cue.loop&&cue.stop==='scope')||(finished&&cue.loop&&cue.stop==='encounter'))return;
+   for(const source of active.keys())if(source.ended)stop(source);
+   let player;
+   try{player=play(cue,()=>{clear(active.get(player)?.timer??null);active.delete(player);});}catch{ return; }
+   if(!player)return;
+   const item={owner,cue,timer:null};active.set(player,item);
+   if(cue.loop&&cue.stop==='seconds'){
+    item.arm=()=>{if(active.has(player))item.timer=schedule(cue.seconds,()=>stop(player));};
+    if(player.media?.paused)player.media.addEventListener('playing',item.arm,{once:true});else item.arm();
+   }
+  }
+  function open(cues){
+   const list=(cues||[]).filter(validSound),owner={ended:false};
+   const starts=list.filter(cue=>cue.when==='start').map(cue=>schedule(cue.offset,()=>fire(cue,owner)));
+   return (complete=true)=>{
+    if(owner.ended)return;
+    owner.ended=true;starts.forEach(clear);
+    for(const [player,item] of active)if(item.owner===owner&&item.cue.loop&&item.cue.stop==='scope')stop(player);
+    if(complete)for(const cue of list.filter(cue=>cue.when==='end'))schedule(cue.offset,()=>fire(cue,owner));
+   };
+  }
+  return {open,finish(){finished=true;for(const [player,item] of active)if(item.cue.loop&&item.cue.stop==='encounter')stop(player);},
+   dispose(){closed=true;for(const id of pending)clear(id);for(const player of active.keys())stop(player);}};
+ }
+ async function withSounds(timeline,cues,signal,work){
+  if(!timeline||!cues?.length)return work();
+  signal.throwIfAborted();
+  const end=timeline.open(cues);
+  try{const result=await work();end(!signal.aborted);return result;}
+  finally{end(false);}
+ }
+ function soundsFor(graph,section,kind,item){
+  return kind==='main'?graph.playlistSounds?.[section+':'+item.key]:item.soundCues;
+ }
+ const castLocations={sacramento:'NeoChinatown street','darknet-district':'The Darknet District','planet-low-quay':'Low Quay'};
+ function matchesScene(at,location){
+  if((at.scene||'sacramento')==='sacramento')return location?.area==='street'&&location.quarter===at.quarter;
+  if(at.scene==='darknet-district')return location?.id==='neochinatown'&&location.area==='interior';
+  return at.scene==='planet-low-quay'&&location?.id===at.scene;
+ }
+ const npcId=value=>typeof value==='string'&&/^[a-z][a-z0-9-]{0,63}$/.test(value);
+ function castProblems(graph,publishing=false){
+  if(graph?.cast===undefined)return [];
+  if(!Array.isArray(graph.cast))return ['Choose a valid cast.'];
+  const errors=[],ids=new Set();
+  if(!Object.hasOwn(castLocations,graph.playtest?.scene))errors.push('Choose an encounter location.');
+  for(const actor of graph.cast){
+   if(!npcId(actor?.id)||ids.has(actor.id)){errors.push('Give each cast member a unique NPC ID using lowercase letters, numbers or hyphens.');continue;}
+   ids.add(actor.id);
+   if(typeof actor.name!=='string'||!actor.name.trim()||actor.name.length>60)errors.push('Enter a name for '+actor.id+'.');
+   if(actor.localAsset?!/^enc-glb-[a-f0-9-]{36}$/.test(actor.localAsset)||!!actor.model:!npcId(actor.model))
+    errors.push('Choose a game model or import a GLB for '+actor.id+'.');
+   if(actor.idle!==undefined&&(typeof actor.idle!=='string'||actor.idle.length>100))errors.push('Check the idle animation for '+actor.id+'.');
+   if(publishing&&actor.localAsset)errors.push('Choose a game model for '+actor.id+' before publishing. Imported GLBs are stored in this browser.');
+   if(!['x','y','z','yaw','scale'].every(key=>Number.isFinite(actor[key]))||actor.scale<.1||actor.scale>5||
+    Math.max(Math.abs(actor.x),Math.abs(actor.y),Math.abs(actor.z))>100000||Math.abs(actor.yaw)>100)
+    errors.push('Check placement and scale for '+actor.id+'.');
+  }
+  if(Array.isArray(graph.dialogue))for(const row of graph.dialogue){
+   if(row?.animation&&!ids.has(row.speaker))errors.push('Choose a cast member for animation '+row.id+'.');
+  }
+  if(Array.isArray(graph.nodes))for(const node of graph.nodes){
+   if(node?.kind==='cast'&&node.speaker&&!ids.has(node.speaker))errors.push('Choose a cast member for '+node.id+'.');
+  }
+  return errors;
+ }
+ async function castAsset(key,file){
+  const db=await new Promise((resolve,reject)=>{
+   const request=root.indexedDB.open('void-chance-cast',1);
+   request.onupgradeneeded=()=>request.result.createObjectStore('models');
+   request.onsuccess=()=>resolve(request.result);
+   request.onerror=()=>reject(request.error);
+  });
+  try{return await new Promise((resolve,reject)=>{
+   const tx=db.transaction('models',file?'readwrite':'readonly'),store=tx.objectStore('models');
+   const request=file?store.put(file,key):store.get(key);
+   tx.oncomplete=()=>resolve(request.result);
+   tx.onerror=tx.onabort=()=>reject(tx.error||Error('Could not access the imported GLB.'));
+  });}finally{db.close();}
+ }
  function validate(encounter){
-  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter)],nodes=encounter?.nodes;
+  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter),...castProblems(encounter),...soundProblems(encounter)],nodes=encounter?.nodes;
   const limit=encounter?.conditions?.dailyLimit;
   if(limit!==undefined&&limit!==0.5&&(!Number.isInteger(limit)||limit<0||limit>1000))
    errors.push('Use 0.5 for every other game day or a whole number from 0 to 1000.');
@@ -245,6 +385,7 @@
    if(!node||!Object.hasOwn(kinds,node.kind)||typeof node.id!=='string'||!/^[a-z][a-z0-9-]{0,63}$/.test(node.id)){
     errors.push('Each node needs a valid type and ID.');continue;
    }
+   if(node.kind==='cast'&&!encounter.cast?.length)errors.push('Add a cast member for '+node.id+'.');
    if(byId.has(node.id))errors.push('Repeated node '+node.id+'.');
    byId.set(node.id,node);
   }
@@ -302,7 +443,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,lineSeconds,timing,soundLists,soundProblems,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);

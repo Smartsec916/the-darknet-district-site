@@ -174,6 +174,46 @@ test('timeline animation playback uses the speed of each action', async () => {
  assert.deepEqual(speeds,[2,0.5,1]);
 });
 
+test('timing counts delays, concurrent speech and animation, and repeat gaps',()=>{
+ const a={id:'a',text:'Talk',recording:{duration:2},animation:'walk',animationSeconds:8,animationSpeed:2,delay:1};
+ const part={before:[],cycle:[a],after:[]};
+ assert.deepEqual(engine.lineSeconds(a),{seconds:5,unknown:false,variable:false});
+ assert.equal(engine.timing(part,2).seconds,10.25);
+ assert.equal(engine.timing(part,0).loop,true);
+ assert.equal(engine.timing(part,0,undefined,false,60).variable,true);
+ assert.equal(engine.timing(part,0,undefined,false,100).loop,false);
+});
+
+test('sound cues overlap and stop on their scope, encounter, or timer',()=>{
+ let time=0,next=0;
+ const jobs=new Map(),voices=[];
+ const timers={setTimeout(fn,delay){jobs.set(++next,{at:time+delay,fn});return next;},clearTimeout(id){jobs.delete(id);}};
+ const timeline=engine.soundTimeline(cue=>{
+  const voice={type:cue.stop,ended:false,dispose(){this.ended=true;}};
+  voices.push(voice);return voice;
+ },timers);
+ const advance=ms=>{
+  const until=time+ms;
+  for(;;){
+   const due=[...jobs.entries()].filter(([,job])=>job.at<=until).sort((a,b)=>a[1].at-b[1].at)[0];
+   if(!due)break;
+   jobs.delete(due[0]);time=due[1].at;due[1].fn();
+  }
+  time=until;
+ };
+ const cue=(changes={})=>({src:'assets/audio/ambience/door-lock.ogg',when:'start',offset:0,volume:1,loop:true,...changes});
+ const end=timeline.open([cue({stop:'scope'}),cue({stop:'encounter'}),cue({stop:'seconds',seconds:2,offset:.5}),cue({when:'end',loop:false})]);
+ advance(500);
+ assert.equal(voices.filter(v=>!v.ended).length,3);
+ end();
+ assert.deepEqual(voices.map(v=>v.ended),[true,false,false,false]);
+ advance(2000);
+ assert.deepEqual(voices.map(v=>v.ended),[true,false,true,false]);
+ timeline.finish();
+ assert.deepEqual(voices.map(v=>v.ended),[true,true,true,false]);
+ timeline.dispose();assert.ok(voices.every(v=>v.ended));
+});
+
 test('main playlist continuation rolls after each complete pass', async () => {
  for (const [chance, rolls, expectedPasses] of [
   [0, [0, 0.9], 2],
