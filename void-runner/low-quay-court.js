@@ -17,7 +17,7 @@
  const WINDOW_ANCHORS=WINDOWS.map((w,i)=>({id:'alley-window-'+i,x:ALLEY.x1+BOOTH.depth*.55,z:w.z,yaw:-Math.PI/2,faces:'-x (out to the alley)',floor:'quay level (CITY_Y)',tint:TINTS[w.tint]}));
  const PLAZA={x0:-26,x1:22,z0:412,z1:451.5},U=4.5,BAND=4;   // the walkway is U above the court; bands BAND wide on the west, north and east
  const STAIR={z0:413,z1:425};                                 // the two flights (west and east bands) rise from z0 to z1
- const W_BAND=[PLAZA.x0-BAND,PLAZA.x0],E_BAND=[PLAZA.x1,PLAZA.x1+BAND],N_BAND=[PLAZA.z1,PLAZA.z1+BAND+1];   // the north band runs to the scene's edge (z 456)
+ const W_BAND=[PLAZA.x0-BAND,PLAZA.x0],E_BAND=[PLAZA.x1,PLAZA.x1+BAND],N_BAND=[PLAZA.z1,PLAZA.z1+BAND+.9];   // the north band ends at z 456.4 with a railing (the offset grid of alleys continues beyond, at court level)
  // Food stalls along the foot of the walkway (facing into the court), shared tables in the middle.
  const STALLS=[...[430,437,444].map(z=>({x:PLAZA.x0+1.1,z,yaw:Math.PI/2})),...[430,437,444].map(z=>({x:PLAZA.x1-1.1,z,yaw:-Math.PI/2})),...[-18,-10,6,14].map(x=>({x,z:PLAZA.z1-1.1,yaw:Math.PI}))];
  const TABLES=[];for(const x of [-15,-5,5])for(const z of [420,428,436,444])if(!(x===-5&&z===420))TABLES.push({x,z});
@@ -27,7 +27,7 @@
  const inCourt=(x,z)=>x>=W_BAND[0]&&x<E_BAND[1]&&z>=PLAZA.z0-2&&z<N_BAND[1];
  function solids(){const S=[],W=(id,x0,x1,z0,z1,h=1.1)=>S.push({id:'court-'+id,position:[(x0+x1)/2,h/2,(z0+z1)/2],size:[x1-x0,h,z1-z0]});
   // railings on the walkway's inner edge (open at the foot of each flight), and the bands' outer sides
-  W('rail-w',PLAZA.x0-.3,PLAZA.x0,STAIR.z0+.6,PLAZA.z1);W('rail-e',PLAZA.x1,PLAZA.x1+.3,STAIR.z0+.6,PLAZA.z1);W('rail-n',PLAZA.x0-.3,PLAZA.x1+.3,PLAZA.z1,PLAZA.z1+.3);
+  W('rail-w',PLAZA.x0-.3,PLAZA.x0,STAIR.z0+.6,PLAZA.z1);W('rail-e',PLAZA.x1,PLAZA.x1+.3,STAIR.z0+.6,PLAZA.z1);W('rail-n',PLAZA.x0-.3,PLAZA.x1+.3,PLAZA.z1,PLAZA.z1+.3);W('edge-n',W_BAND[0]-.6,E_BAND[1]+.6,N_BAND[1],N_BAND[1]+.6,6);W('edge-w',W_BAND[0]-.6,W_BAND[0],STAIR.z1,N_BAND[1]+.6,6);
   W('out-e',E_BAND[1],32,PLAZA.z0-2,460,6);W('out-w-foot',W_BAND[0]-.6,W_BAND[0],PLAZA.z0-2,PLAZA.z0,6);
   // the flights' side walls toward the plaza's south strip (the foot of each flight is open to the south)
   STALLS.forEach((s,i)=>{const along=Math.abs(Math.sin(s.yaw))>.5;W('stall-'+i,s.x-(along?.8:1.7),s.x+(along?.8:1.7),s.z-(along?1.7:.8),s.z+(along?1.7:.8),1.2);});
@@ -70,7 +70,7 @@
   // railings on the inner edge (posts, a top rail, a glass infill) and along the flights
   const rk=K();rk.box(steel,.08,1.05,.08,0,.52,0);rk.box(steel,.06,.06,3,0,1.05,1.5);rk.box(glassM,.03,.8,2.9,0,.5,1.5);const railKit=rk.done('court-rail');
   for(let z=STAIR.z1;z<z1-.5;z+=3){place(railKit,x0-.15,yU,z);place(railKit,x1+.15,yU,z);place(railKit,W_BAND[0]+.15,yU,z);place(railKit,E_BAND[1]-.15,yU,z);}   // inner and outer edges
-  for(let x=x0;x<x1;x+=3)place(railKit,x,yU,z1+.15,P/2);
+  for(let x=x0;x<x1;x+=3)place(railKit,x,yU,z1+.15,P/2);for(let x=W_BAND[0];x<E_BAND[1];x+=3)place(railKit,x,yU,N_BAND[1]-.15,P/2);   // and along the north band's outer edge
   for(const xx of [x0-.15,x1+.15]){const len=Math.hypot(STAIR.z1-STAIR.z0-.6,U*(1-.6/(STAIR.z1-STAIR.z0)));const r=S.box(steel,.06,.06,len,xx,Y+U*(.5+.3/(STAIR.z1-STAIR.z0))+1.05,mid(STAIR.z0+.6,STAIR.z1),0,-Math.atan2(U*(1-.6/(STAIR.z1-STAIR.z0)),STAIR.z1-STAIR.z0-.6));}
   // the canopy: posts on both edges of each band, a frame, translucent panels, coloured lamps beneath
   const panelM=new B.StandardMaterial('lq-court-panel',scene);panelM.diffuseColor=B.Color3.FromHexString('#2a1a3a');panelM.alpha=.5;panelM.emissiveColor=B.Color3.FromHexString('#1a0a22');panelM.specularColor=new B.Color3(.5,.4,.6);panelM.backFaceCulling=false;owned.push(panelM);
