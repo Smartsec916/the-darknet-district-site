@@ -220,6 +220,9 @@
  // Which hallway slot an instance's door is: a stable pick from its mission and id, the next free one when two instances share a street door.
  function hash(s){let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
  function slotsFor(list,style){const N=geo(style||(list&&list[0]&&list[0].style)).HALL.slots.length,used=new Set(),out={};for(const a of list||[])if(Number.isInteger(a.residenceSlot)&&a.residenceSlot>=0&&a.residenceSlot<N&&!used.has(a.residenceSlot)){used.add(a.residenceSlot);out[a.key||a.id]=a.residenceSlot;}for(const a of list||[]){if(Object.hasOwn(out,a.key||a.id))continue;let i=hash(a.key||((a.mission||'')+'/'+(a.id||a.apt||'')))%N;for(let k=0;k<N&&used.has(i);k++)i=(i+1)%N;used.add(i);out[a.key||a.id]=i;}return out;}
+ const districtPair=Object.fromEntries([['pixel','Pixel',2],['neon','Neon',3]].map(([id,name,slot])=>[id,{
+  name,model:'npc-'+id,residence:{door:'apt-road-n-34',slot,mode:'always',from:'00:00',to:'00:00',apartmentAccess:{mode:'locked'}}
+ }]));
  const residenceKey=(door,slot)=>'residence/'+door+'/'+slot;
  const ACCESS_MODES=['public','locked','mission','item','device','hack'];
  function validAccess(a){return a==null||!!(a&&typeof a==='object'&&!Array.isArray(a)&&Object.keys(a).every(k=>['mode','value'].includes(k))&&ACCESS_MODES.includes(a.mode)&&(['public','locked','hack'].includes(a.mode)?a.value==null||a.value==='':a.mode==='device'?['v1','v2','v3'].includes(a.value):a.mode==='item'?itemIds().includes(a.value):typeof a.value==='string'&&/^[a-z][a-z0-9-]{1,59}$/.test(a.value)));}
@@ -307,7 +310,7 @@
   if(readDraft)try{const rec=await readDraft();add(rec?.document?.data?.bundle,'Draft');}catch(e){if(e?.status!==404)complete=false;}
   if(readLocal)try{const d=readLocal();if(d&&d.version!==1)throw Error('Unrecognized draft');add(d,'Local draft');}catch{complete=false;}
   Object.assign(characters,companions);
-  const rows=addressRegistry(trees,characters);
+  const rows=addressRegistry(trees,{...districtPair,...characters});
   if(readProperties)try{
    const assignments=await readProperties();
    for(const [unit,player] of Object.entries(assignments.units)){
@@ -398,10 +401,10 @@
   const its=(a.items||[]).filter(i=>i&&ITEM_TYPES.some(t=>t.id===i.type)&&plain(i.label,LIMIT.label)).slice(0,LIMIT.items).map(i=>{const y={type:i.type,label:i.label.trim(),x:r2(Number(i.x)||0),z:r2(Number(i.z)||0)};if(Number.isFinite(i.y))y.y=r2(i.y);return y;});if(its.length)x.items=its;out.push(x);}
   return out.length?out:null;}
  // The admin inventory: what the server checks a published mission against.
- function inventory(){return {hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
+ function inventory(){return {districtPair,hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const PATCH_SHIFT={open:600,breakStart:840,breakEnd:900,close:120,x:49.8,z:-79.9,yaw:Math.PI*.5,greetingCooldown:60};
- const api={PATCH_SHIFT,DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
+ const api={districtPair,PATCH_SHIFT,DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
   HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,pickupPosition,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
   readAddressRegistry,interiorDoors,editorDoorPoint,propertyRecord,entranceType,entranceLegend,reset(){cache=null;}};
  if(node){module.exports=api;return;}

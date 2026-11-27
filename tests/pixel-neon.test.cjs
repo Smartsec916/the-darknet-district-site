@@ -132,3 +132,25 @@ test('animation sequences respect the assigned speaker, clip lengths and trigger
  assert.equal(a.motionAt(rule,e,3.4,'neon',()=>1),'wave');
  assert.equal(a.motionAt(rule,e,4.4,'neon',()=>1),null);
 });
+test('Door 35 residents share their commute and return to their own apartments',()=>{
+ const A=require('../void-runner/apartments.js'),N=require('../void-runner/neochinatown.js');
+ const cross=require('../void-runner/crosswalks.js'),escort=require('../void-runner/npc-escort.js');
+ const api=require('../void-runner/pixel-neon.js'),paths={};
+ for(const [id,record] of Object.entries(A.districtPair)){
+  const home=record.residence,door=A.door(home.door);
+  assert.equal(door.number,35);
+  assert.equal(A.slotNumber(home.slot,door.style),id==='pixel'?103:104);
+  paths[id]=life.tactaRoute(door,N,cross,escort,A,home.slot,api.stops[0].at);
+  assert.deepEqual(paths[id].street[0],door.front);
+  assert.ok(paths[id].interior.at(-1).every((v,i)=>Math.abs(v-N.toWorld(...api.stops[0].at)[i])<1e-6));
+ }
+ const sample=api.homeSchedule(life,paths),phases=[];
+ for(let s=1;s<1200;s++){
+  const pixel=sample('pixel',s,5),neon=sample('neon',s,5);
+  assert.equal(pixel.area,neon.area);
+  const phase=pixel.phase==='home'?'rest':pixel.area||'visit';
+  if(phases.at(-1)!==phase)phases.push(phase);
+  if(phases.length>1&&phase==='visit')break;
+ }
+ assert.deepEqual(phases,['visit','interior','street','hall','flat','rest','flat','hall','street','interior','visit']);
+});

@@ -87,7 +87,7 @@
  const modelOf=a=>models().find(m=>m.asset===a)||null;
  /* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */
  function teaResident(asset){const duo=node?req('./tea-duo.js'):root.VoidTeaDuo;return Object.values(duo?.PEOPLE||{}).find(p=>p.model===asset);}
- function fileOf(asset){if(/^npc-upload-[a-f0-9]{32}$/.test(asset)||CROWD()?.prepared?.some(p=>p.asset===asset))return 'assets/models/crowd/'+asset+'.vrpak';const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
+ function fileOf(asset){if(['npc-pixel','npc-neon'].includes(asset))return 'assets/models/crowd/'+asset+'.vrpak';if(/^npc-upload-[a-f0-9]{32}$/.test(asset)||CROWD()?.prepared?.some(p=>p.asset===asset))return 'assets/models/crowd/'+asset+'.vrpak';const tea=teaResident(asset);if(tea)return tea.file;const C=COMP();const e=C&&C.list?C.list().find(x=>x&&x.model===asset&&x.file):null;if(e)return 'assets/models/crowd/'+e.file;if(/^(studio-warrior|npc-dax)$/.test(asset))return 'assets/models/crowd/'+asset+'.vrpak';return 'assets/models/crowd/'+asset+'.glb';}
  /* Every item a giver can carry: personal gear, a hacking device when the game has one, ship modules and ship gear. show: how it is seen on them, or null (data only). */
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');
@@ -182,7 +182,7 @@
 
  // ================================================================= browser: the figures in the game
  const env=()=>(root.VoidLiveContent&&root.VoidLiveContent.env)||null;
- const chars=()=>{const own=(env()&&env().characters)||{},out={...BUILTIN};for(const [id,c] of Object.entries(own))if(!BUILTIN[id])out[id]=c;return out;};   // the built-in ones first (an editor character never takes their id)
+ const chars=()=>{const own=(env()&&env().characters)||{},out={...BUILTIN};Object.assign(out,root.VoidApartments?.districtPair);for(const [id,c] of Object.entries(own))if(!BUILTIN[id])out[id]=c;return out;};   // the built-in ones first (an editor character never takes their id)
  const plansAll=()=>{try{return (root.VoidLiveContent&&root.VoidLiveContent.plans&&root.VoidLiveContent.plans())||{};}catch{return {};}};
  /* What she does now: the plan live-content.js works out (a mission's "waits at", a follow / lead step, her daily schedule), else her all-day spot or route. */
  let visitDoor=null,visitPaths=null;
@@ -192,6 +192,7 @@
   return Number.isFinite(shared)?shared*root.VoidClock.RATE/60000:root.VoidLiveContent?.campaignMinute?.();
  }
  function residentOuting(id,c){
+  if(root.VoidApartments?.districtPair?.[id])return root.VoidPixelNeon?.commute?.(id)||null;
   if(env()?.npcPlans?.[id])return null;
   if(id==='tacta')return tactaOuting(c);
   const life=root.VoidDistrictLife,home=c?.residence;
@@ -217,7 +218,7 @@
   return life.tactaAt(1+Math.floor(minute/1440),minute%1440,visitPaths,root.VoidClock.RATE,home.visitMinutes);
  }
  function planOf(id){const P=plansAll()[id];if(P)return P;
-  if(id==='tacta'||id==='patch'){
+  if(id==='tacta'||id==='patch'||root.VoidApartments?.districtPair?.[id]){
    const outing=residentOuting(id,env()?.characters?.[id]);
    if(outing){
     const sceneArea=outing.area==='checkpoint'&&typeof walkingLocation!=='undefined'?walkingLocation?.area:outing.area;
@@ -229,7 +230,7 @@
   const b=basePlan(((env()&&env().npcPlans)||{})[id]);return NPX().planNow(id,{plan:b||null});}   // no plan: a built-in character's post (npc-paths.js homePlan), else nothing
  const areaOfPlan=P=>P?(P.area||(AR()&&AR().areaOf(P.mode==='path'?P.points[0]:P))||null):null;
  function present(id){const c=chars()[id];if(!c)return false;try{return exists(c,typeof state!=='undefined'?state:null,env()&&env().trees);}catch{return true;}}
- function atHome(c){if(c&&['patch','tacta'].some(id=>c===env()?.characters?.[id]&&residentOuting(id,c)))return false;return residenceAtHome(c?.residence,root.VoidClock?.now?.(typeof state!=='undefined'?state:null)?.minuteOfDay);}
+ function atHome(c){for(const [id,record] of Object.entries(root.VoidApartments?.districtPair||{}))if(record===c)return root.VoidPixelNeon?.commute?.(id)?.phase==='home';if(c&&['patch','tacta'].some(id=>c===env()?.characters?.[id]&&residentOuting(id,c)))return false;return residenceAtHome(c?.residence,root.VoidClock?.now?.(typeof state!=='undefined'?state:null)?.minuteOfDay);}
  // ---- props: a holstered pistol and a hand-held device, built from boxes (one merged mesh, one shared material each per scene), on the figure's own bones
  function mat(scene,name,hex,glow){const B=root.BABYLON;let m=scene.getMaterialByName(name);if(m)return m;m=new B.PBRMaterial(name,scene);m.albedoColor=B.Color3.FromHexString(hex);m.metallic=.55;m.roughness=.45;if(glow){m.emissiveColor=B.Color3.FromHexString(glow);m.emissiveIntensity=1.4;}return m;}
  function boxes(scene,name,parts){const B=root.BABYLON,ms=parts.map(([w,h,d,x,y,z],i)=>{const b=B.MeshBuilder.CreateBox(name+'-'+i,{width:w,height:h,depth:d},scene);b.position.set(x,y,z);return b;});return B.Mesh.MergeMeshes(ms,true,true);}
@@ -365,7 +366,12 @@
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
    const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)||atHome(cs[id])){if(cs[id]&&inView(p.node,cam)&&!atHome(cs[id]))p.going=true;else leave(id);}else p.going=false;
-   for(const [id,c] of Object.entries(cs)){if(!present(id)||atHome(c))continue;const P=planOf(id),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
+   for(const [id,c] of Object.entries(cs)){
+   if(root.VoidApartments?.districtPair?.[id]){
+    const outing=residentOuting(id,c);
+    if(!outing||outing.area==='flat'||outing.area==='hall'){if(people.has(id))leave(id);continue;}
+   }
+   if(!present(id)||atHome(c))continue;const P=planOf(id),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
     if(!a||!HERE.has(a)){const p=people.get(id);if(p&&inView(p.node,cam))p.going=true;else if(p)leave(id);continue;}
     if(people.has(id)&&people.get(id).c!==c){leave(id);}   // changed in a new version of the content: made again
     if(!people.has(id)){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(away.has(id)&&t&&seenAt(t.x,0,t.z,cam))continue;   // back from inside a place: never in front of the player
@@ -393,7 +399,7 @@
    const outing=residentOuting(id,c);
    if(outing){
     if(outing.area!==def.part)return null;
-    return {x:outing.x,z:outing.z,yaw:outing.yaw,clip:'walk'};
+    return {x:outing.x,z:outing.z,yaw:outing.yaw,clip:outing.phase==='home'?'idle':'walk'};
    }
    if(hall||!atHome(c))return null;
    const spot=AP.residenceSpot(def.style,index);
@@ -423,7 +429,7 @@
   function tick(){
    if(stopped)return;
    const cs=chars();
-   const ids=hall?['tacta','patch'].filter(id=>cs[id]?.residence?.door===def.street):def.residents||[];
+   const ids=hall?['tacta','patch','pixel','neon'].filter(id=>cs[id]?.residence?.door===def.street):def.residents||[];
    for(const id of people.keys())if(!ids.includes(id))remove(id);
    for(const [i,id] of ids.entries()){
     const c=cs[id],p=people.get(id),target=pose(id,c,i);

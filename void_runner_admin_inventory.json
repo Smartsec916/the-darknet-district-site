@@ -58049,6 +58049,36 @@
     ]
   },
   "apartments": {
+    "districtPair": {
+      "pixel": {
+        "name": "Pixel",
+        "model": "npc-pixel",
+        "residence": {
+          "door": "apt-road-n-34",
+          "slot": 2,
+          "mode": "always",
+          "from": "00:00",
+          "to": "00:00",
+          "apartmentAccess": {
+            "mode": "locked"
+          }
+        }
+      },
+      "neon": {
+        "name": "Neon",
+        "model": "npc-neon",
+        "residence": {
+          "door": "apt-road-n-34",
+          "slot": 3,
+          "mode": "always",
+          "from": "00:00",
+          "to": "00:00",
+          "apartmentAccess": {
+            "mode": "locked"
+          }
+        }
+      }
+    },
     "hack": {
       "min": 2,
       "max": 30,
@@ -61673,7 +61703,7 @@
       "spawn"
     ]
   },
-  "revision": "49e42f187b27b07e",
+  "revision": "82a0eca28c652dd8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74212,7 +74242,7 @@
     },
     {
       "source": "void-runner/apartments.js",
-      "line": 403,
+      "line": 406,
       "text": "const PATCH_SHIFT={open:600,breakStart:840,breakEnd:900,close:120,x:49.8,z:-79.9,yaw:Math.PI*.5,greetingCooldown:60};",
       "kind": "source-reference"
     },
@@ -80566,49 +80596,49 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 264,
+      "line": 265,
       "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 282,
+      "line": 283,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 284,
+      "line": 285,
       "text": "const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 317,
+      "line": 318,
       "text": "if(!p.near){p.near=true;p.nearTarget=null;const last=p.lastRemark??-Infinity;if(clock-last>=(traits.remarkCooldown??30)){p.lastRemark=clock;const lines=rel?.r.lines.length?[rel.r.lines[Math.floor(rnd()*rel.r.lines.length)]]:conversationLines(p.c,rnd);if(lines[0]!=='…'&&rnd()<(rel?rel.r.affection:traits.initiative??.5)&&(!rel||rel.r.target==='player'||player&&Math.hypot(player.x-origin.x,player.z-origin.z)<8)){try{if(typeof announce==='function')announce(p.c.name+(rel&&rel.r.target!=='player'?' → '+rel.r.target:'')+' · '+lines[0]);}catch{}}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 332,
+      "line": 333,
       "text": "if(near&&!p.wasNear&&!talk)root.VoidNPCServices?.greet?.(p.c.residence?.vendorShift?.greetingCooldown??root.VoidDistrictLife.PATCH_SHIFT.greetingCooldown);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 355,
+      "line": 356,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 379,
+      "line": 385,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 452,
+      "line": 458,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();const contextual=root.VoidNPCServices?.conversation?.(id);talk('',(contextual?[contextual]:conversationLines(chars()[id])).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -80950,19 +80980,19 @@
     },
     {
       "source": "void-runner/pixel-neon.js",
-      "line": 195,
+      "line": 237,
       "text": "slotEntry=shared.conversationAt(script,routineEdits,{...ctx,freeUntil},Math.round(p.legStart),p.visit)?.entry;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pixel-neon.js",
-      "line": 359,
+      "line": 401,
       "text": "if(!shared.valid(edits))return {problem:'Check the conversation action settings.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pixel-neon.js",
-      "line": 361,
+      "line": 403,
       "text": "if(!script.length)return {problem:'The conversation recordings are unavailable.'};",
       "kind": "source-reference"
     },
@@ -83287,8 +83317,8 @@
     "void-runner/anim-library.js": "3c8856db93b375570f00f37993ae04571ae0bdc93dfd66aa609e1b9beedbfa74",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
-    "void-runner/apartment-integration.js": "1c485837e25f52c8447dfe3c27f8c3a3100a7184709f66f4a4c037ebe055a213",
-    "void-runner/apartments.js": "f9784f206db205426d45e7118b6770a6fcc3fb7c87ac43de28e47632e60598f2",
+    "void-runner/apartment-integration.js": "067ecbef9ec952513cf6a7572e81acef4439bdf510e6883e2796f11267746c97",
+    "void-runner/apartments.js": "532be531c83ab3db842e0fd22df6b180b160473e63fba7e4c943af7626153d5a",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
@@ -83364,7 +83394,7 @@
     "void-runner/district-arcade.js": "d87ede7efe30433b77f2bd3db5ae0e44ce7e03714d56e37d5e9f784ca9586208",
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
-    "void-runner/district-life.js": "b11aa0f3c5f7785ea7b4ff4171fe5cbf65d70e87ee181898d86052620d5f7e41",
+    "void-runner/district-life.js": "e9c5f020689661541de5187452fa936df8c1b9f4955b021687d3e49cad6a58f3",
     "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
     "void-runner/district-people.js": "14bc80f15ded29f9dc47f4976387d7866bc6aed60322f2356e7b3865407012d7",
     "void-runner/district-rooms.js": "03178692e6f969a25be4447aa8197758da8ab527b9921d21e02a7e493fa0850c",
@@ -83451,7 +83481,7 @@
     "void-runner/mission-trees.js": "1f2c6370bcc5418674dafaaf3b3b0bf8bafec7ec62ddc327086ace0ca3dc9e26",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "a77ce029aceb9b3a70c3a9f9059c599864a5ab0963c7410bcc513a1697610c38",
-    "void-runner/module-editor.js": "be5789fdec950e6c04f769ea8303cc8594ccfe0a053866cfaaf643936028df43",
+    "void-runner/module-editor.js": "81e84f28fe282cfdc1c2de5761b9354e0bb84a509077cc5287a10f695a903cfe",
     "void-runner/module-integration.js": "0100e004d16e983a56b43bad3c1dab50414163210043fcc8f22b621b0c2c3ef8",
     "void-runner/modules.js": "baac3cc82c2f01a78418e588c7ec1210a99d392cc759c4bc710b6af49e240c3f",
     "void-runner/mouse-control.js": "33d7d3da26d2dde7a1f1c0cd88b05e15b6263ac8214f4fa8719e9d751fa3865b",
@@ -83497,7 +83527,7 @@
     "void-runner/npc-library.js": "e844f74f5cc952adea5b83494d9ab29b9d4344ff29fd283a6d6560a1a9f408b2",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
-    "void-runner/npc-made.js": "256508fe72890adeed1d1fa7385e85d59c7212dd93bc700ac1a462581b511bfe",
+    "void-runner/npc-made.js": "22253bd31e26bd40d09b3d1b4b1b0891878651d8bd63d1901736a14eb6022488",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "496e3f744ce890e386121ac77ea1bbe970c1d43ec7041bc8d800b03cad51d96c",
     "void-runner/npc-preview.js": "d02e7fd47d5e3aaff55ef9ad619b46e83e71c05f371ed5869013a112bb1fc2c5",
@@ -83512,7 +83542,7 @@
     "void-runner/personal-device.js": "f1d9d66becd050cb1b0d8e3a74f7b43c863a4e805aa5e6ca975fb233bc69d309",
     "void-runner/personal-hud.js": "a9126fc52339462d86eb60228b6fbfe96deb02b57df991b13e57514b486d6be5",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/pixel-neon.js": "4be23094786f27a6472e1f8daa481f26b740f519870403589cb612da63de3ec1",
+    "void-runner/pixel-neon.js": "833388fac7102af2e33c98411daa18d0e61999e7052b2dc4316cf6c170c02f3a",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "7e83f588296a65cc4351d4cd87dff194a9a517c8a169dd338d2dc42064dbdfd2",
     "void-runner/planets.js": "d7e09f3f8af53f791c91368925b8b96f52d5f26f63a9623cda262e065f5413c7",
