@@ -30,7 +30,7 @@ Already done by others, preserved: the station kit overhaul (docs/development/ST
 | Star system | Location | Assets inspected | Assets upgraded | Remaining improvements | Performance | Commit / deployment | Before / after screenshots | Status |
 |---|---|---|---|---|---|---|---|---|
 | Tessaly | Tessaly Belt Anchorage | station exterior and interior code, kit identity | none yet | belt-industrial exterior: hollowed asteroid, mooring gantries, ore hoppers, tethers, floodlights; anchorage-specific hangar dressing | not measured | not started | pending | Pending |
-| Tessaly | Vantor / Underground City | prototype room code, `exploration-data.js`, landing sequence | none yet | excavated-rock cavern shell, ribs, ducts, lamps, pressure airlock, signage; arrival view first | not measured | not started | pending | Pending |
+| Tessaly | Vantor / Underground City | prototype room code, `exploration-data.js`, landing sequence | arrival cavern, pressure bulkhead and gate, two pads, floodlight towers, gantries, buildings cut into the rock, concourse shops/industry blocks and a lit city wall (one GLB, 31k faces, baked vertex light, fog) | commercial/residential detail, terminal model, wall animation (fans, steam, drips, dust), planet surface, landing view, split into visibility-zone files and compress the 10 MB file | software renderer only: about 105-200k triangles in view, 100-165 draw calls, frame time roughly +1 ms over the old boxes (relative figure, not the ROG Ally) | batch 1, BUILD `2026-11-26-universe-1` | `docs/development/universe-graphics/vantor-before.jpg`, `vantor-after-*.jpg` | Testing |
 | Tessaly | Vantor Relay | placeholder code | none | station hull identity, hangar dressing (placeholder, no gameplay) | | | | Pending |
 | Tessaly | Landing pads / Vantor descent view | `planet-landing.js` (descent sequence) | none | Vantor planet look from orbit | | | | Pending |
 | Erebus | Meridian, Kepler, Rusthaven, Foundry, Vesper, Vesper Relay, Survey Landing | station kit docs | none yet | per-location exterior identity; relays and Survey Landing are placeholders | | | | Pending |
@@ -51,4 +51,5 @@ Vantor mood/scale and Anchorage shape/feel (sent 27 Nov 2026). Defaults if unans
 
 | Batch | Contents | PR / BUILD | Live |
 |---|---|---|---|
-| 0 | This tracker | `2026-11-26-universe-0` not bumped (docs only) | pending |
+| 0 | This tracker | docs only, no BUILD bump | yes |
+| 1 | Vantor arrival cavern and concourse (Medium and above; Low keeps the prototype room) | `2026-11-26-universe-1` | pending |
