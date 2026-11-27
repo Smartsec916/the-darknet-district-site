@@ -61754,7 +61754,7 @@
       "spawn"
     ]
   },
-  "revision": "ca92a144c678d289",
+  "revision": "f4481fa5ed32ebb1",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83507,7 +83507,7 @@
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "79f89975a1d155b07e83f5d0b4a608f387153966285f54a61de7ce1c735f30a5",
+    "void-runner/input-state.js": "f3cbcdf2d9d8c98349480763ef7923766423813db72c76670c51d0835cd9a574",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
