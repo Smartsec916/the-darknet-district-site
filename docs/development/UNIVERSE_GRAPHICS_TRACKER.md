@@ -97,6 +97,7 @@ Recommendation by asset type (a judgement from this one test, not a general law)
 | vesper-pass-1 | Vesper road phase 1: the pass between the two high points, the land as streamed chunks (replaces the ring mesh), talus, walking and driving along the whole road (docs/development/VESPER_ROAD.md) | `2026-11-28-vesper-pass-1` | pending |
 | vesper-road-2 | Vesper road phase 2: 8 km more around the mountains (9.6 km), moons follow the camera | `2026-11-28-vesper-road-2` | pending |
 | vesper-village-3 | Vesper road phase 3: the village (houses, enterable bar and store, lamps, water tower), streamed site models | `2026-11-28-vesper-village-3` | pending |
+| vesper-mine-4 | Vesper road phase 4: the mine (portal in a cut, adit inside the mountain, cage down a placeholder-depth shaft to the bottom level) | `2026-11-28-vesper-mine-4` | pending |
 
 ## Low Quay, Stale System (new location, 27 Nov 2026)
 

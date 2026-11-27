@@ -54,7 +54,9 @@
    // skirt: a copy of the border pulled down, so a coarser neighbour never shows a crack
    const drop=2+sp*.8,border=[];for(let c=0;c<V1;c++)border.push(c);for(let r=1;r<V1;r++)border.push(r*V1+N);for(let c=N-1;c>=0;c--)border.push(N*V1+c);for(let r=N-1;r>0;r--)border.push(r*V1);
    const skirt0=v;for(const b of border){put(pos[b*3],pos[b*3+1]-drop,pos[b*3+2],nor[b*3],nor[b*3+1],nor[b*3+2],[col[b*4]*.8,col[b*4+1]*.8,col[b*4+2]*.8,1]);}
-   const idx=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){const a=r*V1+c,b=a+V1;idx.push(a,a+1,b,a+1,b+1,b);}
+   // a site's terrain hole (the cell in front of the mine's headwall: vesper-sites.js holes): its triangles are left out; the portal's apron and walls fill it
+   const holes=(root.VoidVesperSites?.holes?.()||[]).filter(h=>h[1]>n.x0&&h[0]<n.x0+n.size&&h[3]>n.z0&&h[2]<n.z0+n.size),inHole=(x,z)=>holes.some(h=>x>h[0]&&x<h[1]&&z>h[2]&&z<h[3]);
+   const idx=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){const a=r*V1+c,b=a+V1;if(holes.length&&inHole(n.x0+(c+.5)*sp,n.z0+(r+.5)*sp))continue;idx.push(a,a+1,b,a+1,b+1,b);}
    for(let k=0;k<border.length;k++){const a=border[k],b=border[(k+1)%border.length],sa=skirt0+k,sb=skirt0+(k+1)%border.length;idx.push(a,sa,b,b,sa,sb,a,b,sa,b,sb,sa);}
    yield;
    const mesh=new B.Mesh('vesper-terrain-'+n.k,scene),vd=new B.VertexData();vd.positions=pos.subarray(0,v*3);vd.normals=nor.subarray(0,v*3);vd.colors=col.subarray(0,v*4);vd.uvs=uv.subarray(0,v*2);vd.indices=idx;vd.applyToMesh(mesh,false);
@@ -69,7 +71,8 @@
    }}
   // ---- selection: what is drawn this frame ----
   // beyond the camera's far plane (babylon-renderer.js maxZ 3500) nothing is drawn, so chunks wholly past FAR are neither built nor shown
-  function select(){const shown=[];const visit=n=>{if(n.l>0&&dist(n)>FAR)return true;n.used=frame;if(!n.mesh){request(n);return false;}
+  let hidden=false;
+  function select(){if(hidden){for(const n of nodes.values())if(n.shown){n.shown=false;n.mesh?.setEnabled(false);}stats.shown=0;return;}const shown=[];const visit=n=>{if(n.l>0&&dist(n)>FAR)return true;n.used=frame;if(!n.mesh){request(n);return false;}
     if(want(n)){const k=kids(n);let ready=true;for(const c of k){if(dist(c)>FAR)continue;c.used=frame;if(!c.mesh){request(c);ready=false;}}if(ready){for(const c of k)visit(c);return true;}}
     shown.push(n);return true;};
    visit(get(0,0,0));
@@ -100,6 +103,8 @@
    prepare,
    // every chunk the camera needs right now is built (for tests: a zone swap that is complete)
    get settled(){return !queue.length&&!job;},
+   // hidden: deep in the mine the land above cannot be seen; vesper-sites.js hides it during the cage ride and shows it again on the way up
+   get hidden(){return hidden;},set hidden(v){if(hidden!==!!v){hidden=!!v;select();}},
    dispose(){for(const n of nodes.values())n.mesh?.dispose();nodes.clear();for(const m of rocks)m.dispose();rockMat.dispose();mat.dispose();tex.dispose();}
   };
  }
