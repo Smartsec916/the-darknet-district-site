@@ -36,6 +36,7 @@
   [...seatAt(4,165),'npc-cyber-pvc','sit-talk'],[...seatAt(4,215),'npc-casual-m','sit'],[...seatAt(1,145),'npc-student','sit'],[...seatAt(1,205),'npc-lookout','sit-talk'],
   [38.9,359.25,0,'npc-club-f','sit-talk'],[40.3,359.25,0,'npc-club-m','sit']];
  const LOOKS=[...new Set(DINERS.map(d=>d[3]))];
+ const SPAWN={x:28.2,z:371,yaw:Math.PI/2};   // just inside the door, facing the stage (Dev Tools jump, mission draft play)
  const inside=(x,z,m=0)=>x>CLUB.x0+WALL-m&&x<CLUB.x1-WALL+m&&z>CLUB.z0+WALL-m&&z<CLUB.z1-WALL+m;
  const isClubBlock=b=>b[0]===CLUB.x0&&b[1]===CLUB.x1&&b[2]===CLUB.z0&&b[3]===CLUB.z1;
  function solids(){const S=[],W=(id,x0,x1,z0,z1,h=H)=>S.push({id:'club-'+id,position:[(x0+x1)/2,h/2,(z0+z1)/2],size:[x1-x0,h,z1-z0]});
@@ -55,7 +56,7 @@
   return S;}
  const ROBOT_PIECES=['base','upper','fore','spatula','ladle','gripper','carriage','rail'];
  const models=()=>({...Object.fromEntries(LOOKS.map(l=>['crowd:'+l,{src:'assets/models/crowd/'+l+'.glb',background:true}])),...Object.fromEntries(ROBOT_PIECES.map(p=>['lowquay:robot-'+p,{src:'assets/models/low-quay/robot-'+p+'.glb',scale:1}]))});
- const api={CLUB,WALL,H,DOOR,STAGE,SIDE,BACK,BACK_PROPS,KITCHEN,ARMS,GANTRY,ALCOVE,BOOTHS,BOOTH_R,BOOTH_ARC,SOFAS,LOUNGE_TABLES,PLANTERS,DINERS,LOOKS,seatAt,inside,isClubBlock,solids,models};
+ const api={SPAWN,CLUB,WALL,H,DOOR,STAGE,SIDE,BACK,BACK_PROPS,KITCHEN,ARMS,GANTRY,ALCOVE,BOOTHS,BOOTH_R,BOOTH_ARC,SOFAS,LOUNGE_TABLES,PLANTERS,DINERS,LOOKS,seatAt,inside,isClubBlock,solids,models};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
 
  // ================= browser: the build (called from low-quay-city.js with its helpers; the floor is at Y) =================

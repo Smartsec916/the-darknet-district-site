@@ -18,10 +18,10 @@
  const TERMINAL_AT=BERTHS.map(([x,z])=>({x:x+9.7,z:z-6}));
  // Pedestrian-only city blocks: [x0,x1,z0,z1,height]. Alleys between them are 4 m; the canal runs x -40..-30 with a path each side, one footbridge.
  const BLOCKS=[
-  [-26,-14,332,354,26],[-10,6,332,354,34],[10,24,332,354,22],[28,46,332,354,40],[50,62,332,354,30],[30,62,300,322,18],
-  [-26,-12,358,384,38],[-8,4,358,384,48],[8,22,358,384,30],[26,44,358,384,44],[48,62,358,384,36],
-  [-26,-16,388,416,32],[-12,2,388,416,52],[6,20,388,416,28],[24,40,388,416,42],[44,62,388,416,34],
-  [-26,-10,420,456,46],[-6,8,420,456,64],[12,28,420,456,38],[32,48,420,456,56],[52,62,420,456,40],
+  [-26,-15,332,354,26],[-10,6,332,354,34],[10,24,332,354,22],[28,46,332,354,40],[50,62,332,354,30],[30,62,300,322,18],
+  [-26,-15,358,384,38],[-10,4,358,384,48],[8,22,358,384,30],[26,44,358,384,44],[48,62,358,384,36],
+  [-26,-15,388,410,32],[-10,2,388,410,52],[6,20,388,410,28],[24,40,388,410,42],[44,62,388,416,34],
+  [32,48,420,456,56],[52,62,420,456,40],   // the main alley (x -15..-10, low-quay-court.js) runs north from the stairs to the food court (x -30..26, z 412..456)
   [-62,-44,304,334,24],[-62,-44,346,376,36],[-62,-44,380,412,28],[-62,-44,416,456,42]];
  const CONTAINERS=[[-35,-383],[-28,-383],[-35,-389],[28,-383],[34,-383],[34,-388],[-36,-444],[-36,-450]];
  const TOWERS=[[33,-398],[-36,-440]];
@@ -38,9 +38,10 @@
   W('quay-edge-w',-64,-18,STAIRS[0],STAIRS[1]);W('quay-edge-e',19.5,64,STAIRS[0],STAIRS[1]);   // the city level ends at the stairwell: no walking off the terrace edge over the station
   W('water-w',-64,-30,Z.hallA,Z.hallB);W('water-e',19.5,64,Z.hallA,Z.hallB);W('canal-a',-40,-30,300,336);W('canal-b',-40,-30,344,Z.cityB);
   // the PLUG & PLAY nightclub is the ground floor of one block (low-quay-club.js): its walls, doorway, glass and furniture instead of the block's box
+  const CO=court();if(CO)S.push(...CO.solids());   // the food court's railings, stalls and tables (low-quay-court.js)
   const CL=club();BLOCKS.forEach((b,i)=>{if(!(CL&&CL.isClubBlock(b)))W('block-'+i,b[0],b[1],b[2],b[3],b[4]);});if(CL)S.push(...CL.solids());
   return S;};
- const club=()=>node?require('./low-quay-club.js'):root.VoidLowQuayClub;
+ const club=()=>node?require('./low-quay-club.js'):root.VoidLowQuayClub,court=()=>node?require('./low-quay-court.js'):root.VoidLowQuayCourt;
  const interactions=()=>[
   {id:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-432],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},
   ...TERMINAL_AT.map((t,i)=>({id:'quay-terminal-'+i,label:'ACCESS BERTH TERMINAL',position:[t.x-1.3,1.7,t.z],action:'quay-terminal',berth:i,range:2.6})),
@@ -55,7 +56,8 @@
   if(!Number.isInteger(target)||target<0||target>=BERTHS.length)return {kind:'none',message:MESSAGES.none};
   if(target===at)return {kind:'here',message:MESSAGES.here};
   return {kind:'move',from:at,to:target,swap:craftAt.includes(target)?target:null,message:MESSAGES.calling};}
- const groundHeight=z=>z<=STAIRS[0]?0:z>=STAIRS[1]?CITY_Y:CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]);
+ // walk height: the stairs from the station to the quay (by z); on the quay, x too: the food court's walkway and its two flights (low-quay-court.js heightAt)
+ const groundHeight=(z,x)=>z<=STAIRS[0]?0:z<STAIRS[1]?CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]):CITY_Y+(x!=null&&court()?court().heightAt(x,z):0);
  const api={groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,live:null};
  api.models=(location,quality)=>location===ID?{[TERMINAL_ID]:{src:TERMINAL_SRC,scale:1},...(club()?.models()||{})}:{};
   // ---- wiring (also in Node, so the tests see the layout) ----
@@ -265,9 +267,10 @@
   const ZL={pad:[[[33,19,-398],'#ffa640',1.5,75],[[-36,19,-440],'#ffa640',1.3,70],[[-10.5,3.4,stz],'#ff8a30',1,26],[[-1,4.1,stz],'#3a9cff',.7,24],[[-4,9,-423],'#ff9a3c',1,60],[[9,4,-300],'#ff9a3c',.8,45]],
    hall:[[[-9,4.4,262],'#ff9a3c',1,24],[[-9,4.4,288],'#ff9a3c',1,24],[[10,4.4,262],'#3a9cff',.7,22],[[10,4.4,290],'#3a9cff',.7,22],[[-8,6,310],'#ff7a22',1,20],[[9,5,200],'#ff7a22',.5,30]],
    club:[[[35.9,CITY_Y+3.9,371],'#ff2d96',2.4,12],[[29.6,CITY_Y+3.2,364],'#ffa25a',1.5,10],[[29.6,CITY_Y+3.2,377.5],'#ffa25a',1.5,10],[[39.4,CITY_Y+2.6,361.6],'#ff3fa6',1.4,8],[[36.1,CITY_Y+2.8,380.8],'#ff7a3a',1.6,8],[[41.8,CITY_Y+2.6,374],'#b44dff',1.3,9]],   // PLUG & PLAY (low-quay-club.js): the VR bedroom's rose mood; stage, dining, alcove, kitchen, backstage
+   court:[[[-24,CITY_Y+3.4,436],'#ff5a2a',1.4,16],[[20,CITY_Y+3.4,436],'#ff3fa6',1.3,16],[[-2,CITY_Y+3.4,449],'#ffae5c',1.4,16],[[-10,CITY_Y+6.5,426],'#9a4dff',1.1,20],[[8,CITY_Y+6.5,440],'#ff7a3a',1.1,20],[[-12.5,CITY_Y+3,400],'#b0156e',.9,14]],   // the food court and the alley's end (low-quay-court.js)
    city:[[[-8,CITY_Y+3,322],'#ff8a30',1,24],[[-20,CITY_Y+5,345],'#ffa640',1,32],[[15,CITY_Y+5,370],'#ff3fa6',.8,32],[[-35,CITY_Y+3,392],'#25c9c2',.8,32],[[25,CITY_Y+5,410],'#ff7a22',.9,32],[[-5,CITY_Y+5,440],'#ffa640',.9,32]]};
   if(!low)for(let k=0;k<6;k++){const l=new B.PointLight('lq-light',B.Vector3.Zero(),scene);l.parent=parent;lights.push(l);}
-  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':'city',setZone=zn=>{if(zn===zone)return;zone=zn;const inClub=zn==='club';if(ambient){ambient.diffuse=C(inClub?'#5a2a5c':'#55638c');ambient.groundColor=C(inClub?'#2a0c22':'#2a2018');ambient.intensity=inClub?.9:1;}if(sun)sun.intensity=inClub?.1:.7;   // indoors at the club: no moonlight, a plum fill
+  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':court()?.inCourt(x,z)?'court':'city',setZone=zn=>{if(zn===zone)return;zone=zn;const inClub=zn==='club';if(ambient){ambient.diffuse=C(inClub?'#5a2a5c':'#55638c');ambient.groundColor=C(inClub?'#2a0c22':'#2a2018');ambient.intensity=inClub?.9:1;}if(sun)sun.intensity=inClub?.1:.7;   // indoors at the club: no moonlight, a plum fill
    ZL[zn].forEach(([p,hex,i,range],k)=>{const l=lights[k];if(!l)return;l.position.set(...p);l.diffuse=C(hex);l.specular=C(hex).scale(.5);l.intensity=i;l.range=range;});};setZone('pad');
   for(const [x,z] of [...TOWERS,[-10.5,stz+6]]){const p=B.MeshBuilder.CreateGround('lq-pool',{width:44,height:44},scene);p.material=poolMat;p.position.set(x,.03,z);p.parent=parent;p.isPickable=false;}
   // ---- security vestibule, tunnel (the rail ride), then the city ----
@@ -295,7 +298,7 @@
    if(waterMat.bumpTexture){bump.uOffset=(time*.004)%1;bump.vOffset=(time*.0025)%1;}
    // the second train, looping, and the berth hop
    train2.position.z=-320+((time*30)%470);
-   const wz=typeof walker!=='undefined'&&walker?walker.z:-423,gh=groundHeight(wz);setZone(zoneOf(wz,typeof walker!=='undefined'&&walker?walker.x:0));
+   const wz=typeof walker!=='undefined'&&walker?walker.z:-423,wx=typeof walker!=='undefined'&&walker?walker.x:0,gh=groundHeight(wz,wx);setZone(zoneOf(wz,typeof walker!=='undefined'&&walker?walker.x:0));
    if(Math.abs(parent.position.y+gh)>1e-4){parent.position.y=-gh;parent.computeWorldMatrix(true);for(const f of frozen)f.freezeWorldMatrix();}   // the player's eye height is fixed: the world moves down as he climbs
    if(flight){const f=flight;f.t+=Math.min(.1,(f.last==null?0:(now-f.last)/1000));f.last=now;const k=Math.min(1,f.t/f.dur),e=ease(k),lift=Math.sin(Math.min(1,k*1.0)*Math.PI);
     ship.position.set(f.fx+(f.tx-f.fx)*e,f.y0+lift*5,f.fz+(f.tz-f.fz)*e);ship.rotation.y=f.yaw0+(f.yaw1-f.yaw0)*e;

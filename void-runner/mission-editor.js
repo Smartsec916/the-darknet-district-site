@@ -1162,7 +1162,7 @@
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
   else if(['milked','corporate','temple'].includes(w.walk)){state.location='earth';delete state.story.flags.area;await enterWalking(w.walk,{silent:true});}
   else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
-  else if(w.location==='vesper')await worldEnterWalking('vesper');else{state.location=w.location;await dock();}}
+  else if(w.location==='vesper')await worldEnterWalking('vesper');else{state.location=w.location;await dock();if(w.spawn&&typeof walker!=='undefined'&&walker){walker.x=w.spawn[0];walker.z=w.spawn[2];walker.yaw=w.yaw||0;}}}   // a venue inside a location (places.js enter.spawn: PLUG & PLAY)
  function beginnerState(mid,stepId){
   const B=root.VoidBeginner,M=root.VoidMissions,C=root.C||root.VoidCampaign,s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;
   const doAll=(m,upto)=>{for(const o of m.objectives.slice(0,upto)){M.complete(s,m.id,o.id,C);if(o.award==='ship')C.awardStarterShip(s);}};

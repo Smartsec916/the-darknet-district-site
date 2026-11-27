@@ -33,7 +33,9 @@
       button(id+'/settlement',name(body.settlement,body.settlementProvisional)+' · settlement · '+status)+
       button(id,name(body.facility,body.facilityProvisional)+' · landing pad · '+status);
     }
-    return button(id,name(C.stations[id]?.name||id,l.placeholder)+' · '+l.type+' · '+status);
+    // places inside a location with an id of their own (places.js: PLUG & PLAY at Low Quay): a button that lands inside
+    const inner=(globalThis.VoidPlaces?.NODES||[]).filter(n=>n.level==='venue'&&n.enter?.location===id&&n.enter.spawn).map(n=>button(id+'/'+n.id,n.name+' · venue at '+(C.stations[id]?.name||id))).join('');
+    return button(id,name(C.stations[id]?.name||id,l.placeholder)+' · '+l.type+' · '+status)+inner;
    }).join('');
    return '<details><summary>'+escapeText(sys.name)+'</summary><div class="dev-actions">'+entries+'</div></details>';
   }).join('');
@@ -57,6 +59,7 @@
     if(VoidUniverse.locations[id].type==='arrival')await launch();
     else if(id==='earth')await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:site==='settlement'?'oldtown':'port'});
     else await dock();
+    const venue=site&&globalThis.VoidPlaces?.node(site);if(venue?.enter?.spawn&&typeof walker!=='undefined'&&walker){walker.x=venue.enter.spawn[0];walker.z=venue.enter.spawn[2];walker.yaw=venue.enter.yaw||0;walker.pitch=0;}
    }});
   if(result.error||result.problem)panel.querySelector('#dev-status').textContent=result.error||result.problem;
  }
