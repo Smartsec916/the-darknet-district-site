@@ -128,6 +128,10 @@
     catch(e){message.textContent=e.message;}
    };
    if(!tools.mobile)bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
+   const startHere=(label,action)=>{
+    const control=button('Start from this point',action);
+    control.setAttribute('aria-label','Start from this point: '+label);return control;
+   };
    if(!tools.mobile&&record().live){
     const live=record().live;
     bar.append(button('Unpublish',()=>send('unpublish')));
@@ -435,7 +439,7 @@
      }
      g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));
     }
-    const sections=api.dialogueSections(g),selectionControls=[];
+    const sections=api.dialogueSections(g),selectionControls=[],sectionPreviews=new Map();
     const byId=new Map(g.dialogue.map(line=>[line.id,line])),actionOptions=new Map();
     const actionLabel=(line,n)=>n+' · '+(line.text||line.animation||line.id).slice(0,70);
     const saved=g.savedActions||[];
@@ -847,6 +851,8 @@
        const heading=element('summary','Chance playlist '+(index+1)+' · '+branch.chance+'%');
        lane.append(heading);row.append(lane);keepOpen(lane,branch.actions[0]);
        const chanceFields=element('div');chanceFields.className='encounter-action-fields';lane.append(chanceFields);
+       const run=sectionPreviews.get(sourceOf(line)?.section);
+       if(run&&branch.actions.length)chanceFields.append(startHere('Chance playlist '+(index+1),()=>run({branch})));
        const bounds=element('details');bounds.append(element('summary','Advanced chance settings'));lane.append(bounds);
        const boundFields=element('div');boundFields.className='encounter-action-fields';bounds.append(boundFields);
        lane.className='encounter-chance-playlist';
@@ -994,6 +1000,7 @@
      }),{seconds:0}));
      drawSounds(section,'Section sounds',()=>g.sectionSounds?.[key],value=>soundMap('sectionSounds',key,value));
      const toolsRow=element('div');toolsRow.className='encounter-action-tools';section.append(toolsRow);
+     if(group.length)sectionPreviews.set(key,drawPreview(section,toolsRow,group,key,names[key]));
      const segments=api.playlistSegments(group);
      segments.flatMap(part=>part.rows).forEach((line,i)=>executionNumbers.set(line.id,i+1));
      const eligible=segments.filter(part=>!part.key).flatMap(part=>part.rows);
@@ -1005,7 +1012,6 @@
       selectionControls.push([control,eligible]);return control;
      }
      toolsRow.append(selectedAction('Create playlist from selected',rows=>setMembers(rows,newKey(),0)));
-     if(group.length)drawPreview(section,toolsRow,group,key);
      let number=0,playlistNumber=0;
      for(const segment of segments){
       let lane=section;
@@ -1013,6 +1019,7 @@
        lane=element('details');lane.className='encounter-main-playlist';section.append(lane);
        lane.append(element('summary','Main playlist '+(++playlistNumber)+' · '+segment.rows.length+' actions'));
        keepOpen(lane,key+':'+segment.key);
+       lane.append(startHere('Main playlist '+playlistNumber,()=>sectionPreviews.get(key)({segment})));
        duration(lane,()=>segmentTiming(segment));
        const soundKey=key+':'+segment.key;
        drawSounds(lane,'Main playlist sounds',()=>g.playlistSounds?.[soundKey],value=>soundMap('playlistSounds',soundKey,value));
@@ -1060,16 +1067,18 @@
     }
     for(const line of ordered)if(!drawn.has(line.id))drawRow(line,dialogue,null);
     refresh();
-    function drawPreview(section,toolsRow,group,key){
+    function drawPreview(section,toolsRow,group,key,name){
      const panel=element('div');panel.className='encounter-execution-preview';panel.hidden=true;
      const status=element('output'),trace=element('ol');status.setAttribute('aria-live','polite');
      let active,controller;
      const stop=button('Stop execution preview',()=>controller?.abort());
-     const start=button('Preview execution',async()=>{
-      preview?.abort();previewSounds?.dispose();controller=new AbortController();preview=controller;
+     const start=startHere(name,()=>run());
+     async function run(target){
+      preview?.abort();previewSounds?.dispose();const runController=new AbortController();controller=preview=runController;
       const timeline=api.soundTimeline();previewSounds=timeline;
-      const {signal}=controller;
+      const {signal}=runController;
       panel.hidden=false;trace.replaceChildren();start.disabled=true;stop.disabled=false;
+      if(target)panel.scrollIntoView?.({block:'nearest'});
       const pause=ms=>new Promise((resolve,reject)=>{
        signal.throwIfAborted();
        const abort=()=>{clearTimeout(timer);reject(signal.reason);};
@@ -1081,14 +1090,14 @@
       try{
        const problems=api.validate(g);
        if(problems.length)throw Error(problems[0]);
-       await api.withSounds(timeline,g.sectionSounds?.[key],signal,()=>api.runPlaylist(group,byId,{
-        signal,pause,play:(row,_,replay)=>{
+       const execute=()=>api.runPlaylist(group,byId,{
+        signal,pause,previewTarget:target,play:(row,_,replay)=>{
          const t=api.lineSeconds(row,clipSeconds,replay);
          return pause(Math.max(550,t.seconds*1000));
         },
         scope:(kind,item,local,work)=>api.withSounds(timeline,api.soundsFor(g,key,kind,item),local,work),
         observe:event=>{
-        if(!section.isConnected){controller.abort();signal.throwIfAborted();}
+        if(!section.isConnected){runController.abort();signal.throwIfAborted();}
         if(event.type==='action'){
          active?.removeAttribute('aria-current');active=node(event.row);
          active?.setAttribute('aria-current','step');
@@ -1101,16 +1110,17 @@
          ? 'Rolled '+(event.roll*100).toFixed(2)+'% after '+describe(event.row)+' · '+(event.branch?'Branch taken ('+event.branch.chance+'%)':'Continue')
          : (event.mode==='reroll'?'Reroll after ':'Return to ')+describe(event.target);
         trace.prepend(element('li',text));if(trace.children.length>12)trace.lastElementChild.remove();
-       }}));
+       }});
+       await (target?execute():api.withSounds(timeline,g.sectionSounds?.[key],signal,execute));
        timeline.finish();status.textContent='Preview complete';
-      }catch(error){timeline.dispose();status.textContent=signal.aborted?'Preview stopped':error.message;}
+      }catch(error){timeline.dispose();if(controller===runController)status.textContent=signal.aborted?'Preview stopped':error.message;}
       finally{
-       active?.removeAttribute('aria-current');active=null;
-       if(preview===controller)preview=null;
-       start.disabled=false;stop.disabled=true;
+       if(controller===runController){active?.removeAttribute('aria-current');active=null;start.disabled=false;stop.disabled=true;}
+       if(preview===runController)preview=null;
       }
-     });
+     }
      toolsRow.append(start);panel.append(status,stop,trace);section.append(panel);
+     return run;
     }
    }
    const board=element('div');board.className='encounter-board';board.setAttribute('aria-label','Encounter connections');host.append(board);
@@ -1138,7 +1148,12 @@
    }
    n.edges.forEach((edge,index)=>{
     const row=element('div');
-    if(n.kind==='choice')field(row,'Choice',input(edge.label,v=>{edge.label=v;mark();}));
+    if(n.kind==='choice'){
+     const fallback='Choice '+(index+1);
+     const control=!tools.mobile&&startHere(edge.label||fallback,()=>launch(edge.to));
+     field(row,'Choice',input(edge.label,v=>{edge.label=v;control&&control.setAttribute('aria-label','Start from this point: '+(v||fallback));mark();}));
+     if(control)row.append(control);
+    }
     field(row,'Connect to',select(names,edge.to,v=>{edge.to=v;mark();draw();}));
     row.append(button('Disconnect',()=>{n.edges.splice(index,1);mark();draw();}));detail.append(row);
    });

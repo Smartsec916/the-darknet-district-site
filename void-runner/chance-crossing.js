@@ -46,7 +46,10 @@
   const travelled=(taxi.s-plan.start+taxi.pathLen)%taxi.pathLen;
   return Math.min(1,travelled/Math.max(.001,plan.distance));
  }
- const api={plan,preparePrivate,walking,cardPose,crossingProgress};
+ function tireSquealDue(plan,progress){
+  return progress<1&&plan.taxi.speed>0&&(1-progress)*plan.distance<=plan.taxi.speed*.32;
+ }
+ const api={plan,preparePrivate,walking,cardPose,crossingProgress,tireSquealDue};
  if(typeof module!=='undefined')module.exports=api;
  root.VoidChanceCrossing=api;
 })(globalThis);
