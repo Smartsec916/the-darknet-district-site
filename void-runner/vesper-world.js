@@ -22,7 +22,10 @@
     the saddle of the first range at about (995, -205), between the north peak (1025, 55) and the south peak (1165, -495) of the old terrain (both ~215 m; the
     saddle's natural crest is ~85 m). Beyond the pass: the plateau east of the ridge. Later points (the long road) are appended in order. */
  const CONTROL=[[14,5],[22,6.5],[30,8.5],[40,11],[52,12.5],[66,12.5],[82,10.5],[100,7],[125,3],[155,-2],[190,-7],[228,-11],[270,-16],[330,-23],[400,-33],[480,-45],[560,-60],
-  [640,-82],[715,-112],[790,-145],[862,-176],[925,-198],[985,-210],[1045,-214],[1105,-207],[1170,-196],[1240,-190],[1320,-196],[1400,-214]];
+  [640,-82],[715,-112],[790,-145],[862,-176],[925,-198],[985,-210],[1045,-214],[1105,-207],[1170,-196],[1240,-190],
+  // the long road (phase 2): east and north-east for about 8 km along the valleys between the ranges (tools/assets/vesper/plan_route.cjs, A* over the natural land;
+  // edited by hand where the village stands so its street runs due east for ~120 m: x 1790..1850, z 664)
+  [1326,-117],[1497,-78],[1598,45],[1589,214],[1569,362],[1546,466],[1676,602],[1730,660],[1790,664],[1850,664],[1910,670],[1975,722],[2040,768],[2114,783],[2288,838],[2386,977],[2429,1146],[2560,1172],[2702,1062],[2852,998],[2968,885],[3058,748],[3195,658],[3357,626],[3529,672],[3686,718],[3872,732],[4038,797],[4160,915],[4242,1086],[4352,1217],[4517,1289],[4691,1329],[4854,1378],[5031,1372],[5194,1374],[5348,1468],[5483,1555],[5522,1706],[5458,1860],[5482,2035],[5543,2188],[5680,2280],[5846,2334],[6012,2348],[6168,2303],[6337,2314],[6438,2448],[6532,2582],[6691,2609],[6863,2620],[7023,2660],[7192,2692],[7311,2700]];
  const PEAKS=[{x:1025,z:55,lift:42,r:95},{x:1165,z:-495,lift:42,r:110}];   // the two high points either side of the pass (raised so they frame it)
  const PASS={x:995,z:-208,r:260,rx:300,rz:150,floor:38,keep:.2};                // the saddle: the ridge is lowered toward `floor` here (broad across the ridge, narrow along it), and the road's banks are widest and gentlest
  const WIDTH=7,SURFACE_Y=.02,SHOULDER=1.6,X_LIMIT=232,TAPER=60,MAX_GRADE=.09,YARD_R=245,FLOOR=.03;
@@ -65,8 +68,10 @@
  function buildProfile(){const L=centreline(),n=L.length,u=usableYard(),raw=new Float64Array(n),E=new Float64Array(n);
   for(let i=0;i<n;i++){const p=L[i];raw[i]=p.s<=u?SURFACE_Y:Math.max(SURFACE_Y,baseHeight(p.x,p.z));}
   // Gaussian smoothing (sigma 70 m) of the natural ground, then the grade limit both ways, then a light smoothing (sigma 14 m) that keeps the grade.
-  const gauss=(src,sigma)=>{const out=new Float64Array(n);for(let i=0;i<n;i++){if(L[i].s<=u){out[i]=SURFACE_Y;continue;}let w=0,v=0;for(let k=i;k>=0&&L[i].s-L[k].s<sigma*3;k--){const q=Math.exp(-((L[i].s-L[k].s)**2)/(2*sigma*sigma));w+=q;v+=q*src[k];}
-    for(let k=i+1;k<n&&L[k].s-L[i].s<sigma*3;k++){const q=Math.exp(-((L[k].s-L[i].s)**2)/(2*sigma*sigma));w+=q;v+=q*src[k];}out[i]=v/w;}return out;};
+  // each sample weighted by the length of road it stands for (the samples are 1.2-2.3 m apart), so the smoothing never steepens the grade
+  const ds=L.map((p,i)=>((L[Math.min(n-1,i+1)].s-L[Math.max(0,i-1)].s)/2)||.75);
+  const gauss=(src,sigma)=>{const out=new Float64Array(n);for(let i=0;i<n;i++){if(L[i].s<=u){out[i]=SURFACE_Y;continue;}let w=0,v=0;for(let k=i;k>=0&&L[i].s-L[k].s<sigma*3;k--){const q=Math.exp(-((L[i].s-L[k].s)**2)/(2*sigma*sigma))*ds[k];w+=q;v+=q*src[k];}
+    for(let k=i+1;k<n&&L[k].s-L[i].s<sigma*3;k++){const q=Math.exp(-((L[k].s-L[i].s)**2)/(2*sigma*sigma))*ds[k];w+=q;v+=q*src[k];}out[i]=v/w;}return out;};
   const S=gauss(raw,45);E.set(S);
   for(let pass=0;pass<3;pass++){for(let i=1;i<n;i++){const ds=L[i].s-L[i-1].s;E[i]=Math.min(E[i-1]+MAX_GRADE*ds,Math.max(E[i-1]-MAX_GRADE*ds,E[i]));}
    for(let i=n-2;i>=0;i--){const ds=L[i+1].s-L[i].s;E[i]=Math.min(E[i+1]+MAX_GRADE*ds,Math.max(E[i+1]-MAX_GRADE*ds,E[i]));}
@@ -83,7 +88,7 @@
  // Width of the flat bench under the road (carriageway + shoulders + 1 m), and the bank that blends it into the natural ground (wider for a deeper cut or fill;
  // through the pass wider still and gentler, so the saddle reads as a broad col).
  const benchAt=s=>halfWidthAt(s)+SHOULDER+1;
- function bankAt(x,z,delta){const p=Math.exp(-(((x-PASS.x)**2+(z-PASS.z)**2)/(PASS.r*PASS.r))*2);return (16+1.25*delta)*(1-p)+(34+1.9*delta)*p;}
+ function bankAt(x,z,delta){const p=Math.exp(-(((x-PASS.x)**2+(z-PASS.z)**2)/(PASS.r*PASS.r))*2);return Math.min(90,(16+1.25*delta)*(1-p)+(34+1.9*delta)*p);}   // capped: a very deep cut keeps a steep rock face rather than reaching across the inside of a bend
  // info (optional): filled with {d: distance to the road's centre line (Infinity when far), e: the road's height there, bench, natural (the uncarved height)}.
  function height(x,z,info){const r=Math.hypot(x,z);if(r<=YARD_R){if(info){info.d=Infinity;info.e=0;info.bench=0;info.natural=-.035;}return -.035;}
   let h=baseHeight(x,z);const n=nearest(x,z);
