@@ -61703,7 +61703,7 @@
       "spawn"
     ]
   },
-  "revision": "b2850e10aa3fd336",
+  "revision": "44e59285b074abe6",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83320,6 +83320,7 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
     "void-runner/ad-screens.js": "5792c93ef49ad52000b82b2a8e73e216d1d1430e1e111f1db295b83d8f5ab944",
+    "void-runner/anchorage.js": "769349e6a263ab38efae18aac7e6282a05676daf14e39e57b63c2cde6c0a0911",
     "void-runner/anim-library.js": "3c8856db93b375570f00f37993ae04571ae0bdc93dfd66aa609e1b9beedbfa74",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
@@ -83330,7 +83331,7 @@
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "47e003bd8ffeda5c439b29cf0678e892ab88054940aa173ff917326c8360c84c",
-    "void-runner/babylon-renderer.js": "6d363f2c76f5bd9eef58c599c86c8c52655ca53084fa692f16a177e382893a40",
+    "void-runner/babylon-renderer.js": "c5f681d4823f66ae3ed01461ae5349d124f81b0c5ea7bdddc47f4f0bad3d18f1",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",

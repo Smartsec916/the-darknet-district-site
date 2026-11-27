@@ -29,8 +29,8 @@ Already done by others, preserved: the station kit overhaul (docs/development/ST
 
 | Star system | Location | Assets inspected | Assets upgraded | Remaining improvements | Performance | Commit / deployment | Before / after screenshots | Status |
 |---|---|---|---|---|---|---|---|---|
-| Tessaly | Tessaly Belt Anchorage | station exterior and interior code, kit identity | none yet | belt-industrial exterior: hollowed asteroid, mooring gantries, ore hoppers, tethers, floodlights; anchorage-specific hangar dressing | not measured | not started | pending | Pending |
-| Tessaly | Vantor / Underground City | prototype room code, `exploration-data.js`, landing sequence | arrival cavern, pressure bulkhead and gate, two pads, floodlight towers, gantries, buildings cut into the rock, concourse shops/industry blocks and a lit city wall (one GLB, 31k faces, baked vertex light, fog) | commercial/residential detail, terminal model, wall animation (fans, steam, drips, dust), planet surface, landing view, split into visibility-zone files and compress the 10 MB file | software renderer only: about 105-200k triangles in view, 100-165 draw calls, frame time roughly +1 ms over the old boxes (relative figure, not the ROG Ally) | batch 1, BUILD `2026-11-26-universe-1` | `docs/development/universe-graphics/vantor-before.jpg`, `vantor-after-*.jpg` | Testing |
+| Tessaly | Tessaly Belt Anchorage | station exterior and interior code, kit identity | exterior: hollowed asteroid with cargo deck, 3 gantry cranes, 3 ore hoppers, container yard, floodlight masts, 4 mooring tethers, service gantry, 26 drifting belt rocks (one GLB, 25k faces, parented to the station so it follows docking) | interior hangar dressing for the Anchorage, hull identity, tugs and traffic, asteroid detail/LOD, 9 MB file | software renderer: about +25k triangles in space views | batch 2 | `docs/development/universe-graphics/anchorage-*.jpg` | Testing |
+| Tessaly | Vantor / Underground City | prototype room code, `exploration-data.js`, landing sequence | arrival cavern, pressure bulkhead and gate, two pads, floodlight towers, gantries, buildings cut into the rock, concourse shops/industry blocks and a lit city wall (one GLB, 31k faces, baked vertex light, fog) | commercial/residential detail, terminal model, wall animation (fans, steam, drips, dust), planet surface, landing view, split into visibility-zone files and compress the 10 MB file | software renderer only: about 105-200k triangles in view, 100-165 draw calls, frame time roughly +1 ms over the old boxes (relative figure, not the ROG Ally) | batch 1 live, BUILD `2026-11-26-universe-1` (towers upgraded in batch 2) | `docs/development/universe-graphics/vantor-before.jpg`, `vantor-after-1.jpg` | Live (cavern and concourse; rest pending) |
 | Tessaly | Vantor Relay | placeholder code | none | station hull identity, hangar dressing (placeholder, no gameplay) | | | | Pending |
 | Tessaly | Landing pads / Vantor descent view | `planet-landing.js` (descent sequence) | none | Vantor planet look from orbit | | | | Pending |
 | Erebus | Meridian, Kepler, Rusthaven, Foundry, Vesper, Vesper Relay, Survey Landing | station kit docs | none yet | per-location exterior identity; relays and Survey Landing are placeholders | | | | Pending |
@@ -52,4 +52,23 @@ Vantor mood/scale and Anchorage shape/feel (sent 27 Nov 2026). Defaults if unans
 | Batch | Contents | PR / BUILD | Live |
 |---|---|---|---|
 | 0 | This tracker | docs only, no BUILD bump | yes |
-| 1 | Vantor arrival cavern and concourse (Medium and above; Low keeps the prototype room) | `2026-11-26-universe-1` | pending |
+| 1 | Vantor arrival cavern and concourse (Medium and above; Low keeps the prototype room) | `2026-11-26-universe-1` | yes (live BUILD `2026-11-26-universe-1+8eacbcb6e1`, GLB 200 on the live site) |
+| 2 | Tessaly Belt Anchorage: hollowed asteroid, cargo deck, cranes, hoppers, mooring cables, belt rock (Medium and above); lattice floodlight towers at Vantor | `2026-11-26-universe-2` | pending |
+
+## 6. Blender vs Meshy (27 Nov 2026, real test on a real prop)
+
+The prop: the industrial **floodlight tower** used around the Vantor landing pads and the Anchorage cargo deck (previously plain boxes). Built two ways, judged under the same lights.
+
+| | Blender (code, `tools/assets/universe/build_floodlight.py`) | Meshy text-to-3D, preview stage |
+|---|---|---|
+| Source | Made by Claude for this project; no third-party assets | The owner's Meshy generation on his paid account, task `01a21a85-a8fa-7253-aa0c-c6a0d63d0848`, prompt: "industrial floodlight tower for a mining colony landing pad ... eight round floodlights ..." |
+| Time | about 10 minutes to write, 1 s to build | 26 s to generate |
+| Credits | 0 | 20 (balance 4,323 before, 4,303 after; no refine/texture/remesh bought) |
+| Triangles | 3.4k (1,714 quads) | 2,098,150, 50 MB GLB; a 20k decimation held the shape (345 KB) |
+| Design fidelity | exactly what was asked: lamp bank at the top, ladder, three railed platforms, cabinet with hazard band, red aviation lamp | read as an oil derrick: the eight lamps ended up in a ring at mid-height, not a bank at the top; cabinet and ladder good |
+| Surface / UV / textures | PBR from the shared Vantor steel, floor and hazard sets, box-mapped, ready | none at preview stage (white); texturing is another 10+ credits, and a lattice unwraps poorly |
+| Scale | exact metres | arbitrary (1.9 units tall), needs scaling |
+| Fits location identity | yes, uses the location's own materials | would need retexturing to match |
+
+Result: **Blender won for this asset**, and the Blender tower is what shipped (four around the Vantor pads, four masts at the Anchorage bay). Meshy's geometry is detailed and fast, but it ignored placement instructions, is two orders of magnitude over a game budget before decimation, and arrives untextured.
+Recommendation by asset type (a judgement from this one test, not a general law): **architecture and shells** Blender (exact dimensions, modular, shared materials); **machinery with a specific layout** (lattices, gantries, cranes) Blender; **hero organic or irregular props** (rocks, wrecks, strange alien tech) Meshy is worth trying with the 10 credit refine and a decimate-and-bake step in Blender; **repeated props** (containers, crates) Blender, so they instance and share textures; **rocks and terrain** Blender (noise-displaced meshes with the rock texture sets) because they need tiling materials and many variants.

@@ -595,7 +595,7 @@
     for(let i=0;i<5;i++)box('holdfast-hall-lamp',[1.6,.1,.45],[-12+i*6,5.85,26],amber,node);
   }
   function stationModel(id, parent, exterior=false,layoutDef=null) {
-    if(VoidStationLayouts.meridianClass.includes(id)&&exterior){const imported=id==='meridian'&&VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const kitOn=!!root.VoidStationKit?.ready(),built=VoidMeridian.build(scene,parent,{name:VoidStationLayouts.labels[id],kit:kitOn});if(!(kitOn&&VoidStationKit.dressExterior({scene,parent:built,id,quality})))globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');return built;}
+    if(VoidStationLayouts.meridianClass.includes(id)&&exterior){const imported=id==='meridian'&&VoidAssets.instance('station:meridian',parent);if(imported){imported.metadata={identity:'meridian',source:'shared-glb'};return imported;}const kitOn=!!root.VoidStationKit?.ready(),built=VoidMeridian.build(scene,parent,{name:VoidStationLayouts.labels[id],kit:kitOn});if(!(kitOn&&VoidStationKit.dressExterior({scene,parent:built,id,quality})))globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:');root.VoidAnchorage?.dress({scene,parent:built,id,quality,instance:(m,p)=>VoidAssets.instance(m,p)});return built;}
     const b=B(),node=new b.TransformNode('station-'+id,scene);node.parent=parent;
     const def=layoutDef||VoidStationLayouts.layout(id),hull=material('station',def.color),metal=material('truss','#343e47'),trim=material('navigation','#a9d7c5',true);
     for(const p of def.shell){const colors={frame:'#252c31',panel:'#61676a',seat:'#735a42',ceramic:'#b0b9b5',counter:'#655846',door:'#59656c',amber:'#d7a465',teal:'#82beb0'};const mesh=box(p.id,p.size,p.position,p.kind==='glass'?windowGlass():p.kind==='floor'?material('floor','#29333c'):colors[p.kind]?material(p.kind,colors[p.kind],['amber','teal'].includes(p.kind)):hull,node);if(p.kind==='door'){mesh.metadata={stationDoor:p};mesh.material=doorMaterial();}}
@@ -806,6 +806,7 @@
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       // Meridian's hull cladding (meridian-kitbash.js), so every scene that shows Meridian clads it.
+      ...(root.VoidAnchorage?.models(id,quality)||{}),
       ...(VoidStationLayouts.meridianClass.includes(id)&&!stationKit&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
       ...((VoidAssets.models.stations[id]||(id==='meridian'&&VoidMeridian.model.src?VoidMeridian.model:null)) ? {
         ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model

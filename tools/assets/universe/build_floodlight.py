@@ -14,9 +14,29 @@ from build_vantor import MATS, TEXTMP  # noqa: E402
 import vantor_textures  # noqa: E402
 
 
-def build(H=14.0):
-    B = Builder(MATS, slab=1000)
+def build(H=14.0, B=None, ox=0.0, oz=0.0, oy=0.0, face=1, lamps=True):
+    """Adds one lattice floodlight tower to B at (ox, oy, oz); face=+1 aims the lamp bank toward +z, -1 toward -z."""
+    standalone = B is None
+    if standalone:
+        B = Builder(MATS, slab=1000)
+    return _tower(B, H, ox, oy, oz, face, lamps)
+
+
+def _tower(B, H, ox, oy, oz, face, lamps):
+    Bx = B
     base_w, top_w = 1.7, .7
+
+    class _S:                       # shifts and mirrors every point so the tower can stand anywhere, facing either way
+        def __init__(s, b): s.b = b
+        def _p(s, p): return (p[0] + ox, p[1] + oy, p[2] * face + oz)
+        def box(s, lo, hi, m):
+            a, c = s._p(lo), s._p(hi)
+            s.b.box((min(a[0], c[0]), min(a[1], c[1]), min(a[2], c[2])), (max(a[0], c[0]), max(a[1], c[1]), max(a[2], c[2])), m)
+        def beam(s, a, b, w, h, m): s.b.beam(s._p(a), s._p(b), w, h, m)
+        def cyl(s, a, b, r, m, seg=10, caps=True, r2=None): s.b.cyl(s._p(a), s._p(b), r, m, seg, caps, r2)
+        def lamp(s, pos, rgb, i, r):
+            if lamps: s.b.lamp(s._p(pos), rgb, i, r)
+    B = _S(Bx)
 
     def half(y):
         return (base_w + (top_w - base_w) * (y / H)) / 2
@@ -92,7 +112,7 @@ def build(H=14.0):
     B.cyl((0, yb + 2.4, 0), (0, yb + 2.6, 0), .13, 'lamp_red', 10)
     for x in (-1.275, -.425, .425, 1.275):
         B.lamp((x, yb + 1, 1.5), np.array([.8, .9, 1.0]), .5, 10)
-    return B
+    return Bx
 
 
 if __name__ == '__main__':
