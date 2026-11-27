@@ -35,5 +35,5 @@ test('the exterior plan keeps the builder\'s design, and is lighter when seen fr
 test('the renderer falls back to the earlier dressing when the kit is missing, and the full range is asked for only aboard a station',()=>{
  const r=fs.readFileSync(path.join(__dirname,'..','void-runner','babylon-renderer.js'),'utf8'),vr=fs.readFileSync(path.join(__dirname,'..','void-runner','vr-core.js'),'utf8');
  assert(r.includes("if(!kitNode)globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:')"));assert(r.includes("globalThis.VoidMeridianKitbash?.dress(scene,built,'kit:')"));
- assert(vr.includes('const want=session||globalThis.VoidStationKit?.aboard?1:.3;'));assert.equal(Kit.aboard,false);
+ assert(vr.includes('const want=session||globalThis.VoidStationKit?.aboard||globalThis.VoidVantor?.active?1:.3;'));assert.equal(Kit.aboard,false);
 });

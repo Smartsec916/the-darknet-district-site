@@ -61703,7 +61703,7 @@
       "spawn"
     ]
   },
-  "revision": "73d280a5e3f5866e",
+  "revision": "804670b774ba74f1",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83330,7 +83330,7 @@
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "47e003bd8ffeda5c439b29cf0678e892ab88054940aa173ff917326c8360c84c",
-    "void-runner/babylon-renderer.js": "1e9c9f93f3c748c729dc906422f3af89cf5b319e3c427104519c7675d1a5f61a",
+    "void-runner/babylon-renderer.js": "6d363f2c76f5bd9eef58c599c86c8c52655ca53084fa692f16a177e382893a40",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -83607,6 +83607,7 @@
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
     "void-runner/universe.js": "20a842f3fcc7ee6f8d05f2ae246b45d6be4bc5b1a404de16e92bd4129fe7277a",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
+    "void-runner/vantor.js": "0018395d791927fbff6e4f181f5835a3a662486504464375d210de7d05923a21",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
@@ -83614,7 +83615,7 @@
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
     "void-runner/vr-companion-studio.js": "209d6ed92a40c777516837a7b323ff87d6b68f1e3017ffd904534361b209ac60",
     "void-runner/vr-companions.js": "406f9b8480b4405823d894fd91df65624ea690f1c3557214b27f2df4b5618b96",
-    "void-runner/vr-core.js": "0dbaa9b85a3b39fe5782752a0563d23cf059078fb5f792e23acc2336f9ef61de",
+    "void-runner/vr-core.js": "a6fd4e02a7aa728a49790dfdd47483d56ba38e3e35fe1dcde8f3f9ce4d0534ab",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "90da4f894d8a4e32bfceed70974fd899aee6bd237e401dc2bd72fed99425af22",
