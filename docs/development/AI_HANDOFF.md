@@ -8,6 +8,10 @@ The editor groups checked dialogue and animation actions into explicit main play
 
 See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
 
+## 28 Nov 2026 - Loading screens hidden (phase 6)
+
+`void-runner/transition-veil.js`: when a place the player is in loads another, the last picture stays up (no card) and crossfades into the new place; a slow load (over 6 s) still shows the card with its cancel. It never covers a transition with its own presentation (doors, the District vestibule, Milked, gates, landing, taxi). The full audit, per transition, is [LOADING_TRANSITIONS.md](LOADING_TRANSITIONS.md). Build `2026-11-28-loading-veil-6`.
+
 ## 28 Nov 2026 - Vesper: the road's end (phase 5)
 
 The road now ends 9.76 km out at a facility made to look like a warehouse: the guard shack (enterable, nobody on duty) and an open barrier come first, then a fenced compound with the warehouse (three big roller doors on its west side, shut; antenna mast, chillers, sensors) and a two-storey shared housing unit (shut). The inside of the warehouse is the owner's decision. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-facility-5`.
