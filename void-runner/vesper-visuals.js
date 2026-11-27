@@ -75,7 +75,11 @@
   // (triangulated) surface, which is what a road or wheel must follow; inside the inner radius the ground is flat (y 0).
   let terrainNoise=null;
   function terrainGrid(quality='medium'){const low=quality==='low',segments=low?160:320,ringCount=low?26:44,inner=245,outer=1350;return {segments,ringCount,inner,outer,radii:Array.from({length:ringCount},(_,i)=>inner*Math.pow(outer/inner,i/(ringCount-1)))};}
-  function terrainHeight(x,z){
+  // baseHeight: the natural horizon terrain (unchanged since the yard road). terrainHeight: the land as built, with the pass and the road's valley carved
+  // into it (vesper-world.js height); it falls back to baseHeight where vesper-world.js is not loaded.
+  let world=null;
+  function terrainHeight(x,z){if(!world)world=root.VoidVesperWorld||(typeof module!=='undefined'?require('./vesper-world.js'):null);return world?world.height(x,z):baseHeight(x,z);}
+  function baseHeight(x,z){
       const N=terrainNoise||(terrainNoise=noise(4417)),r=Math.hypot(x,z);
       // Domain warp bends ridgelines so they wander instead of radiating from the village.
       const wx=x+160*(N.fbm(x*.0016,z*.0016,3)-.5),wz=z+160*(N.fbm(x*.0016+40,z*.0016-25,3)-.5);
@@ -179,6 +183,6 @@
       p[k]=x*d*size;p[k+1]=Math.max(-.15,y*d*blocky)*size*.62;p[k+2]=z*d*size*(.8+.3*N.n2(seed,1));}
     mesh.updateVerticesData(B.VertexBuffer.PositionKind,p);const normals=[];B.VertexData.ComputeNormals(p,mesh.getIndices(),normals);mesh.updateVerticesData(B.VertexBuffer.NormalKind,normals);mesh.convertToFlatShadedMesh?.();return mesh;
   }
-  root.VoidVesperVisuals={surfaceTexture,mountainRing,buttes,boulder,terrainGrid,terrainHeight,meshHeight};
+  root.VoidVesperVisuals={surfaceTexture,mountainRing,buttes,boulder,terrainGrid,terrainHeight,baseHeight,meshHeight};
   if(typeof module!=='undefined')module.exports=root.VoidVesperVisuals;
 })(globalThis);

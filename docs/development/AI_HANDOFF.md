@@ -4,6 +4,10 @@
 
 See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
 
+## 28 Nov 2026 - Vesper: the road through the pass (phase 1 of the owner's road request)
+
+The Vesper road now climbs from the Ward Repair yard through a saddle between the first range's two high points and on to the plateau beyond (1.42 km, max grade 9 %), walkable and drivable all the way. The land is drawn as streamed chunks (`vesper-terrain.js`, a quadtree generated inside a per-frame budget: no loading pause), shaped by `vesper-world.js` (pure, tested). `exploration-controller.js` accepts an optional `location.walkable(x, z, r)` area beyond a location's rectangle (only Vesper uses it: the road corridor). Read [VESPER_ROAD.md](VESPER_ROAD.md) for the phases still to come (many miles, village, mine, facility, hidden loading screens), the restrictions and the owner's open questions. Build `2026-11-28-vesper-pass-1`.
+
 ## 26 Nov 2026 - Universe travel verification
 
 The universe expansion uses separate arrival and cargo destination IDs. See [the universe asset manifest](UNIVERSE_ASSET_MANIFEST.md) for the route map, provisional names, pad dimensions and planned modular assets. The two-browser test confirmed that both pilots appear at an arrival point and separate when one changes systems.

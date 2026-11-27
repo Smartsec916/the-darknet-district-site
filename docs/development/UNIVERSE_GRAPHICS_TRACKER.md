@@ -94,6 +94,7 @@ Recommendation by asset type (a judgement from this one test, not a general law)
 | 4 | Vantor Relay hangar shell plus Vantor animation and commercial/residential detail: rotating fans, steam, drips, dust motes, two lifts, a gantry hoist, flickering lamps; blade signs, noodle bar, air units and laundry on the stacked housing, elevator shafts, transit board gantry | `2026-11-26-universe-4` | pending |
 | vesper-1 | Vesper batch A: workshop exterior and yard (Medium and above; Low keeps the code-built exterior) and the road with parking apron, posts, signs and gate (every tier) | `2026-11-27-vesper-1` | pending |
 | vesper-2 | Vesper batch B: workshop interior (Medium and above; Low keeps the code-built interior), one extra point light over the back wall | `2026-11-27-vesper-2` | pending |
+| vesper-pass-1 | Vesper road phase 1: the pass between the two high points, the land as streamed chunks (replaces the ring mesh), talus, walking and driving along the whole road (docs/development/VESPER_ROAD.md) | `2026-11-28-vesper-pass-1` | pending |
 
 ## Low Quay, Stale System (new location, 27 Nov 2026)
 
