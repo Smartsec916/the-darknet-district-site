@@ -1,5 +1,17 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Low Quay map and taxi encounter polish
+
+The V1 Map App shows Low Quay, the landing pad and city rail stops, the stairs, and Plug & Play. Delivery tags stay in the voice inputs and are hidden from encounter captions. A quiet tire squeal leads into the collision, the keycard model prepares during the approach, and the physical drop starts while issuance is pending. The taxi-rating witness line is retired. Build `2026-11-27-taxi-squeal-keycard-drop-2`.
+
+## 27 Nov 2026 — Clear V1 camera viewfinder and Lace arrival
+
+The shared panel theme was painting its dark panel fill over the live camera image. The viewfinder now draws its own transparent frame and corner marks. The apartment doorway transition waits for Lace's model and starting pose before revealing the room. Dialogue starts after entry. Build `2026-11-27-camera-lace-arrival-1`.
+
+## 27 Nov 2026 — Chance Encounter start points
+
+In the desktop encounter editor, select a Choice node to launch a private in-game playtest at any connected destination. Dialogue sections and expanded main and chance playlists have the same start button for the editor’s execution preview. Playlist previews start directly at the selected playlist, use its repeat rules and sound cues, and stop at its end. Previewing a chance playlist skips its parent probability roll. Build `2026-11-27-encounter-start-point-1`.
+
 ## 27 Nov 2026 — Chance Encounter timing and sound cues
 
 The editor estimates line, section, main-playlist and chance-playlist durations using delays, recording lengths, known animation lengths, playback speed and repeat settings. Chance paths and unmeasured clips are labelled. A line can carry sound without dialogue or animation.
