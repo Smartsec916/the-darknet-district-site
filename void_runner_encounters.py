@@ -59,12 +59,15 @@ def validate_playlists(dialogue, decision):
     main_groups = {}
     parent_actions = {}
     for section, group in sections.items():
-        main_rows = [row for row in group if 'mainPlaylist' in row or 'mainPasses' in row]
+        main_rows = [row for row in group if any(field in row for field in ('mainPlaylist', 'mainPasses', 'mainContinueChance'))]
         for row in main_rows:
             key, passes = row.get('mainPlaylist'), row.get('mainPasses')
             if not isinstance(section, str) or not isinstance(key, str) or not re.fullmatch(r'main_[a-z0-9]{1,59}', key) or not _int(passes, 0, 100):
                 raise DraftError('Choose a main playlist and 0 to 100 passes.')
-            if main_groups.setdefault(key, (section, passes)) != (section, passes):
+            chance = row.get('mainContinueChance')
+            if 'mainContinueChance' in row and (passes != 0 or not _num(chance, 0, 100)):
+                raise DraftError('Choose a continuation chance from 0% to 100%.')
+            if main_groups.setdefault(key, (section, passes, chance)) != (section, passes, chance):
                 raise DraftError('Keep playlist members in one conversation section with matching passes.')
             parent_actions[row['id']] = key
         if isinstance(section, str):
@@ -80,7 +83,7 @@ def validate_playlists(dialogue, decision):
         if len(first) > 1 or len(last) > 1 or first and last and first[0] > last[0]:
             raise DraftError('Check the first and last actions in the playlist.')
     for row in dialogue:
-        if ('mainPlaylist' in row or 'mainPasses' in row) and row['id'] not in parent_actions:
+        if any(field in row for field in ('mainPlaylist', 'mainPasses', 'mainContinueChance')) and row['id'] not in parent_actions:
             raise DraftError('Choose a valid conversation for each main playlist.')
         for branch in row.get('branches', []):
             completion = branch.get('completion')
@@ -184,11 +187,19 @@ def validate(graph):
             raise DraftError('Check the apartment position, facing and scale.')
         if not identifier(placement.get('clip')) or not identifier(graph.get('roleplayClip')):
             raise DraftError('Choose an apartment and a roleplay animation.')
+    if 'pickupNoticeSeconds' in graph and not _num(graph['pickupNoticeSeconds'], 1, 60):
+        raise DraftError('Use 1 to 60 seconds for the pickup notification.')
     dialogue = graph.get('dialogue', [])
     if not isinstance(dialogue, list) or len(dialogue) > 100:
         raise DraftError('Use up to 100 dialogue lines.')
+    saved = graph.get('savedActions', [])
+    if not isinstance(saved, list) or any(not isinstance(group, list) or not group for group in saved):
+        raise DraftError('Saved actions must be stored as action groups.')
+    stored = [line for group in saved for line in group]
+    if len(stored) > 100:
+        raise DraftError('Use up to 100 saved actions.')
     labels = set()
-    for line in dialogue:
+    for line in dialogue + stored:
         if not isinstance(line, dict) or not isinstance(line.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9_]{0,63}', line['id']) or line['id'] in labels:
             raise DraftError('Each dialogue line needs a distinct ID.')
         labels.add(line['id'])
@@ -202,6 +213,22 @@ def validate(graph):
             clip = line['recording']
             if clip_problems([clip]) or clip['who'] != line['speaker'] or clip['text'] != line['text']:
                 raise DraftError('Attach a recording that matches '+line['id']+'.')
+    for group in saved:
+        remaining = {line['id'] for line in group[1:]}
+        for line in group:
+            branches = line.get('branches', [])
+            if not isinstance(branches, list):
+                raise DraftError('Check the saved chance playlists.')
+            for branch in branches:
+                actions = branch.get('actions') if isinstance(branch, dict) else None
+                if not isinstance(actions, list) or not actions:
+                    raise DraftError('Check the saved chance playlists.')
+                for action in actions:
+                    if not isinstance(action, str) or action not in remaining:
+                        raise DraftError('Check the saved chance playlist actions.')
+                    remaining.remove(action)
+        if remaining:
+            raise DraftError('Each saved branch action needs a parent.')
     validate_playlists(dialogue, graph.get('decisionAfter'))
     nodes = graph.get('nodes')
     if not isinstance(nodes, list) or not 1 <= len(nodes) <= 128:
@@ -282,7 +309,7 @@ def edit(db, user, body):
         if action == 'publish':
             validate(graph)
             from void_runner_live_content import clips_missing
-            hashes = {line['recording']['hash'] for line in graph.get('dialogue', []) if 'recording' in line}
+            hashes = {line['recording']['hash'] for line in graph.get('dialogue', []) + [row for group in graph.get('savedActions', []) for row in group] if 'recording' in line}
             if hashes and clips_missing(db, sorted(hashes)):
                 raise DraftError('Upload the dialogue recordings before publishing.')
     ref = refs(db).document(body['id'])

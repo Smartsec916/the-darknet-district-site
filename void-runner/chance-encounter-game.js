@@ -193,7 +193,6 @@
  const witnessLines=[
   'So unsafe. I liked it better when I could yell at a person.',
   "They're revolting! Yesterday mine demanded a tip.",
-  'Five stars for pickup. One star for putting him back down.',
   'Somewhere a little checkbox says pedestrian detected.',
   'My taxi asked me to rate the ride. Does he get a vote?',
   'It stopped for a plastic bag this morning. A plastic bag.'
@@ -335,18 +334,27 @@
      position:{quarter:walkingLocation.quarter,area:'street',x:walker.x,z:walker.z}});
     await root.VoidConsumableGame.refresh();
    }
-   run.holds=true;run.cardName=info.name;run.cardDescription=info.description;preloadLace(run);
+   run.holds=true;run.participating=true;run.tracked=true;root.dispatchEvent(new Event('void-encounter-journal'));run.cardName=info.name;run.cardDescription=info.description;preloadLace(run);
    if(run.private)run.expiresAt=performance.now()+86400000;
   }finally{document.removeEventListener('keydown',key,true);host.hidden=true;card.parent.dispose();run.owned.delete(card.parent);}
  }
- async function pickupReceipt(run){
-  const a=address(run),host=panel(run);
-  const wait=prompt(run,'You picked up '+run.cardName+'.',['Continue']);
-  host.style.maxWidth='24rem';host.style.boxShadow='0 8px 30px #0009';host.setAttribute('role','dialog');host.setAttribute('aria-label','Keycard picked up');
+ function pickupReceipt(run){
+  const a=address(run),host=document.createElement('aside');
+  host.className='encounter-pickup-notice';host.setAttribute('role','status');
+  Object.assign(host.style,{
+   position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',maxWidth:'24rem',padding:'14px',
+   background:'#0c1720',color:'#e1eeec',border:'1px solid #536f7c',borderRadius:'6px',
+   boxShadow:'0 8px 30px #0009',pointerEvents:'none'
+  });
+  const title=document.createElement('strong');title.textContent='You picked up '+run.cardName+'.';
   const description=document.createElement('p');description.textContent=run.cardDescription||'A residential access card belonging to Kade Mercer and Lace.';
   const addressLine=document.createElement('p');addressLine.textContent='Street Door '+a.door.number+' — Apartment '+a.number;
-  host.insertBefore(description,host.lastChild);host.insertBefore(addressLine,host.lastChild);
-  try{await wait;}finally{host.removeAttribute('role');host.removeAttribute('aria-label');}
+  const hint=document.createElement('small');hint.textContent='Press 0 to dismiss';
+  host.append(title,description,addressLine,hint);document.body.append(host);
+  const dismiss=()=>{clearTimeout(timer);document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',dismiss);host.remove();};
+  const keys=event=>{if(event.code==='Digit0'&&!event.repeat&&!event.target?.closest?.('input,textarea,select,[contenteditable]'))dismiss();};
+  const timer=setTimeout(dismiss,(run.graph.pickupNoticeSeconds??8)*1000);
+  document.addEventListener('keydown',keys,true);run.signal.addEventListener('abort',dismiss,{once:true});
  }
  // glTF joints are linked transform nodes; reading the animated node respects each imported rig's bind scale.
  function joint(figure,name){
@@ -525,7 +533,9 @@
     const figure=await model(phase,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
     // Keep the POV rig invisible even while its animation pack is loading.
     for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
-    const p=run.lace.parent.position;standing(figure,{x:p.x-.77,y:0,z:p.z,yaw:Math.PI/2});
+    const p=run.lace.parent.position,yaw=Math.PI/2;
+    const back=run.graph.roleplayClip?.toLowerCase()==='sz-tiedbm'?.08:0;
+    standing(figure,{x:p.x-.77-Math.sin(yaw)*back,y:0,z:p.z-Math.cos(yaw)*back,yaw});
     await assignedClip(figure,kadeLook,run.graph.roleplayClip);
     phase.signal.throwIfAborted();
     const head=joint(figure,'head');
@@ -554,7 +564,7 @@
    run.signal.throwIfAborted();
    const node=run.node=sequence.node;root.dispatchEvent?.(new Event('void-encounter-journal'));let choice;
    if(node.kind==='move')await walk(run);
-   if(node.kind==='item'){await drop(run);await pickupReceipt(run);}
+   if(node.kind==='item'){await drop(run);pickupReceipt(run);}
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
    if(node.kind==='choice'){
     if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}
@@ -608,7 +618,8 @@
  async function begin(graph,start,privateTest,token){
   stop();const controller=new AbortController();
   const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
-  run.tracked=true;running=run;
+  run.participating=graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
+  run.tracked=run.participating;running=run;
   try{
    const playback=runGraph(run,start);
    if(graph.id==='dropped-cardkey')await Promise.race([playback,watchApartment(run)]);
@@ -708,7 +719,7 @@
  }
  setInterval(opportunities,2000);
  function journal(){
-  if(!running?.node)return null;
+  if(!running?.node||!running.participating)return null;
   return {id:'encounter:'+running.graph.id,title:running.graph.name,type:'encounter',objective:running.node.name,objectives:[],completed:false,tracked:running.tracked};
  }
  function waypoint(){
@@ -727,7 +738,7 @@
   else position=[run.graph.playtest.x,1,run.graph.playtest.z];
   return position?{position,quarter,key:'encounter:'+run.graph.id+'|'+run.node.id,label:run.node.name,encounter:true}:null;
  }
- root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,setTracked(value){if(running)running.tracked=value;},playerStep(w){
+ root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,setTracked(value){if(running?.participating)running.tracked=value;},playerStep(w){
    const pov=running?.pov;if(!pov||pov.w!==w||walkingLocation?.inst!==pov.inst||pov.head.isDisposed())return false;
    pov.head.computeWorldMatrix(true);const eye=pov.head.getAbsolutePosition();w.x=eye.x;w.y=eye.y+.06;w.z=eye.z;return true;
   },hidesResident:id=>running?.graph.residence?.character===id,get privateSession(){return document.getElementById('dev-test-banner')?.dataset.kind==='encounter';},

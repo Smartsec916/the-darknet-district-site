@@ -47,3 +47,5 @@
 .encounter-execution-preview li+li{margin-block-start:5px}
 .encounter-advanced label:has(input[type=checkbox]){display:flex;align-items:center;gap:6px;margin-block:8px}
 .encounter-playlist-editor>p,.encounter-playlist-editor>label{margin-block:12px}
+
+.encounter-selection-bar:not([hidden]){position:sticky;top:0;z-index:4;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;background:#0c1720;border:1px solid #536f7c;border-radius:6px}
