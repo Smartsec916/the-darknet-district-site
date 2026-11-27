@@ -62,6 +62,28 @@ class ChanceTests(unittest.TestCase):
             with self.assertRaises(encounters.DraftError):
                 encounters.validate(self.graph)
 
+    def test_main_playlist_fields_and_chance_return_survive_publish(self):
+        first, second = self.graph['dialogue'][:2]
+        for row in (first, second):
+            row.update(mainPlaylist='main_test', mainPasses=2)
+        self.graph['dialogue'].append(dict(id='branch_followup', text='first line\nsecond line', speaker='lace'))
+        branch = dict(chance=50, actions=['branch_followup'], completion='action', returnAction=second['id'])
+        first['branches'] = [branch]
+        saved = self.edit('publish', 0)['live']['dialogue']
+        self.assertEqual(saved[0]['branches'], [branch])
+        self.assertEqual(saved[1]['mainPasses'], 2)
+        branch['returnAction'] = 'branch_followup'
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+        branch['returnAction'] = second['id']
+        second['mainPasses'] = 1
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+        second['mainPasses'] = 2
+        self.graph['decisionAfter'] = first['id']
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+
     def test_repeat_options_survive_publication_and_require_booleans(self):
         line = self.graph['dialogue'][0]
         line.update(repeatSpeech=True, repeatAnimation=False)

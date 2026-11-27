@@ -56,11 +56,42 @@ def validate_playlists(dialogue, decision):
             total += branch['chance']
         if total > 100 + 1e-9:
             raise DraftError('Branch chances on ' + key + ' must total 100% or less.')
-    for group in sections.values():
+    main_groups = {}
+    parent_actions = {}
+    for section, group in sections.items():
+        main_rows = [row for row in group if 'mainPlaylist' in row or 'mainPasses' in row]
+        for row in main_rows:
+            key, passes = row.get('mainPlaylist'), row.get('mainPasses')
+            if not isinstance(section, str) or not isinstance(key, str) or not re.fullmatch(r'main_[a-z0-9]{1,59}', key) or not _int(passes, 0, 100):
+                raise DraftError('Choose a main playlist and 0 to 100 passes.')
+            if main_groups.setdefault(key, (section, passes)) != (section, passes):
+                raise DraftError('Keep playlist members in one conversation section with matching passes.')
+            parent_actions[row['id']] = key
+        if isinstance(section, str):
+            legacy = [row for row in group if 'mainPlaylist' not in row]
+            marked = [row for row in legacy if row.get('repeatSpeech') and row['text'].strip() or row.get('repeatAnimation') and row.get('animation')]
+            if marked:
+                first_repeat = next((row for row in marked if row.get('playlistStart')), marked[0])
+                last_repeat = next((row for row in marked if row.get('playlistEnd')), marked[-1])
+                for row in legacy[legacy.index(first_repeat):legacy.index(last_repeat) + 1]:
+                    parent_actions[row['id']] = ('legacy', section)
         first = [n for n, row in enumerate(group) if row.get('playlistStart')]
         last = [n for n, row in enumerate(group) if row.get('playlistEnd')]
         if len(first) > 1 or len(last) > 1 or first and last and first[0] > last[0]:
             raise DraftError('Check the first and last actions in the playlist.')
+    for row in dialogue:
+        if ('mainPlaylist' in row or 'mainPasses' in row) and row['id'] not in parent_actions:
+            raise DraftError('Choose a valid conversation for each main playlist.')
+        for branch in row.get('branches', []):
+            completion = branch.get('completion')
+            if 'completion' in branch and completion not in ('reroll', 'replay', 'next', 'start', 'action'):
+                raise DraftError('Choose a supported branch completion behavior.')
+            if completion in ('start', 'action') and row['id'] not in parent_actions:
+                raise DraftError('Choose a main playlist for this branch return.')
+            if completion == 'action':
+                target = branch.get('returnAction')
+                if not isinstance(target, str) or parent_actions.get(target) != parent_actions[row['id']]:
+                    raise DraftError('Choose a return action in the same main playlist.')
     reachable = set()
     pending = [key for key in by_id if not key.startswith('branch_')]
     while pending:

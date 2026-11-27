@@ -77,6 +77,59 @@ test('playlist bounds, branch odds, nested passes and return paths',()=>{
  assert.ok(engine.validate(graph).length);
 });
 
+test('explicit playlists reroll in place, play each branch in full, and take later branches independently',async()=>{
+ const row=(id,extra={})=>({id,text:id,...extra});
+ const a=row('a',{mainPlaylist:'main_1',mainPasses:2});
+ const b=row('b',{mainPlaylist:'main_1',mainPasses:2,branches:[{chance:50,completion:'reroll',actions:['x','y']}]});
+ const c=row('c',{mainPlaylist:'main_1',mainPasses:2,branches:[{chance:0,completion:'reroll',actions:['x']},{chance:100,completion:'next',actions:['z']}]});
+ const extra=row('extra'),x=row('x'),y=row('y'),z=row('z');
+ const sequence=[],rolls=[.1,.49,.5,.999,.9,.1],events=[];
+ await engine.runPlaylist([a,extra,b,c],new Map([x,y,z].map(row=>[row.id,row])),{
+  signal:new AbortController().signal,random:()=>rolls.shift(),pause:async()=>{},
+  play:async row=>sequence.push(row.id),observe:event=>events.push(event)
+ });
+ assert.deepEqual(sequence,['a','b','x','y','x','y','c','z','a','b','c','z','extra']);
+ assert.equal(events.filter(event=>event.mode==='reroll').length,2);
+ assert.deepEqual(events.filter(event=>event.type==='roll').map(event=>event.branch?.chance),[50,50,undefined,100,undefined,100]);
+});
+
+test('explicit branch completion can replay, continue, restart, or jump to a selected action',async()=>{
+ for(const [mode,expected] of [
+  ['replay',['a','b','c','x','c','d']],
+  ['next',['a','b','c','x','d']],
+  ['start',['a','b','c','x','a','b','c','d']],
+  ['action',['a','b','c','x','b','c','d']]
+ ]){
+  const x={id:'x'},log=[],returns=[],rolls=[0,.9];
+  const rows=['a','b','c','d'].map(id=>({id,mainPlaylist:'main_1',mainPasses:1}));
+  rows[2].branches=[{chance:50,completion:mode,returnAction:'b',actions:['x']}];
+  await engine.runPlaylist(rows,new Map([['x',x]]),{
+   signal:new AbortController().signal,random:()=>rolls.shift(),pause:async()=>{},
+   play:async row=>log.push(row.id),observe:event=>{if(event.type==='return')returns.push(event.target?.id);}
+  });
+  assert.deepEqual(log,expected,mode);
+  assert.deepEqual(returns,[expected[4]],mode);
+ }
+});
+
+test('100 percent rerolls yield to a browser task and cancel without overlapping actions',async()=>{
+ const controller=new AbortController(),sequence=[];
+ const c={id:'a',mainPlaylist:'main_1',mainPasses:1,branches:[{chance:100,completion:'reroll',actions:['x','y']}]};
+ const byId=new Map(['x','y'].map(id=>[id,{id}]));
+ let playing=false;
+ const running=engine.runPlaylist([c],byId,{
+  signal:controller.signal,random:()=>.999,
+  play:async row=>{
+   assert.equal(playing,false);playing=true;sequence.push(row.id);
+   await Promise.resolve();playing=false;
+  },
+  pause:()=>new Promise(resolve=>setImmediate(resolve))
+ });
+ setImmediate(()=>controller.abort());
+ await assert.rejects(running,{name:'AbortError'});
+ assert.deepEqual(sequence,['a','x','y']);
+});
+
 test('finished bounded and nested branches restart the active main cycle and release their controls',async()=>{
  const source=require('node:fs').readFileSync(require.resolve('../void-runner/chance-encounter-game.js'),'utf8');
  for(const nested of [false,true]){

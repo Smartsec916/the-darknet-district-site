@@ -66,9 +66,7 @@
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
   const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
   const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];
-  const main=api.playlist(sections[section||prefix]||[]);
-  const restartMain=Symbol('restart main playlist');
-  let canRestart=main.cycle.length>0;
+
   async function action(line,signal,replay){
    signal.throwIfAborted();
    const text=replay&&!line.repeatSpeech?'':line.text.trim();
@@ -92,48 +90,28 @@
     }finally{if(clip&&signal.aborted)clip.stop();}
    }
    signal.throwIfAborted();
-   const branch=api.chooseBranch(line);
-   if(branch){
-    const completed=await sequence(api.branchPlaylist(branch,byId),branch.passes??1,signal,true);
-    if(completed&&canRestart)throw restartMain;
-   }
   }
-  async function sequence({before,cycle,after},passes,parentSignal,child=false){
-   try{for(const row of before)await action(row,parentSignal,false);}
-   catch(error){if(child||error!==restartMain)throw error;}
-   if(cycle.length){
-    const controller=new AbortController(),signal=controller.signal,cancel=()=>controller.abort();
-    const key=e=>{if(e.code==='Backspace'&&!e.repeat&&controls.at(-1)===button){e.preventDefault();cancel();}};
-    let button;
-    parentSignal.throwIfAborted();parentSignal.addEventListener('abort',cancel,{once:true});
-    if(passes!==1){
-     button=document.createElement('button');button.type='button';
-     button.textContent=child?'Return to parent playlist':'Stop repeat · Backspace';
-     Object.assign(button.style,{position:'fixed',right:'2vw',top:'calc(25vh + '+controls.length*3.1+'rem)',zIndex:76});
-     controls.push(button);button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
-    }
-    try{
-     const marked=cycle.filter(api.isRepeat);
-     for(let pass=0;passes===0||pass<passes;pass++){
-      signal.throwIfAborted();
-      try{
-       for(const row of pass&&marked.length?marked:cycle)await action(row,signal,pass>0&&marked.length>0);
-      }catch(error){if(child||error!==restartMain)throw error;}
-      if(passes===0||pass+1<passes)await delay(250,signal);
-     }
-    }catch(error){if(!signal.aborted)throw error;}
-    finally{
-     parentSignal.removeEventListener('abort',cancel);
-     if(button){controls.splice(controls.indexOf(button),1);button.remove();document.removeEventListener('keydown',key,true);}
-    }
-    parentSignal.throwIfAborted();
-    if(child&&signal.aborted)return false;
+  async function repeat(parentSignal,{child,show},run){
+   const controller=new AbortController(),signal=controller.signal,cancel=()=>controller.abort();
+   const key=e=>{if(e.code==='Backspace'&&!e.repeat&&controls.at(-1)===button){e.preventDefault();cancel();}};
+   let button;
+   parentSignal.throwIfAborted();parentSignal.addEventListener('abort',cancel,{once:true});
+   if(show){
+    button=document.createElement('button');button.type='button';
+    button.textContent=child?'Return to parent playlist':'Stop playlist · Backspace';
+    Object.assign(button.style,{position:'fixed',right:'2vw',top:'calc(25vh + '+controls.length*3.1+'rem)',zIndex:76});
+    controls.push(button);button.onclick=cancel;document.body.append(button);document.addEventListener('keydown',key,true);
    }
-   if(!child)canRestart=false;
-   for(const row of after)await action(row,parentSignal,false);
-   return true;
+   try{await run(signal);}
+   catch(error){if(!signal.aborted)throw error;}
+   finally{
+    parentSignal.removeEventListener('abort',cancel);
+    if(button){controls.splice(controls.indexOf(button),1);button.remove();document.removeEventListener('keydown',key,true);}
+   }
+   parentSignal.throwIfAborted();
+   return !signal.aborted;
   }
-  await sequence(main,0,signal);
+  await api.runPlaylist(sections[section||prefix]||[],byId,{signal,play:action,pause:delay,repeat});
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);
