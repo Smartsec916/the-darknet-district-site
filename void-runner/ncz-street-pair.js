@@ -138,12 +138,24 @@
   if(A.pass){planNext(s,P);s.mode='plan-go';return;}
   s.mode='plan-do';s.clip=A.clip;s.device=A.device||null;s.face=null;s.sub=null;const st=cfg.stop;
   s.left=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,a==='scroll'?st.device:(a==='selfie'||a==='photo')?st.selfie:/^dance/.test(a)?st.dance:/^(talk|gesture)/.test(a)?st.talk:a==='shrug'?st.shrug:a==='look'||a==='watch'?st.look:st.idle);}
+ function itineraryTarget(s,P,target){
+  if(!P.crossings||s.itineraryDone)return target;
+  if(s.itineraryRoute===undefined){
+   const A=root.VoidNPCAreas,E=root.VoidNPCEscort,M=root.VoidNPCPaths?.MOVABLE?.[s.who];
+   const permissions={adult:!!M?.adult,made:!!M?.made};
+   s.itineraryRoute=A&&!A.leg(s,target,permissions).length?[]:E?.walkRoute(s,target,P.area,permissions)||null;
+  }
+  while(s.itineraryRoute?.length&&Math.hypot(s.x-s.itineraryRoute[0].x,s.z-s.itineraryRoute[0].z)<.08)s.itineraryRoute.shift();
+  if(s.itineraryRoute===null)return null;
+  if(s.itineraryRoute.length>1)return s.itineraryRoute[0];
+  s.itineraryDone=true;return target;
+ }
  function planStep(s,dt,rnd,cfg,P){
-  if(s.planKey!==P.key){s.planKey=P.key;s.pi=0;s.psit=false;if(PLAN.has(s.mode)||FREE.has(s.mode)){s.mode='plan-go';s.device=null;s.sub=null;}}
+  if(s.planKey!==P.key){s.planKey=P.key;s.pi=0;s.psit=false;s.itineraryRoute=undefined;s.itineraryDone=false;if(PLAN.has(s.mode)||FREE.has(s.mode)){s.mode='plan-go';s.device=null;s.sub=null;}}
   if(s.psit&&s.mode==='walk'){s.psit=false;planNext(s,P);s.mode='plan-go';}   // back on her feet after sitting at a point
   if(FREE.has(s.mode)&&s.sub!=='chat')s.mode='plan-go';
-  if(s.mode==='plan-go'){const t=planTarget(s,P),v=cfg.speed*dt,dx=t.x-s.x,dz=t.z-s.z,d=Math.hypot(dx,dz);s.clip='walk';s.device=null;s.face=null;s.once=false;
-   if(d<=v+.02){s.x=t.x;s.z=t.z;planDo(s,P,rnd,cfg);}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return true;}
+  if(s.mode==='plan-go'){const final=planTarget(s,P),t=itineraryTarget(s,P,final);if(!t){s.clip='idle';return true;}const v=cfg.speed*dt,dx=t.x-s.x,dz=t.z-s.z,d=Math.hypot(dx,dz);s.clip='walk';s.device=null;s.face=null;s.once=false;
+   if(d<=v+.02){s.x=t.x;s.z=t.z;if(t===final)planDo(s,P,rnd,cfg);}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return true;}
   if(s.mode==='plan-do'){s.left-=dt;s.once=false;const want=P.mode==='stay'&&Number.isFinite(P.yaw)?P.yaw:s.yaw,dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*3);
    if(s.left<=0){if(P.mode==='path'){planNext(s,P);s.mode='plan-go';}else planDo(s,P,rnd,cfg);}return true;}
   if(s.mode==='sit'&&s.psec&&!s.psecSet){s.left=Math.max(2,s.psec);s.psecSet=true;}   // a path point's seconds of sitting
@@ -263,9 +275,8 @@
   const src=a=>'assets/models/crowd/'+a+'.glb',has=a=>!!assets?.container?.('crowd:'+a);
   const dbg={asks:0,fails:[],nan:{her:0,cat:0,look:0}};   // nan: times a bad number was caught and reset (should stay 0)
   function ask(){if(clock<asked||!assets?.load)return;asked=clock+20;dbg.asks++;const want=HERE.has(catArea())?[CAT]:[];for(const a of want)if(!has(a))Promise.resolve(assets.load('crowd:'+a,{src:src(a),background:true},scene)).catch(e=>{if(dbg.fails.length<6)dbg.fails.push(a+': '+(e?.message||e));});}
-  const scenePlan=P=>{const Q=localPlan(P);if(!Q||!Q.depart)return Q;if(HERE.has(Q.area)){const a=Q.arrive;if(a&&Number.isFinite(+a.x)&&Q.mode==='stay')return {...Q,mode:'path',points:[{x:+a.x,z:+a.z,action:'walk-on',seconds:1},{x:Q.x,z:Q.z,action:(Q.actions&&Q.actions[0])||'idle',seconds:8}],key:(Q.key||'')+':in'};return Q;}
-   if(!HERE.has(Q.depart.area))return Q;const d=Q.depart;return {...Q,area:d.area,mode:'stay',x:d.x,z:d.z,yaw:0,actions:['idle','look'],key:(Q.key||'')+':walk'};};
-  const planRaw=id=>{try{return scenePlan(root.VoidStreetPair?.planFor?.(id)||null);}catch{return null;}};
+  const scenePlan=(id,P)=>localPlan(root.VoidNPCPaths?.scheduledScenePlan(id,P,HERE)||P);
+  const planRaw=id=>{try{return scenePlan(id,root.VoidStreetPair?.planFor?.(id)||null);}catch{return null;}};
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026, about a giver whose offer was denied: she goes about her own routine meanwhile and walks back for
      the offer; "never offer again" sends her back to her own routine): a new plan she cannot walk to in a straight line, or in another area, is HELD (she keeps the old one)
      while she is in the player's view; she is moved once she is out of it, and comes back in at a new spot only while that spot is out of view too. held: id -> {plan, key}. */
@@ -279,10 +290,10 @@
   function holdCheck(id,body,c,leg){const R=planRaw(id),k=R?R.key:null,seen=body.enabled&&inView(body.x,body.y,body.z,c);
    if(held[id]){if(!seen||k===held[id].key){const moved=k!==held[id].key;delete held[id];if(moved)rejoin[id]=true;return false;}return true;}
    if(k===body.key||(R&&R.mode==='escort')||!seen)return false;   /* (follow fix, 19 Nov 2026) a finished follow step is held too: a mission that ends with one sent her back to her Avenue routine and she vanished at the spot, on screen */
-   const t=planSpot(R),jump=R?!!(t&&leg(t)):!!leg(null),gone=!HERE.has(areaOfPlan(R));if(jump||gone){held[id]={plan:body.plan||null,key:body.key};return true;}return false;}
+   const t=planSpot(R),jump=R?!!(t&&leg(t)):!!leg(null),gone=!HERE.has(areaOfPlan(R));if((jump&&!R?.crossings)||gone){held[id]={plan:body.plan||null,key:body.key};return true;}return false;}
   // where she appears: as planSpot, and for a follow / lead / cab step where it had got to (a reload) or where she stood when it started (P.from, live-content.js;
   // fix 19 Nov 2026: she appeared at her routine's spot on The Avenue, outside the quarter the step happens in)
-  const appearAt=P=>{if(!P)return null;const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null;return P.mode==='escort'?ok(P.resume)||ok(P.from):planSpot(P);};
+  const appearAt=P=>{if(!P)return null;const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null;return P.mode==='escort'?ok(P.resume)||ok(P.from):ok(P.entry)||planSpot(P);};
   let talkScan=0;
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null;
   const catItem={id:'street-cat',action:CAT_ACTION,character:CAT_ID,label:'PET THE CAT',position:[0,.45,0],range:1.8,talk:true};
@@ -349,9 +360,9 @@
    if(AVENUE)c.z=Math.min(WALL-.12,c.z);c.gait+=step/(fast?.3:.22)*Math.PI*2;return dt>0?step/dt:0;}
   /* The NPCs tab's plan for the cat (npc-paths.js planNow for CAT_ID: a stay, a route, a schedule block, a mission's "Giver waits at"): it walks (trots when far) to
      the spot or point and does the action: cat-sit (sits, facing the plan's way), cat-look (looks about), cat-wander (potters about within a metre), wait (stands). */
-  function catPlan(c,P,dt){if(c.planKey!==P.key){c.planKey=P.key;c.pi=0;c.pk=-1;c.pdo=0;c.pact=null;c.pw=null;}let speed=0,sit=0;
+  function catPlan(c,P,dt){if(c.planKey!==P.key){c.planKey=P.key;c.pi=0;c.pk=-1;c.who=CAT_ID;c.itineraryRoute=undefined;c.itineraryDone=false;c.pdo=0;c.pact=null;c.pw=null;}let speed=0,sit=0;
    const n=P.mode==='path'?P.points.length:1,t=P.mode==='path'?P.points[((c.pi%n)+n)%n]:P;
-   if(!c.pact){const d=Math.hypot(t.x-c.x,t.z-c.z);if(d>.08)return {speed:catGo(c,t.x,t.z,dt,d>1.6),sit:0};
+   if(!c.pact){const target=itineraryTarget(c,P,t);if(!target)return {speed:0,sit:0};const d=Math.hypot(target.x-c.x,target.z-c.z);if(d>.08)return {speed:catGo(c,target.x,target.z,dt,d>1.6),sit:0};
     const list=P.mode==='stay'&&P.actions&&P.actions.length?P.actions:['cat-sit'],a=P.mode==='path'?t.action:list[(c.pk=(c.pk+1)%list.length)];
     if(a==='walk-on'){c.pi++;return {speed:0,sit:0};}c.pact=a;c.pdo=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,[6,14]);c.pw=null;}
    c.pdo-=dt;const a=c.pact;c.look=0;
@@ -364,7 +375,7 @@
   function catLeave(){if(!cat)return;cat.node?.dispose?.();cat=null;}
   function tickCat(dt,c0){if(cat)holdCheck(CAT_ID,{x:cat.x,y:cat.y,z:cat.z,key:cat.key,plan:cat.plan,enabled:cat.node.isEnabled()},c0,t=>!!(AR&&t&&AR.leg(world({x:cat.x,z:cat.z}),world(t)).length));
    const area=catArea();if(!HERE.has(area)){catLeave();return;}
-   if(cat){const P=planOf(CAT_ID),k=P?P.key:null;if(k!==cat.key){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(AR&&t&&AR.leg(world({x:cat.x,z:cat.z}),world(t)).length)catLeave();else if(cat)cat.key=k;}}
+   if(cat){const P=planOf(CAT_ID),k=P?P.key:null;if(k!==cat.key){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(AR&&t&&!P?.crossings&&AR.leg(world({x:cat.x,z:cat.z}),world(t)).length)catLeave();else if(cat)cat.key=k;}}
    // away from the Avenue with no plan of its own it comes out beside her, once she is here
    if(!cat){const t=planSpot(planOf(CAT_ID));if(has(CAT)&&(area==='avenue'||planOf(CAT_ID))&&!(rejoin[CAT_ID]&&t&&inView(t.x,null,t.z,c0))){delete rejoin[CAT_ID];catArrive();}if(!cat)return;}cat.plan=planOf(CAT_ID);const c=cat,n=c.node;if(!Number.isFinite(c.x+c.z+c.yaw+c.sit+c.gait)){dbg.nan.cat++;Object.assign(c,{x:CAT_HOME.x,z:CAT_HOME.z,yaw:Math.PI,sit:0,gait:0,ang:0,mode:'home'});}
    const far=c0?Math.hypot(c0.x-c.x,c0.z-c.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;if(n.isEnabled()===far)n.setEnabled(!far);if(far&&planOf(CAT_ID)?.mode!=='escort')return;   // far away: still, unless a mission step has it following the player

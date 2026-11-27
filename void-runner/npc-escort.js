@@ -55,7 +55,7 @@
  /* Can this NPC do this kind of step? {ok, why}. */
  function can(id,k){if(!id)return {ok:false,why:'Choose who walks with the player.'};const M=movable(id);
   if(!M)return {ok:false,why:'This character cannot walk with the player yet: only characters whose walking code follows a path can. Others are added as the path system grows.'};
-  if(CAB.has(k)&&M.cat)return {ok:false,why:'The cat walks with the player but does not ride in cabs (it is a cat).'};
+  if(CAB.has(k)&&M.cat)return {ok:false,why:'The cat does not ride in cabs because its procedural actor has no passenger pose.'};
   if(CAB.has(k)&&M.made)return {ok:false,why:M.name+' walks with the player, but riding a cab together is unavailable for created characters (a made character walks: use “Follow them” or “They follow you”).'};
   return {ok:true,why:null};}
  /* Every cab stop and far place, with whether this NPC can go there: {id, name, quarter, far, ok, why}. */
@@ -64,7 +64,7 @@
   const taxis=!!q&&(Q.STOPS||[]).some(s=>s.quarter===q);
   for(const s of Q.STOPS||[]){const ok=!!M&&!M.cat&&!M.made&&taxis;
    out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'This character does not support shared cab rides.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
-  for(const f of Q.FAR||[])out.push({id:f.id,name:f.name,quarter:null,far:true,ok:false,why:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.name+' stays in the city (her content rule): never the Corporate District or the Temple.'});
+  for(const f of Q.FAR||[])out.push({id:f.id,name:f.name,quarter:null,far:true,ok:false,why:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':'This destination uses a separate transfer with no NPC taxi arrival.'});
   return out;}
  const stopOk=(id,stop,area='avenue')=>stops(id,area).some(s=>s.id===stop&&s.ok);
  const stopPos=stop=>{const Q=QT(),s=Q&&(Q.STOPS||[]).find(x=>x.id===stop);return s?{x:s.position[0],z:s.position[1]}:null;};
@@ -102,9 +102,9 @@
     costs ROAD metres, so she crosses where it is narrowest, straight over), then shortened to straight legs that add no road. Returns the points after a, ending at b, or
     null (no way within the search box). */
  const ROAD=8,GRID=.5,MAXN=30000,XWALK=1.2,XW=()=>node?require('./crosswalks.js'):root.VoidCrosswalks;   // a crosswalk (crosswalks.js, 20 Nov 2026) costs little more than pavement: she crosses there
- function walkRoute(a,b,area){const A=AR();if(!A||!a||!b)return null;const G=(A.get(area)||{}).under?.25:GRID,memo=new Map(),c2=v=>Math.floor(v/G);
+ function walkRoute(a,b,area,permissions={}){const A=AR();if(!A||!a||!b)return null;const G=(A.get(area)||{}).under?.25:GRID,memo=new Map(),c2=v=>Math.floor(v/G);
   const ar=A.get(area),inn=(r,x,z)=>x>r.x0&&x<r.x1&&z>r.z0&&z<r.z1;   // the kerb (the street's floor between the pavement and the road, not a forbidden place) counts as road
-  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area,undefined,{passing:true});v=c.ok&&c.area===area?1:XW()?.at?.(x,z,null,-.25)?XWALK:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&!ar.under&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
+  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area,undefined,{...permissions,passing:true});v=c.ok&&c.area===area?1:XW()?.at?.(x,z,null,-.25)?XWALK:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&!ar.under&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
   const pad=30/G,i0=Math.min(c2(a.x),c2(b.x))-pad,i1=Math.max(c2(a.x),c2(b.x))+pad,j0=Math.min(c2(a.z),c2(b.z))-pad,j1=Math.max(c2(a.z),c2(b.z))+pad;
   const near=p=>{const ci=c2(p.x),cj=c2(p.z);let best=null,bd=Infinity;for(let di=-4;di<=4;di++)for(let dj=-4;dj<=4;dj++){const i=ci+di,j=cj+dj;if(cost(i,j)!==1)continue;const d=Math.hypot((i+.5)*G-p.x,(j+.5)*G-p.z);if(d<bd){bd=d;best=[i,j];}}return best;};
   const s0=near(a),s1=near(b);if(!s0||!s1)return null;const key=(i,j)=>(i-i0)*((j1-j0)+1)+(j-j0),goal=key(s1[0],s1[1]);
@@ -118,7 +118,7 @@
   if(!found)return null;const cells=[];for(let k=goal,i=s1[0],j=s1[1];;){cells.unshift({x:(i+.5)*G,z:(j+.5)*G});const f=from.get(k);if(!f)break;[k,i,j]=f;}
   const P=[{x:a.x,z:a.z},...cells,{x:b.x,z:b.z}];
   // road metres up to each point of the grid path; a straight leg may replace a stretch of it when every step is walkable (or road) and it adds no road
-  const roadAt=p=>{const c=cost(c2(p.x),c2(p.z)),k=A.check(p,area,undefined,{passing:true});return k.ok&&k.area===area?0:c===ROAD?1:c===XWALK?0:-1;},acc=[0];for(let k=1;k<P.length;k++){const d=dist(P[k],P[k-1]);acc.push(acc[k-1]+(roadAt(P[k])===1||roadAt(P[k-1])===1?d:0));}
+  const roadAt=p=>{const c=cost(c2(p.x),c2(p.z)),k=A.check(p,area,undefined,{...permissions,passing:true});return k.ok&&k.area===area?0:c===ROAD?1:c===XWALK?0:-1;},acc=[0];for(let k=1;k<P.length;k++){const d=dist(P[k],P[k-1]);acc.push(acc[k-1]+(roadAt(P[k])===1||roadAt(P[k-1])===1?d:0));}
   const clear=(u,v)=>{const p=P[u],q=P[v],d=dist(p,q),m=Math.max(1,Math.ceil(d/.2));let road=0;for(let t=0;t<=m;t++){const r=roadAt({x:p.x+(q.x-p.x)*t/m,z:p.z+(q.z-p.z)*t/m});if(r<0)return false;if(r)road+=d/m;}return road<=acc[v]-acc[u]+.3;};
   const out=[];for(let u=0;u<P.length-1;){let v=P.length-1;while(v>u+1&&!clear(u,v))v--;out.push({x:+P[v].x.toFixed(2),z:+P[v].z.toFixed(2)});u=v;}
   out[out.length-1]={x:b.x,z:b.z};return out;}
@@ -212,7 +212,7 @@
  function encode(e){if(!e||typeof e.key!=='string')return null;const w=e.w?String(e.w).replace(/[^a-z]/g,'').slice(0,4):'';const s=[e.key.slice(0,150),String(e.phase||'').replace(/[^a-z-]/g,'').slice(0,12),num(e.x)?e.x.toFixed(1):'',num(e.z)?e.z.toFixed(1):'',...(w?[w]:[])].join('|');return s.length<200?s:null;}
  function decode(v){if(typeof v!=='string')return null;const [key,phase,x,z,w]=v.split('|');if(!key)return null;const out={key,phase:phase||null};if(x!==''&&x!=null&&Number.isFinite(+x)&&z!==''&&z!=null&&Number.isFinite(+z)){out.x=+x;out.z=+z;}if(w)out.w=w;return out;}
  /* For the admin inventory (the server's copy of these rules: void_runner_live_content.py escort_problems). */
- function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}).filter(movable))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,youthful:!!(X.MOVABLE[id]&&X.MOVABLE[id].youthful),reach:Object.fromEntries(ids.map(a=>[a,[...reach(id,a)].sort()]))};
+ function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}).filter(movable))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,restrictedRooms:!X.adultMotionTarget(id,X.MOVABLE[id].asset),reach:Object.fromEntries(ids.map(a=>[a,[...reach(id,a)].sort()]))};
   // into a place (the server's into_problems): the area of every street door's front (npc-areas.js), the rooms a youthful character never goes into
   const P=APX(),doorAreas={};try{for(const d of (P&&P.doors?P.doors():[]))doorAreas[d.id]=doorArea({front:{x:d.front[0],z:d.front[1]}})||null;}catch{}
   return {kinds:IDS.slice(),fields:FIELDS,limits:{wait:LIMIT.wait,lost:LIMIT.lost,def:LIMIT.def},ifLost:IF_LOST.map(x=>x.id),npcs:out,into:{kinds:[...SPOT],adultRooms:ADULT_ROOMS.slice(),doorAreas}};}
@@ -231,7 +231,7 @@
  const APX=()=>node?reqI('./apartments.js'):root.VoidApartments,MDX=()=>node?reqI('./modules.js'):root.VoidModules;
  const ADULT_ROOMS=['fight-pit'];   // only the fight pit (the owner, 20 Nov 2026: the gang are friendly; bar back room, card room and gang checkpoint are open)
  const INTO={pace:2.4,minDelay:.8,maxDelay:6,ride:2.6,ahead:2,through:.75,approach:.7};
- function canInto(id){const M=movable(id);if(!M)return {ok:false,why:'This character cannot walk with the player yet.'};if(M.cat)return {ok:false,why:'The cat stays outside: it does not go into buildings with the player. Pick a spot on the street for it.'};return {ok:true,why:null};}
+ function canInto(id){const M=movable(id);if(!M)return {ok:false,why:'This character cannot walk with the player yet.'};if(M.cat)return {ok:false,why:'Apartment escorts do not support the cat’s procedural gait.'};return {ok:true,why:null};}
  const isLoc=a=>!!a&&Array.isArray(a.modules);
  /* The area (npc-areas.js) of a street door's front: where she walks to. */
  function doorArea(d){const A=AR();if(!A||!d)return null;const f=d.front;return A.areaOf(f)||(()=>{const q=A.nearest?A.nearest(f,null,1.5):null;return q?A.areaOf(q):null;})();}
@@ -265,7 +265,7 @@
   else if(o.mod!=null&&!g.rooms.includes(o.mod))out.push('Choose one of the location’s rooms.');
   else if(o.mod!=null&&g.cabs.includes(o.mod))out.push('An elevator cab is the way between floors, not a place to stop: choose the room on the floor where the step should end.');
   else if(o.mod!=null&&g.entry&&!roomPath(g,g.entry,o.mod))out.push('That room cannot be reached from the street door.');
-  if(M&&M.youthful&&!g.legacy&&g.entry){const dest=o.mod&&g.rooms.includes(o.mod)?o.mod:g.entry,path=roomPath(g,g.entry,dest)||[],rooms=[g.entry,...path.map(p=>p.room)];
+  if(M&&!NPX().adultMotionTarget(o.npc,M.asset)&&!g.legacy&&g.entry){const dest=o.mod&&g.rooms.includes(o.mod)?o.mod:g.entry,path=roomPath(g,g.entry,dest)||[],rooms=[g.entry,...path.map(p=>p.room)];
    if(rooms.some(r=>ADULT_ROOMS.includes(g.types[r])))out.push(who+' never goes into the fight pit (her content rule, as for the adult places on the street): choose another room or place, or someone marked as an adult.');}
   if(!a.door){out.push('That place has no street door yet: choose its street door first.');return out;}
   const d=doorAt(a.door);if(!d){out.push('That place’s street door is not in the game.');return out;}
@@ -348,10 +348,10 @@
     district:{wait:snapIn(w(0,28.4),'district'),ahead:{...snapIn(w(0,29.2),'district'),yaw:r2(Math.PI)},behind:{...w(0,23.4),yaw:r2(Math.PI)}}}});}
   return LINKS=out;}
  const linkById=id=>links().find(l=>l.id===id)||null;
- /* May this person go into `area` at all, and stand at point p there? {ok, why}. The cat: streets only (never inside, never down into the tunnels). */
+ /* May this person go into `area` at all, and stand at point p there? {ok, why}. A scene must have a runtime for the actor. */
  function mayEnter(id,area,p){const M=movable(id),A=AR(),a=A&&A.get(area),who=(M&&M.name)||'They';if(!M)return {ok:false,why:'This character cannot walk with the player.'};
   if(!a)return {ok:false,why:who+' stays in the city: '+(M.cat?'it waits':'she waits')+' here for you.'};
-  if(M.cat&&(a.scene==='interior'||a.scene==='milked'||area==='underground'||area===areaOfQuarter('underground')))return {ok:false,why:'The cat never goes inside or down into the tunnels: it waits here for you.'};
+  if(M.cat&&a.scene==='milked')return {ok:false,why:'Milked has no procedural cat runtime.'};
   if(p){const X=NPX(),pp=X&&X.spotProblems?X.spotProblems(id,p):[];if(pp.length)return {ok:false,why:who+' does not go there ('+String(pp[0]).replace(/\.$/,'')+'): '+(M.cat?'it waits':'she waits')+' here for you.'};}
   return {ok:true,why:null};}
  const usable=(l,id)=>Object.entries(l.ends).every(([a,e])=>mayEnter(id,a,e.wait).ok&&mayEnter(id,a,e.ahead).ok);
@@ -409,7 +409,7 @@
     An adapter must supply the published opt-in, actual actor/scene state, and current gate authorization.
     This planner handles registered foot gates. The scene adapter handles seated taxi passengers. */
  const socialPoint=(p,a)=>!!(p&&num(p.x)&&num(p.z)&&AR()?.areaOf(p,a)===a);
- function socialEligible(id,policy){const M=movable(id);return !!(M&&!M.cat&&policy?.enabled===true&&(policy.tier===2||policy.tier===3)&&typeof policy.allowGate==='function');}
+ function socialEligible(id,policy){const M=movable(id);return !!(M&&policy?.enabled===true&&typeof policy.allowGate==='function');}
  function socialGateAllowed(id,l,a,b,policy){try{
   const A=AR(),u=l?.ends?.[a],v=l?.ends?.[b];
   return !!(l?.kind==='gate'&&a!==b&&A?.get(a)?.scene==='street'&&A?.get(b)?.scene==='street'&&

@@ -101,7 +101,7 @@ test('mission content: the four step kinds are checked (who, spot, distances, st
  for(const o of good)assert.equal(MC.check(doc(x,tree(o)),ctx(x)).errors.length===0,!E().CAB.has(o.kind),o.kind);
  const bad=[[{kind:'follow-them',npc:'admin',to:{x:110,z:-6.4}},/cannot walk with the player/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-14}},/the road/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},wait:50},/3 to 30/],
   [{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},wait:20,lost:15},/further than/],[{kind:'they-follow',npc:'tea-host',to:{x:110,z:-6.4},stop:'avenue'},/no stop setting/],[{kind:'their-cab',npc:'street-cat',stop:'avenue'},/does not ride in cabs/],
-  [{kind:'their-cab',npc:'tea-host',stop:'corporate'},/cab/],[{kind:'they-follow',npc:'street-cat',to:{x:-2.7,z:-80}},/cat never goes inside or down into the tunnels/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
+  [{kind:'their-cab',npc:'tea-host',stop:'corporate'},/cab/],[{kind:'they-follow',npc:'street-cat',to:{x:0,z:0}},/cannot walk|not somewhere/ ],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'tea-host',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
  for(const [o,re] of bad){const errs=MC.check(doc(x,tree(o)),ctx(x)).errors;assert.ok(errs.some(e=>re.test(e)),o.kind+': '+errs.join(' | '));}
  // what is still missing (Guide me / the play check)
  const need=o=>MC.treeNeeds({...tree(o).missions[0]},x.e.givers).filter(n=>n.step==='walk').map(n=>n.field);

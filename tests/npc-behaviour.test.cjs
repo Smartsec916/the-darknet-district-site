@@ -60,7 +60,7 @@ test('the schema is strict: unknown keys, wrong NPC, places off her pavement, di
  bad(base({schedule:[{from:'08:00',to:'12:00',do:'usual'},{from:'11:00',to:'13:00',do:'usual'}]}),/overlaps time block 1/);
  bad(base({schedule:[{from:'22:00',to:'02:00',do:'usual'},{from:'01:00',to:'03:00',do:'usual'}]}),/overlaps time block 1/);   // across midnight
  bad(base({schedule:Array.from({length:9},(_,i)=>({from:String(i).padStart(2,'0')+':00',to:String(i).padStart(2,'0')+':30',do:'usual'}))}),/8 time blocks at most \(this one has 9\)/);
- bad(base({schedule:[{from:'08:00',to:'12:00',do:'usual',name:'<b>x</b>'}]}),/"name" may use letters/);
+ bad(base({schedule:[{from:'08:00',to:'12:00',do:'usual',name:'<b>x</b>'}]}),/"name" must be a single-line name/);
  bad(base({schedule:{from:'08:00'}}),/must be a list of time blocks/);
  bad(base({schedule:[{from:'08:00',to:'12:00',do:'usual',points:[]}]}),/unknown field “points”/);
  // "8:00" is tidied to "08:00"

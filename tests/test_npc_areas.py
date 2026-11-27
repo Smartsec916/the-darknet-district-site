@@ -48,11 +48,11 @@ class NpcAreasServerTests(unittest.TestCase):
         self.assertTrue(any('road' in p for p in live.npc_problems({'tea-host': road}, INV)))
         self.assertTrue(live.wait_at_problems('tea-host', {'x': 52, 'z': -58, 'yaw': 0}, INV))
 
-    def test_tier_two_may_walk_through_a_gate_and_tier_one_may_not(self):
+    def test_any_tier_may_walk_through_a_registered_gate(self):
         ave = {'from': '08:00', 'to': '12:00', 'mode': 'stay', 'x': 103.5, 'z': -6.4, 'yaw': 0, 'actions': ['idle']}
         town = {'from': '12:00', 'to': '14:00', 'mode': 'stay', 'x': 73, 'z': -58.5, 'yaw': 0, 'actions': ['idle'], 'cross': True}
-        self.assertTrue(any('Tier 1' in p for p in live.npc_problems({'tea-host': {'mode': 'original', 'schedule': [ave, town]}}, INV)))
-        self.assertEqual(live.npc_problems({'tea-host': {'mode': 'original', 'tier': 2, 'schedule': [ave, town]}}, INV), [])
+        for tier in ({}, {'tier': 1}, {'tier': 2}, {'tier': 3}):
+            self.assertEqual(live.npc_problems({'tea-host': {'mode': 'original', **tier, 'schedule': [ave, {**town, 'name': '夜の巡回 🌙'}]}}, INV), [])
         corp = {**town, 'x': 0, 'z': 220}
         self.assertTrue(any('cannot walk' in p for p in live.npc_problems({'tea-host': {'mode': 'original', 'tier': 2, 'schedule': [ave, corp]}}, INV)))
 
@@ -77,7 +77,7 @@ class NpcAreasServerTests(unittest.TestCase):
         self.assertTrue(live.escort_problems({'kind': 'shared-cab', 'npc': 'tea-host', 'stop': 'avenue'}, INV, 'underground'))
         self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'tea-host', 'to': {'x': 82, 'z': -58.5}}, INV, 'oldtown'), [])
         self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'tea-host', 'to': {'x': 82, 'z': -58.5}}, INV, 'avenue'), [])
-        self.assertTrue(any('area' in p for p in live.escort_problems({'kind': 'they-follow', 'npc': 'street-cat', 'to': {'x': -2.7, 'z': -80}}, INV, 'avenue')))
+        self.assertEqual(live.escort_problems({'kind': 'they-follow', 'npc': 'street-cat', 'to': {'x': -2.7, 'z': -80}}, INV, 'avenue'), [])
 
     @unittest.skipUnless(shutil.which('node'), 'Node is not installed')
     def test_same_decisions_as_the_browser(self):

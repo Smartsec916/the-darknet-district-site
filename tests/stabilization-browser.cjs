@@ -37,7 +37,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   const L=VoidNPCEscort.linkById('gate:north:foot-w'),a=VoidNPCEscort.areaOfQuarter(walkingLocation.quarter),w=L.ends[a].wait;
   const content={format:'darknet-district-mission-content',version:1,
    characters:{[id]:{name:'Gate test traveller',model:'npc-casual-m',adult:true}},
-   npcs:{[id]:{mode:'stay',x:w.x,z:w.z,yaw:0,actions:['idle'],tier:2}},
+   npcs:{[id]:{mode:'stay',x:w.x,z:w.z,yaw:0,actions:['idle'],tier:1}},
    interactions:{[id]:{distance:3,cooldown:30,advanced:{follow:{role:'follow',invite:'Walk with me.',accept:'WALK TOGETHER',decline:'NOT NOW',maxWait:120,districtTravel:true}}}}};
   const ok=VoidLiveContent.use(content,'published',1);
   VoidLiveContent.replan();Object.assign(walker,{x:w.x,z:w.z+1,yaw:0,pitch:0});
@@ -56,7 +56,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   speech=null;VoidAudio.cancel();choice.run();return true;
  },socialId);
  assert(invited,'the real dialogue invitation was accepted');
- await page.waitForFunction(id=>{const p=VoidLiveContent.plans()[id];return p?.social&&VoidLiveContent.socialTravelPolicy(id,p.step)?.tier===2&&VoidEscortAcross.present().some(a=>a.npc===id);},socialId,{timeout:60000});
+ await page.waitForFunction(id=>{const p=VoidLiveContent.plans()[id];return p?.social&&VoidLiveContent.socialTravelPolicy(id,p.step)?.enabled===true&&VoidEscortAcross.present().some(a=>a.npc===id);},socialId,{timeout:60000});
  // Deliberately fail after the destination scene has loaded to verify rollback and retry.
  // Keep a separate synthetic callback as an independent observation of scanner timing.
  async function scanSocialTransaction(fail){

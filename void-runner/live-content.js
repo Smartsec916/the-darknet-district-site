@@ -317,9 +317,9 @@
  }
  function socialDestination(id,f){const t=f?.place&&root.VoidPlaces?.target?.(f.place);if(!t)return null;const raw={x:t[0],z:t[2]},A=root.VoidNPCAreas,M=root.VoidNPCPaths?.MOVABLE?.[id];return A?.nearest?.(raw,A.areaOf(raw),8,{adult:!!M?.adult,made:!!M?.made})||null;}
  function socialTravelPolicy(id,session){
-  const f=env.interactions?.[id]?.advanced?.follow,tier=env.npcPlans?.[id]?.tier,s=social.get(id);
-  if(!s||s.phase!=='active'||s.record!==f||session!=='social:'+id+':'+s.generation||!f?.districtTravel||![2,3].includes(tier)||missionBusy(id))return null;
-  return {enabled:true,tier,session,leg:s.leg||0,allowGate(npc,via,from,to){
+  const f=env.interactions?.[id]?.advanced?.follow,s=social.get(id);
+  if(!s||s.phase!=='active'||s.record!==f||session!=='social:'+id+':'+s.generation||!f?.districtTravel||missionBusy(id))return null;
+  return {enabled:true,session,leg:s.leg||0,allowGate(npc,via,from,to){
    const Q=root.VoidQuarters,l=Q?.lane(via.slice(5)),g=l&&Q.gate(l.gate);
    const areas=[g?.ends?.lo?.quarter,g?.ends?.hi?.quarter].map(q=>q&&root.VoidNPCEscort.areaOfQuarter(q));
    return npc===id&&!!g&&!g.shut&&from!==to&&areas.includes(from)&&areas.includes(to);

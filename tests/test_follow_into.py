@@ -41,7 +41,7 @@ class FollowIntoServerTests(unittest.TestCase):
         cases = [({'apt': 'zz'}, None, 'places to go into'), ({'apt': 'a2', 'mod': 'office'}, None, 'built from modules'), ({'apt': 'a1', 'mod': 'lift2'}, None, 'elevator'),
                  ({'apt': 'a1', 'mod': 'nope'}, None, 'rooms'), ({'apt': 'a2', 'to': {'x': 60, 'z': -6.4}}, None, 'not both'),
 
-                 ({'apt': 'a2', 'npc': 'street-cat'}, None, 'cat stays outside'), ({'apt': 'a2'}, [dict(FLAT, **{'from': 's3'})], 'opens later')]
+                 ({'apt': 'a2', 'npc': 'street-cat'}, None, 'movement runtime'), ({'apt': 'a2'}, [dict(FLAT, **{'from': 's3'})], 'opens later')]
         for st, places, words in cases:
             errs = check(tree(st, places))
             self.assertTrue(any(words in e for e in errs), (st, errs))
@@ -54,7 +54,7 @@ class FollowIntoServerTests(unittest.TestCase):
         # escort across (20 Nov 2026): a place whose street door is in Old Town; she starts on The Avenue and walks there through the North Gate
         self.assertEqual(check(tree({'apt': 'a2'}, [dict(FLAT, door='apt-main-w-96')])), [])
         self.assertIn('oldtown', INV['npcEscort']['npcs']['tea-host']['reach']['avenue'])
-        self.assertNotIn('underground', INV['npcEscort']['npcs']['street-cat']['reach']['avenue'])
+        self.assertIn('underground', INV['npcEscort']['npcs']['street-cat']['reach']['avenue'])
 
     def test_inventory_and_draft_copy(self):
         esc = INV['npcEscort']
