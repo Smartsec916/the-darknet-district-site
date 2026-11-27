@@ -805,6 +805,7 @@
     await task.wait('assets',()=>VoidAssets.prepare(scene, {
       ...extraModels,
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
+      ...(id==='vesper'&&root.VoidVesper?root.VoidVesper.models(quality):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
       // Meridian's hull cladding (meridian-kitbash.js), so every scene that shows Meridian clads it.
       ...(root.VoidAnchorage?.models(id,quality)||{}),
@@ -1185,7 +1186,7 @@
     room = def;
     camera.unfreezeProjectionMatrix();
     if(def.kind==='workshop'){
-      crowdLocation='vesper';root.VoidCrowd?.begin();const definitions={...(root.VoidCrowd?.models('vesper',quality)||{}),...Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([id,d])=>['opening:'+id,d]))};
+      crowdLocation='vesper';root.VoidCrowd?.begin();const definitions={...(root.VoidCrowd?.models('vesper',quality)||{}),...(root.VoidVesper?.models(quality)||{}),...Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([id,d])=>['opening:'+id,d]))};
       if(VoidAssets.models.ships.starter)definitions['ship:starter']=VoidAssets.models.ships.starter;
       await task.wait('assets',()=>VoidAssets.prepare(scene,definitions,task),'workshop models');
       openingHandle=VoidOpeningScene.build({scene,parent:roomRoot,quality,shadowLight:scene.getLightByName('sun'),characterModel,shipModel,state,camera});
