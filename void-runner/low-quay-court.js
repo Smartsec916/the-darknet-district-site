@@ -1,7 +1,8 @@
 /* LOW QUAY: the main alley and the food court (the owner's request, 27 Nov 2026).
    - The main alley runs straight north from the subway stairs (x -15..-10). Along its EAST side, the ground floor of the buildings is a row of shallow lit booths behind
      tinted glass, softly lit deep red, magenta, purple and amber, curtains half drawn; each has floor space for a dancer to be added later. No people are added here.
-     WINDOW_ANCHORS lists, per window, where a dancer would stand and which way she faces (yaw, radians; 0 = facing +z, -PI/2 = facing -x, i.e. out to the alley).
+     WINDOW_ANCHORS lists, per window, where a dancer would stand and which way she faces (yaw, radians; 0 = facing +z, -PI/2 = facing -x, i.e. out to the alley);
+     that facing is the default (WINDOW_YAW), changeable per anchor (windowAnchors).
    - At the alley's north end (the end opposite the station) it opens into a food court: an open plaza of instanced food stalls, shared tables and stools, hanging coloured
      lanterns, abstract glowing signs (no text), steam from the cookers. Stairs on the west and east sides lead up to an elevated walkway that wraps the west, north
      and east sides of the plaza under a canopy (steel frame, translucent panels), with railings overlooking the court and coloured lamps under the canopy.
@@ -14,7 +15,11 @@
  const EAST_FACES=[[332,354],[358,384],[388,410]];          // the east-side blocks' faces on the alley (z ranges), all at x = ALLEY.x1
  const TINTS=['#8a0f2a','#b0156e','#5a1f9a','#b5601a'];       // deep red, magenta, purple, soft amber (never white)
  const WINDOWS=[];EAST_FACES.forEach(([a,b])=>{const n=Math.floor((b-a-1)/BOOTH.pitch),start=a+(b-a-n*BOOTH.pitch)/2+BOOTH.pitch/2;for(let i=0;i<n;i++)WINDOWS.push({z:start+i*BOOTH.pitch,tint:WINDOWS.length%TINTS.length});});
- const WINDOW_ANCHORS=WINDOWS.map((w,i)=>({id:'alley-window-'+i,x:ALLEY.x1+BOOTH.depth*.55,z:w.z,yaw:-Math.PI/2,faces:'-x (out to the alley)',floor:'quay level (CITY_Y)',tint:TINTS[w.tint]}));
+  // The facing is a default, not a rule (owner, 27 Nov 2026): WINDOW_YAW faces out to the alley; windowAnchors(yaw) builds the same anchors with another facing
+ // (one value, or a function of the window's index), so a dancer added later can face any way the owner chooses. The tint is the booth's coloured light (never white).
+ const WINDOW_YAW=-Math.PI/2;
+ const windowAnchors=(yaw=WINDOW_YAW)=>WINDOWS.map((w,i)=>{const y=typeof yaw==='function'?yaw(i,w):yaw;return {id:'alley-window-'+i,x:ALLEY.x1+BOOTH.depth*.55,z:w.z,yaw:y,faces:y===WINDOW_YAW?'-x (out to the alley)':'custom',floor:'quay level (CITY_Y)',tint:TINTS[w.tint]};});
+ const WINDOW_ANCHORS=windowAnchors();
  const PLAZA={x0:-26,x1:22,z0:412,z1:451.5},U=4.5,BAND=4;   // the walkway is U above the court; bands BAND wide on the west, north and east
  const STAIR={z0:413,z1:425};                                 // the two flights (west and east bands) rise from z0 to z1
  const W_BAND=[PLAZA.x0-BAND,PLAZA.x0],E_BAND=[PLAZA.x1,PLAZA.x1+BAND],N_BAND=[PLAZA.z1,PLAZA.z1+BAND+1];   // the north band runs to the scene's edge (z 456)
@@ -33,7 +38,7 @@
   STALLS.forEach((s,i)=>{const along=Math.abs(Math.sin(s.yaw))>.5;W('stall-'+i,s.x-(along?.8:1.7),s.x+(along?.8:1.7),s.z-(along?1.7:.8),s.z+(along?1.7:.8),1.2);});
   TABLES.forEach((t,i)=>W('table-'+i,t.x-.5,t.x+.5,t.z-1.6,t.z+1.6,.8));
   return S;}
- const api={ALLEY,BOOTH,EAST_FACES,TINTS,WINDOWS,WINDOW_ANCHORS,PLAZA,U,BAND,STAIR,W_BAND,E_BAND,N_BAND,STALLS,TABLES,inBand,heightAt,inCourt,solids};
+ const api={ALLEY,BOOTH,EAST_FACES,TINTS,WINDOWS,WINDOW_YAW,windowAnchors,WINDOW_ANCHORS,PLAZA,U,BAND,STAIR,W_BAND,E_BAND,N_BAND,STALLS,TABLES,inBand,heightAt,inCourt,solids};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
 
  // ================= browser: the build (called from low-quay-city.js with its helpers; the quay ground is at Y) =================

@@ -56,8 +56,9 @@
   if(!Number.isInteger(target)||target<0||target>=BERTHS.length)return {kind:'none',message:MESSAGES.none};
   if(target===at)return {kind:'here',message:MESSAGES.here};
   return {kind:'move',from:at,to:target,swap:craftAt.includes(target)?target:null,message:MESSAGES.calling};}
- // walk height: the stairs from the station to the quay (by z); on the quay, x too: the food court's walkway and its two flights (low-quay-court.js heightAt)
- const groundHeight=(z,x)=>z<=STAIRS[0]?0:z<STAIRS[1]?CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]):CITY_Y+(x!=null&&court()?court().heightAt(x,z):0);
+ // walk height: the stairs from the station to the quay (by z); on the quay, x too: the food court's walkway and its two flights (low-quay-court.js heightAt), and in
+ // PLUG & PLAY the stage deck and the steps down from its rear doorway (low-quay-club.js heightAt)
+ const groundHeight=(z,x)=>z<=STAIRS[0]?0:z<STAIRS[1]?CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]):CITY_Y+(x!=null&&court()?court().heightAt(x,z):0)+(x!=null&&club()?.inside(x,z)?club().heightAt(x,z):0);
  const api={groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,live:null};
  api.models=(location,quality)=>location===ID?{[TERMINAL_ID]:{src:TERMINAL_SRC,scale:1},...(club()?.models()||{})}:{};
   // ---- wiring (also in Node, so the tests see the layout) ----

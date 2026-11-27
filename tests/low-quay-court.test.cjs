@@ -1,6 +1,6 @@
 'use strict';
 // Low Quay's main alley and food court (void-runner/low-quay-court.js): reachable on foot from the subway stairs; the walkway reached only by its two flights
-// (never a jump between the court and the walkway); the window booths closed to players; one documented dancer anchor per window.
+// (never a jump between the court and the walkway); the window booths not walkable in the current build; one usable dancer anchor per window (its facing a default).
 const test=require('node:test'),assert=require('node:assert/strict');
 const LQ=require('../void-runner/low-quay.js'),CO=require('../void-runner/low-quay-court.js');
 const R=.38,L=LQ.layout(),blocked=(x,z)=>Math.abs(x)>L.bounds[0]-R||Math.abs(z)>L.bounds[1]-R||L.solids.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+R&&Math.abs(z-s.position[2])<s.size[2]/2+R);
@@ -15,9 +15,16 @@ test('from the stairs: up the alley, into the food court, up both flights onto t
 test('no step between neighbouring floor cells is more than a stair riser (no jumping from the walkway into the court)',()=>{
  assert.ok(steps.length>1000);assert.ok(Math.max(...steps)<.3,'largest step '+Math.max(...steps).toFixed(2));
 });
-test('the window booths are closed to players and each window has a documented dancer anchor',()=>{
+// Players cannot walk into the booths in the current build (the block collision); whether they may is the owner's open decision, recorded here only as the current state.
+test('each window has a usable dancer anchor: inside its booth with room for a dancer, a finite facing, coloured light; the facing is a default, not a fixed angle',()=>{
  assert.ok(CO.WINDOWS.length>=10);assert.equal(CO.WINDOW_ANCHORS.length,CO.WINDOWS.length);
- for(const a of CO.WINDOW_ANCHORS){assert.ok(!can(a.x,a.z),a.id+' not walkable');assert.ok(a.x>CO.ALLEY.x1&&a.x<CO.ALLEY.x1+CO.BOOTH.depth);assert.equal(a.yaw,-Math.PI/2);assert.ok(!/#f{3,6}\b/i.test(a.tint));}
+ const DANCER=.35,valid=(a,w)=>[a.x,a.z,a.yaw].every(Number.isFinite)&&a.x>CO.ALLEY.x1+DANCER&&a.x<CO.ALLEY.x1+CO.BOOTH.depth-DANCER&&Math.abs(a.z-w.z)<CO.BOOTH.width/2-DANCER;
+ CO.WINDOW_ANCHORS.forEach((a,i)=>{const w=CO.WINDOWS[i];assert.ok(valid(a,w),a.id+' stands inside its booth');assert.ok(!can(a.x,a.z),a.id+' (current build: booths not walkable)');
+  assert.ok(!/^#?(f{3}|f{6})$/i.test(a.tint)&&CO.TINTS.includes(a.tint),a.id+' coloured light, never white');});
+ // the default faces out through the booth's glass to the alley (a component toward -x), whatever its exact angle
+ assert.ok(CO.WINDOW_ANCHORS.every(a=>-Math.sin(a.yaw)>.5),'the default faces the alley');
+ // any other facing the owner picks builds valid anchors too (one value, or one per window)
+ for(const yaw of [0,Math.PI/2,Math.PI,-Math.PI*.75,-Math.PI/2+.4,(i)=>i*.7])CO.windowAnchors(yaw).forEach((a,i)=>{assert.ok(valid(a,CO.WINDOWS[i]),'yaw '+yaw+' '+a.id);assert.equal(a.yaw,typeof yaw==='function'?yaw(i):yaw);});
  // one side only: the alley's west side has no windows
  assert.ok(CO.WINDOWS.every(w=>w.z>CO.ALLEY.z0&&w.z<CO.ALLEY.z1));
 });
