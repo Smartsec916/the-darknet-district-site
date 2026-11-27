@@ -37,8 +37,10 @@ Already done by others, preserved: the station kit overhaul (docs/development/ST
 | Erebus | Rusthaven Port | same | exterior salvage yard (rusthaven-surroundings.glb, 5k faces): 34 torn hull sections and scrap slabs, three scrap crane gantries with magnet plates, cable webs | interior wear; yard detail | not measured | batch 5 | same | Testing |
 | Erebus | The Foundry | same | exterior heavy industry (foundry-surroundings.glb, 2.3k faces): twin smelter stacks with glowing mouths, reactor sphere, radiator bank, conveyor trusses | interior; glow animation | not measured | batch 5 | same | Testing |
 | Erebus | Kepler Exchange, Vesper surface, Vesper Relay, Survey Landing | not yet inspected in detail | none | Kepler: ask for canon first; Vesper has its own authored scene; relays and Survey Landing are placeholders | | | | Pending |
-| Cantor | The Vigil, The Nexus | `station-layouts.js`, `planets.js` | none yet | Nexus landing area is code boxes; Vigil exterior | | | | Pending |
-| Garrow | Holdfast, Natural Order homeworld | same | none yet | homeworld landscape (vegetation, fields), Holdfast exterior | | | | Pending |
+| Cantor | The Vigil | `station-layouts.js`, kit identity | exterior (vigil-surroundings.glb, 1.1k faces): slim lit halo ring on edge with spokes, cyan-banded spire, nine floating monolith slabs on tethers | interior identity; The Nexus landing area (code boxes) | not measured | batch 6 | `docs/development/universe-graphics/cantor-garrow-stations.jpg` | Testing |
+| Cantor | The Nexus | `planets.js` | none yet | landing area is code-built boxes; needs owner direction on look | | | | Pending |
+| Garrow | Holdfast | station-layouts, kit identity | exterior (holdfast-surroundings.glb, 2.2k faces): layered timber-and-plate shield wall behind the hull with buttresses, four green greenhouse domes on arms, scaffolds with lamp posts | interior identity | not measured | batch 6 | same | Testing |
+| Garrow | Natural Order homeworld | `planets.js` | none yet | vegetation, fields, terrain (largest remaining job) | | | | Pending |
 
 Not implemented as destinations (recorded, not invented): Cantor "Communion Recovery Plaza", any named "agricultural settlement" beyond the `order-homeworld` landing area (settlement id `order-homeworld-settlement`, provisional name Haven's Reach), and The Nexus city. No ids exist for them in `universe.js`.
 
@@ -86,4 +88,5 @@ Recommendation by asset type (a judgement from this one test, not a general law)
 
 ### Batch log addendum
 
+| 6 | Cantor and Garrow station exteriors: The Vigil (halo ring, spire, monoliths), Holdfast (shield wall, greenhouse domes) | `2026-11-26-universe-6` | pending |
 | 4 | Vantor Relay hangar shell plus Vantor animation and commercial/residential detail: rotating fans, steam, drips, dust motes, two lifts, a gantry hoist, flickering lamps; blade signs, noodle bar, air units and laundry on the stacked housing, elevator shafts, transit board gantry | `2026-11-26-universe-4` | pending |

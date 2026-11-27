@@ -7,7 +7,7 @@
  'use strict';
  const ID='anchorage:belt',SRC='assets/models/anchorage/anchorage-belt.glb',api={ID,SRC};
  // Scenery sets for the other Meridian-class hulls (tools/assets/universe/build_erebus.py): Meridian's orbital ring and docking spars, Rusthaven's salvage yard, the Foundry's smelter stacks and reactor.
- const SETS={'sol-belt':{id:ID,src:SRC},meridian:{id:'station:meridian-set',src:'assets/models/stations/meridian-surroundings.glb'},rusthaven:{id:'station:rusthaven-set',src:'assets/models/stations/rusthaven-surroundings.glb'},foundry:{id:'station:foundry-set',src:'assets/models/stations/foundry-surroundings.glb'}};
+ const SETS={'sol-belt':{id:ID,src:SRC},meridian:{id:'station:meridian-set',src:'assets/models/stations/meridian-surroundings.glb'},rusthaven:{id:'station:rusthaven-set',src:'assets/models/stations/rusthaven-surroundings.glb'},foundry:{id:'station:foundry-set',src:'assets/models/stations/foundry-surroundings.glb'},vigil:{id:'station:vigil-set',src:'assets/models/stations/vigil-surroundings.glb'},holdfast:{id:'station:holdfast-set',src:'assets/models/stations/holdfast-surroundings.glb'}};
  const applies=(id,quality)=>!!SETS[id]&&quality!=='low';
  api.models=(id,quality)=>applies(id,quality)?{[SETS[id].id]:{src:SETS[id].src,scale:1}}:{};
  api.dress=({scene,parent,id,quality,instance})=>{
