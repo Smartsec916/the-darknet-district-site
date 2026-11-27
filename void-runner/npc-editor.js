@@ -15,7 +15,7 @@
  const DTX=()=>typeof VoidDevTools!=='undefined'?VoidDevTools:null;   // dev-tools.js declares it with const (not a window property)
  const S=()=>root.VoidMissionEditor.shared,X=()=>root.VoidNPCPaths,RETURN='npc-editor-return';
  const ADV='npc-editor-advanced';const advanced=()=>{try{return root.localStorage.getItem(ADV)==='1';}catch{return false;}};
- const ui={look:{},block:{},area:{},recipe:{},clock:{},id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
+ const ui={look:{},block:{},area:{},recipe:{},clock:{},id:null,search:'',lineSearch:'',preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
  let host=null,headNode=null,status='',imports=[],importsLoaded=false;
  const el=(...a)=>S().el(...a),btn=(...a)=>S().btn(...a),hint=(t,a)=>S().hint(t,a);
  const HELP={

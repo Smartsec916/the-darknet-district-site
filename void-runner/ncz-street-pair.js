@@ -10,8 +10,7 @@
   dances:['dance-groove','dance-bop'],talk:['talk','gesture'],shrug:'shrug',floor:['floor-kneel','floor-cross','floor-knees'],
   floorMoves:['kneel','cross','knees'].flatMap(p=>['floor-'+p+'-down','floor-'+p+'-up']).concat(['cross','knees'].flatMap(p=>['floor-'+p+'-down-hi','floor-'+p+'-up-hi']))};   // floor: the floor poses (21 Nov 2026, posed by code: make_floor_poses.py), at a cushion, a cot or a bench
  const CLIP_LIST=[...CLIPS.idles,...CLIPS.look,CLIPS.walk,CLIPS.run,CLIPS.sitDown,CLIPS.sit,CLIPS.standUp,CLIPS.wave,...CLIPS.dances,...CLIPS.talk,CLIPS.shrug,...CLIPS.floor,...CLIPS.floorMoves];   // floorMoves: sitting down to a floor pose and standing up from it (21 Nov 2026)
- // Never add these to the pair (the owner's content rule for these two: youthful faces, ordinary street residents): no sensual, slow, belly, hip, twerk, grind,
- // pole, "milked", flirt, kiss or seductive clips, no reclining or lying poses.
+ // Legacy clip-name filter still used by NPC placement actions and mission gestures.
  const BANNED=/sensual|slow|belly|hip|twerk|grind|pole|milk|flirt|kiss|seduc|coy|samba|recline|lap|strip|club/i;
  const DEVICE=['scroll','selfie','photo'];    // npc-device.js poses they use (reading while walking comes from its own scheduler)
  const QUARTER='avenue',CAT='npc-street-cat';
