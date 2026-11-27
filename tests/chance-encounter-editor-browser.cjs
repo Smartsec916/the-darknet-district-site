@@ -145,8 +145,21 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     await page.getByRole('button', { name: 'Preview in apartment' }).click();
     assert.equal(await page.evaluate(() => window.testStart), 'flat');
 
+    await page.locator('.encounter-board').getByRole('button',{name:'Lace',exact:true}).click();
+    await page.getByRole('button',{name:'Start from this point: Free Lace',exact:true}).last().click();
+    assert.equal(await page.evaluate(()=>window.testStart),'rescue');
+    const branchStart=chance.getByRole('button',{name:'Start from this point: Chance playlist 1',exact:true});
+    await branchStart.click();
+    await free.getByText(/Playing .*Branch dialogue/).waitFor();
+    await free.getByText('Preview complete',{exact:true}).waitFor();
+    await page.evaluate(()=>{Math.random=()=>.99;});
+    await main.getByRole('button',{name:'Start from this point: Main playlist 1',exact:true}).click();
+    await free.getByText(/Playing .*First main action/).waitFor();
+    await free.getByRole('button',{name:'Stop execution preview',exact:true}).click();
+    await free.getByText('Preview stopped',{exact:true}).waitFor();
+
     await page.evaluate(()=>{const rolls=[.1,.2,.95,.3,.99,.3];Math.random=()=>rolls.shift()??.99;});
-    await free.getByRole('button',{name:'Preview execution',exact:true}).click();
+    await free.getByRole('button',{name:'Start from this point: Free Lace',exact:true}).click();
     await free.getByText(/Playing .*First main action/).waitFor();
     await free.getByText(/Reroll after .*First main action/).first().waitFor();
     await free.getByText(/Rolled 95.00% after .*First main action .* Continue/).first().waitFor();

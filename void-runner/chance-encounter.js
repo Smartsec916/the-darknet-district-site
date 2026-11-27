@@ -50,9 +50,9 @@
   return segments;
  }
 
- async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},scope=(_kind,_item,_signal,work)=>work(),repeat=(parent,_,run)=>run(parent)}){
+ async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},scope=(_kind,_item,_signal,work)=>work(),repeat=(parent,_,run)=>run(parent),previewTarget}){
   const restart=Symbol('legacy main restart');
-  const segments=playlistSegments(rows);
+  const segments=previewTarget?.segment?[previewTarget.segment]:playlistSegments(rows);
   let legacyActive=segments.some(segment=>segment.legacy);
   async function actions(items,signal,main,legacyReturn,marked=null){
    const next=index=>{
@@ -120,6 +120,10 @@
    }
    await actions(after,signal,!child,legacyReturn);
    return true;
+  }
+  if(previewTarget?.branch){
+   const branch=previewTarget.branch;
+   return scope('chance',branch,signal,()=>sequence(branchPlaylist(branch,byId),branch.passes??1,signal,true));
   }
   let jumpToLegacy=false;
   for(const segment of segments){
@@ -227,8 +231,12 @@
   return [...rows,...saved].filter(row=>row?.animationSpeed!==undefined&&!validAnimationSpeed(row.animationSpeed))
    .map(row=>'Enter a playback speed greater than 0 for '+row.id+'.');
  }
+ function spokenText(text){
+  const voices=root.VoidNPCVoices||(typeof module==='object'&&module.exports?require('./npc-voices.js'):null);
+  return (voices?.strip(text)??text??'').trim();
+ }
  function lineSeconds(row,clipSeconds=()=>undefined,replay=false){
-  const text=(!replay||row.repeatSpeech)&&row.text?.trim();
+  const text=(!replay||row.repeatSpeech)&&spokenText(row.text);
   const animation=(!replay||row.repeatAnimation)&&row.animation;
   const speech=text?(row.recording?.duration||Math.max(1.5,text.length*.055)):0;
   const clip=animation?(row.animationSeconds??clipSeconds(row)):0;
@@ -443,7 +451,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,lineSeconds,timing,soundLists,soundProblems,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,spokenText,lineSeconds,timing,soundLists,soundProblems,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);

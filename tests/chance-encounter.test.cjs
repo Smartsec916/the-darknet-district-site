@@ -4,11 +4,30 @@ const engine=require('../void-runner/chance-encounter.js');
 const seed=require('../void-runner/chance-encounter-seed.json');
 const crossing=require('../void-runner/chance-crossing.js');
 
+test('encounter captions and their timing leave out delivery tags',()=>{
+ const text='[whispers] Keep the lights low while we wait here [pause], and listen. [sighs]';
+ const spoken='Keep the lights low while we wait here, and listen.';
+ assert.equal(engine.spokenText(text),spoken);
+ assert.equal(engine.lineSeconds({text}).seconds,engine.lineSeconds({text:spoken}).seconds);
+ assert.equal(engine.lineSeconds({text,recording:{duration:4}}).seconds,4);
+ assert.equal(engine.spokenText('Check panel [2].'),'Check panel [2].');
+ assert.equal(engine.spokenText('[sighs]'),'');
+});
+
 test('a delayed taxi must travel through the crossing before the card drops',()=>{
  const taxi={s:96,pathLen:100},plan={start:96,distance:8,taxi};
  assert.equal(crossing.crossingProgress(plan),0);
  taxi.s=0;assert.equal(crossing.crossingProgress(plan),.5);
  taxi.s=5;assert.equal(crossing.crossingProgress(plan),1);
+});
+
+test('the tire squeal starts just before impact at the current taxi speed',()=>{
+ const plan={distance:20,taxi:{speed:10}};
+ assert.equal(crossing.tireSquealDue(plan,.8),false);
+ assert.equal(crossing.tireSquealDue(plan,.9),true);
+ assert.equal(crossing.tireSquealDue(plan,1),false);
+ plan.taxi.speed=3;
+ assert.equal(crossing.tireSquealDue(plan,.9),false);
 });
 
 test('all apartment choices are reachable after the crossing and drop',()=>{

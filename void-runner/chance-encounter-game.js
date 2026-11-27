@@ -70,7 +70,7 @@
 
   async function action(line,signal,replay){
    signal.throwIfAborted();
-   const text=replay&&!line.repeatSpeech?'':line.text.trim();
+   const text=replay&&!line.repeatSpeech?'':api.spokenText(line.text);
    const animation=replay&&!line.repeatAnimation?'':line.animation;
    if(text||animation||line.soundCues?.length){
     if(line.delay)await delay(line.delay*1000,signal);
@@ -186,6 +186,7 @@
  }
  async function walk(run){
   await until(()=>root.VoidRoadTaxi?.world?.quarter==='oldtown',run.signal,30000);
+  if(run.graph.item&&run.graph.dropPosition)preloadCard(run);
   run.actor=await model(run,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
   run.impactVoice=await voiceBuffer(run,'kade-taxi-impact.mp3');
   const crossing=root.VoidChanceCrossing;
@@ -200,15 +201,15 @@
    if(progress>lastProgress){lastProgress=progress;lastMotion=performance.now();}
    else if(performance.now()-lastMotion>60000)throw Error('The taxi could not reach the crossing.');
    standing(run.actor,crossing.walking(run.plan,progress*run.plan.seconds));
+   if(!run.tiresSquealed&&crossing.tireSquealDue(run.plan,progress)){run.tiresSquealed=true;tireSqueal(run);}
    return progress>=1;
   },run.signal);
  }
  const witnessLines=[
-  'So unsafe. I liked it better when I could yell at a person.',
-  "They're revolting! Yesterday mine demanded a tip.",
-  'Somewhere a little checkbox says pedestrian detected.',
-  'My taxi asked me to rate the ride. Does he get a vote?',
-  'It stopped for a plastic bag this morning. A plastic bag.'
+  [1,'So unsafe. I liked it better when I could yell at a person.'],
+  [2,"They're revolting! Yesterday mine demanded a tip."],
+  [3,'Somewhere a little checkbox says pedestrian detected.'],
+  [5,'It stopped for a plastic bag this morning. A plastic bag.']
  ];
  // The model folds at its knees while its centre of mass rolls away from the bumper.
  function impactPose(actor,recover=false){
@@ -243,6 +244,19 @@
   source.onended=()=>{source.disconnect();run.signal.removeEventListener('abort',stop);};
   run.signal.addEventListener('abort',stop,{once:true});source.start();
  }
+ function tireSqueal(run){
+  const bus=root.VoidAudio?.bus('effects');if(!bus)return;
+  const ctx=bus.context,now=ctx.currentTime,tire=ctx.createOscillator(),gain=ctx.createGain();
+  tire.type='triangle';tire.frequency.setValueAtTime(920,now);
+  tire.frequency.exponentialRampToValueAtTime(1480,now+.07);
+  tire.frequency.exponentialRampToValueAtTime(760,now+.23);
+  gain.gain.setValueAtTime(.001,now);gain.gain.exponentialRampToValueAtTime(.07,now+.045);
+  gain.gain.exponentialRampToValueAtTime(.001,now+.25);
+  tire.connect(gain);gain.connect(bus.node);
+  const stop=()=>tire.stop();
+  tire.onended=()=>{tire.disconnect();gain.disconnect();run.signal.removeEventListener('abort',stop);};
+  run.signal.addEventListener('abort',stop,{once:true});tire.start(now);tire.stop(now+.26);
+ }
  function taxiImpact(run){
   const bus=root.VoidAudio?.bus('effects');
   if(bus){
@@ -258,10 +272,10 @@
   if(!event)return;
   run.signal.addEventListener('abort',event.end,{once:true});
   if(event.reactions.some(person=>person.mode==='watch')){
-   const index=Math.floor(Math.random()*witnessLines.length);
-   Promise.all([delay(1400,run.signal),voiceBuffer(run,'taxi-witness-'+(index+1)+'.ogg')]).then(([,buffer])=>{
+   const [clip,text]=witnessLines[Math.floor(Math.random()*witnessLines.length)];
+   Promise.all([delay(1400,run.signal),voiceBuffer(run,'taxi-witness-'+clip+'.ogg')]).then(([,buffer])=>{
     if(!run.signal.aborted&&walkingLocation?.area==='street'&&root.VoidRoadTaxi?.world?.quarter==='oldtown'){
-     announce('Passer-by: '+witnessLines[index]);playVoice(run,buffer);
+     announce('Passer-by: '+text);playVoice(run,buffer);
     }
    }).catch(e=>{if(e.name!=='AbortError')console.warn(e);});
   }
@@ -293,13 +307,20 @@
   spill.position.set(x,y+.002,z);
   spill.material=material;spill.isPickable=false;
   card.onDisposeObservable.addOnce(()=>{spill.dispose();material.dispose(false,true);});
+  return spill;
+ }
+ function preloadCard(run){
+  const assets=root.VoidAssets,id='encounter-key:'+keyModel;
+  if(!run.cardLoad&&!assets.container(id))run.cardLoad=assets.load(id,{src:keyModel,background:true},root.VoidBabylon.scene).catch(()=>{});
+  return run.cardLoad;
  }
  async function drop(run){
-  const home=address(run);
-  const info=run.private?{name:"Kade and Lace's Apartment Key",position:run.graph.dropPosition,range:run.graph.pickupDistance,model:keyModel}:
-   await root.VoidConsumableGame.request('chance-encounters/drop',{id:run.graph.id,run:run.token});
-  const card=await model(run,'encounter-key',info.model||keyModel);
-  const at=run.dropPosition=info.position,plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
+  const home=address(run),at=run.graph.dropPosition;
+  const request=run.private?Promise.resolve({name:"Kade and Lace's Apartment Key",position:at,range:run.graph.pickupDistance,model:keyModel}):
+   root.VoidConsumableGame.request('chance-encounters/drop',{id:run.graph.id,run:run.token}).catch(error=>({error}));
+  await run.cardLoad;
+  let card=await model(run,'encounter-key:'+keyModel,keyModel);
+  const plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
   const scene=root.VoidBabylon.scene,ray=new (B().Ray)(new (B().Vector3)(at.x,.65,at.z),B().Vector3.Down(),1.2);
   const ground=scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&/sidewalk|paving|asphalt|road|city-ground/i.test(m.material?.name||m.name));
   const surface=ground?.hit?ground.pickedPoint.y:0;
@@ -311,6 +332,18 @@
    if(t>=.85)break;
    await delay(16,run.signal);
   }while(true);
+  let spill=cardGroundGlow(scene,card.parent,at.x,surface,at.z);
+  const info=await request;
+  run.signal.throwIfAborted();if(info.error)throw info.error;
+  run.dropPosition=info.position;
+  if(info.model&&info.model!==keyModel){
+   const old=card;card=await model(run,'encounter-key:'+info.model,info.model);
+   card.parent.position.copyFrom(old.parent.position);card.parent.rotation.copyFrom(old.parent.rotation);card.parent.scaling.copyFrom(old.parent.scaling);
+   old.parent.dispose();run.owned.delete(old.parent);
+   spill=cardGroundGlow(scene,card.parent,at.x,surface,at.z);
+  }
+  card.parent.position.x=info.position.x;card.parent.position.z=info.position.z;
+  spill.position.x=info.position.x;spill.position.z=info.position.z;
   if(run.actor){
    const actor=run.actor;
    const recover=async()=>{
@@ -330,7 +363,6 @@
    edge.emissiveColor.set(.23,.88,1.05);
    card.parent.onDisposeObservable.addOnce(()=>edge.dispose());
   }
-  cardGroundGlow(scene,card.parent,at.x,surface,at.z);
   const outlineColor=new (B().Color3)(.26,.57,.62);
   for(const mesh of meshes){mesh.outlineWidth=.002;mesh.outlineColor=outlineColor;}
   const focus=()=>{
@@ -475,16 +507,9 @@
   }
   figure.parent.position.y+=floor-bottom;
  }
- async function flat(run,jump){
-  const a=address(run);preloadLace(run);
-  if(jump&&run.private){
-   await root.VoidApartments.enterHall(a.door,[]);
-   await root.VoidApartments.enterFlat({id:'residence-'+a.slot,key:a.target,door:a.door.id,style:a.door.style,
-    residenceSlot:a.slot,number:a.number,items:[],residents:[]});
-  }
-  await until(()=>typeof walkingLocation!=='undefined'&&walkingLocation?.part==='flat'&&walkingLocation.inst===a.target,run.signal);
-  run.signal.throwIfAborted();run.entered=a.target;
-  run.lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
+ async function poseLace(run,a){
+  preloadLace(run);
+  const lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
   const placement=run.graph.placement,anchor=root.VoidApartments.world([placement.x,placement.y,placement.z]);
   // Older drafts used the original default position half a metre from the bed.
   const room=root.VoidApartments.geo(a.door.style);
@@ -494,13 +519,39 @@
    bedEdge=anchor[0]+bed[0]-placement.x;
    anchor[0]=bedEdge-.04;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
   }
-  standing(run.lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
-  run.lace.parent.scaling.setAll(placement.scale);
+  standing(lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
+  lace.parent.scaling.setAll(placement.scale);
   const transition=['sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip);
-  const posed=await assignedClip(run.lace,laceLook,placement.clip,run.signal,!transition);
+  const posed=await assignedClip(lace,laceLook,placement.clip,run.signal,!transition);
   posed.goToFrame(posed.from);
-  groundPose(run.lace,anchor[1],bedEdge,room.FURN.bed[4]);
-  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace,room,a.door.style);
+  groundPose(lace,anchor[1],bedEdge,room.FURN.bed[4]);
+  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(lace,room,a.door.style);
+  run.lace=lace;
+ }
+ function prepareApartment(inst){
+  const run=running;
+  if(!run||(!run.holds&&!run.openingFlat)||!run.graph.placement||!run.graph.residence||run.entered)return;
+  let a;
+  try{a=address(run);}catch{return;}
+  if(inst!==a.target)return;
+  run.laceReady??=poseLace(run,a);
+  // The encounter handles its own asset errors. The apartment still opens if a model is unavailable.
+  return run.laceReady.catch(()=>{});
+ }
+ async function flat(run,jump){
+  const a=address(run);preloadLace(run);
+  if(jump&&run.private){
+   run.openingFlat=true;
+   try{
+    await root.VoidApartments.enterHall(a.door,[]);
+    run.signal.throwIfAborted();
+    await root.VoidApartments.enterFlat({id:'residence-'+a.slot,key:a.target,door:a.door.id,style:a.door.style,
+     residenceSlot:a.slot,number:a.number,items:[],residents:[]});
+   }finally{run.openingFlat=false;}
+  }
+  await until(()=>typeof walkingLocation!=='undefined'&&walkingLocation?.part==='flat'&&walkingLocation.inst===a.target,run.signal);
+  run.signal.throwIfAborted();run.entered=a.target;
+  await (run.laceReady??=poseLace(run,a));
   await lines(run,'arrival','opening');
  }
  async function releaseLace(run){
@@ -800,7 +851,7 @@
   else position=[run.graph.playtest.x,1,run.graph.playtest.z];
   return position?{position,quarter,key:'encounter:'+run.graph.id+'|'+run.node.id,label:run.node.name,encounter:true}:null;
  }
- root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,setTracked(value){if(running?.participating)running.tracked=value;},playerStep(w){
+ root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,prepareApartment,setTracked(value){if(running?.participating)running.tracked=value;},playerStep(w){
    const pov=running?.pov;if(!pov||pov.w!==w||walkingLocation?.inst!==pov.inst||pov.head.isDisposed())return false;
    pov.head.computeWorldMatrix(true);const eye=pov.head.getAbsolutePosition();w.x=eye.x;w.y=eye.y+.06;w.z=eye.z;return true;
   },hidesResident:id=>running?.graph.residence?.character===id,get privateSession(){return document.getElementById('dev-test-banner')?.dataset.kind==='encounter';},

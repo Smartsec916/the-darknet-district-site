@@ -66,7 +66,7 @@
  const data=()=>{const id=spaceId();if(id==='neochinatown')return M||(M=model(root.VoidNeoChinatown));const sp=root.VoidAreaMap?.get(id);return MAPS[id]||(MAPS[id]=sp?sp.model():M||(M=model(root.VoidNeoChinatown)));};
  const spaceName=()=>spaceId()==='neochinatown'?'NEOCHINATOWN':(root.VoidAreaMap?.get(spaceId())?.name||'AREA').toUpperCase();
  // The fog of the current separate area: the live one while the player is in it (kept by its 3D build), else the saved one.
- const fogNow=()=>{const id=spaceId();if(id==='neochinatown')return null;const sp=root.VoidAreaMap?.get(id);if(!sp)return null;try{return root.VoidBabylon?.zone?.fog||root.VoidAreaMap.load(sp,flags());}catch{return null;}};
+ const fogNow=()=>{const id=spaceId();if(id==='neochinatown')return null;const sp=root.VoidAreaMap?.get(id);if(!sp||sp.publicMap)return null;try{return root.VoidBabylon?.zone?.fog||root.VoidAreaMap.load(sp,flags());}catch{return null;}};
  const fogOk=(q,fog)=>!fog||q.kind==='transit'||fog.isExplored(q.x,q.z);
  const flags=()=>{try{return state?.story?.flags||null;}catch{return null;}};
  const me=()=>{try{if(typeof walker==='undefined'||!walker||(walkingLocation?.id!=='neochinatown'&&!walkingLocation?.mapSpace))return null;return {x:walker.x,z:walker.z,yaw:walker.yaw,area:walkingLocation.area==='interior'?'interior':'street'};}catch{return null;}};
@@ -90,7 +90,8 @@
   const rect=(r,fill,stroke)=>{const a=S(r[0],r[3]),b=S(r[1],r[2]);if(fill){g.fillStyle=fill;g.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);}if(stroke){g.strokeStyle=stroke;g.strokeRect(a[0]+.5,a[1]+.5,b[0]-a[0]-1,b[1]-a[1]-1);}};
   if(isDev())for(const d of m.pois.filter(x=>x.dev&&x.rect)){g.setLineDash([6,6]);rect(d.rect,null,'rgba(122,135,148,.6)');g.setLineDash([]);}
   for(const s of m.streets)rect(s.rect,'rgba(40,74,92,.55)','rgba(88,255,225,.22)');
-  for(const b of m.buildings)rect(b.rect,'rgba(97,238,233,.06)','rgba(97,238,233,.5)');
+  for(const b of m.buildings)rect(b.rect,b.featured?'#562a50':'rgba(97,238,233,.06)',b.featured?'#ff7bd2':'rgba(97,238,233,.5)');
+  if(m.rail){g.strokeStyle='#5ce8ff';g.lineWidth=1.5;for(const [a,b] of m.rail){g.beginPath();g.moveTo(...S(...a));g.lineTo(...S(...b));g.stroke();}}
   // walls: of the environment the player is in (the other one is drawn faintly: it is real, but not where they are)
   for(const [area,list] of Object.entries(m.walls)){const here=(area==='interior')===!!inside;g.fillStyle=area==='interior'?(here?'rgba(97,238,233,.5)':'rgba(97,238,233,.14)'):(here?'rgba(120,200,220,.5)':'rgba(120,200,220,.2)');
    if(area==='interior'&&view.s<2.2)continue;for(const r of list){const a=S(r.x0,r.z1),b=S(r.x1,r.z0);g.fillRect(a[0],a[1],Math.max(1.5,b[0]-a[0]),Math.max(1.5,b[1]-a[1]));}}
@@ -107,7 +108,7 @@
   for(const q of shown){const [x,y]=S(q.x,q.z);if(x<-20||y<-20||x>W+20||y>H+20)continue;const c=COLOR[q.kind]||'#9fd0ff',sel=q===selected,target=q===wp;
    g.strokeStyle=c;g.fillStyle=sel||target?c:'rgba(3,8,13,.9)';g.lineWidth=sel?2.5:1.5;g.beginPath();g.moveTo(x,y-6);g.lineTo(x+6,y);g.lineTo(x,y+6);g.lineTo(x-6,y);g.closePath();g.fill();g.stroke();
    if(target){g.strokeStyle='#ffe066';g.lineWidth=2;g.beginPath();g.arc(x,y,11+3*Math.sin(pulse),0,7);g.stroke();}
-   if(sel||target||view.s>=4.5){g.fillStyle='rgba(3,8,13,.82)';const w=g.measureText(q.name).width+10;g.fillRect(x+10,y-9,w,18);g.fillStyle=sel||target?'#fff':'#cfe9ee';g.fillText(q.name,x+15,y+1);}}
+   if(sel||target||view.s>=4.5||m.rail){g.fillStyle='rgba(3,8,13,.82)';const w=g.measureText(q.name).width+10;g.fillRect(x+10,y-9,w,18);g.fillStyle=sel||target?'#fff':'#cfe9ee';g.fillText(q.name,x+15,y+1);}}
   if(p){const [x,y]=S(p.x,p.z),fx=Math.sin(p.yaw),fy=-Math.cos(p.yaw);
    if(wp){const t=wp.area!=='both'&&wp.area!==p.area?m.vestibule:wp,[tx,ty]=S(t.x,t.z);g.setLineDash([5,7]);g.strokeStyle='rgba(255,224,102,.7)';g.lineWidth=1.5;g.beginPath();g.moveTo(x,y);g.lineTo(tx,ty);g.stroke();g.setLineDash([]);}
    g.fillStyle='rgba(88,255,225,.16)';g.beginPath();g.moveTo(x,y);g.arc(x,y,34,Math.atan2(fy,fx)-.5,Math.atan2(fy,fx)+.5);g.closePath();g.fill();
@@ -121,20 +122,21 @@
   if(!q){el.innerHTML='<div class="pd-note">'+(wp?'Waypoint: <b>'+esc(wp.name)+'</b>. ':'')+'Select a marker or a place below. Drag to move the map; scroll or use + and − to zoom.</div>'+(wp?'<button type="button" data-map="clear">CLEAR WAYPOINT</button>':'');return;}
   const gd=p?guidance(data(),q,p):null,isWp=wp===q;
   el.innerHTML='<div class="dm-card"><b>'+esc(q.name)+'</b><span>'+esc(q.kind==='dev'?'DEVELOPMENT ONLY':q.area==='interior'?'INSIDE THE DARKNET DISTRICT':q.area==='both'?'BETWEEN THE STREET AND THE DISTRICT':spaceName())+(gd?' · '+VoidUnits.fmtDist(gd.distance)+(gd.via?' to the security vestibule':''):'')+'</span>'
-   +'<p>Direction only. This model has no route data: follow the pointer and find your own way around walls.'+(gd?.via?' The destination is on the other side of the security checkpoint.':'')+'</p>'
+   +(q.note?'<p>'+esc(q.note)+'</p>':'')+'<p>Direction only. This model has no route data: follow the pointer and find your own way around walls.'+(gd?.via?' The destination is on the other side of the security checkpoint.':'')+'</p>'
    +'<div><button type="button" data-map="'+(isWp?'clear':'set')+'">'+(isWp?'CLEAR WAYPOINT':'SET WAYPOINT')+'</button><button type="button" data-map="deselect">CLOSE</button></div></div>';
  }
  function paintList(){const el=host?.querySelector('[data-map-list]');if(!el)return;const fg=fogNow(),shown=visible(data(),layers,isDev()).filter(q=>fogOk(q,fg));
   el.innerHTML='<h2>PLACES</h2>'+(shown.length?shown.map(q=>'<button type="button" class="dm-row" data-map="pick:'+esc(q.id)+'"><i style="background:'+(COLOR[q.kind]||'#9fd0ff')+'"></i>'+esc(q.name)+'<span>'+(q.area==='interior'?'DISTRICT':q.area==='both'?'CHECKPOINT':'STREET')+'</span></button>').join(''):'<div class="pd-note">Nothing on the layers that are switched on.</div>');}
  function paintLayers(){const el=host?.querySelector('[data-map-layers]');if(!el)return;el.innerHTML=LAYERS.map(([id,label])=>'<button type="button" data-map="layer:'+id+'" aria-pressed="'+(layers[id]!==false)+'"'+(id==='players'?' disabled title="Other players are not shown on the map."':'')+'>'+label+'</button>').join('');}
- const zoom=(k,px,py)=>{const s=Math.max(.7,Math.min(22,view.s*k));if(px!==undefined){const wx=view.cx+(px-cv.width/2)/view.s,wz=view.cz-(py-cv.height/2)/view.s;view.cx=wx-(px-cv.width/2)/s;view.cz=wz+(py-cv.height/2)/s;}view.s=s;draw();};
+ const zoom=(k,px,py)=>{const s=Math.max(Math.min(.7,wholeView().s),Math.min(22,view.s*k));if(px!==undefined){const wx=view.cx+(px-cv.width/2)/view.s,wz=view.cz-(py-cv.height/2)/view.s;view.cx=wx-(px-cv.width/2)/s;view.cz=wz+(py-cv.height/2)/s;}view.s=s;draw();};
+ const wholeView=()=>{const b=data().bounds;return {cx:(b.x0+b.x1)/2,cz:(b.z0+b.z1)/2,s:Math.min(cv.width/(b.x1-b.x0),cv.height/(b.z1-b.z0))};};
  const local=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
  /* mount(element): build the map inside the device's Map app. Safe to call again after the device redraws its page; the view, layers and selection are kept. */
  function mount(el){
-  if(!root.VoidNeoChinatown||!el)return false;host=el;const sp=spaceId();if(sp!==lastSpace){lastSpace=sp;view=null;selected=null;}if(!view)fit();
+  if(!root.VoidNeoChinatown||!el)return false;host=el;const sp=spaceId();if(sp!==lastSpace){lastSpace=sp;view=null;selected=null;}
   el.innerHTML='<div class="dm-bar"><button type="button" data-map="in" aria-label="Zoom in">+</button><button type="button" data-map="out" aria-label="Zoom out">−</button><button type="button" data-map="me">MY POSITION</button><button type="button" data-map="all">WHOLE CITY</button></div>'
    +'<canvas class="pd-map dm-canvas" width="800" height="560" tabindex="0" aria-label="Map of the area you are in. Use the list below to choose a place."></canvas><div class="dm-layers" data-map-layers role="group" aria-label="Map layers"></div><div data-map-info></div><div data-map-hail></div><div data-map-list></div>';
-  cv=el.querySelector('canvas');
+  cv=el.querySelector('canvas');if(!view){if(data().rail)view=wholeView();else fit();}
   cv.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();const [x,y]=local(e);zoom(e.deltaY<0?1.2:1/1.2,x,y);},{passive:false});
   cv.addEventListener('pointerdown',e=>{const [x,y]=local(e);drag={x,y,cx:view.cx,cz:view.cz,moved:false};cv.setPointerCapture?.(e.pointerId);});
   cv.addEventListener('pointermove',e=>{if(!drag)return;const [x,y]=local(e);if(Math.hypot(x-drag.x,y-drag.y)>4)drag.moved=true;if(drag.moved){view.cx=drag.cx-(x-drag.x)/view.s;view.cz=drag.cz+(y-drag.y)/view.s;draw();}});
@@ -143,7 +145,7 @@
   cv.addEventListener('keydown',e=>{const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]}[e.key];if(k){e.preventDefault();e.stopPropagation();view.cx+=k[0]*40/view.s;view.cz+=k[1]*40/view.s;draw();}else if(e.key==='+'||e.key==='='){e.stopPropagation();zoom(1.25);}else if(e.key==='-'){e.stopPropagation();zoom(.8);}});
   el.addEventListener('click',e=>{const b=e.target.closest('[data-map]');if(!b||b.disabled)return;const a=b.dataset.map;
    if(a==='in')zoom(1.35);else if(a==='out')zoom(1/1.35);else if(a==='me'){const p=me();if(p){view.cx=p.x;view.cz=p.z;view.s=Math.max(view.s,p.area==='interior'?9:3.2);draw();}}
-   else if(a==='all'){const bb=data().bounds;view={cx:(bb.x0+bb.x1)/2,cz:(bb.z0+bb.z1)/2,s:Math.min(cv.width/(bb.x1-bb.x0),cv.height/(bb.z1-bb.z0))};draw();}
+   else if(a==='all'){view=wholeView();draw();}
    else if(a.startsWith('layer:')){const id=a.slice(6);layers[id]=layers[id]===false;if(selected&&!visible(data(),layers,isDev()).includes(selected))selected=null;paintLayers();paintList();paintInfo();draw();}
    else if(a.startsWith('pick:')){selected=data().pois.find(q=>q.id===a.slice(5))||null;if(selected){view.cx=selected.x;view.cz=selected.z;view.s=Math.max(view.s,selected.area==='interior'?9:3.2);}paintInfo();draw();host.querySelector('[data-map-info]')?.scrollIntoView?.({block:'nearest'});}
    else if(a==='set'&&selected){setWaypoint(selected.id);}else if(a==='clear'){setWaypoint(null);}else if(a==='deselect'){selected=null;paintInfo();draw();}

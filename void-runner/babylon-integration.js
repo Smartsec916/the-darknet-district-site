@@ -221,6 +221,8 @@ async function enterWalking(id, options = {}) {
   try {
     await boundedPrepare(task => VoidBabylon.prepareRoom(def, task));
     if (token !== preparationGeneration) return;
+    if (options.beforeReveal) await options.beforeReveal(def);
+    if (token !== preparationGeneration) return;
     walker = {
       x: options.spawn ? options.spawn[0] : def.spawn[0],
       y: options.spawn ? options.spawn[1] : def.spawn[1],
