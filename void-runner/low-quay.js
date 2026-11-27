@@ -37,8 +37,10 @@
   W('hall-back-w',-18,-14,Z.hallB-1,STAIRS[1],7);W('hall-back-e',0,3.5,Z.hallB-1,STAIRS[1],7);W('terrace-w',-30,-18,Z.hallA,Z.hallB);W('hall-mid',3.5,19.5,Z.hallB,STAIRS[1]);
   W('quay-edge-w',-64,-18,STAIRS[0],STAIRS[1]);W('quay-edge-e',19.5,64,STAIRS[0],STAIRS[1]);   // the city level ends at the stairwell: no walking off the terrace edge over the station
   W('water-w',-64,-30,Z.hallA,Z.hallB);W('water-e',19.5,64,Z.hallA,Z.hallB);W('canal-a',-40,-30,300,336);W('canal-b',-40,-30,344,Z.cityB);
-  BLOCKS.forEach((b,i)=>W('block-'+i,b[0],b[1],b[2],b[3],b[4]));
+  // the PLUG & PLAY nightclub is the ground floor of one block (low-quay-club.js): its walls, doorway, glass and furniture instead of the block's box
+  const CL=club();BLOCKS.forEach((b,i)=>{if(!(CL&&CL.isClubBlock(b)))W('block-'+i,b[0],b[1],b[2],b[3],b[4]);});if(CL)S.push(...CL.solids());
   return S;};
+ const club=()=>node?require('./low-quay-club.js'):root.VoidLowQuayClub;
  const interactions=()=>[
   {id:'board',label:'BOARD YOUR SHIP',position:[-2,1.7,-432],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},
   ...TERMINAL_AT.map((t,i)=>({id:'quay-terminal-'+i,label:'ACCESS BERTH TERMINAL',position:[t.x-1.3,1.7,t.z],action:'quay-terminal',berth:i,range:2.6})),
@@ -55,7 +57,7 @@
   return {kind:'move',from:at,to:target,swap:craftAt.includes(target)?target:null,message:MESSAGES.calling};}
  const groundHeight=z=>z<=STAIRS[0]?0:z>=STAIRS[1]?CITY_Y:CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]);
  const api={groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,live:null};
- api.models=(location,quality)=>location===ID?{[TERMINAL_ID]:{src:TERMINAL_SRC,scale:1}}:{};
+ api.models=(location,quality)=>location===ID?{[TERMINAL_ID]:{src:TERMINAL_SRC,scale:1},...(club()?.models()||{})}:{};
   // ---- wiring (also in Node, so the tests see the layout) ----
  api.build=build;
  const P=node?require('./planets.js'):root.VoidPlanets;
@@ -262,9 +264,11 @@
   // ---- lights: one pool of six point lights moved to the zone the player is in (the pad, the station under the quay, the quay), so no more than eight lights ever reach a material (not on Low) ----
   const ZL={pad:[[[33,19,-398],'#ffa640',1.5,75],[[-36,19,-440],'#ffa640',1.3,70],[[-10.5,3.4,stz],'#ff8a30',1,26],[[-1,4.1,stz],'#3a9cff',.7,24],[[-4,9,-423],'#ff9a3c',1,60],[[9,4,-300],'#ff9a3c',.8,45]],
    hall:[[[-9,4.4,262],'#ff9a3c',1,24],[[-9,4.4,288],'#ff9a3c',1,24],[[10,4.4,262],'#3a9cff',.7,22],[[10,4.4,290],'#3a9cff',.7,22],[[-8,6,310],'#ff7a22',1,20],[[9,5,200],'#ff7a22',.5,30]],
+   club:[[[35.9,CITY_Y+3.9,371],'#ff2d96',2.4,12],[[29.6,CITY_Y+3.2,364],'#ffa25a',1.5,10],[[29.6,CITY_Y+3.2,377.5],'#ffa25a',1.5,10],[[39.4,CITY_Y+2.6,361.6],'#ff3fa6',1.4,8],[[36.1,CITY_Y+2.8,380.8],'#ff7a3a',1.6,8],[[41.8,CITY_Y+2.6,374],'#b44dff',1.3,9]],   // PLUG & PLAY (low-quay-club.js): the VR bedroom's rose mood; stage, dining, alcove, kitchen, backstage
    city:[[[-8,CITY_Y+3,322],'#ff8a30',1,24],[[-20,CITY_Y+5,345],'#ffa640',1,32],[[15,CITY_Y+5,370],'#ff3fa6',.8,32],[[-35,CITY_Y+3,392],'#25c9c2',.8,32],[[25,CITY_Y+5,410],'#ff7a22',.9,32],[[-5,CITY_Y+5,440],'#ffa640',.9,32]]};
   if(!low)for(let k=0;k<6;k++){const l=new B.PointLight('lq-light',B.Vector3.Zero(),scene);l.parent=parent;lights.push(l);}
-  let zone=null;const zoneOf=z=>z<150?'pad':z<312?'hall':'city',setZone=zn=>{if(zn===zone)return;zone=zn;ZL[zn].forEach(([p,hex,i,range],k)=>{const l=lights[k];if(!l)return;l.position.set(...p);l.diffuse=C(hex);l.specular=C(hex).scale(.5);l.intensity=i;l.range=range;});};setZone('pad');
+  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':'city',setZone=zn=>{if(zn===zone)return;zone=zn;const inClub=zn==='club';if(ambient){ambient.diffuse=C(inClub?'#5a2a5c':'#55638c');ambient.groundColor=C(inClub?'#2a0c22':'#2a2018');ambient.intensity=inClub?.9:1;}if(sun)sun.intensity=inClub?.1:.7;   // indoors at the club: no moonlight, a plum fill
+   ZL[zn].forEach(([p,hex,i,range],k)=>{const l=lights[k];if(!l)return;l.position.set(...p);l.diffuse=C(hex);l.specular=C(hex).scale(.5);l.intensity=i;l.range=range;});};setZone('pad');
   for(const [x,z] of [...TOWERS,[-10.5,stz+6]]){const p=B.MeshBuilder.CreateGround('lq-pool',{width:44,height:44},scene);p.material=poolMat;p.position.set(x,.03,z);p.parent=parent;p.isPickable=false;}
   // ---- security vestibule, tunnel (the rail ride), then the city ----
   const city=root.VoidLowQuayCity?.build?root.VoidLowQuayCity.build({B,scene,parent,quality,K,place,mat,glow,tex,sprite,owned,textures,hide,C,S,lampKit,pole,rail,deck,pier,pierGlow,edge,streak,banner,conc,concD,dark,steel,amber,warm,cool,blue,red,green,yel,hazard,glass,Z,TRACKS,CX,SEG,WY,BLOCKS,r,CITY_Y,waterMat,STAIRS}):null;
@@ -291,7 +295,7 @@
    if(waterMat.bumpTexture){bump.uOffset=(time*.004)%1;bump.vOffset=(time*.0025)%1;}
    // the second train, looping, and the berth hop
    train2.position.z=-320+((time*30)%470);
-   const wz=typeof walker!=='undefined'&&walker?walker.z:-423,gh=groundHeight(wz);setZone(zoneOf(wz));
+   const wz=typeof walker!=='undefined'&&walker?walker.z:-423,gh=groundHeight(wz);setZone(zoneOf(wz,typeof walker!=='undefined'&&walker?walker.x:0));
    if(Math.abs(parent.position.y+gh)>1e-4){parent.position.y=-gh;parent.computeWorldMatrix(true);for(const f of frozen)f.freezeWorldMatrix();}   // the player's eye height is fixed: the world moves down as he climbs
    if(flight){const f=flight;f.t+=Math.min(.1,(f.last==null?0:(now-f.last)/1000));f.last=now;const k=Math.min(1,f.t/f.dur),e=ease(k),lift=Math.sin(Math.min(1,k*1.0)*Math.PI);
     ship.position.set(f.fx+(f.tx-f.fx)*e,f.y0+lift*5,f.fz+(f.tz-f.fz)*e);ship.rotation.y=f.yaw0+(f.yaw1-f.yaw0)*e;
