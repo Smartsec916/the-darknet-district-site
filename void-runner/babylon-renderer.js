@@ -1220,7 +1220,7 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    crowdLocation=def.id;root.VoidCrowd?.begin();const definitions = {...(root.VoidCrowd?.models(def.id,quality)||{}),...Object.fromEntries((def.models || []).map(m => [m.id, m]))};
+    crowdLocation=def.id;root.VoidCrowd?.begin();const definitions = {...(root.VoidCrowd?.models(def.id,quality)||{}),...Object.fromEntries((def.models || []).map(m => [m.id, m])),...(root.VoidVantor?.models(def,quality)||{})};
     const hullId=def.ship||'starter';if(VoidAssets.models.ships[hullId])definitions['ship:'+hullId]=VoidAssets.models.ships[hullId];
     await task.wait('assets',()=>VoidAssets.prepare(scene, definitions,task),'room models');
     for (const defn of def.models || []) {
@@ -1281,6 +1281,7 @@
       box('entrance', [3, 3, .2], [0, 1.5, 31], material('door', '#182e32'), roomRoot);
     } else scene.clearColor = new b.Color4(.015, .022, .028, 1);
     for (const defn of def.signs) sign(defn, roomRoot);
+    root.VoidVantor?.dress({scene,parent:roomRoot,def,quality,instance:(id,p)=>VoidAssets.instance(id,p)});
     await task.wait('scene',()=>scene.whenReadyAsync(),'room-'+def.id);
     diagnostics.location = def.name;
     diagnostics.meshCount = scene.meshes.length;

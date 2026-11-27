@@ -234,7 +234,7 @@
     (babylon-renderer.js: sharpen.colorAmount = .3; Babylon's default is 1), so everything is drawn at about a third of the brightness it is lit for. The District and
     the city have been judged and tuned by the owner in that state, so it is left alone there (his decision to change). The simulations were built bright before that
     date and looked like night: while a simulation is running the picture is given back its full brightness, and the 0.3 returns on leaving. */
- setInterval(()=>{try{const p=globalThis.VoidBabylon?.scene?.postProcessRenderPipelineManager?.supportedPipelines?.find(x=>x.name==='void-look');if(p?.sharpen){const want=session||globalThis.VoidStationKit?.aboard?1:.3;if(p.sharpen.colorAmount!==want)p.sharpen.colorAmount=want;}}catch{}},150);
+ setInterval(()=>{try{const p=globalThis.VoidBabylon?.scene?.postProcessRenderPipelineManager?.supportedPipelines?.find(x=>x.name==='void-look');if(p?.sharpen){const want=session||globalThis.VoidStationKit?.aboard||globalThis.VoidVantor?.active?1:.3;if(p.sharpen.colorAmount!==want)p.sharpen.colorAmount=want;}}catch{}},150);
  const audioSet=(key,val)=>{if(audio.named)audio.named[key]=val;};
  const api={register,launch,exit,openMenu,sit,stand,sfx,audioLevel,audioSet,setPad,setMusic,get music(){return musicNow?musicNow.id:null;},transition,buildWorld,get active(){return !!session;},get debug(){return {session:!!session,busy,pauseMenu:!!pauseMenu,menu:!!menu,overlay:!!overlay,page:{...menuPage},audio:{nodes:audio.nodes.size,timers:audio.timers.size}};},listed,get busy(){return busy;},get session(){return session;},registry,order};
  globalThis.VoidVR=api;
