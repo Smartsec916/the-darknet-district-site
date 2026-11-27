@@ -5,7 +5,7 @@ const V=require('../void-runner/vesper-visuals.js'),{road:R,models,REPLACED,vehi
 const L=O.layout(),hit=(x,z,s,pad=0)=>Math.abs(x-s.position[0])<s.size[0]/2+pad&&Math.abs(z-s.position[2])<s.size[2]/2+pad;
 
 test('the workshop layout keeps its spawn, solids, interaction points and yard rectangle; the road corridor is added beside it',()=>{
- assert.deepEqual(L.spawn,[-3,1.68,-17]);assert.equal(L.solids.length,16);assert.deepEqual(L.interactions.map(i=>i.id),['recording','mara','personal-shop','maintenance','board']);
+ assert.deepEqual(L.spawn,[-3,1.68,-17]);assert.equal(L.solids.filter(s=>!s.id.startsWith('vesper-')).length,16,'the yard\'s 16 solids (the road sites\' buildings follow them: vesper-sites.test.cjs)');assert.deepEqual(L.interactions.filter(i=>!i.id.startsWith('vesper-')).map(i=>i.id),['recording','mara','personal-shop','maintenance','board']);
  assert.deepEqual(L.bounds,[R.X_LIMIT,80],'the yard rectangle is unchanged');assert.equal(typeof L.walkable,'function');
 });
 
@@ -58,7 +58,7 @@ test('walking: the yard rectangle behaves exactly as before; beyond it a person 
  const rect={...L,walkable:undefined};
  for(let x=-240;x<=240;x+=7.3)for(let z=-90;z<=90;z+=6.1){if(Math.abs(x)<=R.X_LIMIT-.5&&Math.abs(z)<=79.5)assert.equal(X.blocked(x,z,L),X.blocked(x,z,rect),'yard '+x+','+z);}
  for(const p of R.centreline().filter(p=>p.s>R.yardLength()-10&&p.s<R.total()-60))for(const o of [-7,-3,0,3,7]){const x=p.x-p.tz*o,z=p.z+p.tx*o;assert(!X.blocked(x,z,L),'corridor blocked at s='+p.s.toFixed(0)+' o='+o);}
- for(const p of R.centreline().filter(p=>p.s>R.yardLength()+20))for(const o of [-12,12]){const x=p.x-p.tz*o,z=p.z+p.tx*o;if(Math.abs(x)<=R.X_LIMIT&&Math.abs(z)<=80)continue;assert(X.blocked(x,z,L),'off the corridor at s='+p.s.toFixed(0));}
+ for(const p of R.centreline().filter(p=>p.s>R.yardLength()+20))for(const o of [-12,12]){const x=p.x-p.tz*o,z=p.z+p.tx*o;if(Math.abs(x)<=R.X_LIMIT&&Math.abs(z)<=80||require('../void-runner/vesper-sites.js').siteAt(x,z))continue;assert(X.blocked(x,z,L),'off the corridor at s='+p.s.toFixed(0));}
  assert(X.blocked(600,200,L)&&X.blocked(240,60,L),'open mountain is not walkable');
  // a person walking east along the road from the yard ends past the pass
  const w={x:200,z:-8,yaw:Math.PI/2,pitch:0},end=R.centreline()[R.centreline().length-1];for(let i=0;i<40000&&R.nearest(w.x,w.z).s<R.total()-40;i++){const n=R.nearest(w.x+Math.sin(w.yaw)*4,w.z+Math.cos(w.yaw)*4);w.yaw=Math.atan2(n.x+n.tx*6-w.x,n.z+n.tz*6-w.z);X.step(w,{x:0,z:1,run:true},.05,L);}

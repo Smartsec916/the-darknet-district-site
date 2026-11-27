@@ -15,6 +15,7 @@
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
  const V=node?require('./vesper-visuals.js'):root.VoidVesperVisuals;
+ const SITES=(node?require('./vesper-sites-data.js'):root.VoidVesperSitesData)||{};   // the sites' flat pads (village, ...): generated with their models
  const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 
  /* ---------------- the route ----------------
@@ -25,10 +26,12 @@
   [640,-82],[715,-112],[790,-145],[862,-176],[925,-198],[985,-210],[1045,-214],[1105,-207],[1170,-196],[1240,-190],
   // the long road (phase 2): east and north-east for about 8 km along the valleys between the ranges (tools/assets/vesper/plan_route.cjs, A* over the natural land;
   // edited by hand where the village stands so its street runs due east for ~120 m: x 1790..1850, z 664)
-  [1326,-117],[1497,-78],[1598,45],[1589,214],[1569,362],[1546,466],[1676,602],[1730,660],[1790,664],[1850,664],[1910,670],[1975,722],[2040,768],[2114,783],[2288,838],[2386,977],[2429,1146],[2560,1172],[2702,1062],[2852,998],[2968,885],[3058,748],[3195,658],[3357,626],[3529,672],[3686,718],[3872,732],[4038,797],[4160,915],[4242,1086],[4352,1217],[4517,1289],[4691,1329],[4854,1378],[5031,1372],[5194,1374],[5348,1468],[5483,1555],[5522,1706],[5458,1860],[5482,2035],[5543,2188],[5680,2280],[5846,2334],[6012,2348],[6168,2303],[6337,2314],[6438,2448],[6532,2582],[6691,2609],[6863,2620],[7023,2660],[7192,2692],[7311,2700]];
+  [1326,-117],[1497,-78],[1598,45],[1589,214],[1569,362],[1546,466],[1676,602],[1730,660],[1790,664],[1850,664],[1910,670],[1975,722],[2040,768],[2114,783],[2288,838],[2386,977],[2429,1146],[2560,1172],[2702,1062],[2852,998],[2968,885],[3058,748],[3195,658],[3357,626],[3529,672],[3686,718],[3872,732],[4038,797],[4160,915],[4242,1086],[4352,1217],[4517,1289],[4691,1329],[4854,1378],[5031,1372],[5194,1374],[5348,1468],[5483,1555],[5522,1706],[5458,1860],[5482,2035],[5543,2188],[5680,2280],[5846,2334],[6012,2348],[6168,2303],[6337,2314],[6438,2448],[6532,2582],[6691,2609],[6863,2620],[7023,2660],[7192,2692],[7311,2700],
+  // the road's end (phase 5): down into the flat basin under the cliff, past the guard shack and through the facility's gateway (vesper-sites-data.js 'facility')
+  [7372,2701],[7432,2700],[7470,2700]];
  const PEAKS=[{x:1025,z:55,lift:42,r:95},{x:1165,z:-495,lift:42,r:110}];   // the two high points either side of the pass (raised so they frame it)
  const PASS={x:995,z:-208,r:260,rx:300,rz:150,floor:38,keep:.2};                // the saddle: the ridge is lowered toward `floor` here (broad across the ridge, narrow along it), and the road's banks are widest and gentlest
- const WIDTH=7,SURFACE_Y=.02,SHOULDER=1.6,X_LIMIT=232,TAPER=60,MAX_GRADE=.09,YARD_R=245,FLOOR=.03;
+ const WIDTH=7,SURFACE_Y=.02,SHOULDER=1.6,X_LIMIT=232,TAPER=12,END_FLAT=60,MAX_GRADE=.09,YARD_R=245,FLOOR=.03;
  const WALK_MARGIN=4;            // how far beyond the shoulder a person may walk off the road edge (the bench is flat for 1 m past the shoulder, then the bank rises)
 
  function catmull(p0,p1,p2,p3,t){const t2=t*t,t3=t2*t;return [0,1].map(k=>.5*(2*p1[k]+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3));}
@@ -77,6 +80,9 @@
    for(let i=n-2;i>=0;i--){const ds=L[i+1].s-L[i].s;E[i]=Math.min(E[i+1]+MAX_GRADE*ds,Math.max(E[i+1]-MAX_GRADE*ds,E[i]));}
    for(let i=0;i<n&&L[i].s<=u;i++)E[i]=SURFACE_Y;}
   const F=gauss(E,14);for(let i=0;i<n;i++)F[i]=Math.max(SURFACE_Y,F[i]);
+  // the road's end runs level for END_FLAT metres through the facility's gateway into its yard (the guard shack and the barrier stand on the level), the
+  // descent before it held to the same grade limit (a deeper cut on the last ridge if need be)
+  {const endY=F[n-1];for(let i=n-1;i>=0&&L[n-1].s-L[i].s<=END_FLAT;i--)F[i]=endY;for(let i=n-2;i>=0;i--){const ds=L[i+1].s-L[i].s;F[i]=Math.min(F[i],F[i+1]+MAX_GRADE*ds*.97);}}
   return profile=F;}
  // Road surface height at arc length s (or at a nearest() result).
  function roadY(s){const L=centreline(),E=profile||buildProfile();if(s<=0)return E[0];if(s>=L[L.length-1].s)return E[E.length-1];
@@ -89,10 +95,25 @@
  // through the pass wider still and gentler, so the saddle reads as a broad col).
  const benchAt=s=>halfWidthAt(s)+SHOULDER+1;
  function bankAt(x,z,delta){const p=Math.exp(-(((x-PASS.x)**2+(z-PASS.z)**2)/(PASS.r*PASS.r))*2);return Math.min(90,(16+1.25*delta)*(1-p)+(34+1.9*delta)*p);}   // capped: a very deep cut keeps a steep rock face rather than reaching across the inside of a bend
+ /* A site's pad (vesper-sites-data.js zone.pad, in the site's metres): the land inside it is levelled to the road's height like the road's bench, blending back to the
+    natural ground over PAD_BLEND metres outside it. padAt: 0 inside a pad, rising to 1 at PAD_BLEND outside it (1: no pad here). */
+ const PAD_BLEND=24;let pads=null;
+ function sitePads(){if(pads)return pads;pads=Object.values(SITES).map(d=>{const z=d.zone,[ox,oz]=z.origin,r=z.pad,n=nearest(ox,oz,true);
+   return {ox,oz,rect:[r[0]+ox,r[1]+ox,r[2]+oz,r[3]+oz],blend:z.padBlend||PAD_BLEND,flat:z.padMode==='flat'?(n?roadYAt(n):0):null,y:n?roadYAt(n):0,cut:z.cut||null};});return pads;}
+ // padAt(x, z): {t, pad}: t 0 inside the nearest pad, 1 at its blend distance or farther (no pad: t 1)
+ function padAt(x,z){let best={t:1,pad:null};for(const p of sitePads()){const r=p.rect,dx=Math.max(r[0]-x,0,x-r[1]),dz=Math.max(r[2]-z,0,z-r[3]);if(dx<p.blend&&dz<p.blend){const t=smooth(0,p.blend,Math.hypot(dx,dz));if(t<best.t)best={t,pad:p};}}return best;}
+ /* A site's cut (the mine portal): from the portal line (local z >= cut.z0) into the mountain the land is at least `cover` metres above the site's floor, rising
+    `rise` per metre inward and falling off `falloff` per metre beyond the portal's half width, so the adit always has rock over it and the face around the
+    portal is a steep cut (its headwall and wing walls stand in the cut; vesper-terrain.js leaves the cell in front of the headwall open: zone.hole). */
+ function cutAt(x,z,h){for(const p of sitePads()){const c=p.cut;if(!c)continue;const lx=x-p.ox,lz=z-p.oz;if(lz<c.z0||lz>c.z0+200||Math.abs(lx)>120)continue;
+   const v=p.y+c.cover+c.rise*(lz-c.z0)-c.falloff*Math.max(0,lx<c.x[0]?c.x[0]-lx:lx-c.x[1]);if(v>h)h=v;}return h;}
  // info (optional): filled with {d: distance to the road's centre line (Infinity when far), e: the road's height there, bench, natural (the uncarved height)}.
  function height(x,z,info){const r=Math.hypot(x,z);if(r<=YARD_R){if(info){info.d=Infinity;info.e=0;info.bench=0;info.natural=-.035;}return -.035;}
   let h=baseHeight(x,z);const n=nearest(x,z);
   if(info){info.natural=h;info.d=n?n.distance:Infinity;info.e=n?roadYAt(n):0;info.bench=n?benchAt(n.s):0;}
+  // the sites' pads and cuts first (on the natural land), then the road's bench and banks, so the road always wins where they meet
+  {const P=padAt(x,z);if(P.pad){const target=(P.pad.flat!=null?P.pad.flat:n?roadYAt(n):P.pad.y)-FLOOR;h=target+(h-target)*P.t;}}
+  h=cutAt(x,z,h);
   if(n){const e=roadYAt(n)-FLOOR,b0=benchAt(n.s);if(n.distance<b0+INFL){const t=n.distance<=b0?0:smooth(b0,b0+bankAt(x,z,Math.abs(h-e)),n.distance);h=e+(h-e)*t;}}
   if(r<YARD_R+22)h=-.035+(h+.035)*smooth(YARD_R,YARD_R+22,r);
   return Math.max(-.035,h);}
@@ -111,7 +132,7 @@
    const h=corridorHalf(a);out.push([Math.min(...pts.map(p=>p.x))-h,Math.max(...pts.map(p=>p.x))+h,Math.min(...pts.map(p=>p.z))-h,Math.max(...pts.map(p=>p.z))+h].map(v=>Math.round(v*10)/10));}return out;}
  // An approach point on the road at arc length s: [x, eye height above the ground, z] and the yaw that faces along the road (a guide arrow target, a draft-play spawn).
  function approach(s,eye=1.7){const L=centreline(),p=L.find(q=>q.s>=s)||L[L.length-1];return {point:[Math.round(p.x*10)/10,Math.round((groundAt(p.x,p.z)+eye)*100)/100,Math.round(p.z*10)/10],yaw:Math.round(Math.atan2(p.tx,p.tz)*1000)/1000};}
- const api={CONTROL,PEAKS,PASS,WIDTH,SURFACE_Y,SHOULDER,X_LIMIT,MAX_GRADE,YARD_R,WALK_MARGIN,FLOOR,centreline,total,usableYard,halfWidthAt,nearest,baseHeight,roadY,roadYAt,grade,height,groundAt,walkable,corridorHalf,benchAt,corridorRects,approach,
-  _reset(){line=null;index=null;profile=null;}};
+ const api={CONTROL,PEAKS,PASS,WIDTH,SURFACE_Y,SHOULDER,X_LIMIT,MAX_GRADE,YARD_R,WALK_MARGIN,FLOOR,centreline,total,usableYard,halfWidthAt,nearest,baseHeight,roadY,roadYAt,grade,height,groundAt,walkable,corridorHalf,benchAt,padAt,cutAt,sitePads,corridorRects,approach,
+  _reset(){line=null;index=null;profile=null;pads=null;}};
  if(node)module.exports=api;else root.VoidVesperWorld=api;
 })(globalThis);

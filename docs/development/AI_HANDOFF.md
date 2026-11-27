@@ -4,6 +4,22 @@
 
 See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
 
+## 28 Nov 2026 - Loading screens hidden (phase 6)
+
+`void-runner/transition-veil.js`: when a place the player is in loads another, the last picture stays up (no card) and crossfades into the new place; a slow load (over 6 s) still shows the card with its cancel. It never covers a transition with its own presentation (doors, the District vestibule, Milked, gates, landing, taxi). The full audit, per transition, is [LOADING_TRANSITIONS.md](LOADING_TRANSITIONS.md). Build `2026-11-28-loading-veil-6`.
+
+## 28 Nov 2026 - Vesper: the road's end (phase 5)
+
+The road now ends 9.76 km out at a facility made to look like a warehouse: the guard shack (enterable, nobody on duty) and an open barrier come first, then a fenced compound with the warehouse (three big roller doors on its west side, shut; antenna mast, chillers, sensors) and a two-storey shared housing unit (shut). The inside of the warehouse is the owner's decision. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-facility-5`.
+
+## 28 Nov 2026 - Vesper: the mine (phase 4)
+
+A mine 4.7 km out: a portal in a cut in the mountainside, the adit level modelled inside the mountain (no scene change), and a cage down a shaft to the bottom level. **The depth is a placeholder: `MINE_DEPTH_M` (120 m) in `vesper-sites.js`; `LEVELS` is data.** The cage ride hides the bottom level's load (it waits in the shaft if it must). Mine levels: floors, collision and prompts per level (`setLevel`). Nothing saved. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-mine-4`.
+
+## 28 Nov 2026 - Vesper: the long road and the village (phases 2-3)
+
+The road continues 8 km past the pass (9.6 km in all, no loading screen: one scene, streamed land). A village stands 2.4 km out: nine houses, an enterable bar and store (no people, no shop, blank signs: owner decisions), streamed in from 3 km away and compiled before it shows (`vesper-sites.js`, data generated with the model by `tools/assets/vesper/build_vesper_village.py`). Details: [VESPER_ROAD.md](VESPER_ROAD.md). Builds `2026-11-28-vesper-road-2`, `2026-11-28-vesper-village-3`.
+
 ## 28 Nov 2026 - Vesper: the road through the pass (phase 1 of the owner's road request)
 
 The Vesper road now climbs from the Ward Repair yard through a saddle between the first range's two high points and on to the plateau beyond (1.42 km, max grade 9 %), walkable and drivable all the way. The land is drawn as streamed chunks (`vesper-terrain.js`, a quadtree generated inside a per-frame budget: no loading pause), shaped by `vesper-world.js` (pure, tested). `exploration-controller.js` accepts an optional `location.walkable(x, z, r)` area beyond a location's rectangle (only Vesper uses it: the road corridor). Read [VESPER_ROAD.md](VESPER_ROAD.md) for the phases still to come (many miles, village, mine, facility, hidden loading screens), the restrictions and the owner's open questions. Build `2026-11-28-vesper-pass-1`.
