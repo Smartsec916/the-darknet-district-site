@@ -19,7 +19,7 @@
  const STREET_KEY=()=>root.VoidDistrictArea?.KEY?.street||'sacramento';
  // ---- what is open for this player now ----
  let preview=null;   // the Mission Editor's "JUMP INSIDE" (a throwaway test session): {style, door, number, key, items}
- function open(){let list=[];try{list=LC()?.apartments?.()||[];}catch{}if(preview&&!list.some(a=>a.key===preview.key))list=[...list,preview];return A.mergeResidenceInstances(list,A.residenceInstances(LC()?.env?.characters));}
+ function open(){let list=[];try{list=LC()?.apartments?.()||[];}catch{}if(preview&&!list.some(a=>a.key===preview.key))list=[...list,preview];return A.mergeResidenceInstances(list,A.residenceInstances({...A.districtPair,...LC()?.env?.characters}));}
  function hacked(){try{return LC()?.hackedDoors?.()||[];}catch{return [];}}
  const onDoor=id=>open().filter(a=>a.door===id);
  const playerState=()=>typeof state==='undefined'?null:state;
