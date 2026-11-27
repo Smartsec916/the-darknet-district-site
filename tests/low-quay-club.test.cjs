@@ -2,6 +2,7 @@
 // PLUG & PLAY (void-runner/low-quay-club.js): the way in, the dining floor, the alcove, the kitchen and the backstage are reachable on foot; the stage is not.
 const test=require('node:test'),assert=require('node:assert/strict');
 const LQ=require('../void-runner/low-quay.js'),CL=require('../void-runner/low-quay-club.js');
+const Crowd=require('../void-runner/crowd.js');
 const R=.38,L=LQ.layout(),blocked=(x,z)=>Math.abs(x)>L.bounds[0]-R||Math.abs(z)>L.bounds[1]-R||L.solids.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+R&&Math.abs(z-s.position[2])<s.size[2]/2+R);
 // flood fill on a 0.2 m grid over the club and the alley in front of it, from the alley
 function reach(){const S=.2,x0=22.4,x1=44,z0=356,z1=386,nx=Math.round((x1-x0)/S),nz=Math.round((z1-z0)/S),seen=new Uint8Array(nx*nz),q=[];
@@ -25,5 +26,11 @@ test('the stage and the space behind the glass are never reached; the kitchen an
 test('every diner sits inside the club, and the robot arms stand on the kitchen counters',()=>{
  for(const [x,z] of CL.DINERS)assert.ok(CL.inside(x,z),'diner at '+x+','+z);
  for(const a of CL.ARMS)assert.ok(a.x>CL.KITCHEN.x0&&a.x<CL.KITCHEN.x1&&a.z>CL.KITCHEN.z0&&a.z<CL.KITCHEN.z1,a.id);
- assert.deepEqual(Object.keys(CL.models()).filter(k=>k.startsWith('crowd:')).map(k=>k.slice(6)).filter(l=>/companion|vr-|ava|eva|yuki|dex/i.test(l)),[]);
+});
+test('each diner has a registered crowd model and its configured animation clip',()=>{
+ const models=CL.models();
+ for(const [,,,look,clip] of CL.DINERS){
+  assert.ok(models['crowd:'+look],'missing diner model '+look);
+  assert.ok(Crowd.clips[look]?.includes(clip),look+' is missing animation '+clip);
+ }
 });
