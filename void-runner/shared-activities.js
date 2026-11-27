@@ -68,6 +68,17 @@
  function reservedAt(entry,rule,context,time){
   return !!entry&&contextFits(entry,rule,publicContext(context))&&time>=-1&&time<duration(entry)+.5;
  }
+ // Freeze the ambient window at the shared slot anchor, even for late observers.
+ function ambientSlotContext(context,scheduled,decisionAt){
+  const anchor=slotStart(context)+3;
+  let until=context.elapsed+context.remaining;
+  if(scheduled){
+   const reserveStart=decisionAt-1,reserveEnd=decisionAt+duration(scheduled)+.5;
+   if(anchor<reserveStart)until=Math.min(until,reserveStart);
+   else if(anchor<reserveEnd)until=anchor;
+  }
+  return {...context,freeUntil:until-context.elapsed,completed:anchor>30};
+ }
  function conversationAt(library,edits,context,legStart,visit){
   const start=slotStart(context),age=context.elapsed-start;
   const window={...publicContext(context),elapsed:start+3,remaining:(context.freeUntil??context.remaining)+age-3};
@@ -91,6 +102,6 @@
    (v.agreement===undefined||Number.isInteger(v.agreement)&&v.agreement>=0&&v.agreement<32)&&
    (v.delay===undefined||Number.isFinite(v.delay)&&v.delay>=0&&v.delay<=30));
  }
- const api={contextFits,publicContext,slotKey,reservedAt,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
+ const api={contextFits,publicContext,slotKey,reservedAt,ambientSlotContext,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidGroupActivities=api;
 })(globalThis);

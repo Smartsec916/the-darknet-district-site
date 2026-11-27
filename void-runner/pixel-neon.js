@@ -233,8 +233,8 @@
   const key=shared.slotKey(ctx,p.legStart);
   if(key!==slotKey){
    slotKey=key;
-   const freeUntil=scheduled&&beatTime<0?Math.min(ctx.remaining,-beatTime-1):ctx.remaining;
-   slotEntry=shared.conversationAt(script,routineEdits,{...ctx,freeUntil},Math.round(p.legStart),p.visit)?.entry;
+   const slotContext=shared.ambientSlotContext(ctx,scheduled,p.decisionAt);
+   slotEntry=shared.conversationAt(script,routineEdits,slotContext,Math.round(p.legStart),p.visit)?.entry;
   }
   const ambient=slotEntry&&{entry:slotEntry,time:ctx.elapsed-slot-3};
   const forced=forcedExchange&&{entry:forcedExchange,time:clock-exchangeStart};

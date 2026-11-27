@@ -61703,7 +61703,7 @@
       "spawn"
     ]
   },
-  "revision": "eab1a0addee66849",
+  "revision": "8a5bb3d321f997fc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80987,7 +80987,7 @@
     {
       "source": "void-runner/pixel-neon.js",
       "line": 237,
-      "text": "slotEntry=shared.conversationAt(script,routineEdits,{...ctx,freeUntil},Math.round(p.legStart),p.visit)?.entry;",
+      "text": "slotEntry=shared.conversationAt(script,routineEdits,slotContext,Math.round(p.legStart),p.visit)?.entry;",
       "kind": "source-reference"
     },
     {
@@ -81532,14 +81532,14 @@
     },
     {
       "source": "void-runner/shared-activities.js",
-      "line": 71,
+      "line": 82,
       "text": "function conversationAt(library,edits,context,legStart,visit){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/shared-activities.js",
-      "line": 94,
-      "text": "const api={contextFits,publicContext,slotKey,reservedAt,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};",
+      "line": 105,
+      "text": "const api={contextFits,publicContext,slotKey,reservedAt,ambientSlotContext,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};",
       "kind": "source-reference"
     },
     {
@@ -83549,7 +83549,7 @@
     "void-runner/personal-device.js": "f1d9d66becd050cb1b0d8e3a74f7b43c863a4e805aa5e6ca975fb233bc69d309",
     "void-runner/personal-hud.js": "a9126fc52339462d86eb60228b6fbfe96deb02b57df991b13e57514b486d6be5",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/pixel-neon.js": "7c4a15c5bcffb9040ed12b679ebb745d20d8337dda6f36bc97f4a7cd7f0a3872",
+    "void-runner/pixel-neon.js": "41192cc6dd889113e7ebc05833119e505172c51170267555b7d98561fc0a7001",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
     "void-runner/planet-landing.js": "7e83f588296a65cc4351d4cd87dff194a9a517c8a169dd338d2dc42064dbdfd2",
     "void-runner/planets.js": "d7e09f3f8af53f791c91368925b8b96f52d5f26f63a9623cda262e065f5413c7",
@@ -83574,7 +83574,7 @@
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
-    "void-runner/shared-activities.js": "5b5d31aca65eb17a66ea95d69772d1c6c77597ade60e43404362df09f20e4bad",
+    "void-runner/shared-activities.js": "9e55cf50935747ccb18878eb8ee429c6a00e7b0b3f4266a919ba1f847631b33b",
     "void-runner/shared-rig.js": "ed6a486e5c700a37ce9c1ade441724795c0336d9d5815c0425cb9186023285a0",
     "void-runner/ship-audio.js": "5ef30c299d02e4771755016bc5775e11a1b32c6dfe6d0fb486cd53cb79f78db6",
     "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",

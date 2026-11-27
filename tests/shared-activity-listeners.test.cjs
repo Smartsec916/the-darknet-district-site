@@ -51,3 +51,36 @@ test('shared venue, speaker and split restrictions still apply',()=>{
  assert.equal(shared.conversationAt(rows,{}, {...ctx,venue:'arcade'},0,1),null);
  assert.notEqual(shared.slotKey({...ctx,venue:'bar'},0),shared.slotKey(ctx,0));
 });
+
+test('late arrival before or after a reserved beat uses the same ambient candidate',()=>{
+ const short={...entry('pn-short'),lines:[{speaker:'neon',seconds:3,text:'Fixture'}]};
+ const long={...entry('pn-long'),lines:[{speaker:'neon',seconds:20,text:'Fixture'}]};
+ const reserved={...entry('pn-reserved'),lines:[{speaker:'neon',seconds:5,text:'Fixture'}]};
+ const library=[short,long];
+ for(let seed=0;seed<100;seed++){
+  for(const [early,late,end,decisionAt] of [[3,18,100,10],[55,73,130,64]]){
+   const a=shared.ambientSlotContext({...ctx,elapsed:early,remaining:end-early},reserved,decisionAt);
+   const b=shared.ambientSlotContext({...ctx,elapsed:late,remaining:end-late,admin:false,observer:false},reserved,decisionAt);
+   const before=shared.conversationAt(library,{},a,seed*52,1);
+   const after=shared.conversationAt(library,{},b,seed*52,1);
+   assert.equal(before.entry.id,'pn-short');
+   assert.equal(after.entry.id,before.entry.id);
+  }
+  for(const elapsed of [3,18]){
+   const blocked=shared.ambientSlotContext({...ctx,elapsed,remaining:100-elapsed},reserved,3);
+   assert.equal(shared.conversationAt(library,{},blocked,seed*52,1),null);
+  }
+ }
+});
+test('after-activity eligibility is frozen at the shared slot anchor',()=>{
+ const after={...entry('pn-after'),behavior:{phase:'after'}};
+ const library=[entry('pn-general'),after];
+ for(let seed=0;seed<100;seed++){
+  const early=shared.ambientSlotContext({...ctx,elapsed:3,remaining:37,completed:false},null,0);
+  const late=shared.ambientSlotContext({...ctx,elapsed:35,remaining:5,completed:true},null,0);
+  assert.equal(shared.conversationAt(library,{},early,seed*52,1).entry.id,'pn-general');
+  assert.equal(shared.conversationAt(library,{},late,seed*52,1).entry.id,'pn-general');
+  const eligible=shared.ambientSlotContext({...ctx,elapsed:55,remaining:30,completed:true},null,0);
+  assert.equal(shared.conversationAt([after],{},eligible,seed*52,1).entry.id,'pn-after');
+ }
+});
