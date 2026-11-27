@@ -118,7 +118,34 @@ function createMountedReturn(){
  return {tick};
 }
 
-return {preflight,validateCandidate,createReturnTracker,createMountedReturn};
+// Retain only a legal observed stop in the current save and user session.
+function createReturnSuspensions(){
+ let scope=null,owner=null;const records=new Map();
+ function select(session,user){
+  if(scope!==session||owner!==user){records.clear();scope=session;owner=user;}
+  return !!session&&!!user;
+ }
+ function legal(p,area,options){
+  if(!point(p)||!A.get(area))return false;
+  const c=A.check(p,area,undefined,{...options,passing:false});
+  return c.ok&&c.area===area;
+ }
+ function save({session,user,id,character,area,key,position,yaw,options={}}){
+  if(!select(session,user))return false;
+  records.delete(id);
+  if(!character||!id||!key||!legal(position,area,options))return false;
+  records.set(id,{character,area,key,position:copy(position),yaw:Number.isFinite(yaw)?yaw:0});
+  return true;
+ }
+ function take({session,user,id,character,area,key,eligible,options={}}){
+  if(!select(session,user))return null;
+  const record=records.get(id);records.delete(id);
+  if(!eligible||!record||record.character!==character||record.area!==area||record.key!==key||!legal(record.position,area,options))return null;
+  return {...record.position,yaw:record.yaw};
+ }
+ return {select,save,take};
+}
+return {preflight,validateCandidate,createReturnTracker,createMountedReturn,createReturnSuspensions};
 }
 if(typeof module!=='undefined'&&module.exports)module.exports={createReturnTools,...createReturnTools(require('./npc-areas.js'),require('./npc-escort.js'))};
 else root.VoidNPCReturn=createReturnTools(root.VoidNPCAreas,root.VoidNPCEscort);

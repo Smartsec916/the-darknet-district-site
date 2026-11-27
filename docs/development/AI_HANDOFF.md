@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Chance Encounters playlist editor
+
+The editor groups checked dialogue and animation actions into explicit main playlists, with drag reordering and finite or until-canceled passes. New chance playlists reroll at their insertion point by default. Existing graphs retain their saved repeat bounds, per-action repeat flags, and return behavior. Updating playlist membership applies the new full-action repeat rule. The editor preview, private playtest, and public runtime use the same execution rules. Main playlists are local to a conversation section, so player choices can be placed before or after a playlist. No production encounter content is authored by this change. Build `2026-11-27-chance-playlists-1`.
+
 ## Current NPC travel and editor policy
 
 See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
