@@ -67,7 +67,7 @@
   return ()=>{scene.onBeforeRenderObservable.remove(obs);for(const p of systems)p.dispose();for(const m of owned)m.dispose();};
  }
  // Vantor Relay (a placeholder orbital transfer hangar): a rock-cut hangar shell in place of the plain boxes (tools/assets/universe/build_relay.py). Same coordinates; collision is the layout's data.
- const RELAY_ID='vantor:relay',RELAY_SRC='assets/models/vantor/vantor-relay.glb',RELAY_HIDE=new Set(['hangar-wall','hangar-door-jamb','hangar-header','hangar-floor','hangar-roof','rear-bulkhead','cargo-crate','floor-guide','ceiling-light']);
+ const RELAY_ID='vantor:relay',RELAY_SRC='assets/models/vantor/vantor-relay.glb',RELAY_HIDE=new Set(['hangar-wall','hangar-door-jamb','hangar-header','hangar-floor','hangar-roof','rear-bulkhead','hangar-corridor-wall','cargo-crate','floor-guide','ceiling-light']);
  api.relayModels=(def,quality)=>def?.id==='vantor-relay'&&quality!=='low'?{[RELAY_ID]:{src:RELAY_SRC,scale:1}}:{};
  api.dressRelay=({scene,parent,def,quality,instance})=>{
   if(def?.id!=='vantor-relay'||quality==='low'||!parent)return null;
