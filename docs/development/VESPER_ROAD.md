@@ -11,8 +11,8 @@ This is built in phases, one PR each. This page says what exists now.
 | 1 | The pass: the road climbs between the first range's two high points through a carved saddle; the land is streamed chunks; walking and driving along the whole road | PR #635 (`2026-11-28-vesper-pass-1`) |
 | 2 | Many miles: the road continues 8 km beyond the pass along the valleys around the mountains (9.6 km, about 6 miles, in all) | PR #636 (`2026-11-28-vesper-road-2`) |
 | 3 | The village: nine small houses, an enterable bar and an enterable store, street lamps, water tower | PR #637 (`2026-11-28-vesper-village-3`) |
-| 4 | The mine: portal in a cut, the adit inside the mountain, a cage down a shaft of placeholder depth to the bottom level | `2026-11-28-vesper-mine-4` |
-| 5 | The far end: guard shack, warehouse facility, shared housing | later |
+| 4 | The mine: portal in a cut, the adit inside the mountain, a cage down a shaft of placeholder depth to the bottom level | PR #638 (`2026-11-28-vesper-mine-4`) |
+| 5 | The far end: the guard shack and barrier you reach first, the facility made to look like a warehouse (big doors on one side), the shared housing unit | `2026-11-28-vesper-facility-5` |
 | 6 | Loading screens everywhere made as unnoticeable as practical | later |
 
 ## Where it is
@@ -69,6 +69,18 @@ Nothing on the road is a separate scene: the whole 9.6 km is one Babylon scene, 
 - **Levels in the rules**: floors (flat walking surfaces) and collision boxes carry their level; only the player's current level counts (`setLevel`): other levels' boxes are open, their prompts hidden. `vesper.js groundAt` returns a tunnel's floor before the land above it. Walking areas are tested per point round the walker's circle (`vesper-sites.js walkable`), so people and the truck pass from the road onto a yard and round a tunnel corner without needing one rectangle to hold them.
 - **Saves**: nothing new is saved. The player's level resets to the adit on every load of Vesper (Vesper always starts at the workshop). No save-manifest or server change.
 
+## The far end (phase 5)
+
+- **Where**: the road now runs on past the old end, down into a flat basin under a cliff, and ends **9.76 km from the workshop** inside the facility's gateway (origin (7470, 2700); road and yard level at ≈ 22 m). The last 60 m of road run level (`END_FLAT`), so the guard shack and the barrier stand on the level; the descent before it keeps the 9 % limit. The compound is a flat pad (14 m blend).
+- **What** (`vesper-facility.glb`, 2.6 MB, 8 k faces, by `tools/assets/vesper/build_vesper_facility.py`):
+  - **The guard shack you reach first** (north of the road, 60 m before the end, outside the gateway): 4.2 × 3.6 m, door on its west side, windows to the road and the gate, a desk with two dark monitors and a keyboard, a chair, a cabinet, a ceiling lamp, a camera on a bracket watching the gate, a new air conditioner on the old roof. **Enterable** (nobody on duty). **The barrier**: a pivot post on the road's north edge and the boom **raised** (open; no gate logic), a rest post on the south edge, a red lamp.
+  - **The compound**: a chain-link fence with barbed outriggers (see-through panels: the fence material is made translucent at load), open across the road at the gateway.
+  - **The warehouse** (28 × 48 m, eaves 10 m): weathered corrugated cladding on a steel frame and a low gable roof, **three big roller doors on its west side** facing the yard (shut, in steel frames with hoods, bollards and a lamp over each), a personnel door with a canopy and a blank keypad box with a green LED. **The tells** (clean new fittings on old cladding): a 13 m lattice antenna mast with panel antennas, a whip and a red beacon; a dish; four rooftop chillers with fans; sensor domes and cameras on brackets at the four corners; louvred vents high on the walls; a cable tray down the south wall to a fenced transformer.
+  - **The shared housing unit** (north of the warehouse): two storeys of three modular units each, an outside stair and an upper walkway with a railing, doors (shut), windows, new air conditioners, a water tank and a small dish.
+  - **The yard**: two 12 m light masts, two shipping containers, a parked flatbed trailer, drums.
+- **Shut by default (owner decisions)**: the warehouse's doors (the inside was not asked for; nothing is invented), the housing unit's doors. Collision: the warehouse, the housing unit, the fences, the shack's walls and furniture, the barrier posts, the masts, the containers and the trailer.
+- **Loading**: like the village (streams in 3 km out, compiled hidden). 9.8 km from the workshop it is far beyond the load distance at the start, so it loads during the drive, behind the last ridges.
+
 ## Walking and driving
 
 - **Walking**: `opening-data.js` keeps the yard's rectangle (`bounds: [232, 80]`, unchanged) and adds `walkable`, the road corridor (`vesper-world.js`): carriageway + shoulders + 4 m each side, from 30 m inside the yard's edge to the end of the road. `exploration-controller.js` `blocked()` and `depth()` accept an optional `location.walkable(x, z, r)`: a point outside the rectangle is allowed when it is inside that area. Every location without `walkable` behaves exactly as before; the yard behaves exactly as before (tested point by point).
@@ -100,6 +112,10 @@ The village (`vesper-village`, under The long valley), the bar (`vesper-bar`) an
 
 The mine (`vesper-mine`: the yard and portal, under The long valley), the adit (`vesper-mine-adit`, level 0, with a height range so it is not confused with the bottom level), the bottom level (`vesper-mine-bottom`, at the placeholder depth). PROPOSED names. Approach points: the yard 24 m in front of the portal; inside the adit 3 m past the mouth; the bottom station beside the cage.
 
+## Places added by the far end
+
+The facility (`vesper-facility`, under The far road): the guard shack (`vesper-guard-shack`), the warehouse (`vesper-warehouse`, in front of its doors), the housing unit (`vesper-housing`). PROPOSED names. Approach points on the ground: the road 28 m before the gateway; outside the shack's door; on the apron in front of the middle door; in front of the housing unit.
+
 ## Restrictions (owner's standing rule: each with its source)
 
 | Restriction | Added / widened / removed | Source | What it blocks | Test |
@@ -113,10 +129,15 @@ The mine (`vesper-mine`: the yard and portal, under The long valley), the adit (
 | In the mine only the tunnels and chambers of the player's current level are walkable; other levels' collision and prompts are off | new | technical: the tunnels are inside rock (no collision of their own); levels share x and z | walking into rock; walking on a level you are not on | `tests/vesper-mine.test.cjs` |
 | The truck may drive onto the mine yard and into the adit (it fits); not onto the cage | widened | the corridor rule extended to sites | nothing new | `vesper-mine.test.cjs` "the truck can drive onto the yard" |
 | Mine depth 120 m | new placeholder | the owner: "Make the depth a placeholder for now" | nothing | `vesper-mine.test.cjs` "the depth is one placeholder constant" |
+| The warehouse's big doors and personnel door, and the housing unit's doors, are shut (solid) | new reversible default | the brief: "the warehouse interior wasn't requested: leave the doors closed" (coordinator's brief for this phase) | entering them | `tests/vesper-facility.test.cjs` |
+| The compound fence is solid except the gateway | new | a fence; the gateway (the road) is open | walking through the fence | `vesper-facility.test.cjs` |
+| The barrier is open (boom raised) | none (open default) | no gate logic asked for | nothing | `vesper-facility.test.cjs` "the barrier is open" |
 
 Nothing else was added. The signs stay blank (the owner's call), there is no gate logic, no NPC, no mission.
 
 ## Open questions for the owner
+
+- The facility: what it really is and what is inside the warehouse (doors shut, nothing invented); whether the housing unit opens; whether the barrier should ever be lowered or the shack staffed (both are open defaults now); names (PROPOSED: "The facility", "The guard shack", "The warehouse", "The housing unit").
 
 - The mine's depth (placeholder 120 m), its names (PROPOSED: "The mine", "The adit", "The bottom level"), and what the deeper levels hold.
 

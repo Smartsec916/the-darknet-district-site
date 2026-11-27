@@ -681,6 +681,10 @@
       "vesper-mine",
       "vesper-mine-adit",
       "vesper-mine-bottom",
+      "vesper-guard-shack",
+      "vesper-warehouse",
+      "vesper-housing",
+      "vesper-facility",
       "shop-01",
       "shop-02",
       "shop-03",
@@ -61771,7 +61775,7 @@
       "spawn"
     ]
   },
-  "revision": "d88ca94cb301f1f9",
+  "revision": "46c40171d801ac27",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83645,7 +83649,7 @@
     "void-runner/personal-hud.js": "a9126fc52339462d86eb60228b6fbfe96deb02b57df991b13e57514b486d6be5",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/pixel-neon.js": "41192cc6dd889113e7ebc05833119e505172c51170267555b7d98561fc0a7001",
-    "void-runner/places.js": "8140e0a59aa1d9f6078b1d2cc6d4d9c6dac7da2ae0ad6ffe228170d1048ce800",
+    "void-runner/places.js": "50bee53f6ce331c6e87e40c73fbef85ef8bf3041b381781bc8804be906e88a50",
     "void-runner/planet-landing.js": "67b2111aa65ec14b409c8c74a9110751ca7bde8335cbcfba430c61bde5dc1682",
     "void-runner/planets.js": "d7e09f3f8af53f791c91368925b8b96f52d5f26f63a9623cda262e065f5413c7",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
@@ -83706,11 +83710,11 @@
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
     "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
     "void-runner/vehicle.js": "55e562463d132ef86bd01975d73287cff17306a1435a96436c19391a4fb057ca",
-    "void-runner/vesper-sites-data.js": "c2fe51510ac386b87c99bfbf8b94b7e31ffd80cb26bad7a8d39f92829f0adf79",
-    "void-runner/vesper-sites.js": "b0270faf8096fc4cf8d1962bee3bb6c567a054af00759d8274f6e3e2db2cc9da",
+    "void-runner/vesper-sites-data.js": "1ae0cb574c3c113058e3f680f34a83228be224be1011f66d261e287b169489ed",
+    "void-runner/vesper-sites.js": "17ce998bc64c98cc06645cc09980ac2d906a15f021a4032c22c00a98974e48bd",
     "void-runner/vesper-terrain.js": "eabe721718fb3fb66a4d658d5a09fcbfa724173f6ff28c7bd624ca03bd085c58",
     "void-runner/vesper-visuals.js": "4843fb84e033b55247464c6e255b7ef2c08b35cb4e3218149c72e36c2a6e00d1",
-    "void-runner/vesper-world.js": "481183a36502c9b3a868e20f5b9e4292802d9c5418523ac02627fe5768416015",
+    "void-runner/vesper-world.js": "ec9e3939b4facd150b5235cc69d00161c9c1c698388c4782f35cefa64d074b6d",
     "void-runner/vesper.js": "7ba61da7ff678896d3ab4a162cbbcc9e51b4bb452d8d58c97382979c600123a1",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",

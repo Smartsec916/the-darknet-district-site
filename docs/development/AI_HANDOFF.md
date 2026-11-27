@@ -4,6 +4,10 @@
 
 See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
 
+## 28 Nov 2026 - Vesper: the road's end (phase 5)
+
+The road now ends 9.76 km out at a facility made to look like a warehouse: the guard shack (enterable, nobody on duty) and an open barrier come first, then a fenced compound with the warehouse (three big roller doors on its west side, shut; antenna mast, chillers, sensors) and a two-storey shared housing unit (shut). The inside of the warehouse is the owner's decision. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-facility-5`.
+
 ## 28 Nov 2026 - Vesper: the mine (phase 4)
 
 A mine 4.7 km out: a portal in a cut in the mountainside, the adit level modelled inside the mountain (no scene change), and a cage down a shaft to the bottom level. **The depth is a placeholder: `MINE_DEPTH_M` (120 m) in `vesper-sites.js`; `LEVELS` is data.** The cage ride hides the bottom level's load (it waits in the shaft if it must). Mine levels: floors, collision and prompts per level (`setLevel`). Nothing saved. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-mine-4`.
