@@ -24,7 +24,7 @@
  }
  const api={GRACE_MS,FADE_S,PLAYABLE,LOADING,OWN,decide};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
- root.VoidTransitionVeil=api;
+ root.VoidTransitionVeil=api;const log=api.log=[];   // the last decisions (for tests and Dev Tools diagnostics)
  if(typeof document==='undefined')return;
  const veil=document.createElement('canvas');veil.id='transition-veil';veil.setAttribute('aria-hidden','true');
  veil.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:45;opacity:0;visibility:hidden';
@@ -32,7 +32,10 @@
  const copy=document.createElement('canvas');
  document.head.append(css);document.body.append(veil);
  const st={mode:'',prev:'',holding:false,since:0,own:false,revealed:false};let frame=0,hasCopy=false;
- const ownShowing=()=>OWN.some(id=>{const el=document.getElementById(id);if(!el||el.hidden)return false;const cs=getComputedStyle(el);return cs.display!=='none'&&cs.visibility!=='hidden'&&parseFloat(cs.opacity||'1')>.05;});
+ // a door fade (always in the page, shown by its opacity) counts once it is fading in; a sequence shown by un-hiding counts from the moment it is un-hidden,
+ // even while its own fade-in starts from 0 (so the veil never holds for even one frame over the vestibule, Milked, a gate, a landing or a taxi)
+ const FADES=new Set(['door-veil','mod-veil','under-veil']);
+ const ownShowing=()=>OWN.some(id=>{const el=document.getElementById(id);if(!el||el.hidden)return false;const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden')return false;return FADES.has(id)?parseFloat(cs.opacity||'1')>.05:true;});
  function snapshot(){const src=document.getElementById('space');if(!src||!src.width||!src.height)return false;if(copy.width!==src.width||copy.height!==src.height){copy.width=src.width;copy.height=src.height;}
   try{copy.getContext('2d').drawImage(src,0,0);hasCopy=true;}catch{hasCopy=false;}return hasCopy;}
  function hold(){if(!hasCopy)return;veil.width=copy.width;veil.height=copy.height;veil.getContext('2d').drawImage(copy,0,0);veil.style.transition='none';veil.style.visibility='visible';veil.style.opacity='1';
@@ -45,6 +48,7 @@
    // keep a copy of the picture while the player is in a place (every few frames: the frame from just before a load)
    if(PLAYABLE.has(st.mode)&&!st.holding&&(++frame%COPY_EVERY===0))snapshot();
    const a=decide(st,performance.now());if(a==='hold')hold();else if(a==='release')release(!st.own);else if(a==='reveal-card')reveal();
+   if(a){log.push({t:Math.round(performance.now()),action:a,mode:st.mode,prev:st.prev,own:st.own});if(log.length>40)log.shift();}
    st.prev=st.mode;}catch(e){console.warn('[transition veil]',e);}
   requestAnimationFrame(tick);}
  requestAnimationFrame(tick);

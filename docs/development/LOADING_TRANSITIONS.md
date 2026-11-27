@@ -14,7 +14,7 @@ The owner asked for loading screens to be hidden "so they aren't noticeable by t
 
 ## Every transition
 
-The veil keys off the game's own modes (it holds whenever a playable mode turns into 'preparing' or 'preparing-flight'), so it applies to every row marked "the veil" without touching those files. **Browser-verified: walking into a location (Vesper re-entry from its yard).** The other veil rows follow the same rule, but each was not driven in the browser; where a row says "a cut" or "a card", that is what the code does (read, not filmed).
+The veil keys off the game's own modes (it holds whenever a playable mode turns into 'preparing' or 'preparing-flight'), so it applies to every row marked "the veil" without touching those files. **Browser-verified** (Playwright, Chromium, software GL; the veil's own decision log `VoidTransitionVeil.log` read at each step): (1) main menu → NeoChinatown street: no hold (the card as before); (2) the District vestibule, street → interior, its own airlock scan: the veil never held at any sampled moment (every 0.5 s through the whole sequence) and the log stayed empty (`loading-veil-vestibule-scan.jpg`); (3) District interior → Vesper (non-silent): held from the first frame, released when walking began, faded to 0 (log: hold, release); (4) Vesper yard → Vesper (re-entry): held, then crossfaded. Boarding a ship was not driven (the District-first campaign has no ship, and the legacy Vesper start needs the tutorial path). The other veil rows follow the same rule, but each was not driven in the browser; where a row says "a cut" or "a card", that is what the code does (read, not filmed).
 
 | Transition | Where | Before | Now | Notes |
 |---|---|---|---|---|
