@@ -42,7 +42,7 @@
  const LOOKS=[...new Set(DINERS.map(d=>d[3]))];
  const SPAWN={x:28.2,z:371,yaw:Math.PI/2};   // just inside the door, facing the stage (the venue's Dev Tools jump and draft play)
  /* Each room's approach point (places.js rooms: enter.spawn / yaw and target): open floor with walking clearance, reached on foot from the street door
-    (tests/low-quay-club.test.cjs checks each one, tests/low-quay-rooms-browser.py stands the player on each). yaw: 0 faces +z (north), PI/2 faces +x (the stage).
+    (tests/low-quay-club.test.cjs checks each one; the browser check in PR #627 entered each through the Mission Editor's draft-play path). yaw: 0 faces +z (north), PI/2 faces +x (the stage).
     floor: the aisle between the booths; stage: the audience viewing spot in front of the steps and the front glass, facing the pole; alcove: inside the arch;
     kitchen: between the fridges and the prep island; backstage: the open middle of the dressing room. */
  const APPROACH={floor:{x:30.5,z:364.3,yaw:Math.PI*.6},stage:{x:30.4,z:371,yaw:Math.PI/2},alcove:{x:38,z:362.9,yaw:Math.PI},kitchen:{x:34.65,z:380.4,yaw:Math.PI/2},backstage:{x:41.2,z:380.4,yaw:Math.PI}};
