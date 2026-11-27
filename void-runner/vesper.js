@@ -63,6 +63,8 @@
   const B=root.BABYLON;if(!B||!parent)return null;const owned=[],nodes=[];
   let model=null;if(quality!=='low'){model=root.VoidAssets?.instance?.(WORKSHOP.id,parent)||null;if(model){model.name='vesper-workshop-model';const back=new B.PointLight('vesper-backwall-lamp',new B.Vector3(.5,3.95,-20.4),scene);back.diffuse=B.Color3.FromHexString('#ffc884');back.intensity=30;back.range=11;back.parent=parent;owned.push(back);for(const m of model.getChildMeshes(false)){m.isPickable=false;m.checkCollisions=false;m.receiveShadows=true;if(shadow&&m.getTotalVertices()>0)shadow.addShadowCaster(m,false);}}else console.warn('[VOID Vesper] workshop model unavailable; the plain exterior stays');}
   try{nodes.push(...buildRoad({B,scene,parent,quality,owned}));}catch(e){console.warn('[VOID Vesper] road skipped',e.message);}
+  // The utility vehicle (vehicle.js, VoidVehicle.configure) follows the road and terrain height; its parking spot and drivable area stay its own (owner decision).
+  try{root.VoidVehicle?.configure?.('vesper',{groundHeight:(x,z)=>road.groundAt(x,z,quality)});}catch(e){console.warn('[VOID Vesper] vehicle ground not set',e.message);}
   return {model,dispose(){for(const n of nodes)n.dispose(false,false);for(const o of owned)o.dispose();}};
  };
  function roadTexture(B,scene,quality){

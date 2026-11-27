@@ -354,7 +354,7 @@ def workshop():
         lean = .55 + .05 * i
         B.beam((13.62 + lean, 0, z0), (13.62, 2.6 - .15 * i, z0), 1.35 - .1 * i, .035, 'w_paint', up=(1, 0, 0))
     # thruster nozzle on a cradle
-    nx, nz = 17.6, -11.8
+    nx, nz = 16.9, -14.6          # clear of the utility vehicle's parking spot (vehicle-rules.js SPOTS.vesper, x 19.5 z -8)
     tinted(B, DARK)
     for dx in (-.7, .7):
         B.box((nx + dx - .08, 0, nz - .9), (nx + dx + .08, .55, nz + .9), 'w_steel')

@@ -44,3 +44,10 @@ test('models: the workshop model is Medium and above (Low keeps the code-built s
  assert.deepEqual([...REPLACED].sort(),['fuel-cap','fuel-drum']);
  const fs=require('node:fs'),path=require('node:path');for(const f of ['vesper-workshop.glb','vesper-roadkit.glb']){const b=fs.readFileSync(path.join(__dirname,'..','void-runner','assets','models','vesper',f));assert.equal(b.toString('latin1',0,4),'glTF');assert(b.length<3e6,f+' stays small');}
 });
+
+test('the utility vehicle (vehicle-rules.js) fits the whole walkable road and the parking apron, and its own spot stays clear of the road',()=>{
+ const VR=require('../void-runner/vehicle-rules.js'),world={solids:L.solids,bounds:L.bounds};
+ for(const p of R.centreline().filter(p=>p.s<=R.usableLength()-4)){const yaw=Math.atan2(p.tx,p.tz);assert(!VR.collides(p.x,p.z,yaw,world),'blocked at s='+p.s.toFixed(1));}
+ const [cx,cz]=R.PARKING.center;assert(!VR.collides(cx,cz,R.PARKING.yaw,world),'parking apron');
+ const s=VR.SPOTS.vesper;assert(!R.onRoad(s.x,s.z)&&!R.onParking(s.x,s.z));
+});

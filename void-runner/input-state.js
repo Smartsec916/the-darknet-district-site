@@ -55,7 +55,7 @@
   const visible=el=>!el.closest('[hidden],.hidden,[aria-hidden="true"]')&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden';
   let surface=null,panel=null,manual=false,away=document.hidden||document.hasFocus?.()===false,previous=null,tip=null;
   const gameMode=()=>typeof mode==='string'?mode:'menu';
-  const current=()=>resolve(gameMode(),surface,away||document.hidden,manual,root.VoidTeaDuo?.seated);
+  const current=()=>resolve(gameMode(),surface,away||document.hidden,manual,root.VoidTeaDuo?.seated||root.VoidVehicle?.driving);   // driving the utility vehicle (vehicle.js) uses the seated policy
   function clear(){
     if(typeof walkingKeys!=='undefined')walkingKeys.clear();
     for(const player of [typeof walker==='undefined'?null:walker,root.VoidSkirmish?.active?.player]){

@@ -34,6 +34,10 @@ The owner asked for "a drivable road from there [the Vesper surface workshop] go
 - The walkable road and parking are flat (`SURFACE_Y`); further out the road never sinks below the drawn terrain and has no steps over 3 m between samples.
 - Low quality gets the road too (it is part of the requested feature); the modelled workshop is Medium and above.
 
+## The utility vehicle (merged in #631)
+
+`vesper.js` calls `VoidVehicle.configure('vesper', {groundHeight})` with `road.groundAt`, so the truck's wheels follow the road and terrain. Its parking spot (`vehicle-rules.js` `SPOTS.vesper`, x 19.5, z -8, east of the shop) and drivable area (the layout bounds) are left as the vehicle's own defaults; the road's parking apron at (38, 17.5) is an alternative spot if the owner prefers it beside the road. `tests/vesper-road.test.cjs` drives the vehicle's collision body along the whole walkable road and onto the apron. The thruster nozzle by the east wall was moved to z -14.6 so it stands clear of the truck.
+
 ## Collision added
 
 None. The walkable area is the layout's rectangle (`bounds`), now 232 x 80 half-extents. Loose scatter stones and scrub that fell on the road or parking are removed at build time (visual, non-solid). Signs, posts, the gate and kerb blocks are not solid (as the other yard props are not).

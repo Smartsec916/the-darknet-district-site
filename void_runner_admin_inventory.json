@@ -61754,7 +61754,7 @@
       "spawn"
     ]
   },
-  "revision": "0cac50223ccd09a2",
+  "revision": "a348422c1b8d5a31",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -82296,6 +82296,24 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/vehicle-rules.js",
+      "line": 9,
+      "text": "- enter / exit: enter only from on foot with the game's ordinary exploration controls (not during a menu, dialogue or cutscene); exit places the player",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vehicle.js",
+      "line": 6,
+      "text": "kept, on-foot movement, jumping, weapons and game shortcuts off), the same policy the tea-room seat and VR seats use. So menus, dialogue, the V1 device and",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vehicle.js",
+      "line": 7,
+      "text": "every other UI keep working and pause the vehicle; nothing drives while a text field, menu or conversation has the input.",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/voice-clips.js",
       "line": 1,
       "text": "/* Recorded NPC dialogue (Kokoro-82M, rendered offline by tools/audio/generate.py). Each fixed line",
@@ -83507,7 +83525,7 @@
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "79f89975a1d155b07e83f5d0b4a608f387153966285f54a61de7ce1c735f30a5",
+    "void-runner/input-state.js": "f3cbcdf2d9d8c98349480763ef7923766423813db72c76670c51d0835cd9a574",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
@@ -83669,8 +83687,10 @@
     "void-runner/universe.js": "21853b2a7ca50512d33be6ae16cd835638e3fd1e224e401667a6024c67e2f0d6",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
+    "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
+    "void-runner/vehicle.js": "55e562463d132ef86bd01975d73287cff17306a1435a96436c19391a4fb057ca",
     "void-runner/vesper-visuals.js": "e44be2d9fb79681d3cbc4af8fbba4064fdb59fa46be2de449260be67df102dcd",
-    "void-runner/vesper.js": "7490e3be12187e7e367b31999682cb211b436cafeca201ca03c15f91cc2104db",
+    "void-runner/vesper.js": "9a108b8351d2c37c102a0fd3dea0aebe5b9d7dcb5ff46463cf39288c123e2df6",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
