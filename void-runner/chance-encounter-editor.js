@@ -39,16 +39,16 @@
  async function mount(host,tools){
   const uid=tools.uid,api=root.VoidChanceEncounter;
   const current=()=>host.isConnected&&tools.authorized&&uid===tools.uid;
-  const [catalog,seed]=await Promise.all([tools.request('developer/chance-encounters'),fetch('void-runner/chance-encounter-seed.json').then(r=>{if(!r.ok)throw Error('Could not load Pleasure Breach.');return r.json();})]);
+  const [catalog,seed]=await Promise.all([tools.request('developer/chance-encounters'),fetch(tools.seedUrl||'void-runner/chance-encounter-seed.json').then(r=>{if(!r.ok)throw Error('Could not load Pleasure Breach.');return r.json();})]);
   if(!current())return;
   const records=new Map(catalog.encounters.map(r=>[r.id,r]));
   if(!records.has(seed.id))records.set(seed.id,{id:seed.id,revision:0,draft:seed});
   let id=[...records.values()].find(r=>!r.deleted)?.id,selected,dirty=false,busy=false,status='';
-  let working,addBranch='arrival';
+  let working,addBranch='arrival',dialogueOpen=!tools.mobile;
   const record=()=>records.get(id),graph=()=>working;
-  const mark=()=>{dirty=true;message.textContent='Unsaved draft';};
+  const mark=()=>{dirty=true;tools.onDirtyChange?.(true);message.textContent='Unsaved draft';};
   const message=element('p');message.setAttribute('role','status');
-  function choose(key){id=key;working=api.withWaitingDialogue(structuredClone(record()?.draft));selected=graph()?.start;dirty=false;status='';draw();}
+  function choose(key){id=key;working=api.withWaitingDialogue(structuredClone(record()?.draft));selected=graph()?.start;dirty=false;tools.onDirtyChange?.(false);status='';draw();}
   function newGraph(duplicate){
    if(dirty&&!confirm('Discard the unsaved changes?'))return;
    const key='enc-'+crypto.randomUUID().slice(0,12);
@@ -77,7 +77,7 @@
     }
     const saved=await tools.request('developer/chance-encounters',{action,id,revision:r.revision,graph:g});
     if(!current())return;
-    records.set(id,saved);dirty=false;
+    records.set(id,saved);dirty=false;tools.onDirtyChange?.(false);
     if(action==='delete')id=[...records.values()].find(v=>!v.deleted)?.id;
     working=api.withWaitingDialogue(structuredClone(record()?.draft));if(action==='delete')selected=working?.start;
     status=action==='publish'?'Published revision '+saved.revision:action==='save'?'Saved draft':'Encounter deleted';draw();
@@ -90,7 +90,8 @@
    if(entries.length)bar.append(select(entries.map(r=>[r.id,r.draft.name]),id,key=>{if(!dirty||confirm('Leave this unsaved draft?'))choose(key);else draw();}));
    bar.append(button('New encounter',()=>newGraph(false)));
    const g=graph();if(!g){host.append(message);return;}
-   bar.append(button('Duplicate',()=>newGraph(true)),button('Save draft',()=>send('save')),button('Publish',()=>send('publish')),button('Delete',()=>send('delete')));
+   bar.append(button('Duplicate',()=>newGraph(true)),button('Save draft',()=>send('save')));
+   if(!tools.mobile)bar.append(button('Publish',()=>send('publish')),button('Delete',()=>send('delete')));
    const launch=async(start)=>{
     try{
      sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
@@ -98,8 +99,8 @@
     }
     catch(e){message.textContent=e.message;}
    };
-   bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
-   if(record().live){
+   if(!tools.mobile)bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
+   if(!tools.mobile&&record().live){
     const live=record().live;
     bar.append(button('Play published version',async()=>{
      try{
@@ -120,14 +121,14 @@
    }));
    if(['place','leave','after-mission','game-time'].includes(trigger.kind)){
     const place=['place','leave'].includes(trigger.kind);
-    const entries=place?(root.VoidPlaces?.options()||[]).filter(p=>p.selectable).map(p=>[p.id,p.label]):
-     (root.VoidLiveContent?.env?.trees||[]).flatMap(t=>t.missions.map(m=>[m.id,m.name||m.title||m.id]));
+    const entries=place?tools.places?.slice()||(root.VoidPlaces?.options()||[]).filter(p=>p.selectable).map(p=>[p.id,p.label]):
+     tools.missions?.slice()||(root.VoidLiveContent?.env?.trees||[]).flatMap(t=>t.missions.map(m=>[m.id,m.name||m.title||m.id]));
     if(!place)for(const [id,m] of Object.entries(root.VoidLiveContent?.env?.shipped?.registry||{}))if(!entries.some(([key])=>key===id))entries.push([id,m.name||m.title||id]);
     if(trigger.target&&!entries.some(([key])=>key===trigger.target))entries.push([trigger.target,trigger.target]);
     field(props,place?'Trigger place':'Trigger mission',select([['','Choose…'],...entries],trigger.target||'',v=>{trigger.target=v;mark();}));
    }
    if(trigger.kind==='near'){
-    const npcs=(root.VoidLiveContent?.env?.givers||[]).filter(g=>g.targets?.length).map(g=>[g.id,g.name||g.id]);
+    const npcs=tools.npcs?.slice()||(root.VoidLiveContent?.env?.givers||[]).filter(g=>g.targets?.length).map(g=>[g.id,g.name||g.id]);
     if(trigger.target&&!npcs.some(([key])=>key===trigger.target))npcs.push([trigger.target,trigger.target]);
     field(props,'Trigger NPC',select([['','Choose…'],...npcs],trigger.target||'',v=>{trigger.target=v;mark();}));
     field(props,'Approach distance (metres)',input(trigger.distance,v=>{trigger.distance=v;mark();},'number'));
@@ -160,7 +161,7 @@
    for(const [key,label] of [['x','East / west'],['z','North / south'],['yaw','Facing (radians)'],['pitch','Camera pitch'],['delaySeconds','Activation delay (seconds)']]){
     coords[key]=field(setup,label,input(g.playtest[key],v=>updateStart({[key]:v}),'number'));
    }
-   setup.append(button('Set From Current Player Position',()=>{
+   if(!tools.mobile)setup.append(button('Set From Current Player Position',()=>{
     if(typeof walker==='undefined'||!walker||walkingLocation?.area!=='street'){message.textContent='Stand on the street at the desired starting point.';return;}
     updateStart({x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch,quarter:walkingLocation.quarter});
    }));
@@ -172,7 +173,7 @@
     setup.append(map.el);
    });
    const motions=element('datalist');motions.id='encounter-lace-motions';host.append(motions);
-   const clipNames=new Set([...(root.VoidCrowd?.clips?.['npc-lib-eb1d6cc8']||[]),
+   const clipNames=new Set([...(tools.clips||[]),...(root.VoidCrowd?.clips?.['npc-lib-eb1d6cc8']||[]),
     g.placement?.clip,...(g.dialogue||[]).map(line=>line.animation),
     'sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return']);
    for(const id of clipNames){if(id){const option=element('option');option.value=id;option.label=root.VoidAnimLibrary?.clip?.(id)?.title||id;motions.append(option);}}
@@ -195,7 +196,7 @@
     const drop=g.nodes.find(n=>n.kind==='item');if(drop)prop.append(button('Preview keycard drop',()=>launch(drop.id)));
    }
    if(g.dialogue?.length){
-    const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=true;host.insertBefore(dialogue,props);
+    const dialogue=element('details');dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=dialogueOpen;dialogue.ontoggle=()=>{if(dialogue.isConnected)dialogueOpen=dialogue.open;};host.insertBefore(dialogue,props);
     const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));
     if(editable){
      const position=element('select');position.setAttribute('aria-label','Insert new line');
@@ -405,7 +406,7 @@
       if(generate.disabled)return;
       try{
        const who=line.speaker,text=line.text,tags=(line.tags||'').trim();
-       const voice=root.VoidMissionEditor?.shared?.voiceNow(who);
+       const voice=tools.voiceNow?.(who)||root.VoidMissionEditor?.shared?.voiceNow(who);
        if(!text.trim())throw Error('Enter the spoken line first.');
        if(!voice?.voiceId||voice.kind!=='elevenlabs')throw Error('Choose an ElevenLabs voice for '+who+' under NPCs → Lines & voice, or import a recording.');
        const spoken=(tags?(tags.startsWith('[')?tags:'['+tags+']')+' ':'')+text;
@@ -468,6 +469,7 @@
     if(g.start===n.id)g.start=g.nodes[0]?.id||'';selected=g.start;mark();draw();
    }));
   }
+  if(tools.mobile){choose(id);return;}
   const returned=sessionStorage.getItem('chance-editor-return');sessionStorage.removeItem('chance-editor-return');
   let restore;
   try{restore=JSON.parse(sessionStorage.getItem('chance-playtest-draft'));}catch{}

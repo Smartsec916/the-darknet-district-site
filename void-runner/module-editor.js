@@ -66,7 +66,7 @@
    item.append(swatch,document.createTextNode(label));key.append(item);
   }
   const draft=root.VoidMissionEditor?.local?.()||{}, live=root.VoidLiveContent?.env||{};
-  const rows=opts.rows||A.addressRegistry([...(root.VoidMainStory?.trees?.()||[]),...(live.trees||[]),...(draft.trees||[])],{...live.characters,...draft.characters});
+  const rows=opts.rows||A.addressRegistry([...(root.VoidMainStory?.trees?.()||[]),...(live.trees||[]),...(draft.trees||[])],{...A.districtPair,...live.characters,...draft.characters});
   bar.append(area,zoom);const cv=el('canvas','','mod-dmap-cv',{width:'640',height:'200',role:'img','data-door-map-canvas':'1'});wrap.append(bar,cv,tip,key);
   let players=opts.players;
   const W=640;let k=1,vx0=0,vz1=0,H=200,pts=[],drag=null,suppressClick=false;
