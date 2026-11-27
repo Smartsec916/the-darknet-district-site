@@ -84,6 +84,25 @@ class ChanceTests(unittest.TestCase):
         with self.assertRaises(encounters.DraftError):
             encounters.validate(self.graph)
 
+    def test_saved_actions_and_continuation_survive_publication(self):
+        first, second = self.graph['dialogue'][:2]
+        for row in (first, second):
+            row.update(mainPlaylist='main_test', mainPasses=0, mainContinueChance=30)
+        parked = dict(id='parked_dialogue', speaker='lace', text='Remember this.',
+                      delay=7, tags='quiet', animation='sz-tiedbf', repeatAnimation=True)
+        self.graph['savedActions'] = [[parked]]
+        self.graph['pickupNoticeSeconds'] = 12
+        draft = self.edit('save', 0)['draft']
+        live = self.edit('publish', 1)['live']
+        self.assertEqual(draft['savedActions'], [[parked]])
+        self.assertEqual(live['savedActions'], [[parked]])
+        self.assertNotIn(parked, live['dialogue'])
+        self.assertEqual(live['dialogue'][0]['mainContinueChance'], 30)
+        self.assertEqual(live['pickupNoticeSeconds'], 12)
+        second['mainContinueChance'] = 50
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+
     def test_repeat_options_survive_publication_and_require_booleans(self):
         line = self.graph['dialogue'][0]
         line.update(repeatSpeech=True, repeatAnimation=False)
@@ -117,6 +136,7 @@ class ChanceTests(unittest.TestCase):
             card=encounters.residential_drop(self.db,self.uid,request)
             self.assertEqual(encounters.residential_drop(self.db,self.uid,request),card)
         self.assertEqual((card['streetNumber'],card['apartmentNumber']),(27,101))
+        self.assertFalse(encounters.resume(self.db,self.uid,self.graph['id'])['active'])
         move=dict(action='pickup',door=door,card=card['id'],nonce='once-only',position=pos)
         with self.assertRaises(items.DraftError):
             items.move_card(self.db,self.uid,move)

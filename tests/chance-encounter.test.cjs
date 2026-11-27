@@ -159,3 +159,32 @@ test('finished bounded and nested branches restart the active main cycle and rel
   assert.equal(buttons.size,0);
  }
 });
+
+test('main playlist continuation rolls after each complete pass', async () => {
+ for (const [chance, rolls, expectedPasses] of [
+  [0, [0, 0.9], 2],
+  [30, [0.3, 0.29], 2],
+  [50, [0.75, 0.49], 2],
+  [100, [0.99], 1]
+ ]) {
+  const controller = new AbortController();
+  const settings = {mainPlaylist:'main_test', mainPasses:0, mainContinueChance:chance};
+  const rows = [{id:'first', ...settings}, {id:'last', ...settings}, {id:'next'}];
+  const played = [];
+  let rollIndex = 0;
+  const run = engine.runPlaylist(rows, new Map(), {
+   signal:controller.signal,
+   play:row => played.push(row.id),
+   random:() => rolls[rollIndex++],
+   pause:() => {
+    if (chance === 0 && rollIndex === rolls.length) controller.abort();
+   }
+  });
+  if (chance === 0) await assert.rejects(run, {name:'AbortError'});
+  else await run;
+  const expected = Array.from({length:expectedPasses}, () => ['first', 'last']).flat();
+  if (chance > 0) expected.push('next');
+  assert.deepEqual(played, expected);
+  assert.equal(rollIndex, rolls.length);
+ }
+});
