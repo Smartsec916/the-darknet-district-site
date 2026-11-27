@@ -90,7 +90,7 @@
     if(s>hostEnd){host=shapes.map((m,k)=>{const c=m.clone('vesper-talus-'+Math.round(s)+'-'+k);c.setEnabled(true);c.parent=parent;rocks.push(c);return c;});hostEnd=s+400;}
     while(li<L.length-1&&L[li].s<s)li++;const q=L[li];
     for(const side of [1,-1]){if(rand()<.35)continue;const d=W.benchAt(q.s)+3.2+Math.pow(rand(),1.6)*14,x=q.x-q.tz*d*side,z=q.z+q.tx*d*side,h=W.height(x,z,info),cut=info.natural-h;
-     if(cut<2.5&&rand()>.12)continue;const size=(.25+Math.pow(rand(),2.2)*(cut>8?2.2:1.1));
+     if(cut<2.5&&rand()>.12)continue;if(root.VoidVesperSites?.siteAt(x,z))continue;const size=(.25+Math.pow(rand(),2.2)*(cut>8?2.2:1.1));
      host[Math.floor(rand()*3)].thinInstanceAdd(B.Matrix.Compose(new B.Vector3(size*(.8+rand()*.5),size*(.6+rand()*.5),size*(.8+rand()*.5)),B.Quaternion.RotationYawPitchRoll(rand()*6.28,(rand()-.5)*.4,(rand()-.5)*.4),new B.Vector3(x,h-size*.12,z)),false);}}
    for(const m of rocks)if(m.thinInstanceCount){m.thinInstanceBufferUpdated('matrix');m.thinInstanceRefreshBoundingInfo(false);}else if(m.parent===parent)m.setEnabled(false);
   }catch(e){console.warn('[VOID Vesper] talus skipped',e.message);}

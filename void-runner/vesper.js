@@ -39,7 +39,8 @@
  /* ---------------- browser presentation ---------------- */
  // The truck's drivable area: the yard's rectangle (opening-data.js bounds, the vehicle's own default before) or the road corridor.
  const YARD_BOUNDS=[232,80];
- const vehicleBounds=(x,z,r)=>(Math.abs(x)<=YARD_BOUNDS[0]-r&&Math.abs(z)<=YARD_BOUNDS[1]-r)||W.walkable(x,z,r);
+ const sitesApi=()=>root.VoidVesperSites||(typeof module!=='undefined'?require('./vesper-sites.js'):null);
+ const vehicleBounds=(x,z,r)=>(Math.abs(x)<=YARD_BOUNDS[0]-r&&Math.abs(z)<=YARD_BOUNDS[1]-r)||W.walkable(x,z,r)||!!sitesApi()?.walkable(x,z,r);
  /* Walking on the land: the walker's eye rides on the ground under him (the yard is flat 0 as before; the road climbs through the pass). Wraps VoidExplorer.step
     for the walker in Vesper only, the way ncz-underground-integration.js puts the tunnels' floor under the walk. */
  if(typeof document!=='undefined'&&root.VoidExplorer&&!root.VoidExplorer.step.vesperGround){const E=root.VoidExplorer,step0=E.step;
@@ -113,7 +114,7 @@
    const at=s=>{let i=L.findIndex(p=>p.s>=s);if(i<0)i=L.length-1;return L[i];};
    // posts: both edges, every 24 m from the gate out to the usable end, then every 48 m into the distance (fewer on Low)
    const gateS=nearest(50,12.4).s,usable=yardLength(),gap=low?48:24;
-   for(let s=gateS+12;s<end-TAPER;s+=s<usable?gap:gap*2){const p=at(s),h=halfWidthAt(p.s)+.7,y=roadY(p.s)-.02,yaw=Math.atan2(p.tx,p.tz);for(const side of [1,-1]){const x=p.x-p.tz*h*side,z=p.z+p.tx*h*side;place('kit_post',x,Math.max(y,Math.min(y+1.5,ground(x,z)-.05)),z,yaw);}}
+   for(let s=gateS+12;s<end-TAPER;s+=s<usable?gap:gap*2){const p=at(s),h=halfWidthAt(p.s)+.7,y=roadY(p.s)-.02,yaw=Math.atan2(p.tx,p.tz);if(sitesApi()?.siteAt(p.x,p.z))continue;for(const side of [1,-1]){const x=p.x-p.tz*h*side,z=p.z+p.tx*h*side;place('kit_post',x,Math.max(y,Math.min(y+1.5,ground(x,z)-.05)),z,yaw);}}
    // the gate at x~50: pivot post on the north edge, boom raised (open), hut beside it off the road
    {const p=at(gateS),nx=-p.tz,nz=p.tx,h=halfWidthAt(p.s)+.4;place('kit_gate',p.x+nx*h,0,p.z+nz*h,Math.atan2(-nx,-nz));
     for(const d of [-3.2,3.2])place('kit_block',p.x+nx*(h+.2)+p.tx*d*1.5,0,p.z+nz*(h+.2)+p.tz*d*1.5,Math.atan2(p.tx,p.tz));}
