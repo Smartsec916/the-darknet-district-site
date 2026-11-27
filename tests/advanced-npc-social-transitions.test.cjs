@@ -44,7 +44,7 @@ test('an escort whose plan belongs to another area is not carried from this scen
 });
 
 // Exercise the same adapter with public registry geometry, including the space inside the scanner.
-async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=true,tier=2,from='avenue',to='oldtown'}={}){
+async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=true,enabled=true,tier=1,from='avenue',to='oldtown'}={}){
  const E=require('../void-runner/npc-escort'),A=require('../void-runner/npc-areas'),Q=require('../void-runner/ncz-quarters'),X=require('../void-runner/npc-paths');
  const lane=Q.lane(riding?'north:bay-s':'north:foot-w'),link=E.linkById('gate:north:foot-w'),id='tea-host',session='social:'+id+':3';
  const actual={id:'neochinatown',area:'street',quarter:from},walker={x:lane.mid[0],z:lane.mid[1]},point=riding?walker:link.ends[from].wait;
@@ -55,7 +55,7 @@ async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=
  const root={VoidQuarters:Q,VoidNPCEscort:E,VoidNPCAreas:A,VoidNPCPaths:X,VoidDistrictArea:{KEY:{street:'street'}},
   VoidGateTransit:{busy:true,state:'EXCHANGE',lane:lane.key,deferExchange:(_lane,fn)=>{pending.push(fn);return true;}},
   VoidRoadTaxi:{crossing:riding},VoidStreetPair:{live:()=>({escort:{[id]:actor}})},
-  VoidLiveContent:{plans:()=>({[id]:plan}),socialTravelPolicy:()=>tier>=2?policy:null,replan(){},setCarry:(_,c)=>stay=c,
+  VoidLiveContent:{plans:()=>({[id]:plan}),socialTravelPolicy:()=>enabled?policy:null,replan(){},setCarry:(_,c)=>stay=c,
    arriveSocial:(_id,key,origin,p)=>{assert.equal(key,session);assert.equal(origin,from);arrival=p;}}};
  const enter=new Function('globalThis','document','walker','walkingLocation','enterWalking',source+'\nreturn enterWalking;')(root,{},walker,actual,async()=>{if(load)actual.quarter=to;return load;});
  await enter('street',{quarter:to,spawn:[walker.x,1.7,walker.z],gateLane:scanned?lane.key:undefined});
@@ -64,7 +64,7 @@ async function gateVisit({riding=false,seated=false,load=true,scanned=true,near=
 }
 test('an opted-in advanced follower traverses an actual scanned gate in both directions',async()=>{
  for(const [from,to] of [['avenue','oldtown'],['oldtown','avenue']])assert.equal((await gateVisit({from,to})).arrival?.area,to);
- for(const args of [{load:false},{scanned:false},{near:false},{tier:1}])assert.equal((await gateVisit(args)).arrival,null);
+ for(const args of [{load:false},{scanned:false},{near:false},{enabled:false}])assert.equal((await gateVisit(args)).arrival,null);
 });
 test('only a seated advanced passenger transfers through a successful taxi bay exchange',async()=>{
  const ok=await gateVisit({riding:true,seated:true,tier:3});assert.equal(ok.arrival?.ride,'in-cab');assert.equal(ok.arrival.area,'oldtown');

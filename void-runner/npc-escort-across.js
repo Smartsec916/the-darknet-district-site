@@ -8,7 +8,7 @@
      ride      she sits in the player's taxi through a gate's bay: in her seat in the next quarter, out with the player at the stop
      stay      she was too far behind (or the player went on without her): she stays where she is in that area; the arrow leads back to her (mission-guide.js)
      fail      a "Follow them" player went further than "lost" with "the mission fails"
-     refused   she may not go there (Milked for Reverie / Lace / anyone not marked adult, the Corporate District and the Temple, the cat inside or down into the tunnels):
+     refused   she may not go there (Milked for Reverie / Lace / anyone not marked adult, separate scenes without an escort transfer):
                she stops at the door / gate and says so; never a silent loss
    Multiplayer: as before, each player's own copy of the street pair and made characters; nothing is sent. Saves: nothing new (story.flags.npcEsc's x / z, written by setCarry). */
 (function(root){
@@ -71,7 +71,7 @@
    const place=P.kind==='follow-them'?'ahead':'behind',inCab=h.ride==='in-cab'||h.phase==='in-cab';
    const at=riding?(sp?{x:sp.x,z:sp.z,yaw:sp.yaw}:null):R.arrival(link,toArea,place,sp);
    const check=link&&link.ends[toArea]?link.ends[toArea].ahead:at&&A.nearest?A.nearest(at,toArea,4)||at:at;
-   const allowed=toArea?R.mayEnter(h.npc,toArea,riding?null:check):{ok:false,why:who+' stays in the city: '+(M.cat?'it waits':'she waits')+' for you at the gate.'};
+   const allowed=toArea?R.mayEnter(h.npc,toArea,riding?null:check):{ok:false,why:'There is no NPC transfer to this scene.'};
    const d=Math.hypot(h.x-me.x,h.z-me.z),r=R.across({kind:P.kind,set:P.set,npc:h.npc,from:fromArea,to:toArea,herArea:P.area||fromArea,dist:d,riding,inCab,allowed,farScene:t.far});
    log.push({npc:h.npc,step:P.step,from:fromArea,to:toArea,via:link?link.id:null,go:r.go,dist:+d.toFixed(1),at:Date.now()});if(log.length>30)log.shift();
    const stay=()=>C.setCarry(h.npc,{key:P.step,area:fromArea,x:+h.x.toFixed(2),z:+h.z.toFixed(2),yaw:h.yaw,phase:P.kind==='follow-them'&&h.phase==='walk'?'wait':h.phase,ride:null});

@@ -96,7 +96,7 @@
    else{sched=[];S.forEach((b,i)=>{const label=isObj(b)&&time(b.from)&&time(b.to)?' ('+time(b.from)+'–'+time(b.to)+')':'',w='Time block '+(i+1)+label+': ';
      if(!isObj(b)){add(w+'must be an object like {"from":"08:00","to":"12:00","do":"usual"}.');return;}
      const f=time(b.from),t=time(b.to);if(!f)add(w+'"from" must be a 24-hour time like "08:00" (not “'+String(b.from).slice(0,12)+'”).');if(!t)add(w+'"to" must be a 24-hour time like "12:00" (not “'+String(b.to).slice(0,12)+'”; use "00:00" for midnight).');
-     if(b.name!=null&&(typeof b.name!=='string'||!P.NAME_OK.test(b.name.trim())))add(w+'"name" may use letters, numbers and simple punctuation only (40 at most).');
+     if(b.name!=null&&(typeof b.name!=='string'||!P.NAME_OK.test(b.name.trim())))add(w+'"name" must be a single-line name of 40 characters or fewer.');
      const a=act(b,w);if(a&&f&&t)sched.push({from:f,to:t,...(typeof b.name==='string'&&b.name.trim()?{name:b.name.trim()}:{}),...a});});}}
   if(probs.length)return {ok:false,problems:probs};
   const plan=P.clean({...base,...(anims.length?{anims}:{}),...(sched&&sched.length?{schedule:sched}:{})})||{mode:'original'};
@@ -137,7 +137,7 @@
    '  "allDay": ACTIVITY,        (optional) what '+she+' does at every time NOT covered by a time block. Leave it out for the usual routine.',
    '  "schedule": [ BLOCK, ... ]  (optional) up to '+L.blocks+' time blocks',
    '}',
-   'BLOCK = ACTIVITY plus "from": "HH:MM", "to": "HH:MM" and an optional "name" (letters, numbers and simple punctuation, 40 characters at most).',
+   'BLOCK = ACTIVITY plus "from": "HH:MM", "to": "HH:MM" and an optional "name" (single-line text, 40 characters at most).',
    '  A block may run past midnight ("from": "20:00", "to": "02:00"). Blocks must not overlap. Each block lasts at least '+L.blockMin+' minutes.',
    'ACTIVITY is one of:',
    '  {"do": "usual"}   the usual routine ('+(M.cat?'goes to whichever of Reverie and Lace is out':'walks her stretch of The Avenue, sits on the ledges, plays with the cat')+')',

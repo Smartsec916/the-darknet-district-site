@@ -47,11 +47,11 @@ class NpcEscortServerTests(unittest.TestCase):
         bad({'kind': 'they-follow', 'npc': 'tea-host', 'to': {'x': 110, 'z': -6.4}, 'wait': 8}, 'no wait setting')
         bad({'kind': 'their-cab', 'npc': 'street-cat', 'stop': 'avenue'}, 'does not ride in cabs')
         bad({'kind': 'their-cab', 'npc': 'tea-host', 'stop': 'corporate'}, 'does not ride in cabs')
-        # escort across (20 Nov 2026): a stop in another quarter and a spot in another area she can walk to pass; the cat never goes down into the tunnels
+        # escort across (20 Nov 2026): a stop in another quarter and a spot in another area she can walk to pass; registered underground transfers also support the cat
         bad({'kind': 'shared-cab', 'npc': 'tea-host', 'stop': 'main'}, 'does not ride in cabs')
         self.assertEqual(problems({'kind': 'follow-them', 'npc': 'tea-host', 'to': {'x': -2.7, 'z': -80}}), [])
         self.assertEqual(problems({'kind': 'they-follow', 'npc': 'tea-host', 'to': {'x': 53, 'z': -50}}), [])
-        bad({'kind': 'they-follow', 'npc': 'street-cat', 'to': {'x': -2.7, 'z': -80}}, 'can walk to')
+        self.assertEqual(problems({'kind': 'they-follow', 'npc': 'street-cat', 'to': {'x': -2.7, 'z': -80}}), [])
         bad({'kind': 'talk', 'npc': 'admin', 'stop': 'avenue'}, 'only a follow')
         bad({'kind': 'follow-them', 'npc': 'tea-host', 'to': {'x': 110, 'z': -6.4, 'y': 2}}, 'pick the spot')
 

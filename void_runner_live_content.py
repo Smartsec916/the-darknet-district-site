@@ -659,38 +659,43 @@ def area_check(p, inv, prefer=None, m=None, adult=False, passing=False, made=Fal
     return (False, None, 'outside', 'That is not somewhere she can walk.')
 
 
-def forbidden_spot_problems(npcs, trees=None, inv=None, adults=()):
-    """The editor's server copy of a draft (void_runner_drafts.py) may be half made, but the owner's content rule holds there too: no spot or route point of Reverie,
-    Lace or the cat (all day, in a time block, or a mission's "Giver waits at") in Milked, NULL, the District bar, VR or arcade, or the Corporate District."""
+def forbidden_spot_problems(npcs, trees=None, inv=None, characters=None):
+    """Check protected areas while permitting incomplete draft routes and missions."""
     inv = inv or _json('void_runner_admin_inventory.json')
-    spots = []
-    def plan_spots(p):
-        if not isinstance(p, dict):
+    characters = characters or {}
+    movable = _movable(inv)
+
+    def plan_spots(plan):
+        if not isinstance(plan, dict):
             return
-        if p.get('mode') == 'stay':
-            spots.append(p)
-        elif p.get('mode') == 'path' and isinstance(p.get('points'), list):
-            spots.extend(q for q in p['points'] if isinstance(q, dict))
-        for b in p.get('schedule') or [] if isinstance(p.get('schedule'), list) else []:
-            plan_spots(b)
-    adult_spots = []
-    for k, p in (npcs or {}).items() if isinstance(npcs, dict) else []:
-        if k in adults or _movable(inv).get(k, {}).get('adult'):
-            n0 = len(spots)
-            plan_spots(p)
-            adult_spots.extend(spots[n0:])
-        else:
-            plan_spots(p)
-    for t in trees or [] if isinstance(trees, list) else []:
-        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
-            if isinstance(m, dict) and isinstance(m.get('waitAt'), dict):
-                spots.append(m['waitAt'])
+        if plan.get('mode') == 'stay':
+            yield plan
+        elif plan.get('mode') == 'path' and isinstance(plan.get('points'), list):
+            yield from (q for q in plan['points'] if isinstance(q, dict))
+        if isinstance(plan.get('schedule'), list):
+            for block in plan['schedule']:
+                yield from plan_spots(block)
+
+    def check(npc, point):
+        if not _num(point.get('x')) or not _num(point.get('z')):
+            return None
+        actor = movable.get(npc, {}) if isinstance(npc, str) else {}
+        draft = characters.get(npc, {}) if isinstance(npc, str) and not actor else {}
+        adult = bool(actor.get('adult') or (draft.get('adult') is True and draft.get('model') != 'npc-street-cat'))
+        made = bool(actor.get('made') or draft)
+        _, _, kind, why = area_check(point, inv, adult=adult, made=made)
+        return why if kind == 'rule' else None
+
     out = []
-    for q in spots:
-        if _num(q.get('x')) and _num(q.get('z')):
-            ok, _a, kind, why = area_check(q, inv, adult=any(q is x for x in adult_spots))
-            if kind == 'rule':
-                out.append(why)
+    for npc, plan in npcs.items():
+        for point in plan_spots(plan):
+            if problem := check(npc, point):
+                out.append(problem)
+    for tree in trees or []:
+        for mission in tree.get('missions') or []:
+            if isinstance(mission, dict) and isinstance(mission.get('waitAt'), dict):
+                if problem := check(mission.get('giver'), mission['waitAt']):
+                    out.append(problem)
     return out
 
 
@@ -1565,11 +1570,11 @@ def _reach(who, area):
 
 def into_problems(o, inv, area='avenue', m=None):
     """A follow-them / they-follow step INTO one of the mission's places (void-runner/npc-escort.js intoProblems, 20 Nov 2026): never the cat, a place of this mission,
-    a room of a location (not an elevator cab), its street door in the area she is placed in, never a bar's back room for a youthful character, open by then."""
+    a reachable room, a linked street door and an opening step that has already occurred."""
     esc = (inv or {}).get('npcEscort') or {}
     who = (esc.get('npcs') or {}).get(o.get('npc')) or {}
     if who.get('into') is False:
-        return ['the cat stays outside: it does not go into buildings.']
+        return ['apartment escorts do not support this NPC’s movement runtime.']
     out = []
     if o.get('to') is not None:
         out.append('choose either a spot on the street or a place of this mission, not both.')
@@ -1590,7 +1595,7 @@ def into_problems(o, inv, area='avenue', m=None):
             out.append('choose one of the location\u2019s rooms.')
         elif mods[o['mod']].get('type') == 'elevator':
             out.append('an elevator cab is the way between floors, not a place to stop.')
-    if mods is not None and who.get('youthful'):
+    if mods is not None and who.get('restrictedRooms'):
         adult = set(into.get('adultRooms') or ['fight-pit'])
         entry = str(a.get('entry') or '').split('.')[0]
         for r in (o.get('mod'), entry):
@@ -1728,7 +1733,7 @@ def npc_problems(npcs, inv):
         rest = {k: v for k, v in p.items() if k != 'schedule'}
         out += [w + x for x in _plan_only(npc, rest, mv, inv, ok)]
         if 'schedule' in p:
-            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {}, p.get('tier') or 1, rest)]
+            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {}, rest)]
     return out
 
 
@@ -1791,7 +1796,7 @@ def _plan_only(npc, p, mv, inv, ok):
 # [{from: 'HH:MM', to: 'HH:MM', name?, mode: 'stay'|'path'|'original', ...}]: no overlaps (a block may run past midnight), at most `blocks`, each at least `blockMin`
 # minutes, a plain-words name; each block's stay or route is checked like a placement. Nothing in it is code: times, numbers and action ids only.
 HHMM = re.compile(r'^([01]\d|2[0-3]):([0-5]\d)$')
-BLOCK_NAME = re.compile(r"^[A-Za-z0-9 .,'\u2019()&!?\-/]{1,40}$")
+BLOCK_NAME = re.compile(r"[^<>\x00-\x1f\x7f-\x9f\u2028\u2029]{1,40}")
 BLOCK_KEYS = {'original': ['from', 'to', 'name', 'mode'], 'stay': ['from', 'to', 'name', 'mode', 'x', 'z', 'yaw', 'actions', 'cross'], 'path': ['from', 'to', 'name', 'mode', 'points', 'cross']}
 
 
@@ -1811,8 +1816,8 @@ def schedule_shape_problems(sched):
             return ['time block %d has an unknown shape.' % (i + 1)]
         if _hhmm(b.get('from')) is None or _hhmm(b.get('to')) is None:
             return ['time block %d: times must look like 08:00.' % (i + 1)]
-        if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
-            return ['time block %d: the name may use letters, numbers and simple punctuation only.' % (i + 1)]
+        if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.fullmatch(b['name'])):
+            return ['time block %d: use a single-line name of 40 characters or fewer.' % (i + 1)]
     return []
 
 
@@ -1861,7 +1866,7 @@ def _earlier_block(sched, i):
     return best
 
 
-def schedule_problems(npc, sched, mv, inv, ok, limits=None, tier=1, base=None):
+def schedule_problems(npc, sched, mv, inv, ok, limits=None, base=None):
     limits = limits or {}
     most, least = limits.get('blocks', 8), limits.get('blockMin', 15)
     if not isinstance(sched, list):
@@ -1895,15 +1900,13 @@ def schedule_problems(npc, sched, mv, inv, ok, limits=None, tier=1, base=None):
                 used[m] = i
             if clash >= 0:
                 out.append(bw + 'it overlaps time block %d.' % (clash + 1))
-        if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
-            out.append(bw + 'the name may use letters, numbers and simple punctuation only.')
+        if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.fullmatch(b['name'])):
+            out.append(bw + 'use a single-line name of 40 characters or fewer.')
         if b.get('cross') not in (None, True):
             out.append(bw + '“Walk through the gates” is on or left off.')
         if b.get('cross') is True:
             if mv.get('placementOnly'):
-                out.append(bw + 'Dax stays in the District.')
-            elif not (isinstance(tier, int) and tier >= 2):
-                out.append(bw + 'only a Tier 2 or Tier 3 character walks from one area into another. A Tier 1 character stays in its own area.')
+                out.append(bw + 'Dax’s movement runtime is loaded only in the District.')
             elif b['mode'] == 'original':
                 out.append(bw + 'walking through the gates needs a spot in the area she is going to.')
             else:
@@ -3739,7 +3742,7 @@ def made_problems(content, inv=None):
         if c.get('adult') is not None and c.get('adult') is not True:
             out.append(w + '"adult" is either true or left out.')
         elif c.get('adult') is True and not md.get('adultOk'):
-            out.append(w + 'this model reads youthful: it can never be marked adult.')
+            out.append(w + 'this model does not support the human adult setting.')
         if c.get('look') is not None:
             if not _keys(c['look'], ['hide', 'colour', 'gear', 'hair']):
                 out.append(w + 'the look has unknown fields.')
@@ -3781,9 +3784,7 @@ def made_problems(content, inv=None):
         home = _residence_ok(r, inv) and r['mode'] == 'always'
         if not home and (not isinstance(p, dict) or not (_base_plan(p) or any(isinstance(b, dict) and b.get('mode') in ('stay', 'path') for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list)))):
             out.append(w + 'put them somewhere in the world.')
-        elif not home and not _base_plan(p):
-            out.append(w + 'outside their time blocks they need a place too.')
-        elif isinstance(p, dict) and not md.get('walk') and (p.get('mode') == 'path' or any(isinstance(b, dict) and b.get('mode') == 'path' for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+        elif isinstance(p, dict) and not md.get('walk') and (p.get('mode') == 'path' or any(isinstance(b, dict) and (b.get('mode') == 'path' or b.get('cross') is True) for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
             out.append(w + 'this model has no walking animation: keep them at one spot.')
     return out
 

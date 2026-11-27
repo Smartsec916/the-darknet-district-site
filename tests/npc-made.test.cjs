@@ -44,6 +44,18 @@ test('the checks: name, model, device, ship, items (shown only where a prop exis
  assert.match(err({characters:{'kara-voss':{...KARA,model:'studio-warrior',look:{gear:['gear-visor']}}}}),/licensed model gets nothing added/);
  assert.match(err({characters:{'kara-voss':{...KARA,model:'studio-warrior',look:undefined,device:undefined}},npcs:{'kara-voss':{mode:'path',points:[{x:52.5,z:-90,action:'wait',seconds:3},{x:52.5,z:-80,action:'wait',seconds:3}]}}}),/no walking animation/);});
 
+test('a made NPC can exist only during published schedule blocks',()=>{
+ const x=env(),id='kara-voss',plan={mode:'original',tier:1,schedule:[
+  {...OLDTOWN,from:'08:00',to:'12:00'},
+  {mode:'stay',from:'12:00',to:'14:00',x:103.5,z:-6.4,yaw:0,actions:['idle'],cross:true},
+ ]};
+ const d=doc(x,{npcs:{[id]:plan},trees:[]});
+ assert.deepEqual(x.MC.check(d,ctx(x)).errors,[]);
+ assert.deepEqual(x.MC.apply(d,x.e,ctx(x)).refused,[]);
+ assert.equal(x.X.planNow(id,{plan:x.e.npcPlans[id],minute:7*60}),null);
+ assert.ok(x.X.planNow(id,{plan:x.e.npcPlans[id],minute:13*60}).crossings.avenue.entry);
+});
+
 test('when they are there: always, only while a mission is active, or from one of its steps',()=>{
  const x=env(),c={...KARA,when:{mission:'draft-a',step:'two'}},t=[{id:'draft-t',missions:[{id:'draft-a',objectives:[{id:'one'},{id:'two'}]}]}];
  const s={universe:{missions:{}},story:{flags:{}}};assert.equal(x.MD.exists(KARA,s,t),true);assert.equal(x.MD.exists(c,s,t),false);

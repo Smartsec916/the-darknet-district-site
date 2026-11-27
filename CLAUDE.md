@@ -30,6 +30,12 @@ This repository is the owner's website, The Darknet District (https://thedarknet
 
 **Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 **merged on 11 Nov 2026**. Do not keep it open or treat it as the integration branch. Merge to `main` only when the owner says "push", "pull it", or "go ahead and pull". The game is **desktop and VR headsets only**; phones stay on the normal site (`void-runner/device-gate.js`). Do not modify the Sleeping Pod room or the music player unless he asks or the task cannot be done without them. Licensed models stay in the private repo `Smartsec916/void-runner-licensed-assets` (scrambled `.vrpak`, VRPE-sealed at the Pages build). Never commit them here. The owner permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
 
+## Permanent creative authority
+
+Coding agents must not independently impose creative, cultural, editorial or gameplay restrictions based on subjective preferences or assumptions. Creative decisions belong to the project owner. Document any technically necessary restriction with the enforcing component and the failure it prevents. Expose configurable gameplay decisions through Dev Tools where practical.
+
+Preserve legitimate security, privacy, age protections, player consent, legal requirements and technical safeguards. Do not silently reinstate an obsolete restriction through validators, tests, defaults, documentation or another implementation. Inspect current scene, rig and data capabilities before carrying forward a historical rule. Record new owner decisions and link the evidence.
+
 ## The owner and how to work with him
 
 - The owner (GitHub `Smartsec916`) is the final creative authority on story, world, characters and missions.

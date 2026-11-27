@@ -1,9 +1,9 @@
 /* FOLLOW INTO A PLACE in a real browser (offline; 20 Nov 2026, the owner: "For the follow options if I add an apartment there should be an option to follow into the
    apartment"). A draft mission is played as a throwaway session (nothing saved). Two walks (KIND):
-   - KIND=lead (default): Reverie waits on The Avenue about 20 m from an apartment street door. The player walks near and talks (her line), then "Follow her into Rundown
+   - KIND=lead (default): The Tea Room Host waits on The Avenue about 20 m from an apartment street door. The player walks near and talks (her line), then "Follow her into Rundown
      apartment 104": she walks along the pavement to the street door, goes in first while the player is close, is waiting in the hallway when the player comes in, leads
      to the apartment's door, goes through, is in the apartment when the player comes in: both inside -> the step is done; she stays there.
-   - KIND=bring: "They follow you" into a location from modules (office hallway, office floor, elevator, server room downstairs) with Lace: the player goes in first, she comes
+   - KIND=bring: "They follow you" into a location from modules (office hallway, office floor, elevator, server room downstairs) with the Tea Room Host: the player goes in first, she comes
      in through the door behind them a moment later, follows through the office into the elevator cab, rides down with the player, follows into the server room -> done.
    Every frame records her figure (street figure or the indoor one), the scene and whether she is on screen. Asserted: never a jump bigger than her speed x the frame time
    within a scene; on arriving in a scene she is either already there when it is first drawn (she went first, or rode in the cab) or comes in through the door the player
@@ -15,7 +15,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.
 const bundled=fs.existsSync('/opt/pw-browsers/chromium-1243/chrome-linux64/chrome')?'/opt/pw-browsers/chromium-1243/chrome-linux64/chrome':'/opt/pw-browsers/chromium',exe=process.env.BROWSER_EXECUTABLE||(fs.existsSync(bundled)?bundled:null);
 const log=(...a)=>console.log('[follow-into '+KIND+']',...a);
 const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(shots,KIND+'-'+name+'.png'),timeout:300000}).catch(()=>{});};
-const WHO=KIND==='lead'?'grey-reverie':'ethereal-lace',DOOR='apt-avenue-n-16',WAIT={x:36,z:-6.4};
+const WHO='tea-host',DOOR='apt-avenue-n-16',WAIT={x:36,z:-6.4};
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'],...(exe?{executablePath:exe}:{})});const errors=[];
  try{
@@ -39,7 +39,7 @@ const WHO=KIND==='lead'?'grey-reverie':'ethereal-lace',DOOR='apt-avenue-n-16',WA
    const trees=[{id:'draft-into',name:'Into',missions:[{id:ID,number:91,title:'Into',type:'side',giver:WHO,waitAt:{...WAIT,yaw:Math.PI},offer:[{who:WHO,text:'TEST: got a minute?'}],apartments:[place],objectives}]}];
    const content=MC.fromDrafts({local:{trees},givers:LC.env.givers});const na=MC.notApplied?MC.notApplied({local:{trees},givers:LC.env.givers}):[];if(na.length)return {problem:na.join(' | ')};
    const chk=MC.check(content,{givers:new Map(LC.env.givers.map(g=>[g.id,g])),places:VoidMissionGivers.placeIds()});if(!chk.ok)return {problem:chk.errors.join(' | ')};
-   return await VoidDevTest.session({banner:'FOLLOW INTO TEST',kind:'draft',apply:()=>LC.useDraft(content),build:()=>{const S=VoidStreetPair,tc=S.testClock([WHO]);S.simulate(tc?tc.ms:null);const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.appearanceOffered=true;return s;},
+   return await VoidDevTest.session({banner:'FOLLOW INTO TEST',kind:'draft',apply:()=>LC.useDraft(content),build:()=>{const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.appearanceOffered=true;return s;},
     enter:async()=>{state.location='earth';await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'avenue',spawn:[WAIT.x-6,1.7,WAIT.z-.4],yaw:Math.PI/2});}});},{KIND,WHO,DOOR,WAIT});
   assert.ok(r&&r.started&&!r.problem,JSON.stringify(r));
   await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street'&&VoidBabylon.district?.aptDoors,null,{timeout:900000});
