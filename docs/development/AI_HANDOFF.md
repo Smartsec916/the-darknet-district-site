@@ -134,7 +134,7 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 - Blocks changed to open the alley and the court: the three blocks west of the alley were trimmed to x -15; the three east of it start at x -10; the row z 420..456 west of x 28 was removed (now the court); rows ending at z 416 now end at z 410.
 - **PROPOSED text:** none new (stall signs are abstract glyphs); the five room names above are PROPOSED.
-- **Known gaps:** no NPCs (dancers, cooks, diners) in the alley or court yet; no ambience; real-GPU frame rate unverified (software GL; the alley and the overlook view draw 750 to 800 calls on Medium, the court about 250).
+- **Known gaps:** no NPCs (dancers, cooks, diners) in the alley or court yet; no ambience; real-GPU frame rate unverified (software GL; the alley and the overlook view draw 750 to 800 calls on Medium, the court about 250). Performance step: while the player is on the pad or the line (zone 'pad'), the quay's small placed pieces and glows (shopfronts, units, lamps, washes, steam; nothing within 150 m of the pad) are switched off and come back as the train reaches the station.
 
 ### 27 Nov 2026 (newest): PLUG & PLAY, a nightclub at Low Quay (branch `claude/low-quay-club`, build `2026-11-27-lowquay-2`)
 

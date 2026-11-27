@@ -270,13 +270,16 @@
    court:[[[-24,CITY_Y+3.4,436],'#ff5a2a',1.4,16],[[20,CITY_Y+3.4,436],'#ff3fa6',1.3,16],[[-2,CITY_Y+3.4,449],'#ffae5c',1.4,16],[[-10,CITY_Y+6.5,426],'#9a4dff',1.1,20],[[8,CITY_Y+6.5,440],'#ff7a3a',1.1,20],[[-12.5,CITY_Y+3,400],'#b0156e',.9,14]],   // the food court and the alley's end (low-quay-court.js)
    city:[[[-8,CITY_Y+3,322],'#ff8a30',1,24],[[-20,CITY_Y+5,345],'#ffa640',1,32],[[15,CITY_Y+5,370],'#ff3fa6',.8,32],[[-35,CITY_Y+3,392],'#25c9c2',.8,32],[[25,CITY_Y+5,410],'#ff7a22',.9,32],[[-5,CITY_Y+5,440],'#ffa640',.9,32]]};
   if(!low)for(let k=0;k<6;k++){const l=new B.PointLight('lq-light',B.Vector3.Zero(),scene);l.parent=parent;lights.push(l);}
-  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':court()?.inCourt(x,z)?'court':'city',setZone=zn=>{if(zn===zone)return;zone=zn;const inClub=zn==='club';if(ambient){ambient.diffuse=C(inClub?'#5a2a5c':'#55638c');ambient.groundColor=C(inClub?'#2a0c22':'#2a2018');ambient.intensity=inClub?.9:1;}if(sun)sun.intensity=inClub?.1:.7;   // indoors at the club: no moonlight, a plum fill
+  const quayBlend=()=>(scene.meshes.filter(m=>{let p=m.parent;while(p&&p!==world)p=p.parent;if(p!==world||/lq-(skyline|reflect|moon|sky)/.test(m.name)||!(m.position.z>150||/court-steam/.test(m.name)))return false;   /* the skyline, its reflection and the moon stay */if(m.sourceMesh)return true;const mt=m.material;return !!mt&&(mt.alphaMode===B.Engine.ALPHA_ADD||mt.alpha<1||!!mt.opacityTexture||!!mt.useAlphaFromDiffuseTexture);}));
+  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':court()?.inCourt(x,z)?'court':'city',setZone=zn=>{if(zn===zone)return;const was=zone;zone=zn;if(was==null||(was==='pad')!==(zn==='pad'))for(const m of quayBlend())m.setEnabled(zn!=='pad');   // from the pad (800 m off) the quay's small placed pieces and glows (shopfronts, units, lamps, washes, steam) are specks: off; its buildings stay
+   const inClub=zn==='club';if(ambient){ambient.diffuse=C(inClub?'#5a2a5c':'#55638c');ambient.groundColor=C(inClub?'#2a0c22':'#2a2018');ambient.intensity=inClub?.9:1;}if(sun)sun.intensity=inClub?.1:.7;   // indoors at the club: no moonlight, a plum fill
    ZL[zn].forEach(([p,hex,i,range],k)=>{const l=lights[k];if(!l)return;l.position.set(...p);l.diffuse=C(hex);l.specular=C(hex).scale(.5);l.intensity=i;l.range=range;});};setZone('pad');
   for(const [x,z] of [...TOWERS,[-10.5,stz+6]]){const p=B.MeshBuilder.CreateGround('lq-pool',{width:44,height:44},scene);p.material=poolMat;p.position.set(x,.03,z);p.parent=parent;p.isPickable=false;}
   // ---- security vestibule, tunnel (the rail ride), then the city ----
   const city=root.VoidLowQuayCity?.build?root.VoidLowQuayCity.build({B,scene,parent,quality,K,place,mat,glow,tex,sprite,owned,textures,hide,C,S,lampKit,pole,rail,deck,pier,pierGlow,edge,streak,banner,conc,concD,dark,steel,amber,warm,cool,blue,red,green,yel,hazard,glass,Z,TRACKS,CX,SEG,WY,BLOCKS,r,CITY_Y,waterMat,STAIRS}):null;
   // ---- finish: merge the static parts ----
-  S.done('static').forEach(m=>{m.isVisible=true;});   // kits are hidden sources for instancing; the static merge is drawn itself
+  S.done('static').forEach(m=>{m.isVisible=true;});
+  zone=null;setZone('pad');   // again now that the quay is built (its small pieces start off: the player arrives on the pad)   // kits are hidden sources for instancing; the static merge is drawn itself
   const ripple={t:0};
   // ---- the ride ----
   let ride=null,craftSwap=null,flight=null;const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
