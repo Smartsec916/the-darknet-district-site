@@ -1,5 +1,17 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Chance Encounter timing and sound cues
+
+The editor estimates line, section, main-playlist and chance-playlist durations using delays, recording lengths, known animation lengths, playback speed and repeat settings. Chance paths and unmeasured clips are labelled. A line can carry sound without dialogue or animation.
+
+Encounter, node, section, main-playlist, chance-playlist and action cues use the packaged sound library and the game's Effects channel. Each cue has a start or end anchor, offset, volume and optional loop. Loop stops can follow the active scope, encounter completion or a set duration. Use a timed loop for an end cue. Effects can play concurrently and do not extend dialogue or playlist execution. The desktop execution preview uses the same scheduler. Build `2026-11-27-encounter-sound-cues-1`.
+
+## 27 Nov 2026 — Cast for new Chance Encounters
+
+New drafts can choose a location and trigger and add a cast from registered NPC models or browser-local GLBs. Each cast member has a stable NPC ID, display name, placement and idle clip. Cast dialogue assigns speakers and their embedded animations, and a Cast conversation node waits for the player to approach before presenting Talk. The new location selector covers NeoChinatown street quarters, the District interior and Low Quay. Existing bespoke encounters retain their graphs and staging.
+
+Imported GLBs are stored in browser IndexedDB. Publishing requires a registered game model from the regular asset pipeline. The Python API enforces that distinction and checks the selected location when rolling opportunities. Build `2026-11-27-encounter-cast-1`.
+
 ## 27 Nov 2026 - Cardkey pickup glow
 
 The Pleasure Breach cardkey has a brighter cyan rim, a cyan status light and a soft cyan pool on the pavement where it lands. The spill is a local additive mesh that is disposed with the pickup. Build `2026-11-27-cardkey-ground-glow-1`.

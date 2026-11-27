@@ -4,7 +4,7 @@
  const laceFile='assets/models/crowd/npc-lib-eb1d6cc8.vrpak';
  const keyModel='assets/models/keycards/kade-lace-key.glb';
  const kadeLook='npc-hacker',laceLook='npc-lib-eb1d6cc8';
- let running=null;
+ let running=null,soundTail=null;
  function delay(ms,signal){
   return new Promise((resolve,reject)=>{
    if(signal.aborted){reject(signal.reason);return;}
@@ -39,7 +39,8 @@
  }
  function play(figure,name,loop=true,speed=1){
   const all=figure.made.metadata.animationGroups||[];
-  const clip=all.find(g=>g.name.toLowerCase().endsWith('-'+name));
+  const key=name.toLowerCase();
+  const clip=all.find(g=>g.name.toLowerCase()===key||g.name.toLowerCase().endsWith('-'+key));
   if(!clip)throw Error('The assigned animation is unavailable: '+name);
   if(figure.returnToPose){
    const {group,observer}=figure.returnToPose;
@@ -71,13 +72,14 @@
    signal.throwIfAborted();
    const text=replay&&!line.repeatSpeech?'':line.text.trim();
    const animation=replay&&!line.repeatAnimation?'':line.animation;
-   if(text||animation){
+   if(text||animation||line.soundCues?.length){
     if(line.delay)await delay(line.delay*1000,signal);
     const speed=api.validAnimationSpeed(line.animationSpeed)?line.animationSpeed:1;
-    const clip=animation&&run.lace?await assignedClip(run.lace,laceLook,animation,signal,false,speed):null;
+    const cast=run.cast?.get(line.speaker);
+    const clip=animation&&(cast?play(cast,animation,false,speed):run.lace?await assignedClip(run.lace,laceLook,animation,signal,false,speed):null);
     try{
      if(text){
-      caption(line.speaker+' · '+text);
+      caption((cast?.name||line.speaker)+' · '+text);
       const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
       const bus=root.VoidAudio?.bus('voice');
       if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
@@ -89,6 +91,7 @@
      }
      if(clip)await until(()=>!clip.isPlaying,signal);
     }finally{if(clip&&signal.aborted)clip.stop();}
+    if(clip&&cast?.idle&&!signal.aborted)play(cast,cast.idle);
    }
    signal.throwIfAborted();
   }
@@ -112,7 +115,11 @@
    parentSignal.throwIfAborted();
    return !signal.aborted;
   }
-  await api.runPlaylist(sections[section||prefix]||[],byId,{signal,play:action,pause:delay,repeat});
+  const key=section||prefix;
+  await api.withSounds(run.sounds,run.graph.sectionSounds?.[key],signal,()=>api.runPlaylist(sections[key]||[],byId,{
+   signal,play:action,pause:delay,repeat,
+   scope:(kind,item,local,work)=>api.withSounds(run.sounds,api.soundsFor(run.graph,key,kind,item),local,work)
+  }));
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);
@@ -126,8 +133,13 @@
   return {door,slot:home.slot,number:root.VoidApartments.slotNumber(home.slot,door.style),
    target:root.VoidApartments.residenceKey(door.id,home.slot)};
  }
- function stop(){
+ function stop(ending=false){
   if(!running)return;
+  if(ending===true){
+   running.endSounds?.();
+   running.sounds?.finish();
+   soundTail=running.sounds;
+  }else running.sounds?.dispose();
   running.controller.abort(new DOMException('Encounter stopped','AbortError'));
   for(const obj of running.owned)obj.dispose?.();
   running.panel?.remove();running=null;root.dispatchEvent?.(new Event('void-encounter-journal'));
@@ -551,12 +563,60 @@
    if(!run.signal.aborted&&walkingLocation?.inst===run.entered)await root.VoidApartments.backToHall();
   }
  }
+ async function spawnCast(run){
+  const assets=root.VoidAssets,scene=root.VoidBabylon.scene;
+  run.cast=new Map();
+  for(const actor of run.graph.cast){
+   const file=actor.localAsset&&await root.VoidChanceEncounter.castAsset(actor.localAsset);
+   if(actor.localAsset&&(!run.private||!file))throw Error('Import the GLB for '+actor.name+' on this browser before playing.');
+   if(!file&&!root.VoidMadeNPCs?.modelOf(actor.model))throw Error('Choose a registered game model for '+actor.name+'.');
+   const src=file?'assets/models/encounter-local.glb':root.VoidMadeNPCs.fileOf(actor.model);
+   const localBuffer=file?await file.arrayBuffer():undefined;
+   const container=await assets.loadContainer({src,localBuffer},scene,undefined,'encounter-cast-'+actor.id);
+   if(run.signal.aborted||scene!==root.VoidBabylon.scene||scene.isDisposed){
+    container.dispose();throw new DOMException('Encounter location changed','AbortError');
+   }
+   const parent=new (B().TransformNode)('encounter-cast-'+actor.id,scene);
+   run.owned.add(parent);parent.position.set(actor.x,actor.y,actor.z);
+   parent.rotation.y=actor.yaw;parent.scaling.setAll(actor.scale);
+   parent.metadata={character:actor.id,displayName:actor.name};
+   let instance;
+   try{instance=container.instantiateModelsToScene(name=>'cast-'+actor.id+'-'+name,false);}
+   catch(error){container.dispose();throw error;}
+   for(const node of instance.rootNodes)node.parent=parent;
+   // Register clones before the container so scene changes release them in order.
+   assets.ownInstance(instance,parent);
+   parent.onDisposeObservable.addOnce(()=>container.dispose());
+   const figure={parent,name:actor.name,made:{metadata:{animationGroups:instance.animationGroups}},idle:actor.idle};
+   if(!figure.idle&&instance.animationGroups.some(group=>/(^|-)idle$/i.test(group.name)))figure.idle='idle';
+   if(figure.idle)play(figure,figure.idle);
+   run.cast.set(actor.id,figure);
+  }
+ }
+ async function castConversation(run,node){
+  const actor=(node.speaker&&run.cast.get(node.speaker))||run.cast.values().next().value;
+  if(!actor)throw Error('Add a cast member in the editor.');
+  const nearby=()=>typeof walker!=='undefined'&&walker&&Math.hypot(actor.parent.position.x-walker.x,actor.parent.position.z-walker.z)<=2.75;
+  await until(nearby,run.signal);
+  const answer=await prompt(run,node.name==='Talk to the cast'?'Talk to '+actor.name:node.name,['Talk','Cancel encounter']);
+  if(answer!=='Talk'){
+   if(!run.private){
+    const ending=run.graph.nodes.find(n=>n.kind==='end');
+    await root.VoidConsumableGame.request('chance-encounters/outcome',{id:run.graph.id,run:run.token,outcome:ending.id});
+   }
+   stop(true);return;
+  }
+  for(const section of ['opening','remaining','wait','free','be_kade'])await lines(run,section,section);
+ }
  async function runGraph(run,start){
   const sequence=root.VoidChanceEncounter.createRun(run.graph,start);
-  let first=true;
+  let first=true,endNodeSounds;
   while(sequence.node){
+   endNodeSounds?.();
+   endNodeSounds=run.sounds?.open(sequence.node.soundCues);
    run.signal.throwIfAborted();
    const node=run.node=sequence.node;root.dispatchEvent?.(new Event('void-encounter-journal'));let choice;
+   if(node.kind==='cast'){await castConversation(run,node);run.signal.throwIfAborted();}
    if(node.kind==='move')await walk(run);
    if(node.kind==='item')await drop(run);
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
@@ -586,6 +646,7 @@
    }
    sequence.step(choice);first=false;
   }
+  endNodeSounds?.();
  }
  async function watchApartment(run){
   let nextPoll=0,left=false;
@@ -610,32 +671,39 @@
   }
  }
  async function begin(graph,start,privateTest,token){
-  stop();const controller=new AbortController();
+  stop();soundTail?.dispose();soundTail=null;const controller=new AbortController();
   const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
   run.participating=graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
   run.tracked=run.participating;running=run;
+  run.sounds=root.VoidChanceEncounter.soundTimeline();run.endSounds=run.sounds.open(graph.soundCues);
+  let completed=false;
   try{
+   const location=graph.cast&&typeof walkingLocation!=='undefined'?walkingLocation:null;
+   if(graph.cast?.length)await spawnCast(run);
    const playback=runGraph(run,start);
    if(graph.id==='dropped-cardkey')await Promise.race([playback,watchApartment(run)]);
+   else if(location)await Promise.race([playback,until(()=>walkingLocation!==location,run.signal)]);
    else await playback;
-  }finally{if(running===run)stop();}
+   completed=true;
+  }finally{if(running===run)stop(completed);}
  }
  async function playtest(graph,start){
   const errors=root.VoidChanceEncounter.validate(graph);if(errors.length)throw Error(errors.join(' '));
   if(!graph.nodes.some(n=>n.id===start))throw Error('Choose a starting node.');
-  const at=graph.playtest;
+  const at=graph.playtest,scene=at.scene||root.VoidDistrictArea.KEY.street;
+  const location=scene==='planet-low-quay'?'low-quay':'earth';
   sessionStorage.setItem('chance-editor-return',graph.id);
   const result=await root.VoidDevTest.session({kind:'encounter',banner:graph.name,leave:'Return to Editor',
-   build(){const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.districtBadge=true;s.location='earth';return s;},
+   build(){const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.districtBadge=true;s.location=location;return s;},
    async enter(){
-    await enterWalking(root.VoidDistrictArea.KEY.street,{silent:true,quarter:at.quarter,spawn:[at.x,1.7,at.z],yaw:at.yaw});
+    await enterWalking(scene,{silent:true,quarter:at.quarter,spawn:[at.x,1.7,at.z],yaw:at.yaw});
     if(typeof walker!=='undefined'&&walker)walker.pitch=at.pitch||0;
     begin(graph,start,true).catch(e=>{if(e.name!=='AbortError')announce(e.message);});
    }});
   if(result.error||result.problem)throw Error(result.error||result.problem);
   const bar=document.getElementById('dev-test-banner');
   for(const old of bar.querySelectorAll('[data-chance-control]'))old.remove();
-  const controls=[['Restart Encounter',()=>playtest(graph,start)],['Stop Playtest',()=>{stop();root.VoidDevTest.exit();}]];
+  const controls=[['Restart Encounter',()=>playtest(graph,start)],['Stop Playtest',()=>{stop(true);root.VoidDevTest.exit();}]];
   if(graph.item)controls.push(['Expire test keycard',()=>{
    if(!running?.private||!running.holds){announce('Collect the test keycard first.');return;}
    running.expiresAt=0;announce('Test keycard expired.');
@@ -694,13 +762,13 @@
       begin(graph,location.id,false,saved.run).catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
      break;
     }
-    if(walkingLocation?.area!=='street')continue;
+    if(!root.VoidChanceEncounter.matchesScene(graph.cast?p:{quarter:c.quarter},walkingLocation))continue;
     const pulse=trigger.kind==='near'?nearEvents.get(nearKey):visit&&startEvents.get(trigger.kind+'/'+(trigger.target||''));
     const usedKey=graph.id+'/event/'+trigger.kind+'/'+(trigger.target||''),pending=pulse&&pulse.token!==nextCheck.get(usedKey);
-    if(!graph.enabled||walkingLocation?.quarter!==c.quarter||!walker||Math.hypot(walker.x-p.x,walker.z-p.z)>c.radius||(!pending&&now<(nextCheck.get(graph.id)||0))||now<(nextCheck.get(graph.id+'/retry')||0))continue;
+    if(!graph.enabled||!walker||Math.hypot(walker.x-p.x,walker.z-p.z)>c.radius||(!pending&&now<(nextCheck.get(graph.id)||0))||now<(nextCheck.get(graph.id+'/retry')||0))continue;
     nextCheck.set(graph.id,now+c.intervalSeconds*1000);
     const event=await root.VoidConsumableGame.request('chance-encounters/opportunity',{id:graph.id,
-     ...(pending?{startEvent:pulse}:{}),position:{area:'street',quarter:walkingLocation.quarter,x:walker.x,z:walker.z}});
+     ...(pending?{startEvent:pulse}:{}),position:{area:walkingLocation.area,quarter:walkingLocation.quarter,scene:graph.cast?p.scene:undefined,x:walker.x,z:walker.z}});
     if(pending&&user.uid===root.VoidAccount?.user?.uid){
      if(event.rolled)nextCheck.set(usedKey,pulse.token);
      else nextCheck.set(graph.id+'/retry',event.next?event.next*1000:now+5000);

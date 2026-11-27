@@ -3,13 +3,14 @@ import json
 import re
 import secrets
 import time
+from pathlib import Path
 
 from void_runner_drafts import DraftError
 from void_runner_items import _int, _num, _plain
 import void_runner_items as items
 
 
-KINDS = {'trigger', 'move', 'item', 'choice', 'animation', 'location', 'end'}
+KINDS = {'trigger', 'move', 'item', 'choice', 'animation', 'location', 'cast', 'end'}
 
 
 def identifier(value):
@@ -130,6 +131,34 @@ def start_trigger_ready(trigger, event, campaign, record):
     return kind == 'interval'
 
 
+def validate_sound_cues(graph, rows):
+    lists = [graph.get('soundCues', [])]
+    for field in ('sectionSounds', 'playlistSounds'):
+        values = graph.get(field, {})
+        if not isinstance(values, dict):
+            raise DraftError('Choose sounds for a valid section or playlist.')
+        lists.extend(values.values())
+    for owner in graph['nodes'] + rows + [branch for row in rows for branch in row.get('branches', [])]:
+        lists.append(owner.get('soundCues', []))
+    if any(not isinstance(cues, list) for cues in lists):
+        raise DraftError('Choose a list of sound effects.')
+    if not any(lists):
+        return
+    library = set(json.loads((Path(__file__).parent / 'void-runner' / 'sound-library.json').read_text(encoding='utf-8')))
+    for cues in lists:
+        for cue in cues:
+            if not isinstance(cue, dict) or not isinstance(cue.get('src'), str) or cue['src'] not in library:
+                raise DraftError('Choose a sound effect from the packaged audio library.')
+            if cue.get('when') not in ('start', 'end') or not _num(cue.get('offset'), 0, 3600) or not _num(cue.get('volume'), 0, 1) or not isinstance(cue.get('loop'), bool):
+                raise DraftError('Check the sound effect timing and volume.')
+            if cue['loop']:
+                stop = cue.get('stop')
+                if stop not in ('scope', 'encounter', 'seconds') or (cue['when'] == 'end' and stop != 'seconds'):
+                    raise DraftError('Choose when the sound effect loop ends.')
+                if stop == 'seconds' and (not _num(cue.get('seconds'), 0, 3600) or cue['seconds'] == 0):
+                    raise DraftError('Enter a positive loop duration.')
+
+
 def validate(graph):
     if not isinstance(graph, dict) or len(json.dumps(graph).encode()) > 65536:
         raise DraftError('Encounter exceeds the 64 KB limit.')
@@ -172,6 +201,26 @@ def validate(graph):
         raise DraftError('Set the playtest starting position.')
     if not _num(start.get('yaw',0),-100,100) or not _num(start.get('pitch',0),-1.5,1.5) or not _num(start.get('delaySeconds'),0,300):
         raise DraftError('Check the starting view and delay.')
+    if 'cast' in graph:
+        cast = graph['cast']
+        if start.get('scene') not in ('sacramento', 'darknet-district', 'planet-low-quay') or not isinstance(cast, list):
+            raise DraftError('Choose an encounter location and cast.')
+        ids = set()
+        models = items.inventory()['madeCharacters']['models'] if cast else {}
+        for actor in cast:
+            if not isinstance(actor, dict) or not identifier(actor.get('id')) or actor['id'] in ids:
+                raise DraftError('Give each cast member a unique NPC ID.')
+            ids.add(actor['id'])
+            if not _plain(actor.get('name'), 60) or not actor['name'].strip():
+                raise DraftError('Enter each cast member’s name.')
+            if actor.get('localAsset') or not identifier(actor.get('model')) or actor['model'] not in models:
+                raise DraftError('Choose a registered game model for '+actor['id']+' before publishing.')
+            if not all(_num(actor.get(k), -100000, 100000) for k in ('x','y','z')) or not _num(actor.get('yaw'), -100, 100) or not _num(actor.get('scale'), .1, 5):
+                raise DraftError('Check placement and scale for '+actor['id']+'.')
+            if not _plain(actor.get('idle', ''), 100):
+                raise DraftError('Check the idle animation for '+actor['id']+'.')
+        if start['scene'] == 'sacramento' and start.get('quarter') != conditions.get('quarter'):
+            raise DraftError('Use the same street quarter for activation and playtest.')
     if graph.get('item') or graph.get('residence'):
         residence = graph.get('residence')
         if not isinstance(residence, dict) or not identifier(residence.get('character')):
@@ -206,6 +255,8 @@ def validate(graph):
         if not isinstance(line, dict) or not isinstance(line.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9_]{0,63}', line['id']) or line['id'] in labels:
             raise DraftError('Each dialogue line needs a distinct ID.')
         labels.add(line['id'])
+        if 'cast' in graph and line in dialogue and line.get('animation') and (not identifier(line.get('speaker')) or line['speaker'] not in ids):
+            raise DraftError('Choose a cast member for animation '+line['id']+'.')
         if not identifier(line.get('speaker')) or not _plain(line.get('text'), 1000) or not _num(line.get('delay', 0), 0, 300):
             raise DraftError('Check the speaker, line and delay for '+line['id']+'.')
         if 'animationSpeed' in line and (not _num(line['animationSpeed'], 0, float('inf')) or line['animationSpeed'] == 0):
@@ -244,6 +295,8 @@ def validate(graph):
             raise DraftError('Each node needs a distinct ID.')
         if not isinstance(node.get('kind'), str) or node['kind'] not in KINDS or not _plain(node.get('name'), 100):
             raise DraftError('Choose a supported type and label for each node.')
+        if node['kind'] == 'cast' and (not graph.get('cast') or node.get('speaker') and (not identifier(node['speaker']) or node['speaker'] not in ids)):
+            raise DraftError('Choose a cast member for '+node['id']+'.')
         if node['kind'] == 'animation' and node.get('action') not in ('stumble', 'release', 'roleplay'):
             raise DraftError('Choose a supported animation action for '+node['name']+'.')
         by_id[node['id']] = node
@@ -279,6 +332,7 @@ def validate(graph):
     visit(graph['start'])
     if len(reached) != len(nodes):
         raise DraftError('Connect all nodes to the starting node.')
+    validate_sound_cues(graph, dialogue + stored)
 
 
 def refs(db):
@@ -435,7 +489,12 @@ def opportunity(db, uid, body):
             return {'active': False}
         cond = definition['conditions']
         origin = definition['playtest']
-        if position.get('quarter') != cond['quarter'] or position.get('area') != 'street':
+        expected_scene = origin.get('scene', 'sacramento') if 'cast' in definition else 'sacramento'
+        if position.get('scene', 'sacramento') != expected_scene:
+            return {'active': False}
+        if expected_scene == 'sacramento' and (position.get('quarter') != cond['quarter'] or position.get('area') != 'street'):
+            return {'active': False}
+        if expected_scene == 'darknet-district' and position.get('area') != 'interior':
             return {'active': False}
         if sum((position[k]-origin[k])**2 for k in ('x','z')) > cond.get('radius', 20)**2:
             return {'active': False}
