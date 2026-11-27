@@ -3,7 +3,7 @@
  const P=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
  const hooks={mara:{src:null,path:'assets/models/characters/mara.glb',scale:1,yaw:0},elias:{src:null,path:'assets/models/characters/elias-hologram.glb',scale:1,yaw:0},kestrel:{src:null,path:'assets/models/ships/kestrel.glb',scale:1,yaw:0},pistol:{src:null,path:'assets/models/weapons/ward-pistol.glb',scale:1,yaw:0},bench:{src:null,path:'assets/models/props/workbench.glb',scale:1,yaw:0},workshop:{src:null,path:'assets/models/environment/ward-workshop.glb',scale:1,yaw:0}};
  const cans=Array.from({length:6},(_,id)=>({id,position:[39,1.45,-13+id*2]}));
- function layout(){return {id:'vesper',name:'VESPER / WARD REPAIR',kind:'workshop',bounds:[72,80],spawn:[-3,1.68,-17],yaw:.10,color:'#b49473',music:'industrial',ship:'starter',
+ function layout(){return {id:'vesper',name:'VESPER / WARD REPAIR',kind:'workshop',bounds:[232,80],spawn:[-3,1.68,-17],yaw:.10,color:'#b49473',music:'industrial',ship:'starter',
   solids:[{id:'back-wall',position:[0,3,-23],size:[26,6,.5]},{id:'left-wall',position:[-13,3,-11.5],size:[.5,6,23]},{id:'right-wall',position:[13,3,-11.5],size:[.5,6,23]},
    {id:'left-bench',position:[-10,1,-11],size:[3,2,9]},{id:'right-storage',position:[10.5,1,-18],size:[3,2,5]},{id:'holo-case',position:[-6,1,-3],size:[2,2,1.5]},{id:'kestrel',position:[12,2,25],size:[11,4,13]},
    {id:'target-rack',position:[39,.55,-8],size:[1,1.1,14]},{id:'range-backstop',position:[46,3,-8],size:[5,6,23]},{id:'fuel-tank',position:[-22,2,14],size:[5,4,5]},

@@ -61754,7 +61754,7 @@
       "spawn"
     ]
   },
-  "revision": "7b55f965662953d3",
+  "revision": "a348422c1b8d5a31",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83406,7 +83406,7 @@
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "47e003bd8ffeda5c439b29cf0678e892ab88054940aa173ff917326c8360c84c",
-    "void-runner/babylon-renderer.js": "30f049825d2b065bbd6536ef9aff130deef8cd76e1560e41bb83743dac3e3b46",
+    "void-runner/babylon-renderer.js": "c6d48603aaf4d300aa0fda1ae54bdd1fca99fb860caac380daa29609490f5d5a",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -83620,8 +83620,8 @@
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
-    "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
-    "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
+    "void-runner/opening-data.js": "963c00c519b56213861eb8c773767e03f8a731ab4d03f29707c4e20474044c37",
+    "void-runner/opening-scene.js": "600e0c0c24b370edfc22a0c01134320dbb24f0ca37722fe6bc8c6645c513da6d",
     "void-runner/ordnance.js": "058611efdb6a6db1ea6a10da24c0362207cc447c29c47642c61c58eac236b8f3",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
     "void-runner/personal-device.js": "f1d9d66becd050cb1b0d8e3a74f7b43c863a4e805aa5e6ca975fb233bc69d309",
@@ -83689,7 +83689,8 @@
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
     "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
     "void-runner/vehicle.js": "55e562463d132ef86bd01975d73287cff17306a1435a96436c19391a4fb057ca",
-    "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
+    "void-runner/vesper-visuals.js": "e44be2d9fb79681d3cbc4af8fbba4064fdb59fa46be2de449260be67df102dcd",
+    "void-runner/vesper.js": "9a108b8351d2c37c102a0fd3dea0aebe5b9d7dcb5ff46463cf39288c123e2df6",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
