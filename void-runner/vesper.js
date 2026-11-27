@@ -10,7 +10,6 @@
    If a model fails to load nothing is hidden and the old visuals stay; the road needs no model (its posts and signs are skipped without the kit). */
 (function(root){
  'use strict';
- const V=typeof module!=='undefined'?require('./vesper-visuals.js'):root.VoidVesperVisuals;
  const WORKSHOP={id:'vesper:workshop',src:'assets/models/vesper/vesper-workshop.glb'},KIT={id:'vesper:roadkit',src:'assets/models/vesper/vesper-roadkit.glb'};
  // Meshes the workshop model replaces (names from opening-scene.js): the plain fuel cylinder and its cap. The 5 x 5 m 'fuel-tank' solid is layout data and stays.
  const REPLACED=new Set(['fuel-drum','fuel-cap']);
@@ -18,39 +17,34 @@
  const SCATTER=new Set(['apron-stone','dry-scrub','desert-scrub','village-rock','outcrop']);
 
  /* ---------------- the road (pure) ----------------
-    Control points in Vesper's walking frame (metres; the workshop's open front is at z=1, x -13..13). It leaves the front apron east of the shop, passes north of
-    the shooting range (its berm reaches z ~4.5), opens a parking apron beside the yard, goes through an open gate at x~50 and runs east across the flats toward
-    the far ranges, between the butte clusters (bearing ~97 deg from the workshop). It is walkable and drivable up to the layout's x bound (opening-data.js
-    bounds[0]); beyond that it is scenery that follows the drawn terrain and narrows into the haze. */
- const CONTROL=[[14,5],[22,6.5],[30,8.5],[40,11],[52,12.5],[66,12.5],[82,10.5],[100,7],[125,3],[155,-2],[190,-7],[228,-11],[270,-16],[330,-23],[400,-33],[480,-45],[560,-58],[640,-72],[720,-88],[770,-97]];
- const WIDTH=7,SURFACE_Y=.02,SHOULDER=1.6,FAR_LIFT=.12,X_LIMIT=232,TAPER=140;
+    The route, its height, the carved terrain and the walking corridor live in vesper-world.js (VoidVesperWorld); this is the road API the vehicle, the tests
+    and the presentation below use. The yard stretch (to the old walkable x bound, X_LIMIT) is flat at SURFACE_Y exactly as before. Beyond it the road climbs
+    through the pass and on: it is walkable and drivable along its whole length (the corridor), its surface at W.roadY(s). */
+ const W=typeof module!=='undefined'?require('./vesper-world.js'):root.VoidVesperWorld;
+ const {WIDTH,SURFACE_Y,SHOULDER,X_LIMIT,CONTROL}=W;
  // Clear, flat parking apron beside the road, north of it, east of the Kestrel pad: kept free of props (a parked vehicle goes here).
  const PARKING={center:[38,17.5],size:[8,5],yaw:Math.PI/2};
- let line=null;
- function catmull(p0,p1,p2,p3,t){const t2=t*t,t3=t2*t;return [0,1].map(k=>.5*(2*p1[k]+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3));}
- // Dense centre line: [{x, z, s (metres from the start), tx, tz (unit tangent)}], about every 1.5 m.
- function centreline(){if(line)return line;const P=CONTROL,pts=[];
-  for(let i=0;i<P.length-1;i++){const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)],n=Math.max(2,Math.ceil(Math.hypot(p2[0]-p1[0],p2[1]-p1[1])/1.5));for(let k=0;k<n;k++)pts.push(catmull(p0,p1,p2,p3,k/n));}
-  pts.push(P[P.length-1].slice());let s=0;line=pts.map((p,i)=>{if(i)s+=Math.hypot(p[0]-pts[i-1][0],p[1]-pts[i-1][1]);const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1;return {x:p[0],z:p[1],s,tx:(b[0]-a[0])/l,tz:(b[1]-a[1])/l};});return line;}
- const total=()=>centreline()[centreline().length-1].s;
- // Arc length where the centre line reaches the walkable x bound; the vehicle's usable stretch.
- function usableLength(xLimit=X_LIMIT){const L=centreline();for(let i=1;i<L.length;i++)if(L[i].x>=xLimit){const a=L[i-1],b=L[i],f=(xLimit-a.x)/(b.x-a.x);return a.s+(b.s-a.s)*f;}return total();}
- // Nearest centre-line point: {s, x, z, tx, tz, offset (signed: + is left of travel, i.e. the -tz,+tx side), distance}.
- function nearest(x,z){const L=centreline();let best=null;for(let i=0;i<L.length-1;i++){const a=L[i],b=L[i+1],dx=b.x-a.x,dz=b.z-a.z,l2=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-a.x)*dx+(z-a.z)*dz)/l2)),px=a.x+dx*t,pz=a.z+dz*t,d=Math.hypot(x-px,z-pz);
-   if(!best||d<best.distance){const l=Math.sqrt(l2),tx=dx/l,tz=dz/l;best={s:a.s+(b.s-a.s)*t,x:px,z:pz,tx,tz,offset:(x-px)*-tz+(z-pz)*tx,distance:d};}}return best;}
- const halfWidthAt=s=>{const end=total();return WIDTH/2*(s>end-TAPER?Math.max(.15,(end-s)/TAPER):1);};
- function onRoad(x,z){const n=nearest(x,z);return n.distance<=halfWidthAt(n.s);}
+ const centreline=W.centreline,total=W.total,halfWidthAt=W.halfWidthAt;
+ // usableLength(): the walkable / drivable length (now the whole road). yardLength(): the flat stretch inside the yard's rectangle (x <= X_LIMIT), as before.
+ const yardLength=xLimit=>W.usableYard(xLimit);
+ const usableLength=()=>total();
+ const nearest=(x,z)=>W.nearest(x,z,true);
+ function onRoad(x,z){const n=nearest(x,z);return !!n&&n.distance<=halfWidthAt(n.s);}
  function onParking(x,z){const [cx,cz]=PARKING.center,[w,d]=PARKING.size;return Math.abs(x-cx)<=w/2&&z>=cz-d/2-2.2&&z<=cz+d/2;}
- // Height of the road surface on its centre line at arc length s (flat yard: SURFACE_Y; out on the terrain: the highest drawn ground across its width, plus a lift).
- function roadY(s,quality='medium'){const L=centreline(),f=L.findIndex(p=>p.s>=s),p=L[f<0?L.length-1:f];if(Math.hypot(p.x,p.z)<=V.terrainGrid(quality).inner-WIDTH)return SURFACE_Y;
-  const nx=-p.tz,nz=p.tx,h=halfWidthAt(s);return Math.max(V.meshHeight(p.x,p.z,quality),V.meshHeight(p.x+nx*h,p.z+nz*h,quality),V.meshHeight(p.x-nx*h,p.z-nz*h,quality))+FAR_LIFT;}
- // The ground a wheel or a foot stands on at (x, z): the road or parking surface where they are, otherwise the drawn terrain (flat 0 in the yard and the walkable flats).
- function groundAt(x,z,quality='medium'){const r=Math.hypot(x,z),inner=V.terrainGrid(quality).inner;if(r<=inner-WIDTH)return onRoad(x,z)||onParking(x,z)?SURFACE_Y:0;
-  const n=nearest(x,z);if(n.distance<=halfWidthAt(n.s))return roadY(n.s,quality);return V.meshHeight(x,z,quality);}
- const road={WIDTH,SURFACE_Y,SHOULDER,X_LIMIT,CONTROL,PARKING,centreline,total,usableLength,nearest,onRoad,onParking,roadY,groundAt,halfWidthAt};
+ const roadY=s=>W.roadY(s);
+ // The ground a wheel or a foot stands on at (x, z): the road or parking surface where they are, flat 0 on the yard's sand, the carved terrain beyond.
+ function groundAt(x,z){if(Math.hypot(x,z)<=W.YARD_R-WIDTH)return onRoad(x,z)||onParking(x,z)?SURFACE_Y:0;return W.groundAt(x,z);}
+ const road={WIDTH,SURFACE_Y,SHOULDER,X_LIMIT,CONTROL,PARKING,centreline,total,usableLength,yardLength,nearest,onRoad,onParking,roadY,groundAt,halfWidthAt,walkable:W.walkable};
 
  /* ---------------- browser presentation ---------------- */
- const api={road,WORKSHOP,KIT,REPLACED};
+ // The truck's drivable area: the yard's rectangle (opening-data.js bounds, the vehicle's own default before) or the road corridor.
+ const YARD_BOUNDS=[232,80];
+ const vehicleBounds=(x,z,r)=>(Math.abs(x)<=YARD_BOUNDS[0]-r&&Math.abs(z)<=YARD_BOUNDS[1]-r)||W.walkable(x,z,r);
+ /* Walking on the land: the walker's eye rides on the ground under him (the yard is flat 0 as before; the road climbs through the pass). Wraps VoidExplorer.step
+    for the walker in Vesper only, the way ncz-underground-integration.js puts the tunnels' floor under the walk. */
+ if(typeof document!=='undefined'&&root.VoidExplorer&&!root.VoidExplorer.step.vesperGround){const E=root.VoidExplorer,step0=E.step;
+  E.step=function(p,input,dt,loc){const r=step0.apply(this,arguments);try{if(loc&&loc.id==='vesper'&&typeof walker!=='undefined'&&p===walker)p.y+=groundAt(p.x,p.z);}catch{}return r;};E.step.vesperGround=true;}
+ const api={road,WORKSHOP,KIT,REPLACED,vehicleBounds};
  api.models=quality=>({...(quality!=='low'?{[WORKSHOP.id]:{src:WORKSHOP.src,scale:1}}:{}),[KIT.id]:{src:KIT.src,scale:1}});
  // Before the merge: drop scatter off the road and parking, and the meshes the workshop model replaces (only if it loaded).
  api.prune=({staticMeshes,quality})=>{
@@ -63,8 +57,9 @@
   const B=root.BABYLON;if(!B||!parent)return null;const owned=[],nodes=[];
   let model=null;if(quality!=='low'){model=root.VoidAssets?.instance?.(WORKSHOP.id,parent)||null;if(model){model.name='vesper-workshop-model';const back=new B.PointLight('vesper-backwall-lamp',new B.Vector3(.5,3.95,-20.4),scene);back.diffuse=B.Color3.FromHexString('#ffc884');back.intensity=30;back.range=11;back.parent=parent;owned.push(back);for(const m of model.getChildMeshes(false)){m.isPickable=false;m.checkCollisions=false;m.receiveShadows=true;if(shadow&&m.getTotalVertices()>0)shadow.addShadowCaster(m,false);}}else console.warn('[VOID Vesper] workshop model unavailable; the plain exterior stays');}
   try{nodes.push(...buildRoad({B,scene,parent,quality,owned}));}catch(e){console.warn('[VOID Vesper] road skipped',e.message);}
-  // The utility vehicle (vehicle.js, VoidVehicle.configure) follows the road and terrain height; its parking spot and drivable area stay its own (owner decision).
-  try{root.VoidVehicle?.configure?.('vesper',{groundHeight:(x,z)=>road.groundAt(x,z,quality)});}catch(e){console.warn('[VOID Vesper] vehicle ground not set',e.message);}
+  // The utility vehicle (vehicle.js, VoidVehicle.configure) follows the road and terrain height, and may drive the yard's rectangle (as before) and the road corridor
+  // all the way out (vesper-world.js walkable: its body circles must fit in it). Its parking spot stays its own (owner decision).
+  try{root.VoidVehicle?.configure?.('vesper',{groundHeight:road.groundAt,inBounds:vehicleBounds});}catch(e){console.warn('[VOID Vesper] vehicle ground not set',e.message);}
   return {model,dispose(){for(const n of nodes)n.dispose(false,false);for(const o of owned)o.dispose();}};
  };
  function roadTexture(B,scene,quality){
@@ -84,21 +79,22 @@
   for(let i=0;i<900;i++){const x=Math.pow(rand(),.6)*64,y=rand()*256;g.fillStyle='rgba('+(rand()>.5?'190,170,140':'40,32,26')+','+(x/64*.6)+')';g.fillRect(x,y,1+rand()*2,1+rand()*2);}
   t.update();t.hasAlpha=true;t.wrapU=B.Texture.CLAMP_ADDRESSMODE;t.wrapV=B.Texture.WRAP_ADDRESSMODE;return t;}
  function buildRoad({B,scene,parent,quality,owned}){
-  const low=quality==='low',L=centreline(),end=total(),nodes=[],step=low?2:1;
+  const low=quality==='low',L=centreline(),end=total(),nodes=[],step=low?2:1,TAPER=60;
   const pts=L.filter((p,i)=>i%step===0||i===L.length-1);
   const mat=new B.PBRMaterial('vesper-road',scene);mat.albedoTexture=roadTexture(B,scene,quality);mat.roughness=.96;mat.metallic=0;mat.environmentIntensity=.5;mat.zOffset=-2;mat.backFaceCulling=false;owned.push(mat,mat.albedoTexture);
   const smat=new B.PBRMaterial('vesper-road-shoulder',scene);smat.albedoTexture=shoulderTexture(B,scene);smat.useAlphaFromAlbedoTexture=true;smat.transparencyMode=B.PBRMaterial.PBRMATERIAL_ALPHABLEND;smat.roughness=1;smat.metallic=0;smat.environmentIntensity=.5;smat.zOffset=-1;smat.backFaceCulling=false;owned.push(smat,smat.albedoTexture);
-  const ground=(x,z)=>Math.hypot(x,z)<=V.terrainGrid(quality).inner?.008:V.meshHeight(x,z,quality)+.05;
-  // carriageway: one strip of quads, surface at roadY across its width
-  const P=[],U=[],I=[],S1=[],S1u=[],S1i=[];
-  pts.forEach((p,k)=>{const nx=-p.tz,nz=p.tx,h=halfWidthAt(p.s),y=roadY(p.s,quality),v=p.s/14;
-   P.push(p.x+nx*h,y,p.z+nz*h,p.x-nx*h,y,p.z-nz*h);U.push(0,v,1,v);
-   if(k){const a=(k-1)*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}
-   // shoulders: from the road edge down to the ground, fading out
-   for(const side of [1,-1]){const ex=p.x+nx*h*side,ez=p.z+nz*h*side,ox=p.x+nx*(h+SHOULDER)*side,oz=p.z+nz*(h+SHOULDER)*side;S1.push(ex,y-.004,ez,ox,ground(ox,oz),oz);S1u.push(1,v*3.5,0,v*3.5);}
-   if(k){const b=(k-1)*4;S1i.push(b,b+4,b+1,b+1,b+4,b+5,b+2,b+6,b+3,b+3,b+6,b+7);}});
+  const ground=(x,z)=>Math.hypot(x,z)<=W.YARD_R?.008:W.height(x,z)+.05;
   const mesh=(name,positions,uvs,indices,m)=>{const me=new B.Mesh(name,scene),vd=new B.VertexData(),normals=[];B.VertexData.ComputeNormals(positions,indices,normals);for(let i=1;i<normals.length;i+=3)if(normals[i]<0){normals[i-1]*=-1;normals[i]*=-1;normals[i+1]*=-1;}Object.assign(vd,{positions,uvs,indices,normals});vd.applyToMesh(me);me.parent=parent;me.material=m;me.isPickable=false;me.receiveShadows=true;me.alwaysSelectAsActiveMesh=false;nodes.push(me);return me;};
-  mesh('vesper-road-surface',P,U,I,mat);mesh('vesper-road-shoulders',S1,S1u,S1i,smat).sideOrientation=B.Mesh.DOUBLESIDE;
+  // carriageway and shoulders in chunks of about 300 m (so the far road is culled with the camera's view), surface at roadY across its width
+  const per=Math.round(200/step);
+  for(let c0=0;c0<pts.length-1;c0+=per){const part=pts.slice(c0,Math.min(pts.length,c0+per+1)),P=[],U=[],I=[],S1=[],S1u=[],S1i=[];
+   part.forEach((p,k)=>{const nx=-p.tz,nz=p.tx,h=halfWidthAt(p.s),y=roadY(p.s),v=p.s/14;
+    P.push(p.x+nx*h,y,p.z+nz*h,p.x-nx*h,y,p.z-nz*h);U.push(0,v,1,v);
+    if(k){const a=(k-1)*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}
+    // shoulders: from the road edge down (or up) to the ground, fading out
+    for(const side of [1,-1]){const ex=p.x+nx*h*side,ez=p.z+nz*h*side,ox=p.x+nx*(h+SHOULDER)*side,oz=p.z+nz*(h+SHOULDER)*side;S1.push(ex,y-.004,ez,ox,Math.max(y-.3,Math.min(y+.05,ground(ox,oz))),oz);S1u.push(1,v*3.5,0,v*3.5);}
+    if(k){const b=(k-1)*4;S1i.push(b,b+4,b+1,b+1,b+4,b+5,b+2,b+6,b+3,b+3,b+6,b+7);}});
+   const tag=c0?'-'+(c0/per|0):'';mesh('vesper-road-surface'+tag,P,U,I,mat);mesh('vesper-road-shoulders'+tag,S1,S1u,S1i,smat).sideOrientation=B.Mesh.DOUBLESIDE;}
   // parking apron: a flat gravel pad joined to the road's north edge
   {const [cx,cz]=PARKING.center,[w,d]=PARKING.size,n=nearest(cx,cz-d/2),edge=n.z+halfWidthAt(n.s)*n.tx-.3,x0=cx-w/2,x1=cx+w/2,z0=Math.min(edge,cz-d/2),z1=cz+d/2;
    mesh('vesper-road-parking',[x0,SURFACE_Y-.002,z0,x1,SURFACE_Y-.002,z0,x1,SURFACE_Y-.002,z1,x0,SURFACE_Y-.002,z1],[0,z0/14,1.1,z0/14,1.1,z1/14,0,z1/14],[0,2,1,0,3,2],mat);
@@ -116,13 +112,13 @@
    const place=(key,x,y,z,yaw)=>{for(const m of parts[key]||[])m.thinInstanceAdd(B.Matrix.Compose(B.Vector3.One(),B.Quaternion.RotationYawPitchRoll(yaw,0,0),new B.Vector3(x,y,z)),false);};
    const at=s=>{let i=L.findIndex(p=>p.s>=s);if(i<0)i=L.length-1;return L[i];};
    // posts: both edges, every 24 m from the gate out to the usable end, then every 48 m into the distance (fewer on Low)
-   const gateS=nearest(50,12.4).s,usable=usableLength(),gap=low?48:24;
-   for(let s=gateS+12;s<end-TAPER*.6;s+=s<usable?gap:gap*2){const p=at(s),h=halfWidthAt(p.s)+.7,y=roadY(p.s,quality)-.02,yaw=Math.atan2(p.tx,p.tz);for(const side of [1,-1]){const x=p.x-p.tz*h*side,z=p.z+p.tx*h*side;place('kit_post',x,Math.max(y,ground(x,z)-.05),z,yaw);}}
+   const gateS=nearest(50,12.4).s,usable=yardLength(),gap=low?48:24;
+   for(let s=gateS+12;s<end-TAPER;s+=s<usable?gap:gap*2){const p=at(s),h=halfWidthAt(p.s)+.7,y=roadY(p.s)-.02,yaw=Math.atan2(p.tx,p.tz);for(const side of [1,-1]){const x=p.x-p.tz*h*side,z=p.z+p.tx*h*side;place('kit_post',x,Math.max(y,Math.min(y+1.5,ground(x,z)-.05)),z,yaw);}}
    // the gate at x~50: pivot post on the north edge, boom raised (open), hut beside it off the road
    {const p=at(gateS),nx=-p.tz,nz=p.tx,h=halfWidthAt(p.s)+.4;place('kit_gate',p.x+nx*h,0,p.z+nz*h,Math.atan2(-nx,-nz));
     for(const d of [-3.2,3.2])place('kit_block',p.x+nx*(h+.2)+p.tx*d*1.5,0,p.z+nz*(h+.2)+p.tz*d*1.5,Math.atan2(p.tx,p.tz));}
    // blank route signs (no text: sign wording is the owner's call): one leaving the gate, one at the edge of the walkable flats, facing outbound traffic
-   for(const s of [gateS+30,usable-20]){const p=at(s),h=halfWidthAt(p.s)+2.2;place('kit_sign',p.x+p.tz*h,roadY(p.s,quality)-.02,p.z-p.tx*h,Math.atan2(-p.tx,-p.tz));}
+   for(const s of [gateS+30,usable-20]){const p=at(s),h=halfWidthAt(p.s)+2.2;place('kit_sign',p.x+p.tz*h,roadY(p.s)-.02,p.z-p.tx*h,Math.atan2(-p.tx,-p.tz));}
    for(const list of Object.values(parts))for(const m of list){if(!m.thinInstanceCount)m.setEnabled(false);else m.thinInstanceBufferUpdated('matrix');m.thinInstanceRefreshBoundingInfo?.(false);}
   }
   return nodes;
