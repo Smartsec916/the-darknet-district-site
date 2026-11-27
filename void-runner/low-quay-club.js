@@ -31,7 +31,7 @@
  const seatAt=(b,deg)=>{const a=deg*Math.PI/180,[x,z]=BOOTHS[b];return [x+Math.cos(a)*.98,z+Math.sin(a)*.98,Math.atan2(-Math.cos(a),-Math.sin(a))];};   // [x,z,yaw facing the table]
  const SOFAS=[{x0:36,x1:42.6,z0:358.6,z1:359.5},{x0:42.5,x1:43.4,z0:359.5,z1:363.6}],LOUNGE_TABLES=[[38.1,361.2],[41,361.5]];
  const PLANTERS=[[27.2,364.2],[27.2,377.8],[32,366.3],[32,375.7],[35.9,363.4]];
- // Who sits where: generic CC0-made street figures (crowd.js street looks, their own sit / sit-talk clips), never the licensed companions. [x,z,yaw,look,clip]
+ // Current cast: generic CC0-made street figures using their crowd.js sit / sit-talk clips. [x,z,yaw,look,clip]
  const DINERS=[[...seatAt(0,160),'npc-club-f','sit-talk'],[...seatAt(0,220),'npc-club-m','sit'],[...seatAt(2,150),'npc-casual-f','sit'],[...seatAt(2,205),'npc-hacker','sit-talk'],
   [...seatAt(4,165),'npc-cyber-pvc','sit-talk'],[...seatAt(4,215),'npc-casual-m','sit'],[...seatAt(1,145),'npc-student','sit'],[...seatAt(1,205),'npc-lookout','sit-talk'],
   [38.9,359.25,0,'npc-club-f','sit-talk'],[40.3,359.25,0,'npc-club-m','sit']];
