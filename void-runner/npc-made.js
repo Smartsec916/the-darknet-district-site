@@ -135,7 +135,6 @@
     else if(x.step!=null&&(typeof x.step!=='string'||(ctx.missions&&!(ctx.missions.get(x.mission)||[]).includes(x.step))))out.push(w+'the step they appear from is not a step of that mission.');
     else if(ctx.givesOffer&&ctx.givesOffer.get(x.mission)===id)out.push(w+'they appear only while that mission is active, so they cannot be the one who offers it: choose “always”, or another giver.');}
    const p=npcs[id],home=validResidence(c.residence)&&c.residence.mode==='always';if(!home&&(!p||!(basePlan(p)||(Array.isArray(p.schedule)&&p.schedule.some(b=>b&&(b.mode==='stay'||b.mode==='path'))))))out.push(w+'put them somewhere in the world (Where they are: a spot or a route).');
-   else if(!home&&!basePlan(p))out.push(w+'outside their time blocks they need a place too: keep them at a spot or give them a route for the rest of the day.');
    if(p&&!m.walk&&usesPath(p))out.push(w+'this model has no walking animation: keep them at one spot.');}
   return out;}
  /* Roster entries (mission-givers.js roster) for made characters: a TALK prompt that follows the figure, in the District game, reachable by players. npcs: content.npcs. */
