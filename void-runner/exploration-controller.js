@@ -3,7 +3,7 @@
   const radius = .38;
 
   function blocked(x, z, location, ignoreId=null) {
-    if (Math.abs(x) > location.bounds[0] - radius || Math.abs(z) > location.bounds[1] - radius) return true;
+    if ((Math.abs(x) > location.bounds[0] - radius || Math.abs(z) > location.bounds[1] - radius) && !(location.walkable && location.walkable(x, z, radius))) return true;   // walkable(x, z, r): an optional area beyond the rectangle (the Vesper road corridor, vesper-world.js)
     return location.solids.some(s => s.id!==ignoreId && !s.open && Math.abs(x - s.position[0]) < s.size[0] / 2 + radius && Math.abs(z - s.position[2]) < s.size[2] / 2 + radius);
   }
 
@@ -17,7 +17,7 @@
   function depth(x, z, location) {
     let d = 0;
     for (const s of location.solids) { if (s.open) continue; const px = s.size[0] / 2 + radius - Math.abs(x - s.position[0]), pz = s.size[2] / 2 + radius - Math.abs(z - s.position[2]); if (px > 0 && pz > 0) d += Math.min(px, pz); }
-    const bx = Math.abs(x) - (location.bounds[0] - radius), bz = Math.abs(z) - (location.bounds[1] - radius); if (bx > 0) d += bx; if (bz > 0) d += bz;
+    const bx = Math.abs(x) - (location.bounds[0] - radius), bz = Math.abs(z) - (location.bounds[1] - radius); if ((bx > 0 || bz > 0) && !(location.walkable && location.walkable(x, z, radius))) { if (bx > 0) d += bx; if (bz > 0) d += bz; }
     return d;
   }
   function free(x, z, location, max = 4) {
