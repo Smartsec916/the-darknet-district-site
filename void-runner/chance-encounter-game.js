@@ -288,27 +288,15 @@
    };
    recover().catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
   }
-  // Draw the spill on the road so it remains visible without post-processing on Low.
-  const b=B(),halo=b.MeshBuilder.CreateGround('dropped keycard glow',{width:.86,height:.86},scene);
-  halo.position.set(at.x,surface+.008,at.z);halo.isPickable=false;
-  const texture=new b.DynamicTexture('keycard glow falloff',64,scene,false),ctx=texture.getContext();
-  const gradient=ctx.createRadialGradient(32,32,0,32,32,32);
-  gradient.addColorStop(0,'rgba(153,255,251,.94)');gradient.addColorStop(.32,'rgba(59,245,231,.60)');gradient.addColorStop(1,'rgba(35,216,210,0)');
-  ctx.fillStyle=gradient;ctx.fillRect(0,0,64,64);texture.hasAlpha=true;texture.update();
-  const light=new b.StandardMaterial('keycard light spill',scene);
-  light.disableLighting=true;light.emissiveColor=b.Color3.White();light.diffuseTexture=texture;light.useAlphaFromDiffuseTexture=true;
-  light.disableDepthWrite=true;light.alphaMode=b.Engine.ALPHA_ADD;halo.material=light;
-  card.parent.onDisposeObservable.addOnce(()=>{halo.dispose();light.dispose();texture.dispose();});
-  const rim=card.made.getChildMeshes().find(mesh=>mesh.material?.name?.includes('Brushed edge'));
+  const meshes=card.made.getChildMeshes();
+  const rim=meshes.find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
-   const scene=card.parent.getScene();
-   const pulse=scene.onBeforeRenderObservable.add(()=>{
-    const glow=.82+.16*Math.sin(performance.now()*.004);edge.emissiveColor.set(.20*glow,.92*glow,glow);
-   });
-   card.parent.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(pulse);edge.dispose();});
+   edge.emissiveColor.set(.08,.30,.34);
+   card.parent.onDisposeObservable.addOnce(()=>edge.dispose());
   }
-  const meshes=card.made.getChildMeshes();
+  const outlineColor=new (B().Color3)(.26,.57,.62);
+  for(const mesh of meshes){mesh.outlineWidth=.002;mesh.outlineColor=outlineColor;}
   const focus=()=>{
    const cam=root.VoidBabylon.scene?.activeCamera;
    if(!cam||typeof walker==='undefined'||!walker||walkingLocation?.area!=='street')return false;
@@ -326,7 +314,7 @@
   try{
    await until(()=>{
     const visible=focus();host.hidden=!visible;
-    for(const mesh of meshes){mesh.renderOutline=visible;if(visible){mesh.outlineWidth=.004;mesh.outlineColor=new (B().Color3)(1,.8,.15);}}
+    for(const mesh of meshes)mesh.renderOutline=visible;
     return taken;
    },run.signal);
    if(!run.private){

@@ -261,6 +261,54 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  assert(returnProbe.renderError<.03,'Babylon node follows the actual NPC position');
  assert.equal(returnProbe.social,false,'cancelled invitation is not active');
  await page.screenshot({path:path.join(out,'npc-physical-return.png')});
+
+// Reload the real Avenue scene mid-return. Use an offline fixture identity only
+// for this test: every remote API and Firebase request is blocked above.
+ await page.evaluate(()=>{globalThis.npcReturnFixtureUser=VoidAccount.user;VoidAccount.user={uid:'offline-return-fixture',isAnonymous:true,getIdToken:async()=> 'offline-fixture'};});
+ try{
+  await page.evaluate(({home})=>enterWalking('sacramento',{quarter:'avenue',silent:true,spawn:[home.x,1.7,home.z],yaw:0}),returnFixture);
+  await settled();
+  await page.waitForFunction(id=>VoidBabylon.district?.streetPair?.made?.people.get(id)?.node.isEnabled(),returnId,{timeout:120000});
+  const suspended=await page.evaluate(({id,home,target,area})=>{
+   const made=VoidBabylon.district.streetPair.made,actor=made.people.get(id),A=VoidNPCAreas,opts={adult:true,made:true};
+   const pos=()=>({x:actor.s.x,z:actor.s.z}),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+   const choose=label=>{
+    const item=walkingLocation.interactions.find(i=>i.character===id&&i.action==='made-npc');
+    if(!item)throw Error('return reload fixture TALK missing');
+    Object.assign(walker,{...pos(),yaw:0,pitch:0});
+    VoidInteractions.handlers.get(item.action)({item});
+    const choice=speech?.choices?.find(c=>c.label===label);
+    if(!choice)throw Error('return reload fixture missing '+label);
+    speech=null;VoidAudio.cancel();choice.run();
+   };
+   choose('WALK TOGETHER');Object.assign(walker,{...target,yaw:0,pitch:0});
+   for(let i=0;i<480&&dist(pos(),home)<2.5;i++)made.tick(.05);
+   if(dist(pos(),home)<2.5||!actor.esc)throw Error('reload fixture did not follow');
+   choose('STOP FOLLOWING');Object.assign(walker,{...target,yaw:0,pitch:0});
+   for(let i=0;i<8;i++)made.tick(.05);
+   const observed=pos(),legal=A.check(observed,area,undefined,opts);
+   if(!actor.returnJourney||!legal.ok||legal.area!==area||dist(observed,home)<1.5)throw Error('no legal mid-return observation');
+   globalThis.npcReturnFixtureOldNode=actor.node;
+   return {observed,distance:dist(observed,home)};
+  },{id:returnId,...returnFixture});
+  await page.evaluate(({target})=>enterWalking('sacramento',{quarter:'avenue',silent:true,spawn:[target.x,1.7,target.z],yaw:0}),returnFixture);
+  await page.waitForFunction(id=>VoidBabylon.district?.streetPair?.made?.people.get(id)?.node.isEnabled(),returnId,{timeout:120000});
+  const remounted=await page.evaluate(({id,home,area,suspended})=>{
+   const made=VoidBabylon.district.streetPair.made,actor=made.people.get(id),A=VoidNPCAreas,opts={adult:true,made:true};
+   const pos=()=>({x:actor.s.x,z:actor.s.z}),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+   const start=pos(),recreated=actor.node!==globalThis.npcReturnFixtureOldNode&&globalThis.npcReturnFixtureOldNode.isDisposed();
+   const resumed=!!actor.returnJourney,remainingAtMount=dist(start,home),discontinuity=dist(start,suspended.observed);
+   let maxStep=0,blocked=0,arrived=false;
+   for(let i=0;i<600;i++){const last=pos();made.tick(.05);const next=pos(),step=dist(last,next);maxStep=Math.max(maxStep,step);if(step>1e-8&&A.leg(last,next,opts).length)blocked++;if(!actor.returnJourney&&dist(next,home)<=.03){arrived=true;break;}}
+   return {recreated,resumed,remainingAtMount,discontinuity,maxStep,blocked,arrived,remaining:dist(pos(),home)};
+  },{id:returnId,...returnFixture,suspended});
+  console.log('NPC SCENE RELOAD PHYSICAL RETURN',JSON.stringify({suspended,remounted}));result.npcReturnReload={suspended,remounted};
+  assert(remounted.recreated,'actual NPC model disposed and remounted');
+  assert(remounted.resumed&&remounted.remainingAtMount>1,'return still active after scene reload, not snapped home');
+  assert(remounted.discontinuity<1,'retained position allowing ordinary elapsed walking ticks');
+  assert(remounted.arrived&&remounted.maxStep<=.31&&remounted.blocked===0,'resumed return physically completed without collision');
+  await page.screenshot({path:path.join(out,'npc-return-reload.png')});
+ }finally{await page.evaluate(()=>{VoidAccount.user=globalThis.npcReturnFixtureUser;delete globalThis.npcReturnFixtureUser;delete globalThis.npcReturnFixtureOldNode;});}
  await page.evaluate(()=>{VoidLiveContent.resetRun();VoidLiveContent.use(null,'shipped',0);VoidLiveContent.replan();});
 
  // Full campaign data lives in the original object; VR gets only a detached simulation state.
