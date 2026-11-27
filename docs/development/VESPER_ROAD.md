@@ -12,8 +12,8 @@ This is built in phases, one PR each. This page says what exists now.
 | 2 | Many miles: the road continues 8 km beyond the pass along the valleys around the mountains (9.6 km, about 6 miles, in all) | PR #636 (`2026-11-28-vesper-road-2`) |
 | 3 | The village: nine small houses, an enterable bar and an enterable store, street lamps, water tower | PR #637 (`2026-11-28-vesper-village-3`) |
 | 4 | The mine: portal in a cut, the adit inside the mountain, a cage down a shaft of placeholder depth to the bottom level | PR #638 (`2026-11-28-vesper-mine-4`) |
-| 5 | The far end: the guard shack and barrier you reach first, the facility made to look like a warehouse (big doors on one side), the shared housing unit | `2026-11-28-vesper-facility-5` |
-| 6 | Loading screens everywhere made as unnoticeable as practical | later |
+| 5 | The far end: the guard shack and barrier you reach first, the facility made to look like a warehouse (big doors on one side), the shared housing unit | PR #639 (`2026-11-28-vesper-facility-5`) |
+| 6 | Loading screens everywhere made as unnoticeable as practical: the transition veil (hold the last picture, crossfade) and the audit | `2026-11-28-loading-veil-6`, see [LOADING_TRANSITIONS.md](LOADING_TRANSITIONS.md) |
 
 ## Where it is
 
