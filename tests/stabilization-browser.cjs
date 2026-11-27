@@ -198,6 +198,71 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  }
 
  await page.evaluate(()=>{VoidLiveContent.resetRun();VoidLiveContent.use(null,'shipped',0);VoidLiveContent.replan();});
+
+ // Same-area physical return: a fresh, disposable browser-only NPC in Avenue.
+ // Use the real mounted actor, invitation and STOP FOLLOWING choice; never set
+ // its position, escort state or return driver directly. Advance only its
+ // existing runtime tick to keep this test independent of software GPU FPS.
+ const returnId='test-ordinary-return';
+ const returnFixture=await page.evaluate(id=>{
+  const A=VoidNPCAreas,area=VoidNPCEscort.areaOfQuarter(walkingLocation.quarter),home={x:19.5,z:2.5};
+  if(area!=='avenue')throw Error('return fixture requires Avenue');
+  const opts={adult:true,made:true};
+  const candidates=[6,8,4].flatMap(d=>Array.from({length:16},(_,i)=>({x:home.x+d*Math.cos(i*Math.PI/8),z:home.z+d*Math.sin(i*Math.PI/8)})));
+  const target=candidates.find(q=>{const c=A.check(q,area,undefined,opts);return c.ok&&c.area===area&&!A.leg(home,q,opts).length;});
+  if(!target)throw Error('no checked same-area follow target');
+  const content={format:'darknet-district-mission-content',version:1,
+   characters:{[id]:{name:'Return test walker',model:'npc-casual-m',adult:true}},
+   npcs:{[id]:{mode:'stay',...home,yaw:0,actions:['idle'],tier:1}},
+   interactions:{[id]:{distance:3,cooldown:30,advanced:{follow:{role:'follow',invite:'Walk with me.',accept:'WALK TOGETHER',decline:'NOT NOW',maxWait:120,districtTravel:true}}}}};
+  const ok=VoidLiveContent.use(content,'published',1);VoidLiveContent.replan();Object.assign(walker,{...home,yaw:0,pitch:0});
+  return {ok,refused:VoidLiveContent.current.refused,home,target,area};
+ },returnId);
+ assert(returnFixture.ok,JSON.stringify(returnFixture.refused));
+ await page.waitForFunction(id=>VoidMadeNPCs.live?.()?.people.some(p=>p.id===id&&p.enabled&&p.talk),returnId,{timeout:120000});
+ const returnProbe=await page.evaluate(({id,home,target,area})=>{
+  const A=VoidNPCAreas,made=VoidBabylon.district?.streetPair?.made,actor=made?.people.get(id),opts={adult:true,made:true};
+  if(!actor)throw Error('fixture NPC is not mounted');
+  const pos=()=>({x:actor.s.x,z:actor.s.z}),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+  const choose=label=>{
+   const item=walkingLocation.interactions.find(i=>i.character===id&&i.action==='made-npc');
+   if(!item)throw Error('fixture TALK missing');
+   Object.assign(walker,{...pos(),yaw:0,pitch:0});
+   VoidInteractions.handlers.get(item.action)({item});
+   const choice=speech?.choices?.find(c=>c.label===label);
+   if(!choice)throw Error('missing choice '+label);
+   speech=null;VoidAudio.cancel();choice.run();
+  };
+  choose('WALK TOGETHER');
+  Object.assign(walker,{...target,yaw:0,pitch:0});
+  for(let i=0;i<480&&dist(pos(),home)<2.5;i++)made.tick(.05);
+  const displaced=pos(),active=VoidLiveContent.plans()[id];
+  if(dist(displaced,home)<2.5||!active?.social||!actor.esc)throw Error('fixture did not physically follow: '+JSON.stringify({displaced,active}));
+  choose('STOP FOLLOWING');
+  const before=pos();Object.assign(walker,{...target,yaw:0,pitch:0});
+  let maxStep=0,total=0,sawReturn=false,blocked=0,renderError=0,arrived=false;
+  for(let i=0;i<600;i++){
+   const last=pos();made.tick(.05);const next=pos(),step=dist(last,next);
+   maxStep=Math.max(maxStep,step);total+=step;
+   if(step>1e-8&&A.leg(last,next,opts).length)blocked++;
+   renderError=Math.max(renderError,dist(next,actor.node.position));
+   sawReturn||=actor.s.mode==='return';
+   if(sawReturn&&!actor.returnJourney&&dist(next,home)<=.03){arrived=true;break;}
+  }
+  return {displaced:dist(displaced,home),cancelJump:dist(displaced,before),maxStep,total,blocked,renderError,sawReturn,arrived,remaining:dist(pos(),home),social:!!VoidLiveContent.plans()[id]?.social,mode:actor.s.mode};
+ },{id:returnId,...returnFixture});
+ console.log('NPC SAME AREA PHYSICAL RETURN',JSON.stringify(returnProbe));result.npcPhysicalReturn=returnProbe;
+ assert(returnProbe.displaced>=2.5,'actor followed away from routine');
+ assert(returnProbe.cancelJump<.001,'cancelling did not reposition the actor');
+ assert(returnProbe.sawReturn&&returnProbe.arrived,'actual mounted return completed');
+ assert(returnProbe.maxStep<=.31,'bounded physical strides, no relocation');
+ assert(returnProbe.total+.03>=returnProbe.displaced,'walked the return distance');
+ assert.equal(returnProbe.blocked,0,'return strides passed the real pedestrian geometry');
+ assert(returnProbe.renderError<.03,'Babylon node follows the actual NPC position');
+ assert.equal(returnProbe.social,false,'cancelled invitation is not active');
+ await page.screenshot({path:path.join(out,'npc-physical-return.png')});
+ await page.evaluate(()=>{VoidLiveContent.resetRun();VoidLiveContent.use(null,'shipped',0);VoidLiveContent.replan();});
+
  // Full campaign data lives in the original object; VR gets only a detached simulation state.
  const options=smoke?[['forest',{}]]:[['forest',{}],['tropical',{}],['suite',{companion:'seren'}],['suite',{companion:'kai'}],['suite',{companion:'nadia'}]];
  for(const [id,opts]of options){
