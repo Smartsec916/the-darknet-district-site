@@ -20,17 +20,17 @@ test('the place list: a follow step may end in an apartment or a room of a locat
  assert.match(E.problems(step({apt:'a1',mod:'nope'}),ctx([office()])).join(' '),/location’s rooms/);
  assert.match(E.problems(step({apt:'a1',mod:'lift2'}),ctx([office()])).join(' '),/elevator cab/);
  assert.match(E.problems(step({apt:'a2'}),ctx([{...flat(),door:undefined}])).join(' '),/no street door/);});
-test('who: never the cat (greyed with the reason); Reverie and Lace never into a bar back room; the street door in her area; the place open by then',()=>{
- const cat=E.problems(step({npc:'street-cat',apt:'a2'}),ctx([flat()]));assert.match(cat.join(' '),/cat stays outside/);assert.equal(E.canInto('street-cat').ok,false);assert.equal(E.canInto(REV).ok,true);
+test('apartment adapters, age rules, street links and mission locks determine room access',()=>{
+ const cat=E.problems(step({npc:'street-cat',apt:'a2'}),ctx([flat()]));assert.match(cat.join(' '),/procedural gait/);assert.equal(E.canInto('street-cat').ok,false);assert.equal(E.canInto(REV).ok,true);
  const bar={id:'a3',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='bar').loc))};
  assert.deepEqual(E.problems(step({apt:'a3',mod:'bar'}),ctx([bar])),[]);const pit={id:'a4',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='fight-pit').loc))};assert.deepEqual(E.problems(step({apt:'a4',mod:'pit'}),ctx([pit])),[]);assert.match(E.problems(step({apt:'a3'}),ctx([bar])).join(' '),/^$/);
  assert.deepEqual(E.problems(step({apt:'a2'}),ctx([flat(OT_DOOR)])),[],'(escort across, 20 Nov 2026) a door in Old Town: she walks there through the North Gate');
- assert.match(E.problems(step({npc:'street-cat',kind:'they-follow',to:{x:-2.7,z:-80}}),ctx([])).join(' '),/cat never goes inside or down into the tunnels/);
+ assert.deepEqual(E.problems(step({npc:'street-cat',kind:'they-follow',to:{x:-2.7,z:-80}}),ctx([])),[]);
  assert.deepEqual(E.problems(step({apt:'a2'}),{...ctx([flat(OT_DOOR)]),area:'oldtown'}),[]);
  const steps=[{id:'s1',kind:'talk'},{id:'s2',kind:'follow-them'},{id:'s3',kind:'apt-enter'}];
  assert.match(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s3'}],steps)).join(' '),/opens later/);assert.deepEqual(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s2'}],steps)),[]);
  assert.deepEqual(E.needs(step({}),ctx([flat()])).map(n=>n.key),['step-spot']);assert.deepEqual(E.needs(step({apt:'zz'}),ctx([flat()])).map(n=>n.key),['step-into']);
- const inv=E.inventory();assert.equal(inv.into.doorAreas[DOOR],'avenue');assert.deepEqual(inv.into.adultRooms,['fight-pit']);assert.equal(inv.npcs['street-cat'].into,false);assert.equal(inv.npcs[REV].youthful,false);});
+ const inv=E.inventory();assert.equal(inv.into.doorAreas[DOOR],'avenue');assert.deepEqual(inv.into.adultRooms,['fight-pit']);assert.equal(inv.npcs['street-cat'].into,false);assert.equal(inv.npcs[REV].restrictedRooms,false);});
 test('rooms: the way from the street door to the server room (doorways, then the elevator); an older apartment is hallway then apartment',()=>{
  const g=E.roomGraph(office());assert.equal(g.entry,'hall');assert.deepEqual(E.roomPath(g,'hall','servers').map(p=>p.room+':'+p.edge.kind),['office:snap','lift:snap','lift2:lift','servers:snap']);
  assert.equal(g.clusters.hall,g.clusters.lift);assert.notEqual(g.clusters.lift,g.clusters.servers);assert.deepEqual(E.roomPath(g,'servers','servers'),[]);
@@ -77,7 +77,7 @@ function engine(){const MC=require(R('void-runner/mission-content.js')),C=requir
 test('the mission check accepts a follow step into a place; escortNow names the place and its street door; after the step she stays in that room until the mission is done',()=>{
  const {MC,C,givers,m,trees}=engine();const content=MC.fromDrafts({local:{trees},givers});const chk=MC.check(content,{givers:new Map(givers.map(g=>[g.id,g]))});assert.ok(chk.ok,chk.errors&&chk.errors.join(' | '));
  assert.deepEqual(A.problems(m),[],'apartments.js lets a follow step name a place');
- const bad=JSON.parse(JSON.stringify(trees));bad[0].missions[0].objectives[1].npc='street-cat';assert.match(MC.notApplied({local:{trees:bad},givers}).join(' '),/cat stays outside/,'the cat: the mission stays in the draft, with the reason');
+ const bad=JSON.parse(JSON.stringify(trees));bad[0].missions[0].objectives[1].npc='street-cat';assert.match(MC.notApplied({local:{trees:bad},givers}).join(' '),/procedural gait/,'the cat: the mission stays in the draft, with the reason');
  const env={trees:MC.storyTrees?MC.storyTrees(content.trees||trees):trees,givers};const s=C.startDistrictCampaign(C.fresh());s.universe.missions={'draft-in-m1':{acquired:true,objectives:{s1:true}}};
  const e=MC.escortNow(s,{...env,trees})[REV];assert.equal(e.apt,'a2');assert.equal(e.door,DOOR);assert.equal(e.loc,'draft-in-m1/a2');
  s.universe.missions['draft-in-m1'].objectives.s2=true;assert.deepEqual(MC.escortNow(s,{...env,trees}),{});const ins=MC.insideNow(s,{...env,trees})[REV];assert.equal(ins.loc,'draft-in-m1/a2');assert.equal(ins.step,'draft-in-m1/s2');

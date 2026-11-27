@@ -40,8 +40,8 @@
     licensed model), its jacket darkened by a look (npc-looks.js colour, skin kept). His post and actions: npc-paths.js MOVABLE['tea-host'].home; the roster entry and
     TALK prompt: mission-givers.js FACTS (action ACTION). Placeholder name; no lines. */
  const BUILTIN={'tea-host':{name:'Tea Room Host',model:'npc-cook-old',look:{colour:{'*':{tint:'#30343a',sat:.55,bright:.62}}}}};
- const YOUNG=['npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
- const adultAllowed=asset=>!YOUNG.includes(asset);
+ const NON_HUMANOID=['npc-street-cat'];
+ const adultAllowed=asset=>!NON_HUMANOID.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
  const LIMIT={characters:12,name:40,role:80,items:6};
  const KEYS=['name','role','model','adult','look','device','ship','items','when','companionProfile','worldBehavior','relationships','residence'];
@@ -100,7 +100,7 @@
  /* A character as it is stored and sent: known fields only, trimmed. */
  function clean(c){if(!c||typeof c!=='object')return null;const x={name:String(c.name||'').trim().slice(0,LIMIT.name),model:String(c.model||'')};if(typeof c.role==='string'&&c.role.trim())x.role=c.role.trim().slice(0,LIMIT.role);
   if(c.look&&typeof c.look==='object'){const l={};if(Array.isArray(c.look.hide)&&c.look.hide.length)l.hide=c.look.hide.slice();if(c.look.colour&&Object.keys(c.look.colour).length)l.colour=JSON.parse(JSON.stringify(c.look.colour));if(Array.isArray(c.look.gear)&&c.look.gear.length)l.gear=c.look.gear.slice();if(c.look.hair)l.hair=c.look.hair;if(Object.keys(l).length)x.look=l;}
-  if(c.adult===true&&!YOUNG.includes(x.model))x.adult=true;if(DEVICES[c.device])x.device=c.device;if(typeof c.ship==='string'&&c.ship)x.ship=c.ship;
+  if(c.adult===true&&!NON_HUMANOID.includes(x.model))x.adult=true;if(DEVICES[c.device])x.device=c.device;if(typeof c.ship==='string'&&c.ship)x.ship=c.ship;
   if(Array.isArray(c.items)&&c.items.length)x.items=c.items.filter(i=>i&&typeof i.id==='string').slice(0,LIMIT.items).map(i=>i.show===true&&SHOW[i.id]?{id:i.id,show:true}:{id:i.id});
   if(c.when&&typeof c.when==='object'&&typeof c.when.mission==='string'&&c.when.mission)x.when=c.when.step?{mission:c.when.mission,step:String(c.when.step)}:{mission:c.when.mission};
   if(validProfile(c.companionProfile))x.companionProfile=JSON.parse(JSON.stringify(c.companionProfile));if(validWorldBehavior(c.worldBehavior))x.worldBehavior={...c.worldBehavior};if(validRelationships(c.relationships))x.relationships=JSON.parse(JSON.stringify(c.relationships));if(validResidence(c.residence))x.residence={...c.residence};return x;}
@@ -108,7 +108,7 @@
  function basePlan(p){if(!p||typeof p!=='object')return null;const {schedule,...rest}=p;return rest.mode==='stay'||rest.mode==='path'?rest:null;}
  /* The area she is placed in (npc-areas.js), from her plan: the all-day spot or route, else her first time block with a place. */
  function areaOf(p){const A=AR();if(!A||!p)return null;const at=q=>q&&q.mode==='stay'?A.areaOf(q):q&&q.mode==='path'&&q.points&&q.points[0]?A.areaOf(q.points[0]):null;const b=basePlan(p);if(b)return at(b);for(const x of (p&&p.schedule)||[]){const a=at(x);if(a)return a;}return null;}
- const usesPath=p=>!!p&&(p.mode==='path'||(Array.isArray(p.schedule)&&p.schedule.some(b=>b&&b.mode==='path')));
+ const usesPath=p=>!!p&&(p.mode==='path'||(Array.isArray(p.schedule)&&p.schedule.some(b=>b&&(b.mode==='path'||b.cross===true))));
  /* content.characters -> problems in plain words (empty: fine). ctx: {npcs: content.npcs, missions: Map(id -> [step ids]) of the trees in force, reserved: Set of ids the game
     already uses, givesOffer: Map(mission id -> giver) for missions offered in person}. */
  function problems(chars,ctx={}){if(chars==null)return [];if(!chars||typeof chars!=='object'||Array.isArray(chars)||Object.keys(chars).length>LIMIT.characters)return ['Made characters have an unknown shape ('+LIMIT.characters+' at most).'];
@@ -124,7 +124,7 @@
    if(c.relationships!=null&&(!validRelationships(c.relationships)||c.relationships.some(r=>r.target===id)))out.push(w+'invalid relationship target or settings.');
    if(c.residence!=null&&!validResidence(c.residence))out.push(w+'invalid residence settings.');
    const m=ms.get(c.model);if(!m){out.push(w+'choose the model they are made from (one of the game’s NPC models).');continue;}
-   if(c.adult!=null&&c.adult!==true)out.push(w+'“adult (18+)” is either ticked or left out.');else if(c.adult===true&&!adultAllowed(c.model))out.push(w+'this model reads youthful (Reverie’s and Lace’s models): it can never be marked adult.');
+   if(c.adult!=null&&c.adult!==true)out.push(w+'“adult (18+)” is either ticked or left out.');else if(c.adult===true&&!adultAllowed(c.model))out.push(w+'this model does not support the human adult setting.');
    if(c.look!=null){const L=NPL();if(!keysOk(c.look,['hide','colour','gear','hair']))out.push(w+'the look has unknown fields.');else if(L)for(const p of L.entryProblems(c.model,{looks:[{id:'own',name:'own look',...c.look}],use:'own'},ctx.lookInventory&&ctx.lookInventory[c.model]))out.push(w+p.replace(/^[^:]+: look “own look”: /,'look: '));}
    if(c.device!=null&&!DEVICES[c.device])out.push(w+'the device must be V1, V2, V3 or none.');
    if(c.ship!=null&&!sh.has(c.ship))out.push(w+'“'+c.ship+'” is not a ship of the game.');
@@ -177,7 +177,7 @@
   for(const [key,clip] of Object.entries(draft.clips||{}))if(clip?.who===id)delete draft.clips[key];
   return true;
  }
- const api={deletionReferences,deleteCharacter,BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validShift,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ const api={deletionReferences,deleteCharacter,BUILTIN,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,teaResident,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validShift,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
@@ -217,7 +217,7 @@
   if(!visitPaths)return null;
   return life.tactaAt(1+Math.floor(minute/1440),minute%1440,visitPaths,root.VoidClock.RATE,home.visitMinutes);
  }
- function planOf(id){const P=plansAll()[id];if(P)return P;
+ function planOf(id,here){const P=plansAll()[id];if(P)return NPX().scheduledScenePlan(id,P,here);
   if(id==='tacta'||id==='patch'||root.VoidApartments?.districtPair?.[id]){
    const outing=residentOuting(id,env()?.characters?.[id]);
    if(outing){
@@ -261,7 +261,7 @@
   function arrive(id,c,P){P=scenePlan(P);const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
    for(const m of n.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
-   const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null)||{x:0,z:0};
+   const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(ok(P.entry)||(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null))||{x:0,z:0};
    const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};
    const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
    if(id==='tacta'||id==='patch')root.VoidTeaDuo?.attachGaze(n,()=>{
@@ -320,11 +320,11 @@
     if(canWalk&&b.activity==='seat'&&['auto','tea','sleeping'].includes(b.room)){const actions=NPX().actionsFor(p.id),seat=nearbySeat(SP.seats?.()||[],plan,s=>{const f=SP.standOf(s);return Math.hypot(f.x-plan.x,f.z-plan.z)<=b.distance&&(!Ar.leg(plan,f,{made:true,adult:!!p.c.adult}).length)&&(b.room==='auto'||String(s.id).startsWith(b.room==='tea'?'under-tea-room-':'under-sleeping-room-'))&&actions.some(a=>a.pose&&(s.poses||['chair']).includes(a.pose))&&![...people.values()].some(o=>o!==p&&Math.hypot(o.s.x-s.x,o.s.z-s.z)<.65);});if(seat){const f=SP.standOf(seat),a=actions.find(a=>a.pose&&(seat.poses||['chair']).includes(a.pose));p.nearTarget={...plan,x:f.x,z:f.z,yaw:seat.yaw,actions:[a.id],key:plan.key+':companion-seat'};}}
    }const target=p.nearTarget||plan;if(b.activity!=='seat'&&(traits.attention??.5)>=.5)return {...target,yaw:Math.atan2(w.x-target.x,w.z-target.z)};return target;
   }
-  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:scenePlan(planOf(p.id)),talk=chatting()===p.id,w=me();
-   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
+  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:scenePlan(planOf(p.id,HERE)),talk=chatting()===p.id,w=me();
+   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&!R.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
-   if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
+   if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&!P.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
    let clip;
    if(P?.outing){
     const target=P.outing,walking=target.phase==='walk';
@@ -371,10 +371,10 @@
     const outing=residentOuting(id,c);
     if(!outing||outing.area==='flat'||outing.area==='hall'){if(people.has(id))leave(id);continue;}
    }
-   if(!present(id)||atHome(c))continue;const P=planOf(id),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
+   if(!present(id)||atHome(c))continue;const P=planOf(id,HERE),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
     if(!a||!HERE.has(a)){const p=people.get(id);if(p&&inView(p.node,cam))p.going=true;else if(p)leave(id);continue;}
     if(people.has(id)&&people.get(id).c!==c){leave(id);}   // changed in a new version of the content: made again
-    if(!people.has(id)){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(away.has(id)&&t&&seenAt(t.x,0,t.z,cam))continue;   // back from inside a place: never in front of the player
+    if(!people.has(id)){const t=P&&(P.entry||(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null));if(away.has(id)&&t&&seenAt(t.x,0,t.z,cam))continue;   // back from inside a place: never in front of the player
      if(has(c.model)){away.delete(id);arrive(id,c,P);}else ask(c.model);}}
    if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled()&&!p.going;if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    nameCards();}

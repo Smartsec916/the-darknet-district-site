@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## Current NPC travel and editor policy
+
+See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions.
+
 ## 26 Nov 2026 - Universe travel verification
 
 The universe expansion uses separate arrival and cargo destination IDs. See [the universe asset manifest](UNIVERSE_ASSET_MANIFEST.md) for the route map, provisional names, pad dimensions and planned modular assets. The two-browser test confirmed that both pilots appear at an arrival point and separate when one changes systems.

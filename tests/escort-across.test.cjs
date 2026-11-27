@@ -47,15 +47,15 @@ test('through a link: she comes AHEAD when she leads, BEHIND when she follows; l
  const s=E.linkById('stairs:under-oldtown');assert.equal(A.areaOf(E.arrival(s,'underground','ahead')),'underground');assert.equal(BA.groundAt(E.arrival(s,'oldtown','behind').x,-73),-3);
  assert.equal(A.areaOf(n.ends.oldtown.ahead),'oldtown','a reload: the saved x / z give her area (live-content.js plans)');});
 
-test('rules kept: never into the adult places, the cat never inside / underground / in a cab, never the Corporate District or the Temple; never a silent loss',()=>{
+test('public District rooms and tunnels allow the cat while protected places and unregistered transfers stay guarded',()=>{
  const mk=A.list().find(a=>a.id==='milked'),in_=mk&&mk.walk[0]?{x:(mk.walk[0].x0+mk.walk[0].x1)/2,z:(mk.walk[0].z0+mk.walk[0].z1)/2}:{x:81.75,z:-176};
  for(const id of [REV,LACE]){const m=E.mayEnter(id,'milked',in_);assert.equal(m.ok,false,id);assert.match(m.why,/waits here for you/);}
  const r=E.across({kind:'they-follow',from:'far-south',to:'milked',herArea:'far-south',dist:2,allowed:E.mayEnter(REV,'milked',in_)});assert.equal(r.go,'refused');assert.match(r.why,/does not go there/);
- assert.equal(E.mayEnter(CAT,'underground',{x:0,z:5}).ok,false);assert.match(E.mayEnter(CAT,'district',null).why,/never goes inside or down into the tunnels/);assert.ok(!E.reach(CAT,'avenue').has('underground'));assert.ok(!E.reach(CAT,'oldtown').has('district'));
+ assert.equal(E.mayEnter(CAT,'underground',{x:-2.7,z:-80}).ok,true);assert.equal(E.mayEnter(CAT,'district',null).ok,true);assert.ok(E.reach(CAT,'avenue').has('underground'));assert.ok(E.reach(CAT,'oldtown').has('district'));assert.equal(E.mayEnter(CAT,'milked',null).ok,false);
  assert.ok(E.reach(CAT,'avenue').has('oldtown'),'the cat walks through a gate with the player');
  assert.deepEqual(E.across({kind:'follow-them',from:'avenue',to:null,farScene:true,herArea:'avenue',dist:1,allowed:{ok:false,why:'Reverie stays in the city'}}),{go:'refused',why:'Reverie stays in the city'});
  assert.deepEqual(E.across({kind:'they-follow',from:'avenue',to:null,farScene:false,herArea:'avenue',dist:1}),{go:'stay'},'an apartment: npc-escort-indoors.js has it');
- assert.match(E.problems({kind:'they-follow',npc:CAT,to:{x:-2.7,z:-80}},{area:'avenue'}).join(),/cat never goes inside or down into the tunnels/);
+ assert.deepEqual(E.problems({kind:'they-follow',npc:CAT,to:{x:-2.7,z:-80}},{area:'avenue'}),[]);
  assert.deepEqual(E.problems({kind:'follow-them',npc:REV,to:{x:-2.7,z:-80}},{area:'avenue'}),[],'Reverie may lead down into the tunnels');
  assert.ok(!E.links().some(l=>Object.keys(l.ends).includes('milked')),'no walking link into Milked');
  // the fight pit stays a refused room for a youthful character (npc-escort.js intoProblems, unchanged)
@@ -96,4 +96,4 @@ test('wiring: npc-escort-across.js wraps enterWalking after every transition, li
  for(const f of ['ncz-street-pair.js','npc-made.js']){const s=fs.readFileSync(R('void-runner/'+f),'utf8');assert.match(s,/noDone:!!P\.via/,f);assert.match(s,/E\.rideAlong\(/,f);assert.match(s,/groundAt/,f);}
  assert.match(fs.readFileSync(R('void-runner/mission-guide.js'),'utf8'),/root\.missionEscortGoal=escortGoal/);assert.match(fs.readFileSync(R('void-runner/world-integration.js'),'utf8'),/missionEscortGoal\(g\)/);
  assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8').split(/\r?\n/)[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';$/);
- const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8'));assert.ok(inv.npcEscort.npcs[REV].reach.avenue.includes('underground'));assert.ok(!inv.npcEscort.npcs[CAT].reach.avenue.includes('underground'));});
+ const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8'));assert.ok(inv.npcEscort.npcs[REV].reach.avenue.includes('underground'));assert.ok(inv.npcEscort.npcs[CAT].reach.avenue.includes('underground'));});

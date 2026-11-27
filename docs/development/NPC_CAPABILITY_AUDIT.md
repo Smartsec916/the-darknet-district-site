@@ -1,5 +1,7 @@
 # Dev Tools NPC Capability Audit
 
+This is the 19 November snapshot. For current travel, roster and scene capability rules, see [Void Runner hardcoded restrictions audit](NPC_RESTRICTIONS_AUDIT.md).
+
 **Audit date:** 2026-11-18 / 2026-11-19 UTC  
 **Repository:** `Smartsec916/the-darknet-district-site`  
 **Audit baseline:** current `main` at the start of this audit, including the NPC placement, escort, schedule, appearance, voice, animation-index, Milked Studio View, Mission Editor and Developer Tools work already merged by Claude/Codex.
