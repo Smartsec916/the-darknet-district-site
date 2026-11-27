@@ -91,6 +91,11 @@ def build():
         B.box((min(sx * 4, sx * (W + 1)), 0, Z1 - .3), (max(sx * 4, sx * (W + 1)), 11, Z1 + .3), 'v_steel')
         B.box((min(sx * 4, sx * 4.5), 0, Z1 - .35), (max(sx * 4, sx * 4.5), 4.2, Z1 + .35), 'v_hazard')
     B.box((-4.5, 4.2, Z1 - .3), (4.5, 11, Z1 + .3), 'v_steel')
+    B.box((-4.0, 0, Z1 - .15), (4.0, 4.2, Z1 + .15), 'trim_dark')                       # the sealed pressure door (the room behind it is reserved)
+    B.box((-.6, 2.4, Z1 - .2), (.6, 3.0, Z1 - .15), 'win_dim')
+    B.box((-3.8, 1.2, Z1 - .2), (-3.5, 1.5, Z1 - .15), 'lamp_red')
+    for k in range(5):
+        B.box((-3.6 + k * 1.8, 0, Z1 - .22), (-3.5 + k * 1.8, 4.2, Z1 - .15), 'v_steel')
     B.box((-3.6, 3.7, Z1 - .45), (3.6, 4.0, Z1 - .3), 'lamp_teal')
     # lockers, crates, tool racks, fuel drums along the walls (visual only, clear of the pad and the board point)
     for k in range(6):
