@@ -301,6 +301,7 @@ Placement rule: only the sleeping room (`under-sleeping-room`) behind the underg
 | Asset | Source | Rights |
 |---|---|---|
 | `void-runner/assets/models/low-quay/quay-terminal.glb` (berth terminal: post, screen housing, key deck, status lamp; flat colours) | **Modelled in Blender by Claude for this project; no third-party assets.** Built by code: `tools/assets/universe/build_quay_terminal.py` (with `vcore.py`). | Project-owned. |
+| `void-runner/assets/models/vehicles/utility-vehicle.glb` (Vesper utility vehicle: enclosed two-seat work truck, cargo bed, roll bar, work lamps; separate steering and wheel nodes; PBR materials with textures generated in the build script) | **Modelled in Blender by Claude for this project; no third-party assets** (no downloaded models, images or textures). Built by code: `tools/assets/vehicles/build_utility_vehicle.py`. | Project-owned. |
 | Everything else at Low Quay (pad, viaduct, station, trains, tunnel, subway, city, sky, signs) | Code-built in `void-runner/low-quay.js` and `void-runner/low-quay-city.js`; textures drawn at run time. No third-party assets. | Project-owned. |
 | `docs/development/universe-graphics/lowquay-reference.png` (concept image) | Supplied by the owner as the visual target. | The owner's; used as a reference only, not shipped in the game. |
 | `void-runner/assets/models/stations/{vigil,holdfast}-surroundings.glb` | **Modelled in Blender by Claude for this project; no third-party assets.** `tools/assets/universe/build_erebus.py`. | Project-owned. |
