@@ -8,8 +8,8 @@ This is built in phases, one PR each. This page says what exists now.
 
 | Phase | What | Status |
 |---|---|---|
-| 1 | The pass: the road climbs between the first range's two high points through a carved saddle; the land is streamed chunks; walking and driving along the whole road | this PR (`2026-11-28-vesper-pass-1`) |
-| 2 | Many miles: the road continues for kilometres around the mountains | next |
+| 1 | The pass: the road climbs between the first range's two high points through a carved saddle; the land is streamed chunks; walking and driving along the whole road | PR #635 (`2026-11-28-vesper-pass-1`) |
+| 2 | Many miles: the road continues 8 km beyond the pass along the valleys around the mountains (9.6 km, about 6 miles, in all) | `2026-11-28-vesper-road-2` |
 | 3 | The village (small houses, a bar, a store) | later |
 | 4 | The mine (portal, hidden load into the interior, placeholder depth) | later |
 | 5 | The far end: guard shack, warehouse facility, shared housing | later |
@@ -32,7 +32,9 @@ This is built in phases, one PR each. This page says what exists now.
 - **Grades**: the road's height is the natural ground under it, smoothed (σ 45 m) and held to a 9 % grade both ways, then lightly smoothed (max measured 9.5 %; the test holds it to 10 %). The climb from the flats to the col is about 1.3 km at 9 %; no switchbacks were needed.
 - **Banks**: under the road a flat bench (carriageway + shoulders + 1 m, 3 cm below the road surface); then a cut or fill bank that blends into the natural slope with a smooth S profile. The bank's width grows with its height (16 m + 1.25 × height), and near the pass much wider and gentler (34 m + 1.9 × height). Deepest cut on the way up: ~23 m (a foothill spur at s ≈ 800 m); at the col ~17 m.
 - **Talus**: rock at the foot of the cuttings and scattered on their faces (thin instances, one host per 400 m of road; never on the carriageway or the walking margin). Cut faces are coloured as paler broken rock and scree, fill banks as loose spoil, the bench as compacted gravel.
-- Phase 1 ends the road on the plateau east of the pass, at about (1320, -196), 1.42 km from the workshop (the last 60 m taper). Phase 2 continues it.
+- Beyond the pass (phase 2) the road runs about 8 km more, east then north-east along the valleys between the ranges, to about (7311, 2700): **9.6 km (≈ 6 miles) from the workshop**, about 11 minutes at the truck's cruising 54 km/h. The line was found by `tools/assets/vesper/plan_route.cjs` (A* on a 20 m grid over the natural land: steepness and height above the valley floor cost extra, so it keeps to valleys and winds around the mountains), smoothed, sampled every ~160 m, and edited by hand where the village stands so its street runs due east for ~120 m (x 1770–1880, z 664).
+- Along it: the grade stays within 9.4 %; the tightest bend has a ~49 m radius; the deepest cutting is ~72 m (short) and the highest fill ~45 m; no two parts of the road come within 300 m of each other (more than the carve's reach, so the land between two legs is never pulled two ways).
+- Reserved sites (later phases): the village on the flat valley floor at s ≈ 2.4–2.6 km; the mine at s ≈ 4.0 km, where a mountain face rises on the north-west side of the road; the facility at the road's end.
 
 ## The land as streamed chunks (no loading pause)
 
@@ -40,6 +42,10 @@ This is built in phases, one PR each. This page says what exists now.
 - Chunks are generated a few rows at a time inside a per-frame budget (4.5 ms Medium/High, 3 ms Low), nearest first; a parent stays on screen until all four of its children are ready, so there are never holes and the frame never waits. The set around the camera at arrival is built inside the existing workshop loading card.
 - Measured (software GL in the test container, so CPU-bound and slower than a real GPU): about 120 chunks shown, 77 drawn after frustum culling in the yard, 20 at the pass; the terrain adds ~1.5 ms to `scene.render()`; the largest single generation step is ~6 ms. Unused chunks are dropped after 25 s (never the top two levels).
 - The yard keeps its own sand: the old 1600 m sand plane is now a 252 m-radius disc (same 20 m texture tiling) and the chunks sink under it inside r 243 m. Without `vesper-terrain.js` the old plane and ring come back.
+
+## Why there is no loading screen on the road
+
+Nothing on the road is a separate scene: the whole 9.6 km is one Babylon scene, and the land streams in around the camera as chunks (above), generated a few rows per frame within a fixed time budget, so there is no load to hide. The road surface, shoulders, posts and talus for the whole length are built once with the scene (inside the existing workshop loading card); the far ones are culled by the camera. Float precision: 7.3 km from the origin a 32-bit float resolves about 0.5 mm, so the world is not re-centred. The two moons follow the camera so they stay in the sky kilometres down the road. Later sites (village, mine, facility) load their models while the player is still far away and appear before they can be seen (phases 3–5).
 
 ## Walking and driving
 
@@ -62,7 +68,7 @@ This is built in phases, one PR each. This page says what exists now.
 
 ## Places (places.js, PROPOSED names)
 
-Erebus System › Vesper › Ward Repair yard (Ward Repair workshop, The yard) and › The Vesper road (The road across the flats, The pass, Beyond the pass). Each road stretch has a target (an approach point on the road at ground + 1.7 m); draft play enters Vesper at the workshop. Names marked PROPOSED are working names for the owner to change; ids stay.
+Erebus System › Vesper › Ward Repair yard (Ward Repair workshop, The yard) and › The Vesper road (The road across the flats, The pass, Beyond the pass, The long valley, The far road). Each road stretch has a target (an approach point on the road at ground + 1.7 m); draft play enters Vesper at the workshop. Names marked PROPOSED are working names for the owner to change; ids stay.
 
 ## Restrictions (owner's standing rule: each with its source)
 

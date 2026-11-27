@@ -48,7 +48,7 @@ test('the pass: the road climbs between the two high points through a saddle wel
 
 test('terrain: the yard is flat as before; the bench under the road is flat; heights are finite and the ground is continuous everywhere around the road',()=>{
  for(const [x,z] of [[0,0],[100,100],[-200,50],[150,-150]])assert.equal(W.height(x,z),-.035);
- for(const p of R.centreline().filter((p,i)=>Math.hypot(p.x,p.z)>W.YARD_R+30&&i%7===0)){const e=R.roadY(p.s);for(const o of [-5,-2,0,2,5]){const h=W.height(p.x-p.tz*o,p.z+p.tx*o);assert(Math.abs(h-(e-W.FLOOR))<.01,'bench at s='+p.s.toFixed(0)+' o='+o);}}
+ for(const p of R.centreline().filter((p,i)=>Math.hypot(p.x,p.z)>W.YARD_R+30&&p.s<R.total()-60&&i%7===0)){const e=R.roadY(p.s);for(const o of [-5,-2,0,2,5]){const h=W.height(p.x-p.tz*o,p.z+p.tx*o);assert(Math.abs(h-(e-W.FLOOR))<.01,'bench at s='+p.s.toFixed(0)+' o='+o);}}
  for(let x=-1500;x<=2500;x+=97)for(let z=-1500;z<=1500;z+=89){const h=W.height(x,z);assert(Number.isFinite(h)&&h>=-.035&&h<600);}
  // the carve never makes a cliff of its own: within 200 m of the road the carved ground is no steeper than the natural ground beside it (plus the bank)
  for(const p of R.centreline().filter((p,i)=>p.s>R.yardLength()&&i%11===0))for(const o of [-150,-90,-40,-20,-12,12,20,40,90,150]){const x=p.x-p.tz*o,z=p.z+p.tx*o,h=W.height(x,z),d=Math.abs(W.height(x+1,z)-h),dn=Math.abs(W.baseHeight(x+1,z)-W.baseHeight(x,z));assert(d<Math.max(1.6,dn+.6),'steep step at s='+p.s.toFixed(0)+' o='+o+' ('+d.toFixed(2)+')');}
@@ -61,8 +61,8 @@ test('walking: the yard rectangle behaves exactly as before; beyond it a person 
  for(const p of R.centreline().filter(p=>p.s>R.yardLength()+20))for(const o of [-12,12]){const x=p.x-p.tz*o,z=p.z+p.tx*o;if(Math.abs(x)<=R.X_LIMIT&&Math.abs(z)<=80)continue;assert(X.blocked(x,z,L),'off the corridor at s='+p.s.toFixed(0));}
  assert(X.blocked(600,200,L)&&X.blocked(240,60,L),'open mountain is not walkable');
  // a person walking east along the road from the yard ends past the pass
- const w={x:200,z:-8,yaw:Math.PI/2,pitch:0},end=R.centreline()[R.centreline().length-1];for(let i=0;i<9000&&w.x<end.x-30;i++){const n=R.nearest(w.x+Math.sin(w.yaw)*4,w.z+Math.cos(w.yaw)*4);w.yaw=Math.atan2(n.x+n.tx*6-w.x,n.z+n.tz*6-w.z);X.step(w,{x:0,z:1,run:true},.05,L);}
- assert(w.x>end.x-40,'walked to '+w.x.toFixed(0)+', '+w.z.toFixed(0));
+ const w={x:200,z:-8,yaw:Math.PI/2,pitch:0},end=R.centreline()[R.centreline().length-1];for(let i=0;i<40000&&R.nearest(w.x,w.z).s<R.total()-40;i++){const n=R.nearest(w.x+Math.sin(w.yaw)*4,w.z+Math.cos(w.yaw)*4);w.yaw=Math.atan2(n.x+n.tx*6-w.x,n.z+n.tz*6-w.z);X.step(w,{x:0,z:1,run:true},.05,L);}
+ assert(R.nearest(w.x,w.z).s>=R.total()-41,'walked to '+w.x.toFixed(0)+', '+w.z.toFixed(0));
 });
 
 test('models: the workshop model is Medium and above (Low keeps the code-built shop); the road kit loads on every tier; only the plain fuel cylinder is replaced',()=>{
@@ -79,7 +79,7 @@ test('the utility vehicle (vehicle-rules.js) fits the whole road and the parking
  assert(VR.collides(600,200,0,world),'the truck cannot leave the corridor into the mountains');
  // drive it: full throttle, steering toward a point 12 m ahead on the centre line
  const p0=R.centreline().find(p=>p.s>=60),v=VR.create({x:p0.x,z:p0.z,yaw:Math.atan2(p0.tx,p0.tz)}),end=R.total()-15;let maxSpeed=0,blocked=0;
- for(let i=0;i<60*400;i++){const n=R.nearest(v.x,v.z);if(n.s>=end)break;const a=R.centreline().find(p=>p.s>=n.s+12)||n,want=Math.atan2(a.x-v.x,a.z-v.z),err=Math.atan2(Math.sin(want-v.yaw),Math.cos(want-v.yaw));
+ for(let i=0;i<60*1000;i++){const n=R.nearest(v.x,v.z);if(n.s>=end)break;const a=R.centreline().find(p=>p.s>=n.s+12)||n,want=Math.atan2(a.x-v.x,a.z-v.z),err=Math.atan2(Math.sin(want-v.yaw),Math.cos(want-v.yaw));
   VR.step(v,{throttle:1,brake:0,steer:Math.max(-1,Math.min(1,err*3)),handbrake:false,boost:false},1/60,world);maxSpeed=Math.max(maxSpeed,v.speed);if(v.blocked)blocked++;
   assert(Math.abs(v.y-R.groundAt(v.x,v.z))<.6,'wheels on the ground at '+v.x.toFixed(0));}
  assert(R.nearest(v.x,v.z).s>=end,'reached the end of the road (got to s='+R.nearest(v.x,v.z).s.toFixed(0)+')');assert(maxSpeed>13,'at full speed');assert.equal(blocked,0,'never blocked');

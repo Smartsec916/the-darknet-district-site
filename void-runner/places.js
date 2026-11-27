@@ -43,7 +43,9 @@
  const VW=node?require('./vesper-world.js'):root.VoidVesperWorld;
  const VESPER_ROAD=VW?[['vesper-road-flats','The road across the flats',VW.usableYard(),700,520,'From the yard\'s edge east across the flats to the foot of the first range.'],
   ['vesper-pass','The pass',700,1150,990,'The climb into the first range and the saddle between its two peaks.'],
-  ['vesper-road-plateau','Beyond the pass',1150,VW.total()+1,1220,'The plateau east of the pass.']]:[];
+  ['vesper-road-plateau','Beyond the pass',1150,2250,1220,'The plateau east of the pass, as far as the first long descent.'],
+  ['vesper-road-valley','The long valley',2250,5200,2450,'The valley road north-east between the ranges.'],
+  ['vesper-road-far','The far road',5200,VW.total()+1,5300,'The last stretch, north-east around the mountains to the road\'s end.']]:[];
  /* id, name, level, parent, scene (walkingLocation.id), rects (world metres), whole, y (optional), enter (where draft play puts a player), target (where the guide arrow
     leads), proposed (a working name, not canon), src (where an existing name comes from), where (a plain description for the owner's review sheet), fallback. */
  const NODES=[
