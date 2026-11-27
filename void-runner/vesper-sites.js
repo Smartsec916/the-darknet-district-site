@@ -57,7 +57,12 @@
  function holes(){return sites().filter(s=>s.hole).map(s=>s.hole);}
  // The player's mine level: solids and prompts of other levels switch off (open / hidden).
  function setLevel(l){level=l;for(const s of sites()){for(const o of s.solids)o.open=o.level!==level;for(const i of s.interactions)i.hidden=i.level!==level;}return level;}
- const api={LOAD_M,UNLOAD_M,LIGHT_M,MINE_DEPTH_M,LEVELS,levelY,sites,walkable,walkPoint,floorAt,solids,interactions,siteAt,holes,inRect,setLevel,get level(){return level;},ride:null,_reset(){cache=null;level=0;}};
+ /* The cage's motion for one frame (pure; tested): r {y, target, dir (-1 down, +1 up), v, waited}. Accelerates to RIDE.vmax and brakes to stop at the target;
+    going to a level whose model is not ready yet it holds RIDE.hold metres short (in the shaft, its lamps passing) until it is. */
+ const RIDE={vmax:8,acc:2.5,hold:15};
+ function rideAdvance(r,dt,ready){const remaining=Math.abs(r.target-r.y);let goal=Math.min(RIDE.vmax,Math.sqrt(2*RIDE.acc*Math.max(0,remaining-(ready?0:RIDE.hold))));
+  if(!ready&&remaining<=RIDE.hold+.5){goal=0;r.waited=(r.waited||0)+dt;}r.v=r.v<goal?Math.min(goal,r.v+RIDE.acc*dt):Math.max(goal,r.v-RIDE.acc*2*dt);r.y+=r.dir*Math.min(remaining,r.v*dt);return r;}
+ const api={RIDE,rideAdvance,LOAD_M,UNLOAD_M,LIGHT_M,MINE_DEPTH_M,LEVELS,levelY,sites,walkable,walkPoint,floorAt,solids,interactions,siteAt,holes,inRect,setLevel,get level(){return level;},ride:null,_reset(){cache=null;level=0;}};
 
  /* ---------------- browser: streaming the models, lamps, the cage ---------------- */
  api.create=function({scene,parent,quality,terrain}){
@@ -111,10 +116,7 @@
    if(dir>0)loadDeep(st);api.ride={st,from,to,y:st.s.y+levelY(from),target:st.s.y+levelY(to),v:0,dir:dir>0?-1:1,waited:0};try{root.VoidAudio?.event?.('door');}catch{}return true;}
   // one frame of the ride: the walker stands in the cage (no walking), the cage moves; returns true while riding
   api.rideStep=function(p,dt){const r=api.ride;if(!r)return false;dt=Math.max(0,Math.min(.1,dt||0));const st=r.st,[cx,cz]=st.s.cage,deepReady=st.deep.phase==='ready'||r.to===0;
-   const remaining=Math.abs(r.target-r.y),vmax=8,acc=2.5;
-   // brake for the stop; and, going down to a bottom that is not ready yet, hold 15 m above it until it is (the shaft's lamps keep passing above)
-   let goal=Math.min(vmax,Math.sqrt(2*acc*Math.max(0,remaining-(deepReady?0:15))));if(!deepReady&&remaining<=15.5){goal=0;r.waited+=dt;}
-   r.v=r.v<goal?Math.min(goal,r.v+acc*dt):Math.max(goal,r.v-acc*2*dt);r.y+=r.dir*Math.min(remaining,r.v*dt);
+   rideAdvance(r,dt,deepReady);
    if(st.cage)st.cage.position.y=r.y-st.s.y;p.x=cx;p.z=cz;p.vx=p.vz=0;p.y=r.y+(p.eye||1.68);
    // the land above: hidden deep down, shown again before the cage reaches the adit
    const deepDown=r.y<st.s.y-20;if(terrain)terrain.hidden=deepDown;

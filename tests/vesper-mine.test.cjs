@@ -46,3 +46,12 @@ test('the road and the truck are untouched by the mine; the truck can drive onto
  assert.equal(P.deepest({scene:'vesper',x:ox+60,y:mine.y-S.MINE_DEPTH_M+1.7,z:oz+34}),'vesper-mine-bottom');
  assert.equal(P.deepest({scene:'vesper',x:ox,y:mine.y+1.7,z:oz+20}),'vesper-mine-adit');
 });
+
+test('the cage ride is the hidden loading screen: down in about 20 s; with the bottom level not loaded it waits in the shaft, then arrives once it is',()=>{
+ const top=100,bottom=top-S.MINE_DEPTH_M;let r={y:top,target:bottom,dir:-1,v:0,waited:0},t=0;
+ while(Math.abs(r.y-r.target)>.005&&t<120){S.rideAdvance(r,1/60,true);t+=1/60;}assert(Math.abs(r.y-bottom)<.01);assert(t>14&&t<25,'down in '+t.toFixed(1)+' s');
+ r={y:top,target:bottom,dir:-1,v:0,waited:0};for(let i=0;i<60*120;i++)S.rideAdvance(r,1/60,false);
+ assert(Math.abs(r.y-(bottom+S.RIDE.hold))<1,'holds '+(r.y-bottom).toFixed(1)+' m above the bottom');assert(r.waited>60,'waited '+r.waited.toFixed(0)+' s');assert(r.v<.01,'stopped');
+ for(let i=0;i<60*30;i++)S.rideAdvance(r,1/60,true);assert(Math.abs(r.y-bottom)<.01,'then arrives');
+ r={y:bottom,target:top,dir:1,v:0,waited:0};for(let i=0;i<60*40;i++)S.rideAdvance(r,1/60,true);assert(Math.abs(r.y-top)<.01,'and back up');
+});
