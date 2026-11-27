@@ -228,9 +228,9 @@
    completed:p.elapsed>30,elapsed:p.elapsed,remaining:p.remaining-(solo?.bar?15:0)};
   const decision=p.decision,scheduled=decision?.entry;
   const beatTime=p.elapsed-p.decisionAt;
-  const reserved=!!scheduled&&shared.contextFits(scheduled,decision.rule,ctx)&&beatTime>=-1&&beatTime<shared.duration(scheduled)+.5;
+  const reserved=shared.reservedAt(scheduled,decision?.rule,ctx,beatTime);
   const slot=shared.slotStart(ctx);
-  const key=[Math.round(p.legStart),Math.round(slot*2),venue,admin,ctx.iris,ctx.split,ctx.approaching,ctx.observer].join('|');
+  const key=shared.slotKey(ctx,p.legStart);
   if(key!==slotKey){
    slotKey=key;
    const freeUntil=scheduled&&beatTime<0?Math.min(ctx.remaining,-beatTime-1):ctx.remaining;
@@ -239,12 +239,16 @@
   const ambient=slotEntry&&{entry:slotEntry,time:ctx.elapsed-slot-3};
   const forced=forcedExchange&&{entry:forcedExchange,time:clock-exchangeStart};
   const beat=forced|| (reserved?{entry:scheduled,time:beatTime}:ambient);
+  const rule=beat&&{...beat.entry.behavior,...routineEdits[beat.entry.id]};
+  const heard=beat&&(forced||shared.contextFits(beat.entry,rule,ctx));
+  // Never substitute an ambient line when a reserved beat is locally ineligible.
+  if(!heard&&spoken)silence();
   const committed=!!scheduled&&beatTime>=shared.triggerTime(scheduled,decision.rule,p.activityEnd-p.decisionAt);
   currentState={activity:p.kind,destination:committed?decision.rule.destination:p.nextActivity,initiator:scheduled?.lines[0].speaker||null,
    exchange:null,scheduled:scheduled?.id||null,movement:p.kind==='district'||solo?.walking?'walking':'at destination',
    accepted:committed,remaining:p.remaining};
   if(forced&&forced.time>shared.duration(forced.entry))forcedExchange=null;
-  if(beat&&audible&&(p.kind!=='vr'||solo?.bar)&&p.kind!=='kiss'){
+  if(heard&&audible&&(p.kind!=='vr'||solo?.bar)&&p.kind!=='kiss'){
    let elapsed=0;
    for(const [i,line] of beat.entry.lines.entries()){
     const age=beat.time-elapsed;elapsed+=line.seconds+.45;
@@ -276,7 +280,6 @@
    }
    f.node.rotationQuaternion=root.BABYLON.Quaternion.RotationYawPitchRoll(f.heading,0,0);
    const talking=own&&status?.active&&spoken?.speaker===id;
-   const rule=beat&&{...beat.entry.behavior,...routineEdits[beat.entry.id]};
    const gesture=rule&&!walking&&!pose?.vr&&!pose?.controls&&!kissing?shared.motionAt(rule,beat.entry,beat.time,id,clip=>f.motionSeconds[clip]):null;
    const clip=walking?'walk':gesture|| (pose?.controls?'interact':pose?.vr?pose.clip:talking?'talk':pose?.clip||(p.kind==='store'?'look':'idle'));
    if(f.clip!==clip){

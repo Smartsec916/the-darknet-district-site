@@ -60,9 +60,17 @@
   const last=context.elapsed+context.remaining-31;
   return last>interval&&context.elapsed>=last?last:Math.floor(context.elapsed/interval)*interval;
  }
+ // Local player story flags and observer proximity gate listening, not the shared slot.
+ function publicContext(context){return {...context,admin:context.venue==='store',observer:true};}
+ function slotKey(context,legStart){
+  return [Math.round(legStart),Math.round(slotStart(context)*2),context.venue,context.iris,context.split,context.approaching].join('|');
+ }
+ function reservedAt(entry,rule,context,time){
+  return !!entry&&contextFits(entry,rule,publicContext(context))&&time>=-1&&time<duration(entry)+.5;
+ }
  function conversationAt(library,edits,context,legStart,visit){
   const start=slotStart(context),age=context.elapsed-start;
-  const window={...context,elapsed:start+3,remaining:(context.freeUntil??context.remaining)+age-3};
+  const window={...publicContext(context),elapsed:start+3,remaining:(context.freeUntil??context.remaining)+age-3};
   const candidates=library.filter(e=>eligible(e,{...e.behavior,...edits[e.id]},window));
   if(!candidates.length)return null;
   const seed=Math.floor(legStart/interval)+Math.round(start)*7+(visit||0);
@@ -83,6 +91,6 @@
    (v.agreement===undefined||Number.isInteger(v.agreement)&&v.agreement>=0&&v.agreement<32)&&
    (v.delay===undefined||Number.isFinite(v.delay)&&v.delay>=0&&v.delay<=30));
  }
- const api={contextFits,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
+ const api={contextFits,publicContext,slotKey,reservedAt,gestures,motionAt,interval,slotStart,triggerTime,plan,eligible,duration,conversationAt,valid,phases,venues};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidGroupActivities=api;
 })(globalThis);
