@@ -222,6 +222,18 @@ class ChanceTests(unittest.TestCase):
         with self.assertRaisesRegex(encounters.DraftError, 'packaged audio library'):
             encounters.validate(self.graph)
 
+    def test_imported_sound_can_save_before_upload_and_must_exist_to_publish(self):
+        hash_value = 'a' * 64
+        cue = dict(src='imported:' + hash_value, type='audio/wav', name='train.wav',
+                   when='start', offset=0, volume=0.5, loop=False)
+        self.graph['nodes'][0]['soundCues'] = [cue]
+        self.assertEqual(self.edit('save', 0)['draft']['nodes'][0]['soundCues'], [cue])
+        with self.assertRaisesRegex(encounters.DraftError, 'Upload the imported sound effects'):
+            self.edit('publish', 1)
+        with patch.object(world, 'clips_missing', return_value=[]) as check:
+            self.assertEqual(self.edit('publish', 1)['live']['nodes'][0]['soundCues'], [cue])
+            check.assert_called_once_with(self.db, [hash_value])
+
     def test_registered_cast_on_low_quay_and_local_draft_only(self):
         self.graph.pop('item')
         self.graph.pop('residence')
