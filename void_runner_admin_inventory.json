@@ -61703,7 +61703,7 @@
       "spawn"
     ]
   },
-  "revision": "44e59285b074abe6",
+  "revision": "ace2629fece4114e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83608,7 +83608,7 @@
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
     "void-runner/universe.js": "20a842f3fcc7ee6f8d05f2ae246b45d6be4bc5b1a404de16e92bd4129fe7277a",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
-    "void-runner/vantor.js": "0018395d791927fbff6e4f181f5835a3a662486504464375d210de7d05923a21",
+    "void-runner/vantor.js": "ccc92059feaa55cdc1c4b28e3425b80af222ff72338a4ca5b50f849b85a0871e",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
     "void-runner/voice-clips.js": "dbadae4059a594b33c05cb4d43efb54f1efa9846d40fdd106725bc8c93b3e220",
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
