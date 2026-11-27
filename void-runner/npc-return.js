@@ -93,12 +93,39 @@ function createReturnTracker(){
 // Drive only a mounted actor on a same-area, verified pedestrian return.
 // Long-route revalidation is bounded; each short physical stride is checked.
 function createMountedReturn(){
- const tracker=createReturnTracker();let cached=null,age=Infinity,signature=null;
+ const tracker=createReturnTracker();let cached=null,age=Infinity,signature=null,issued=null,suspended=null,resumeExpected=null;
+ const signatureFor=(area,destination,options)=>JSON.stringify([area,destination?.key,destination?.area,destination?.x,destination?.z,!!options.adult,!!options.made]);
+ // Canonical/local coordinate conversion may introduce floating-point roundoff.
+ const same=(a,b)=>point(a)&&point(b)&&Math.hypot(a.x-b.x,a.z-b.z)<1e-8;
+ function suspendTransit({position,area,destination,options={}}){
+  if(suspended||!same(position,issued)||signature!==signatureFor(area,destination,options))return false;
+  const observed=tracker.update({position,area,destination,options});
+  if(observed.status!=='walking'||observed.reason!=='verified-transit-leg')return false;
+  tracker.update({sceneLoaded:false});
+  suspended={position:copy(position),signature};issued=null;cached=null;resumeExpected=null;return true;
+ }
+ function resumeTransit({position,area,destination,options={}}){
+  const saved=suspended;suspended=null;
+  if(!saved||!same(position,saved.position)||saved.signature!==signatureFor(area,destination,options)){
+   tracker.reset();cached=null;issued=null;resumeExpected=null;return false;
+  }
+  const observed=tracker.update({position:saved.position,area,destination,options});
+  if(observed.status!=='walking'||observed.reason!=='verified-transit-leg'){
+   tracker.reset();cached=null;issued=null;resumeExpected=null;return false;
+  }
+  cached=observed;age=0;issued=copy(saved.position);resumeExpected=copy(saved.position);return true;
+ }
  function tick({position,area,destination,dt=0,speed=0,paused=false,options={}}={}){
   if(!point(position))return {status:'hold',position:null,clip:'idle'};
+  if(suspended)return {status:'hold',position:copy(position),clip:'idle'};
+  if(resumeExpected){
+   const valid=same(position,resumeExpected)&&signature===signatureFor(area,destination,options);resumeExpected=null;
+   if(!valid){tracker.reset();cached=null;issued=null;return {status:'hold',position:copy(position),clip:'idle'};}
+  }
   const delta=Number.isFinite(dt)?Math.max(0,Math.min(dt,.1)):0;
   const velocity=Number.isFinite(speed)?Math.max(0,speed):0;
-  const sig=JSON.stringify([area,destination?.key,destination?.area,destination?.x,destination?.z,!!options.adult,!!options.made]);
+  const sig=signatureFor(area,destination,options);
+  if(sig!==signature||!same(position,issued))issued=null;
   age+=delta;
   if(!cached||sig!==signature||age>=.25||(cached.waypoint&&near(position,cached.waypoint))){
    cached=tracker.update({position,area,destination,options});age=0;signature=sig;
@@ -111,14 +138,14 @@ function createMountedReturn(){
   // No invented spawn, direct-line fallback or movement into a new area.
   const c=A.check(next,area,A.CLEAR-.1,{...options,passing:true});
   if(!c.ok||c.area!==area||A.leg(position,next,options).length){
-   cached={status:'hold',waypoint:null};age=0;return stay('hold');
+   cached={status:'hold',waypoint:null};age=0;issued=null;return stay('hold');
   }
-  return {status:'walking',position:next,yaw:Math.atan2(dx,dz),clip:'walk'};
+  issued=copy(next);return {status:'walking',position:next,yaw:Math.atan2(dx,dz),clip:'walk'};
  }
- return {tick};
+ return {tick,suspendTransit,resumeTransit};
 }
 
-// Retain only a legal observed stop in the current save and user session.
+// Retain a legal observed stop, or a driver-issued verified transit observation, in the current save and user session.
 function createReturnSuspensions(){
  let scope=null,owner=null;const records=new Map();
  function select(session,user){
@@ -130,17 +157,24 @@ function createReturnSuspensions(){
   const c=A.check(p,area,undefined,{...options,passing:false});
   return c.ok&&c.area===area;
  }
- function save({session,user,id,character,area,key,position,yaw,options={}}){
+ function save({session,user,id,character,area,key,position,yaw,driver,destination,options={}}){
   if(!select(session,user))return false;
   records.delete(id);
-  if(!character||!id||!key||!legal(position,area,options))return false;
-  records.set(id,{character,area,key,position:copy(position),yaw:Number.isFinite(yaw)?yaw:0});
+  if(!character||!id||!key||!point(position))return false;
+  const transit=!legal(position,area,options);
+  if(transit&&(!destination||destination.key!==key||!driver?.suspendTransit?.({position,area,destination,options})))return false;
+  records.set(id,{character,area,key,position:copy(position),yaw:Number.isFinite(yaw)?yaw:0,...(transit?{driver}:{})});
   return true;
  }
- function take({session,user,id,character,area,key,eligible,options={}}){
+ function take({session,user,id,character,area,key,eligible,destination,options={}}){
   if(!select(session,user))return null;
   const record=records.get(id);records.delete(id);
-  if(!eligible||!record||record.character!==character||record.area!==area||record.key!==key||!legal(record.position,area,options))return null;
+  if(!eligible||!record||record.character!==character||record.area!==area||record.key!==key)return null;
+  if(record.driver){
+   if(!destination||destination.key!==key||!record.driver.resumeTransit({position:record.position,area,destination,options}))return null;
+   return {...record.position,yaw:record.yaw,driver:record.driver};
+  }
+  if(!legal(record.position,area,options))return null;
   return {...record.position,yaw:record.yaw};
  }
  return {select,save,take};
