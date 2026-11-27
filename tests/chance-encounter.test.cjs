@@ -160,6 +160,20 @@ test('finished bounded and nested branches restart the active main cycle and rel
  }
 });
 
+test('timeline animation playback uses the speed of each action', async () => {
+ const source=require('node:fs').readFileSync(require.resolve('../void-runner/chance-encounter-game.js'),'utf8');
+ const context={VoidChanceEncounter:engine,performance,addEventListener(){},setInterval(){}};
+ require('node:vm').runInNewContext(source.replace('root.VoidEncounterGame={','root.VoidEncounterGame={lines,'),context);
+ const speeds=[];
+ const clip={name:'lace-gesture',start(loop,speed){speeds.push(speed);}};
+ const dialogue=[2,0.5,undefined].map((animationSpeed,i)=>({
+  id:'lace_free_'+i,text:'',animation:'gesture',animationSpeed
+ }));
+ const signal=new AbortController().signal;
+ await context.VoidEncounterGame.lines({graph:{dialogue},signal,lace:{made:{metadata:{animationGroups:[clip]}}}},'free',null,signal,()=>{});
+ assert.deepEqual(speeds,[2,0.5,1]);
+});
+
 test('main playlist continuation rolls after each complete pass', async () => {
  for (const [chance, rolls, expectedPasses] of [
   [0, [0, 0.9], 2],

@@ -9,7 +9,7 @@
  color:#dcece9;color-scheme:dark;
  min-width:0;
 }
-.encounter-playlist-editor label{display:grid;gap:6px;min-width:0;margin:0}
+.encounter-playlist-editor label:not([hidden]){display:grid;gap:6px;min-width:0;margin:0}
 .encounter-playlist-editor :is(input:not([type=checkbox]),select,textarea){box-sizing:border-box;width:100%;min-width:0}
 .encounter-playlist-editor :is(input:not([type=checkbox]),textarea,select){padding:8px;background:#102331;color:#eef7f8;border:1px solid #536f7c;border-radius:5px;font:inherit}
 .encounter-playlist-editor .encounter-spoken-line{margin-block-start:12px}

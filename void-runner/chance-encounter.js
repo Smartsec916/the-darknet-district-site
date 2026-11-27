@@ -220,8 +220,18 @@
   if(rows.some(row=>!reachable.has(row.id)))errors.push('A branch playlist has no reachable parent.');
   return errors;
  }
+ const validAnimationSpeed=speed=>Number.isFinite(speed)&&speed>0;
+ function animationSpeedProblems(graph){
+  const rows=Array.isArray(graph?.dialogue)?graph.dialogue:[];
+  const saved=Array.isArray(graph?.savedActions)?graph.savedActions.flat():[];
+  return [...rows,...saved].filter(row=>row?.animationSpeed!==undefined&&!validAnimationSpeed(row.animationSpeed))
+   .map(row=>'Enter a playback speed greater than 0 for '+row.id+'.');
+ }
  function validate(encounter){
-  const errors=dialogueProblems(encounter||{}),nodes=encounter?.nodes;
+  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter)],nodes=encounter?.nodes;
+  const limit=encounter?.conditions?.dailyLimit;
+  if(limit!==undefined&&limit!==0.5&&(!Number.isInteger(limit)||limit<0||limit>1000))
+   errors.push('Use 0.5 for every other game day or a whole number from 0 to 1000.');
   const trigger=encounter?.conditions?.startTrigger;
   if(trigger!==undefined){
    if(!trigger||!Object.hasOwn(startTriggers,trigger.kind))errors.push('Choose a supported encounter start trigger.');
@@ -292,7 +302,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);
