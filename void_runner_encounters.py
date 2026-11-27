@@ -154,7 +154,10 @@ def validate(graph):
         raise DraftError('Choose a distance from 1 to 30 metres.')
     if kind == 'game-time' and not _int(trigger.get('minutes'), 1, 10080):
         raise DraftError('Choose 1 to 10080 in-game minutes after mission completion.')
-    for field, limit in [('cooldownSeconds', 31536000), ('dailyLimit', 1000), ('expiresSeconds', 31536000)]:
+    daily_limit = conditions.get('dailyLimit', 0)
+    if daily_limit != 0.5 and not _int(daily_limit, 0, 1000):
+        raise DraftError('Use 0.5 for every other game day or a whole number from 0 to 1000.')
+    for field, limit in [('cooldownSeconds', 31536000), ('expiresSeconds', 31536000)]:
         if not _int(conditions.get(field, 0), 0, limit):
             raise DraftError('Check '+field+'.')
     for field in ('fromMinute','toMinute'):
@@ -205,6 +208,8 @@ def validate(graph):
         labels.add(line['id'])
         if not identifier(line.get('speaker')) or not _plain(line.get('text'), 1000) or not _num(line.get('delay', 0), 0, 300):
             raise DraftError('Check the speaker, line and delay for '+line['id']+'.')
+        if 'animationSpeed' in line and (not _num(line['animationSpeed'], 0, float('inf')) or line['animationSpeed'] == 0):
+            raise DraftError('Enter a playback speed greater than 0 for '+line['id']+'.')
         for flag in ('repeatSpeech', 'repeatAnimation', 'playlistStart', 'playlistEnd'):
             if flag in line and not isinstance(line[flag], bool):
                 raise DraftError('Choose on or off for dialogue repeats.')
@@ -300,10 +305,10 @@ def edit(db, user, body):
     if not isinstance(body, dict) or not identifier(body.get('id')) or not _int(body.get('revision'), 0, 2**31-1):
         raise DraftError('Refresh the encounter and try again.')
     action = body.get('action')
-    if action not in ('save', 'publish', 'delete'):
+    if action not in ('save', 'publish', 'unpublish', 'delete'):
         raise DraftError('Choose a supported encounter operation.')
     graph = body.get('graph')
-    if action != 'delete':
+    if action in ('save', 'publish'):
         if not isinstance(graph, dict) or graph.get('id') != body['id'] or len(json.dumps(graph).encode()) > 65536:
             raise DraftError('Choose a valid encounter draft.')
         if action == 'publish':
@@ -323,6 +328,13 @@ def edit(db, user, body):
         if action == 'delete':
             # Keep a revision tombstone so old drafts cannot recreate a deleted encounter.
             record = {'id': body['id'], 'revision': revision, 'deleted': True}
+        elif action == 'unpublish':
+            if not record.get('live'):
+                raise DraftError('This encounter has no published version.', 409)
+            record.setdefault('draft', record['live'])
+            record.pop('live')
+            record.pop('liveRevision', None)
+            record.update(revision=revision, editor=user)
         else:
             record.update(id=body['id'], revision=revision, draft=graph, editor=user, deleted=False)
             if action == 'publish':
@@ -463,7 +475,12 @@ def opportunity(db, uid, body):
             if any(n not in known for n in cond['requiredNPCs']):
                 return {'active':False}
         count=record.get('count',0) if record.get('day')==day else 0
-        if cond.get('dailyLimit') and count>=cond['dailyLimit']:
+        daily_limit = cond.get('dailyLimit', 0)
+        last_day = record.get('day')
+        if daily_limit == 0.5:
+            if last_day is not None and day < last_day + 2:
+                return {'active':False}
+        elif daily_limit and count >= daily_limit:
             return {'active':False}
         record['next'] = now + cond['intervalSeconds']
         event_trigger = event is not None and trigger.get('kind') in ('near', 'place', 'leave', 'pod-exit')

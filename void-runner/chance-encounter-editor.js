@@ -3,10 +3,11 @@
  const conversations=[['arrival','Arrival'],['free','Free Lace'],['be_kade','Be Kade'],['wait','Waiting for choice']];
  const branchOf=line=>conversations.find(([key])=>line.id.startsWith('lace_'+key+'_'))?.[0];
  const branchLines=(graph,branch)=>graph.dialogue.filter(line=>branchOf(line)===branch);
- function nextLineId(graph,branch){
+ function nextLineId(graph,branch,reserved=new Set()){
   const prefix='lace_'+branch+'_';let n=1;
-  while(graph.dialogue.some(line=>line.id===prefix+String(n).padStart(2,'0')))n++;
-  return prefix+String(n).padStart(2,'0');
+  let id=prefix+String(n).padStart(2,'0');
+  while(reserved.has(id)||graph.dialogue.some(line=>line.id===id))id=prefix+String(++n).padStart(2,'0');
+  return id;
  }
  function insertLine(graph,line,branch,before){
   const last=branchLines(graph,branch).at(-1);
@@ -43,7 +44,7 @@
   if(!current())return;
   const records=new Map(catalog.encounters.map(r=>[r.id,r]));
   if(!records.has(seed.id))records.set(seed.id,{id:seed.id,revision:0,draft:seed});
-  let id=[...records.values()].find(r=>!r.deleted)?.id,selected,dirty=false,busy=false,status='';
+  let id,selected,dirty=false,busy=false,status='';
   let working,addBranch='arrival',dialogueOpen=!tools.mobile,preview;
   const checked=new Set(),closed=new Set();
   const record=()=>records.get(id),graph=()=>working;
@@ -64,11 +65,16 @@
   async function send(action){
    if(!current()||busy)return;
    const g=graph(),r=record();
+   if(action==='save'){
+    const errors=api.animationSpeedProblems(g);
+    if(errors.length){message.textContent=errors.join(' ');return;}
+   }
    if(action==='publish'){
     const errors=api.validate(g);
     if(errors.length){message.textContent=errors.join(' ');return;}
     if(!confirm('Publish '+g.name+' for all players?'))return;
    }
+   if(action==='unpublish'&&!confirm('Unpublish '+g.name+' and keep it as a draft?'))return;
    if(action==='delete'&&!confirm('Delete '+g.name+' and remove it from live encounters?'))return;
    busy=true;host.inert=true;
    try{
@@ -76,10 +82,16 @@
      const recordings=[...(g.dialogue||[]),...(g.savedActions||[]).flat()].flatMap(line=>line.recording?[line.recording]:[]);
      if(recordings.length)await root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),recordings);
     }
-    const saved=await tools.request('developer/chance-encounters',{action,id,revision:r.revision,graph:g});
+    const payload={action,id,revision:r.revision};
+    if(action==='save'||action==='publish')payload.graph=g;
+    const saved=await tools.request('developer/chance-encounters',payload);
     if(!current())return;
-    records.set(id,saved);dirty=false;tools.onDirtyChange?.(false);
-    if(action==='delete')id=[...records.values()].find(v=>!v.deleted)?.id;
+    records.set(id,saved);
+    if(action==='unpublish'){
+     status=dirty?'Unpublished · Unsaved draft changes':'Unpublished · Draft';draw();return;
+    }
+    dirty=false;tools.onDirtyChange?.(false);
+    if(action==='delete')id=undefined;
     working=api.withWaitingDialogue(structuredClone(record()?.draft));if(action==='delete')selected=working?.start;
     status=action==='publish'?'Published revision '+saved.revision:action==='save'?'Saved draft':'Encounter deleted';draw();
    }catch(e){message.textContent=e.message;}finally{busy=false;host.inert=false;}
@@ -89,12 +101,19 @@
    host.replaceChildren();
    const bar=element('div');bar.className='dev-actions';host.append(bar);
    const entries=[...records.values()].filter(r=>!r.deleted);
-   if(entries.length)bar.append(select(entries.map(r=>[r.id,r.draft.name]),id,key=>{if(!dirty||confirm('Leave this unsaved draft?'))choose(key);else draw();}));
+   if(entries.length){
+    const picker=select([['','Select an encounter'],...entries.map(r=>[r.id,r.draft.name])],id??'',key=>{if(!dirty||confirm('Leave this unsaved draft?'))choose(key);else draw();});
+    picker.setAttribute('aria-label','Select an encounter');
+    picker.options[0].disabled=true;
+    bar.append(picker);
+   }
    bar.append(button('New encounter',()=>newGraph(false)));
-   const g=graph();if(!g){host.append(message);return;}
+   const g=graph();if(!g){message.textContent=status;host.append(message);return;}
    bar.append(button('Duplicate',()=>newGraph(true)),button('Save draft',()=>send('save')));
    if(!tools.mobile)bar.append(button('Publish',()=>send('publish')),button('Delete',()=>send('delete')));
    const launch=async(start)=>{
+    const errors=api.animationSpeedProblems(g);
+    if(errors.length){message.textContent=errors.join(' ');return;}
     try{
      sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
      await root.VoidEncounterGame.playtest(structuredClone(g),start);
@@ -104,6 +123,7 @@
    if(!tools.mobile)bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
    if(!tools.mobile&&record().live){
     const live=record().live;
+    bar.append(button('Unpublish',()=>send('unpublish')));
     bar.append(button('Play published version',async()=>{
      try{
       sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
@@ -146,8 +166,8 @@
    field(props,'Chance (%)',input(g.conditions.chance,v=>{g.conditions.chance=v;mark();},'number'));
    field(props,'Opportunity interval (seconds)',input(g.conditions.intervalSeconds,v=>{g.conditions.intervalSeconds=v;mark();},'number'));
    const conditions=element('details');conditions.append(element('summary','Eligibility and repeat visits'));host.append(conditions);
-   for(const [key,label,initial] of [['radius','Activation radius (metres)',20],['cooldownSeconds','Cooldown (seconds)',0],['dailyLimit','Maximum occurrences per game day (0 for unlimited)',0],['fromMinute','Start minute of game day',0],['toMinute','End minute of game day',0]])
-    field(conditions,label,input(g.conditions[key]??initial,v=>{g.conditions[key]=v;mark();},'number'));
+   for(const [key,label,initial] of [['radius','Activation radius (metres)',20],['cooldownSeconds','Cooldown (seconds)',0],['dailyLimit','Maximum occurrences per game day (0 = unlimited, 0.5 = every other day)',0],['fromMinute','Start minute of game day',0],['toMinute','End minute of game day',0]])
+    field(conditions,label,input(g.conditions[key]??initial,v=>{g.conditions[key]=v;mark();},'number')).step=key==='dailyLimit'?'0.5':'1';
    const repeat=element('input');repeat.type='checkbox';repeat.checked=!!g.conditions.repeatable;repeat.onchange=()=>{g.conditions.repeatable=repeat.checked;mark();};field(conditions,'Allow repeat visits',repeat);
    for(const [key,label] of [['requiredItems','Required item IDs'],['requiredNPCs','Required NPC IDs'],['requiredDoors','Required door permissions'],['requiredFlags','Required story flags']])
     field(conditions,label+' (comma separated)',input((g.conditions[key]||[]).join(', '),v=>{g.conditions[key]=v.split(',').map(s=>s.trim()).filter(Boolean);mark();}));
@@ -191,7 +211,6 @@
    if(g.item){
     const prop=element('details');prop.append(element('summary','Dropped keycard'));host.append(prop);
     field(prop,'Items & Vendors item ID',input(g.item,v=>{g.item=v;mark();}));
-    if(g.id==='dropped-cardkey')field(prop,'Pickup notification duration (seconds)',input(g.pickupNoticeSeconds??8,v=>{g.pickupNoticeSeconds=v;mark();},'number'));
     field(prop,'Pickup distance (metres)',input(g.pickupDistance,v=>{g.pickupDistance=v;mark();},'number'));
     field(prop,'Kade recovery delay (seconds)',input(g.recoverySeconds??8,v=>{g.recoverySeconds=v;mark();},'number'));
     for(const [key,label] of [['x','Street X'],['z','Street Z']])
@@ -319,7 +338,8 @@
      selectionBar.after(form);
      const original=sourceOf(rows[0]);
      const sameSource=rows.every(row=>sourceOf(row)===original);
-     const options=targets.filter(target=>mode!=='move'||target.segment||target.owner);
+     const options=targets.filter(target=>mode!=='move'||(!target.segment&&!target.owner)||!rows.some(row=>sourceOf(row)===target));
+     const positionRows=target=>target&&(target.owner||target.segment?target.rows:api.playlistSegments(sections[target.section]).map(segment=>segment.rows[0]));
      const label=target=>{
       const name=names[target.section]||target.section;
       if(target.owner){
@@ -335,7 +355,7 @@
      function fill(){
       const target=options[Number(targetControl.value)];
       position.hidden=!target||['same','saved'].includes(targetControl.value);
-      position.replaceChildren(new Option('End of destination',''),...(target?.rows||[]).map(row=>new Option('Before '+(row.text||row.animation||row.id).slice(0,55),row.id)));
+      position.replaceChildren(new Option('End of destination',''),...(positionRows(target)||[]).filter(row=>mode!=='move'||!rows.includes(row)).map(row=>new Option('Before '+(row.text||row.animation||row.id).slice(0,55),row.id)));
      }
      const include=element('input');include.type='checkbox';
      field(form,'Destination',targetControl);form.append(position);position.setAttribute('aria-label','Position');
@@ -354,22 +374,27 @@
       if(mode==='move'){
        const moved=new Set(actions.flat());
        if(moved.size!==adding){feedback.textContent='Select either a parent action or its attached actions.';return;}
-       if(target.rows.some(row=>moved.has(row))||g.dialogue.some(row=>moved.has(row)&&row.branches?.includes(target.owner))){
+       if(target.owner&&g.dialogue.some(row=>moved.has(row)&&row.branches?.includes(target.owner))){
         feedback.textContent='Choose a different playlist.';return;
        }
+       for(const source of new Set(rows.map(sourceOf)))
+        if(source!==target&&source?.segment)detach(rows.filter(row=>sourceOf(row)===source),source.segment);
        for(const row of rows)unlink(row,moved);
        g.dialogue=g.dialogue.filter(row=>!moved.has(row));
       }
       if(mode==='restore')for(const group of actions)saved.splice(saved.indexOf(group),1);
       let after=same?(target?.rows.filter(row=>rows.includes(row)).at(-1)||rows.at(-1)):null;
-      const before=target?.rows.find(row=>row.id===position.value);
+      const before=positionRows(target)?.find(row=>row.id===position.value);
       const conversation=target?.section==='opening'||target?.section==='remaining'?'arrival':target?.section;
       const membership=target?.segment?.legacy?newKey():target?.segment?.key;
+      const reserved=new Set(mode==='move'&&!target.owner?rows.filter(row=>branchOf(row)===conversation).map(row=>row.id):[]);
       if(target?.segment?.legacy)setMembers(target.segment.rows,membership,0,target.segment.rows);
       for(const [index,group] of copies.entries()){
        const row=group[0],ids=new Map();
        for(const [i,item] of group.entries()){
-        const id=i||toSaved||target.owner?branchId():nextLineId(g,conversation);
+        const inBranch=i||toSaved||target.owner;
+        const staysInConversation=!inBranch&&branchOf(item)===conversation;
+        const id=mode==='move'&&(staysInConversation||inBranch&&item.id.startsWith('branch_'))?item.id:inBranch?branchId():nextLineId(g,conversation,reserved);
         ids.set(item.id,id);item.id=id;
        }
        if(mode==='clone'&&!include.checked)delete row.branches;
@@ -396,11 +421,12 @@
         const links=target.owner.actions,at=after?links.indexOf(after.id)+1:before?links.indexOf(before.id):links.length;
         links.splice(at,0,row.id);g.dialogue.push(row);
        }else{
-        const last=after||(!before&&target.rows.at(-1));
+        const scope=target.segment?target.rows:sections[target.section];
+        const last=after||(!before&&scope.filter(row=>g.dialogue.includes(row)).at(-1));
         const boundary=target.section==='opening'&&g.decisionAfter==='before'?sections.remaining[0]:null;
         const at=last?g.dialogue.indexOf(last)+1:before||boundary?g.dialogue.indexOf(before||boundary):g.dialogue.length;
         g.dialogue.splice(at,0,row);
-        if(target.section==='opening'&&(g.decisionAfter==='before'||g.decisionAfter===last?.id))g.decisionAfter=row.id;
+        if(target.section==='opening'&&(g.decisionAfter==='before'||last&&g.decisionAfter===last.id))g.decisionAfter=row.id;
         if(target.section==='wait')g.waitingDialogueConfigured=true;
        }
        g.dialogue.push(...group.slice(1));after=row;
@@ -428,8 +454,7 @@
        const source=sourceOf(actions[0]);
        if(source&&!source.owner&&!source.segment&&actions.every(row=>sourceOf(row)===source))
         selectionBar.append(button('Create playlist from selected',()=>{setMembers(actions,newKey(),0);checked.clear();redraw();}));
-       if(targets.some(target=>target.owner||target.segment))
-        selectionBar.append(button('Move to existing playlist',()=>destination(actions,'move')));
+       selectionBar.append(button('Move selected actions',()=>destination(actions,'move')));
        selectionBar.append(button('Move to Saved Actions',()=>park(actions)));
       }
      }
@@ -464,6 +489,44 @@
      for(const row of rest)for(const branch of row.branches||[]){
       if(ids.has(branch.returnAction)){delete branch.returnAction;branch.completion='next';}
      }
+    }
+    function actionFooter(host,label,add){
+     const footer=element('div');footer.className='encounter-action-tools encounter-add-action';
+     const feedback=element('output');feedback.setAttribute('role','status');
+     footer.append(button(label,()=>{
+      if(g.dialogue.length>=100){
+       feedback.textContent='This encounter has 100 active actions. Move an action to Saved Actions to make room.';
+       return;
+      }
+      add();
+     }),feedback);
+     host.append(footer);
+    }
+    function insertAction(line,owner,segment,after,section){
+     let id;
+     if(owner){
+      id=newAction();
+      owner.actions.splice(owner.actions.indexOf(line.id)+(after?1:0),0,id);
+     }else{
+      const conversation=line?branchOf(line):section==='opening'||section==='remaining'?'arrival':section;
+      id=nextLineId(g,conversation);
+      const added={id,speaker:'lace',text:'',animation:'',delay:conversation==='wait'?12:0,tags:''};
+      if(line){
+       g.dialogue.splice(g.dialogue.indexOf(line)+(after?1:0),0,added);
+       if(after&&g.decisionAfter===line.id)g.decisionAfter=id;
+      }else{
+       if(section==='remaining'&&(!g.decisionAfter||g.decisionAfter==='end'))g.decisionAfter=sections.opening.at(-1)?.id||'before';
+       insertLine(g,added,conversation,section==='opening'?sections.remaining[0]:null);
+       if(section==='opening'&&g.decisionAfter==='before')g.decisionAfter=id;
+      }
+      if(conversation==='wait')g.waitingDialogueConfigured=true;
+      if(segment?.key){
+       if(segment.legacy)setMembers(segment.rows,newKey(),0,segment.rows);
+       setMembers([added],segment.legacy?segment.rows[0].mainPlaylist:segment.key,segment.passes,[],segment.chance);
+      }
+     }
+     redraw();
+     host.querySelector('[data-line-id="'+id+'"] textarea')?.focus();
     }
     const executionNumbers=new Map();
     let dragged;
@@ -500,11 +563,32 @@
       row.ondrop=e=>{if(accepts()){e.preventDefault();e.stopPropagation();const source=dragged.item;dragged=null;move(source,item);}};
       toolbar.append(handle);
       for(const [step,label] of [[-1,'Move earlier'],[1,'Move later']]){
-       const target=peers[index+step],control=button(label,()=>move(item,target));control.disabled=!target;toolbar.append(control);
+       const section=sourceOf(line)?.section;
+       const lanes=!owner&&!segment?.key&&section?api.playlistSegments(sections[section]):null;
+       const adjacentIndex=lanes?lanes.findIndex(lane=>lane.rows.includes(line))+step:-1;
+       const adjacent=lanes?.[adjacentIndex];
+       const target=peers[index+step];
+       const control=button(label,()=>{
+        if(!adjacent?.key){move(item,target);return;}
+        g.dialogue.splice(g.dialogue.indexOf(line),1);
+        const following=step>0?lanes[adjacentIndex+1]?.rows[0]:null;
+        const boundary=following||(step<0?adjacent.rows[0]:adjacent.rows.at(-1));
+        g.dialogue.splice(g.dialogue.indexOf(boundary)+(step>0&&!following?1:0),0,line);
+        const last=sections[section].at(-1);
+        if(g.decisionAfter===last.id)
+         g.decisionAfter=g.dialogue.findLast(row=>sections[section].includes(row)).id;
+        redraw();
+       });
+       control.disabled=!target&&!adjacent;toolbar.append(control);
       }
      }
      const choice=element('input');choice.type='checkbox';choice.checked=checked.has(line.id);
      choice.onchange=()=>{if(choice.checked)checked.add(line.id);else checked.delete(line.id);refresh();};
+     if(owner||branchOf(line)){
+      const before=button('Add action before',()=>insertAction(line,owner,segment,false));
+      before.disabled=g.dialogue.length>=100;toolbar.append(before);
+      toolbar.append(button('Move action',()=>destination([line],'move')));
+     }
      toolbar.append(button('Clone action',()=>destination([line],'clone')));
      toolbar.append(button('Delete action permanently',()=>{
       if(!confirm('Permanently delete this action and its attached chance playlists?'))return;
@@ -547,9 +631,19 @@
       const control=field(parameters,label,input(line[key],v=>{
        if(key==='speaker'){delete line.recording;audio.textContent='No recording';}
        line[key]=v;mark();updateLabels();
+       if(key==='animation'){
+        speed.parentElement.hidden=!v;
+        if(!v&&!api.validAnimationSpeed(line.animationSpeed)){delete line.animationSpeed;speed.value=1;}
+       }
       },key==='delay'?'number':'text'));
       if(key==='animation')control.setAttribute('list',motions.id);
      }
+     const speed=field(parameters,'Animation speed (×)',input(line.animationSpeed??1,v=>{
+      if((speed.value===''&&!speed.validity.badInput)||v===1)delete line.animationSpeed;
+      else line.animationSpeed=Number.isFinite(v)?v:0;
+      mark();
+     },'number'));
+     speed.step='any';speed.placeholder='1';speed.parentElement.hidden=!line.animation;
      const advanced=element('details');advanced.className='encounter-advanced';advanced.append(element('summary','Advanced action settings'));
      if(!line.mainPlaylist)row.append(advanced);
      advanced.open=closed.has('advanced:'+line.id);
@@ -709,11 +803,13 @@
        try{await player.play();}catch(e){URL.revokeObjectURL(url);throw e;}
       }catch(e){audio.textContent=e.message;}
      }));
+     if(owner||branchOf(line))actionFooter(row,'Add action',()=>insertAction(line,owner,segment,true));
     }
     const names={opening:'Arrival',remaining:'Arrival after choices',free:'Free Lace',be_kade:'Be Kade',wait:'Waiting for choice'};
     for(const [key,group] of Object.entries(sections)){
-     if(!group.length)continue;
-     const section=element('section');section.className='encounter-conversation';section.dataset.conversation=branchOf(group[0]);
+     const section=element('section');section.className='encounter-conversation';
+     section.dataset.conversation=key==='opening'||key==='remaining'?'arrival':key;
+     section.dataset.section=key;
      section.append(element('h3',names[key]));dialogue.append(section);
      const toolsRow=element('div');toolsRow.className='encounter-action-tools';section.append(toolsRow);
      const segments=api.playlistSegments(group);
@@ -727,7 +823,7 @@
       selectionControls.push([control,eligible]);return control;
      }
      toolsRow.append(selectedAction('Create playlist from selected',rows=>setMembers(rows,newKey(),0)));
-     drawPreview(section,toolsRow,group);
+     if(group.length)drawPreview(section,toolsRow,group);
      let number=0,playlistNumber=0;
      for(const segment of segments){
       let lane=section;
@@ -766,9 +862,16 @@
         host.querySelector('[data-line-id="'+id+'"] textarea')?.focus();
        });
        add.disabled=g.dialogue.length>=100;controls.append(add);
+       const next=segments[segments.indexOf(segment)+1]?.rows[0];
+       for(const [label,after] of [['Add action before playlist',false],['Add action after playlist',true]]){
+        const anchor=after?(next||segment.rows.at(-1)):segment.rows[0];
+        const outside=button(label,()=>insertAction(anchor,null,null,after&&!next));
+        outside.disabled=g.dialogue.length>=100;controls.append(outside);
+       }
       }
       for(const line of segment.rows)drawRow(line,lane,null,0,String(++number),segment,eligible);
      }
+     actionFooter(section,'Add action to conversation',()=>insertAction(group.at(-1),null,null,true,key));
     }
     for(const line of ordered)if(!drawn.has(line.id))drawRow(line,dialogue,null);
     refresh();
@@ -796,7 +899,9 @@
         if(!section.isConnected){controller.abort();signal.throwIfAborted();}
         if(event.type==='action'){
          active?.removeAttribute('aria-current');active=node(event.row);
-         active?.setAttribute('aria-current','step');status.textContent='Playing '+describe(event.row);return;
+         active?.setAttribute('aria-current','step');
+         const speed=event.row.animationSpeed;
+         status.textContent='Playing '+describe(event.row)+(event.row.animation&&speed?' · Animation '+speed+'×':'');return;
         }
         const text=event.type==='continue-roll'
          ? 'Rolled '+(event.roll*100).toFixed(2)+'% against '+event.chance+'% to continue. '+(event.continued?'Continue':'Repeat')
@@ -852,7 +957,7 @@
     if(g.start===n.id)g.start=g.nodes[0]?.id||'';selected=g.start;mark();draw();
    }));
   }
-  if(tools.mobile){choose(id);return;}
+  if(tools.mobile){draw();return;}
   const returned=sessionStorage.getItem('chance-editor-return');sessionStorage.removeItem('chance-editor-return');
   let restore;
   try{restore=JSON.parse(sessionStorage.getItem('chance-playtest-draft'));}catch{}
@@ -864,7 +969,8 @@
     choose(returned);working=api.withWaitingDialogue(restore.graph);selected=restore.selected||working.start;dirty=true;draw();return;
    }
   }
-  choose(records.has(returned)?returned:id);
+  if(returned&&records.has(returned)&&!records.get(returned).deleted)choose(returned);
+  else draw();
  }
  root.VoidEncounterEditor={mount};
 })(globalThis);

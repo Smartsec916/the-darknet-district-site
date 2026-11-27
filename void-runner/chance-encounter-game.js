@@ -37,7 +37,7 @@
   }
   return {parent,made};
  }
- function play(figure,name,loop=true){
+ function play(figure,name,loop=true,speed=1){
   const all=figure.made.metadata.animationGroups||[];
   const clip=all.find(g=>g.name.toLowerCase().endsWith('-'+name));
   if(!clip)throw Error('The assigned animation is unavailable: '+name);
@@ -47,7 +47,7 @@
   }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
   if(!loop&&clip.isStarted)clip.stop();
-  clip.start(loop);
+  clip.start(loop,speed);
   if(!loop&&name==='sz-tiedbf-look-back-return'){
    const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
     figure.returnToPose=null;
@@ -57,11 +57,11 @@
   }
   return clip;
  }
- async function assignedClip(figure,look,name,signal,loop=true){
+ async function assignedClip(figure,look,name,signal,loop=true,speed=1){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
    await root.VoidAnimLibrary.apply(figure.made,look,{only:[name],catalog:false});
   }
-  signal?.throwIfAborted();return play(figure,name,loop);
+  signal?.throwIfAborted();return play(figure,name,loop,speed);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
   const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
@@ -73,7 +73,8 @@
    const animation=replay&&!line.repeatAnimation?'':line.animation;
    if(text||animation){
     if(line.delay)await delay(line.delay*1000,signal);
-    const clip=animation&&run.lace?await assignedClip(run.lace,laceLook,animation,signal,false):null;
+    const speed=api.validAnimationSpeed(line.animationSpeed)?line.animationSpeed:1;
+    const clip=animation&&run.lace?await assignedClip(run.lace,laceLook,animation,signal,false,speed):null;
     try{
      if(text){
       caption(line.speaker+' · '+text);
@@ -259,6 +260,28 @@
     .then(r=>r.ok?r.arrayBuffer():null).then(bytes=>bytes?root.VoidAssets.open(bytes):null).catch(()=>null);
   }
  }
+ function cardGroundGlow(scene,card,x,y,z){
+  const b=B(),size=128;
+  const texture=new b.DynamicTexture('encounter-card-spill-mask',size,scene);
+  texture.hasAlpha=true;
+  const ctx=texture.getContext(),center=size/2;
+  const fade=ctx.createRadialGradient(center,center,0,center,center,center);
+  fade.addColorStop(0,'rgba(255,255,255,.82)');
+  fade.addColorStop(.24,'rgba(255,255,255,.57)');
+  fade.addColorStop(.58,'rgba(255,255,255,.19)');
+  fade.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=fade;ctx.fillRect(0,0,size,size);texture.update();
+
+  const material=new b.StandardMaterial('encounter-card-spill',scene);
+  material.disableLighting=true;material.disableDepthWrite=true;
+  material.emissiveColor.set(.04,.62,.80);
+  material.opacityTexture=texture;
+  material.alphaMode=b.Engine.ALPHA_ADD;
+  const spill=b.MeshBuilder.CreateGround('encounter-card-spill',{width:1.15,height:1.15},scene);
+  spill.position.set(x,y+.002,z);
+  spill.material=material;spill.isPickable=false;
+  card.onDisposeObservable.addOnce(()=>{spill.dispose();material.dispose(false,true);});
+ }
  async function drop(run){
   const home=address(run);
   const info=run.private?{name:"Kade and Lace's Apartment Key",position:run.graph.dropPosition,range:run.graph.pickupDistance,model:keyModel}:
@@ -292,9 +315,10 @@
   const rim=meshes.find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
-   edge.emissiveColor.set(.08,.30,.34);
+   edge.emissiveColor.set(.23,.88,1.05);
    card.parent.onDisposeObservable.addOnce(()=>edge.dispose());
   }
+  cardGroundGlow(scene,card.parent,at.x,surface,at.z);
   const outlineColor=new (B().Color3)(.26,.57,.62);
   for(const mesh of meshes){mesh.outlineWidth=.002;mesh.outlineColor=outlineColor;}
   const focus=()=>{
@@ -322,27 +346,9 @@
      position:{quarter:walkingLocation.quarter,area:'street',x:walker.x,z:walker.z}});
     await root.VoidConsumableGame.refresh();
    }
-   run.holds=true;run.participating=true;run.tracked=true;root.dispatchEvent(new Event('void-encounter-journal'));run.cardName=info.name;run.cardDescription=info.description;preloadLace(run);
+   run.holds=true;run.participating=true;run.tracked=true;root.dispatchEvent(new Event('void-encounter-journal'));preloadLace(run);
    if(run.private)run.expiresAt=performance.now()+86400000;
   }finally{document.removeEventListener('keydown',key,true);host.hidden=true;card.parent.dispose();run.owned.delete(card.parent);}
- }
- function pickupReceipt(run){
-  const a=address(run),host=document.createElement('aside');
-  host.className='encounter-pickup-notice';host.setAttribute('role','status');
-  Object.assign(host.style,{
-   position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',maxWidth:'24rem',padding:'14px',
-   background:'#0c1720',color:'#e1eeec',border:'1px solid #536f7c',borderRadius:'6px',
-   boxShadow:'0 8px 30px #0009',pointerEvents:'none'
-  });
-  const title=document.createElement('strong');title.textContent='You picked up '+run.cardName+'.';
-  const description=document.createElement('p');description.textContent=run.cardDescription||'A residential access card belonging to Kade Mercer and Lace.';
-  const addressLine=document.createElement('p');addressLine.textContent='Street Door '+a.door.number+' — Apartment '+a.number;
-  const hint=document.createElement('small');hint.textContent='Press 0 to dismiss';
-  host.append(title,description,addressLine,hint);document.body.append(host);
-  const dismiss=()=>{clearTimeout(timer);document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',dismiss);host.remove();};
-  const keys=event=>{if(event.code==='Digit0'&&!event.repeat&&!event.target?.closest?.('input,textarea,select,[contenteditable]'))dismiss();};
-  const timer=setTimeout(dismiss,(run.graph.pickupNoticeSeconds??8)*1000);
-  document.addEventListener('keydown',keys,true);run.signal.addEventListener('abort',dismiss,{once:true});
  }
  // glTF joints are linked transform nodes; reading the animated node respects each imported rig's bind scale.
  function joint(figure,name){
@@ -552,7 +558,7 @@
    run.signal.throwIfAborted();
    const node=run.node=sequence.node;root.dispatchEvent?.(new Event('void-encounter-journal'));let choice;
    if(node.kind==='move')await walk(run);
-   if(node.kind==='item'){await drop(run);pickupReceipt(run);}
+   if(node.kind==='item')await drop(run);
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
    if(node.kind==='choice'){
     if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}

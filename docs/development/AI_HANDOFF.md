@@ -2,7 +2,7 @@
 
 ## 27 Nov 2026 - Cardkey pickup glow
 
-The Pleasure Breach cardkey keeps its cyan status light and a subdued cyan rim. The ground halo is removed and the pickup focus outline is thinner. Build `2026-11-27-keycard-glow-1`.
+The Pleasure Breach cardkey has a brighter cyan rim, a cyan status light and a soft cyan pool on the pavement where it lands. The spill is a local additive mesh that is disposed with the pickup. Build `2026-11-27-cardkey-ground-glow-1`.
 
 ## 27 Nov 2026 — Chance Encounters playlist editor
 
