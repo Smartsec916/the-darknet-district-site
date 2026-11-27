@@ -2,7 +2,7 @@
 
 ## Current NPC travel and editor policy
 
-See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions.
+See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
 
 ## 26 Nov 2026 - Universe travel verification
 

@@ -61762,7 +61762,7 @@
       "spawn"
     ]
   },
-  "revision": "1ae40c0953c7f663",
+  "revision": "e7fe166d7efc31e5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79887,37 +79887,37 @@
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 61,
+      "line": 60,
       "text": "function routineStart(p={},rnd=Math.random,cfg=config){const x=between(rnd,[STRETCH.x0+3,STRETCH.x1-3]);return {who:p.id,favourite:p.favourite||null,mode:'walk',x,z:STRETCH.z,dir:rnd()<.5?1:-1,left:between(rnd,cfg.walk),step:null,yaw:0,clip:'walk',once:false,device:null,face:null,sub:null};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 78,
+      "line": 77,
       "text": "/* THE FLOOR POSES (21 Nov 2026: kneeling, cross-legged, knees to chest; crowd.js FLOOR): a seat's `poses` say which it takes ('chair': the sit-down clips; ledges are",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 126,
+      "line": 125,
       "text": "stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 162,
+      "line": 161,
       "text": "return false;}   // sitting at a point, or held for a conversation: the ordinary steps below",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 308,
+      "line": 307,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 417,
+      "line": 416,
       "text": "VoidInteractions.register(CAT_ACTION,()=>{talk('',CAT_REACTION.map(text=>({who:CAT_ID,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});",
       "kind": "source-reference"
     },
@@ -80757,19 +80757,19 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 133,
+      "line": 132,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 311,
+      "line": 310,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 339,
+      "line": 338,
       "text": "else{const dest=blockArea(b),prev=earlierBlock(sched,i),from=blockArea(prev)||blockArea(base);if(!from||!dest)out.push(bw+'say where she walks from: an earlier spot in an area she can leave.');",
       "kind": "source-reference"
     },
@@ -83583,7 +83583,7 @@
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
-    "void-runner/ncz-street-pair.js": "4859b9966e7c126b085fd1dd93c0c133b720c57fc933a0e38861f5b242f7571b",
+    "void-runner/ncz-street-pair.js": "911205134a37b99f920c99ef6f937bded9fc50c6d6b01cfa06c4980daf24f98f",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "d60f8e42332df925e60bf43f467d96397a2ee3d5f0b6f2a168d8bbe3a54e17b3",
     "void-runner/neochinatown.js": "cd61e6cf2345a675a0c1378e892d20fce0428e28cf3f9909da6bab5ae368a53f",
@@ -83595,17 +83595,17 @@
     "void-runner/npc-behaviour.js": "6775dd9da8524828963be74a3ec45ba24c0dbd324d86889438a303533f3021db",
     "void-runner/npc-companion-import.js": "0b2421c102f2534e70748579888c98cf42984a82ab540c448d32f58b83d4f131",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "b18519826beca121e108ddc6be7834dc46a9817501c41096b1f3744380b5c930",
+    "void-runner/npc-editor.js": "de33805cd5b78aeb5eda724904918bb7e66ab815869fec484b0dca1ef700f9a0",
     "void-runner/npc-escort-across.js": "a1c21e16ceaf86318ff57077c2f31475645ff02d4bec45816fcf9e97428f5aa4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
-    "void-runner/npc-escort.js": "1cda0c47c3b3eff3560da0bc52cd3e745bdd1313df113796f810e641c20708f9",
+    "void-runner/npc-escort.js": "98cbd375e54499812db35c2b3f42103012a5cc4b8ff9a5624a86d147eff10bb4",
     "void-runner/npc-gestures.js": "6bae4ee5f32d94ace98b05e0418ef448128342ad1e58d471763328ea3b02668a",
     "void-runner/npc-library.js": "e844f74f5cc952adea5b83494d9ab29b9d4344ff29fd283a6d6560a1a9f408b2",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
     "void-runner/npc-made.js": "e3fbcd885a16a20b6eccc8a410f0c2942dc64ccd2f1c9a7677226bb2b1e63c9d",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
-    "void-runner/npc-paths.js": "21ab0e120380fbaff1ae48a4f5385f6db68ee9b26e590863022424dad01cc3ae",
+    "void-runner/npc-paths.js": "641e022f4001fa1eb70bfd362c59cb983fb01ce6a01a94174934e6dec5169519",
     "void-runner/npc-preview.js": "d02e7fd47d5e3aaff55ef9ad619b46e83e71c05f371ed5869013a112bb1fc2c5",
     "void-runner/npc-services.js": "282c73a088563bb7b5edd9d66b53d92e57ca0c5fef45242df7acee4e6785d2f2",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
