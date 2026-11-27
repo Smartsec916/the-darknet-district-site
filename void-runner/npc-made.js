@@ -320,12 +320,30 @@
    }const target=p.nearTarget||plan;if(b.activity!=='seat'&&(traits.attention??.5)>=.5)return {...target,yaw:Math.atan2(w.x-target.x,w.z-target.z)};return target;
   }
   function step(p,dt,cam){const n=p.node,R=p.going?p.plan:scenePlan(planOf(p.id,HERE)),talk=chatting()===p.id,w=me();
-   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&!R.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
+   // Mounted same-area returns walk instead of spawning at a routine spot.
+   // Mission, service, cab and cross-area controllers retain precedence.
+   const routine=R&&['stay','path','home','schedule'].includes(R.why)&&!R.crossings&&!R.outing&&(R.mode==='stay'||R.mode==='path')&&HERE.has(R.area);
+   if(p.returnJourney&&(!routine||p.going||p.returnJourney.area!==R.area))p.returnJourney=null;
+   if(!p.returnJourney&&!p.going&&routine&&p.plan?.social&&p.plan.area===R.area&&p.esc?.key===p.plan.key&&!p.esc.st.ride&&root.VoidNPCReturn){
+    p.returnJourney={area:R.area,driver:root.VoidNPCReturn.createMountedReturn()};p.esc=null;p.seat=null;
+   }
+   const returning=!!p.returnJourney;
+   if(returning){p.hold=false;p.key=R.key;}
+   else if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&!R.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&!P.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
    let clip;
-   if(P?.outing){
+   if(returning){
+    const dest=P.mode==='path'?P.points?.[0]:P,canonical=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?{x:q.x+(shift?.x||0),z:q.z+(shift?.z||0)}:null;
+    const position=canonical(p.s),target=canonical(dest);
+    const result=p.returnJourney.driver.tick({position,area:P.area,destination:target?{...target,key:P.key,area:P.area}:null,dt,speed:p.c.companionProfile?.personality?.walkSpeed||cfg.speed,paused:talk||!!root.VoidLiveContent?.socialPose?.(p.id),options:{adult:!!p.c.adult,made:true}});
+    if(result.position){p.s.x=result.position.x-(shift?.x||0);p.s.z=result.position.z-(shift?.z||0);}
+    if(Number.isFinite(result.yaw))p.s.yaw=result.yaw;
+    p.s.mode='return';p.s.clip=clip=result.clip;p.s.once=false;p.s.device=null;p.s.face=null;
+    if(result.status==='arrived'){p.returnJourney=null;p.s.mode='plan-go';p.s.planKey=null;}
+   }
+   else if(P?.outing){
     const target=P.outing,walking=target.phase==='walk';
     p.s.x=target.x;p.s.z=target.z;p.s.mode=walking?'walk':'stay';
     const near=p.id==='patch'&&target.phase==='sell'&&w&&Math.hypot(w.x-target.x,w.z-target.z)<=1.22;

@@ -61754,7 +61754,7 @@
       "spawn"
     ]
   },
-  "revision": "a348422c1b8d5a31",
+  "revision": "e703e315fea26028",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80683,25 +80683,25 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 332,
+      "line": 350,
       "text": "if(near&&!p.wasNear&&!talk)root.VoidNPCServices?.greet?.(p.c.residence?.vendorShift?.greetingCooldown??root.VoidDistrictLife.PATCH_SHIFT.greetingCooldown);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 355,
+      "line": 373,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 384,
+      "line": 402,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 457,
+      "line": 475,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();const contextual=root.VoidNPCServices?.conversation?.(id);talk('',(contextual?[contextual]:conversationLines(chars()[id])).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -83612,10 +83612,11 @@
     "void-runner/npc-library.js": "e844f74f5cc952adea5b83494d9ab29b9d4344ff29fd283a6d6560a1a9f408b2",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "733033d838fddc6a7fcc448619b1c3829fae46fa3465007796406145f494ddc6",
-    "void-runner/npc-made.js": "e3fbcd885a16a20b6eccc8a410f0c2942dc64ccd2f1c9a7677226bb2b1e63c9d",
+    "void-runner/npc-made.js": "63bcb80bf19d932933a02ac34f110a06fc1e4dfb62bef67181a4975f6b9ef88f",
     "void-runner/npc-map.js": "bf1abab0f820f1bd1ab2ba9157d4f1bf44a555e3f01d531015db2e1c639a6358",
     "void-runner/npc-paths.js": "641e022f4001fa1eb70bfd362c59cb983fb01ce6a01a94174934e6dec5169519",
     "void-runner/npc-preview.js": "d02e7fd47d5e3aaff55ef9ad619b46e83e71c05f371ed5869013a112bb1fc2c5",
+    "void-runner/npc-return.js": "f60c02ba8ccc8ec88fe4fd8b9df31f19dad24c72b03fd8bce4acf0d89a9c59c7",
     "void-runner/npc-services.js": "282c73a088563bb7b5edd9d66b53d92e57ca0c5fef45242df7acee4e6785d2f2",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",
