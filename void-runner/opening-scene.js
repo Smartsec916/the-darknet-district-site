@@ -38,7 +38,7 @@
   // The land (vesper-world.js heights): streamed chunks around the camera (vesper-terrain.js); the old single ring mesh only if that module is missing.
   const terrain=root.VoidVesperTerrain?.create({scene,parent,quality,camera})||(VoidVesperVisuals.mountainRing(B,scene,parent,ridgeMat,quality),null);
   // The road's sites (vesper-sites.js: the village, ...): their models stream in kilometres ahead and appear once compiled; their collision is layout data.
-  let sites=null;try{sites=root.VoidVesperSites?.create({scene,parent,quality})||null;}catch(e){console.warn('[VOID Vesper] road sites skipped',e.message);}
+  let sites=null;try{sites=root.VoidVesperSites?.create({scene,parent,quality,terrain})||null;}catch(e){console.warn('[VOID Vesper] road sites skipped',e.message);}
   const butteField=VoidVesperVisuals.buttes(B,scene,parent,quality);owned.push(...butteField.materials);textures.push(butteField.materials[0].diffuseTexture);
   const moonMat=mat('moon','#d9dfeb',1,0,'#242937');moonMat.fogEnabled=false;moonMat.albedoTexture=texture('moon','moon','#bdc9dd');moonMat.albedoColor.set(1,1,1);const moon=add(B.MeshBuilder.CreateSphere('distant-moon',{diameter:240,segments:32},scene),moonMat,[410,270,850],parent,false);moon.receiveShadows=false;const companion=add(B.MeshBuilder.CreateSphere('vesper-companion',{diameter:38,segments:16},scene),moonMat,[285,245,760],parent,false);companion.receiveShadows=false;
   // Independent open-front workshop; no station shell, solar arrays or interior corridor.

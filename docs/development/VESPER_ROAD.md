@@ -10,8 +10,8 @@ This is built in phases, one PR each. This page says what exists now.
 |---|---|---|
 | 1 | The pass: the road climbs between the first range's two high points through a carved saddle; the land is streamed chunks; walking and driving along the whole road | PR #635 (`2026-11-28-vesper-pass-1`) |
 | 2 | Many miles: the road continues 8 km beyond the pass along the valleys around the mountains (9.6 km, about 6 miles, in all) | PR #636 (`2026-11-28-vesper-road-2`) |
-| 3 | The village: nine small houses, an enterable bar and an enterable store, street lamps, water tower | `2026-11-28-vesper-village-3` |
-| 4 | The mine (portal, hidden load into the interior, placeholder depth) | later |
+| 3 | The village: nine small houses, an enterable bar and an enterable store, street lamps, water tower | PR #637 (`2026-11-28-vesper-village-3`) |
+| 4 | The mine: portal in a cut, the adit inside the mountain, a cage down a shaft of placeholder depth to the bottom level | `2026-11-28-vesper-mine-4` |
 | 5 | The far end: guard shack, warehouse facility, shared housing | later |
 | 6 | Loading screens everywhere made as unnoticeable as practical | later |
 
@@ -57,6 +57,18 @@ Nothing on the road is a separate scene: the whole 9.6 km is one Babylon scene, 
 - **Data**: the builder also writes `void-runner/vesper-sites-data.js` (collision boxes, lamps, places, the walking area and the pad, in the village's own metres), so the model and its collision can never drift apart. `void-runner/vesper-sites.js` turns them into world metres, streams the model and adds the lights. The solids are appended after the yard's 16 in `opening-data.js`; they use ground-relative heights (the vehicle's low/high solid test).
 - **No people, no shop, no text**: the bar has no staff and serves nothing; the store sells nothing; the sign boards are blank. These are reversible defaults, the owner's decisions.
 
+## The mine (phase 4)
+
+- **Where**: 4.7 km from the workshop (s ≈ 4.66 km), on a bench north of the road where the mountain rises: the portal at (3504, 704), its yard (32 × 24 m, levelled flat) between it and the road. Floor height ≈ 46.5 m.
+- **Outside** (`vesper-mine.glb`, by `tools/assets/vesper/build_vesper_mine.py`): a concrete headwall with the adit's mouth and two steel portal sets, stepped wing walls and an apron in a cut in the mountainside; a lamp over the mouth; rails out onto the yard to a buffer stop, two ore carts (one loaded); a timber headframe with a sheave over a capped raise and a corrugated hoist house; two spoil heaps; a timber stack, drums, a tool shed, two lamp poles.
+- **The land around the portal** (`vesper-world.js` cut, `vesper-terrain.js` hole): from the portal line into the mountain the land is held at least 9.5 m above the adit floor (rising inward, falling away beyond the portal's sides), so the adit always has rock over it (tested every metre). The one row of terrain cells in front of the headwall is left out of the mesh; the apron and wing walls fill it. The yard is a flat pad (7 m blend). The road wins where its banks meet the yard.
+- **Inside, the adit level (level 0)**: modelled where it is, inside the mountain, in the same scene. The adit runs 34 m north with timber sets every 1.6 m, rails and caged lamps; a right-angle bend east (the daylight is out of sight after it) along a 22 m drift to the **collar chamber** (12 × 12 m): the shaft (3 × 3 m, fenced on three sides, open on the cage side), its headgear and sheave, the winder, a bench. Rough rock walls and roof (generated rock texture).
+- **THE DEPTH IS A PLACEHOLDER**: `MINE_DEPTH_M = 120` in `void-runner/vesper-sites.js` (one constant; any multiple of 10). `LEVELS` there is data (level 0 the adit at 0 m, level 1 the bottom at -MINE_DEPTH_M). The shaft is stacked at runtime from one 10 m section, and the bottom level is placed at the depth, so deepening the mine is a one-line change, no rebuild. Not exposed in Dev Tools (not trivial: it moves floors and collision live).
+- **The bottom level (level 1)** (`vesper-mine-deep.glb`): the shaft station (12 × 10 m), a 40 m drift east with timber sets and rails to the working face (a drill rig, a loaded cart), a short cross-cut north with a pump.
+- **The cage: the mine's loading screen, hidden**. "RIDE THE CAGE DOWN" in the cage (the prompt is the game's ordinary interaction). The walker stands in the cage; it accelerates to 8 m/s down the shaft (the shaft's lamps stream past; a pool of four real lights follows the nearest lamps) and slows to stop at the bottom (about 20 s for 120 m). The bottom level's model is fetched as soon as the player is within 70 m of the portal (long before the cage can reach it) and compiled hidden; **if it is still not ready, the cage slows and waits 15 m above the bottom, lamps passing above, until it is, then arrives** (browser-checked by unloading it on purpose before a ride). Deep down (more than 20 m below the adit) the land above is hidden (it cannot be seen and costs frame time) and shown again on the way up before the cage reaches the adit. "RIDE THE CAGE UP" at the bottom is the way back out.
+- **Levels in the rules**: floors (flat walking surfaces) and collision boxes carry their level; only the player's current level counts (`setLevel`): other levels' boxes are open, their prompts hidden. `vesper.js groundAt` returns a tunnel's floor before the land above it. Walking areas are tested per point round the walker's circle (`vesper-sites.js walkable`), so people and the truck pass from the road onto a yard and round a tunnel corner without needing one rectangle to hold them.
+- **Saves**: nothing new is saved. The player's level resets to the adit on every load of Vesper (Vesper always starts at the workshop). No save-manifest or server change.
+
 ## Walking and driving
 
 - **Walking**: `opening-data.js` keeps the yard's rectangle (`bounds: [232, 80]`, unchanged) and adds `walkable`, the road corridor (`vesper-world.js`): carriageway + shoulders + 4 m each side, from 30 m inside the yard's edge to the end of the road. `exploration-controller.js` `blocked()` and `depth()` accept an optional `location.walkable(x, z, r)`: a point outside the rectangle is allowed when it is inside that area. Every location without `walkable` behaves exactly as before; the yard behaves exactly as before (tested point by point).
@@ -84,6 +96,10 @@ Erebus System › Vesper › Ward Repair yard (Ward Repair workshop, The yard) a
 
 The village (`vesper-village`, under The long valley), the bar (`vesper-bar`) and the store (`vesper-store`), all PROPOSED names. Approach points: the village on the street at its middle; the bar and the store outside their doors (ground + 1.7 m). Browser-checked: standing there is free, at the right height, and walking forward from the bar's and the store's approach points goes in through the door.
 
+## Places added by the mine
+
+The mine (`vesper-mine`: the yard and portal, under The long valley), the adit (`vesper-mine-adit`, level 0, with a height range so it is not confused with the bottom level), the bottom level (`vesper-mine-bottom`, at the placeholder depth). PROPOSED names. Approach points: the yard 24 m in front of the portal; inside the adit 3 m past the mouth; the bottom station beside the cage.
+
 ## Restrictions (owner's standing rule: each with its source)
 
 | Restriction | Added / widened / removed | Source | What it blocks | Test |
@@ -94,10 +110,15 @@ The village (`vesper-village`, under The long valley), the bar (`vesper-bar`) an
 
 | Walking and driving off the corridor is allowed inside a site's walking area (the village: x 1765–1885, z 632–698) | **widened** (phase 3) | the owner's request (a village to walk around); its buildings' walls and furniture are collision boxes | nothing new (it opens an area) | `tests/vesper-sites.test.cjs` |
 | The houses, the generator shed and the bar's back door / the store's side door are shut (solid) | new reversible default | the brief: "houses" with no interiors asked for; only the bar and store were made enterable | entering them | `vesper-sites.test.cjs` "walls and houses block" |
+| In the mine only the tunnels and chambers of the player's current level are walkable; other levels' collision and prompts are off | new | technical: the tunnels are inside rock (no collision of their own); levels share x and z | walking into rock; walking on a level you are not on | `tests/vesper-mine.test.cjs` |
+| The truck may drive onto the mine yard and into the adit (it fits); not onto the cage | widened | the corridor rule extended to sites | nothing new | `vesper-mine.test.cjs` "the truck can drive onto the yard" |
+| Mine depth 120 m | new placeholder | the owner: "Make the depth a placeholder for now" | nothing | `vesper-mine.test.cjs` "the depth is one placeholder constant" |
 
 Nothing else was added. The signs stay blank (the owner's call), there is no gate logic, no NPC, no mission.
 
 ## Open questions for the owner
+
+- The mine's depth (placeholder 120 m), its names (PROPOSED: "The mine", "The adit", "The bottom level"), and what the deeper levels hold.
 
 - The village, bar and store names (PROPOSED: "The village", "The bar", "The store"); the blank sign boards' wording.
 - Whether the bar and store get people, a menu or a shop (they are empty rooms now), and whether any house should open.

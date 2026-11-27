@@ -5,7 +5,7 @@ const V=require('../void-runner/vesper-visuals.js'),{road:R,models,REPLACED,vehi
 const L=O.layout(),hit=(x,z,s,pad=0)=>Math.abs(x-s.position[0])<s.size[0]/2+pad&&Math.abs(z-s.position[2])<s.size[2]/2+pad;
 
 test('the workshop layout keeps its spawn, solids, interaction points and yard rectangle; the road corridor is added beside it',()=>{
- assert.deepEqual(L.spawn,[-3,1.68,-17]);assert.equal(L.solids.filter(s=>!s.id.startsWith('vesper-')).length,16,'the yard\'s 16 solids (the road sites\' buildings follow them: vesper-sites.test.cjs)');assert.deepEqual(L.interactions.map(i=>i.id),['recording','mara','personal-shop','maintenance','board']);
+ assert.deepEqual(L.spawn,[-3,1.68,-17]);assert.equal(L.solids.filter(s=>!s.id.startsWith('vesper-')).length,16,'the yard\'s 16 solids (the road sites\' buildings follow them: vesper-sites.test.cjs)');assert.deepEqual(L.interactions.filter(i=>!i.id.startsWith('vesper-')).map(i=>i.id),['recording','mara','personal-shop','maintenance','board']);
  assert.deepEqual(L.bounds,[R.X_LIMIT,80],'the yard rectangle is unchanged');assert.equal(typeof L.walkable,'function');
 });
 

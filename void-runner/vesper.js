@@ -33,18 +33,20 @@
  function onParking(x,z){const [cx,cz]=PARKING.center,[w,d]=PARKING.size;return Math.abs(x-cx)<=w/2&&z>=cz-d/2-2.2&&z<=cz+d/2;}
  const roadY=s=>W.roadY(s);
  // The ground a wheel or a foot stands on at (x, z): the road or parking surface where they are, flat 0 on the yard's sand, the carved terrain beyond.
- function groundAt(x,z){if(Math.hypot(x,z)<=W.YARD_R-WIDTH)return onRoad(x,z)||onParking(x,z)?SURFACE_Y:0;return W.groundAt(x,z);}
+ function groundAt(x,z){if(Math.hypot(x,z)<=W.YARD_R-WIDTH)return onRoad(x,z)||onParking(x,z)?SURFACE_Y:0;const f=sitesApi()?.floorAt(x,z);if(f!=null)return f;return W.groundAt(x,z);}   // a mine tunnel's floor (vesper-sites.js floors, the player's level) before the land
+ const sitesApi=()=>root.VoidVesperSites||(typeof module!=='undefined'?require('./vesper-sites.js'):null);
  const road={WIDTH,SURFACE_Y,SHOULDER,X_LIMIT,CONTROL,PARKING,centreline,total,usableLength,yardLength,nearest,onRoad,onParking,roadY,groundAt,halfWidthAt,walkable:W.walkable};
 
  /* ---------------- browser presentation ---------------- */
  // The truck's drivable area: the yard's rectangle (opening-data.js bounds, the vehicle's own default before) or the road corridor.
  const YARD_BOUNDS=[232,80];
- const sitesApi=()=>root.VoidVesperSites||(typeof module!=='undefined'?require('./vesper-sites.js'):null);
- const vehicleBounds=(x,z,r)=>(Math.abs(x)<=YARD_BOUNDS[0]-r&&Math.abs(z)<=YARD_BOUNDS[1]-r)||W.walkable(x,z,r)||!!sitesApi()?.walkable(x,z,r);
+ const vehicleBounds=(x,z,r)=>(Math.abs(x)<=YARD_BOUNDS[0]-r&&Math.abs(z)<=YARD_BOUNDS[1]-r)||W.walkable(x,z,r)||!!sitesApi()?.walkable(x,z,r,true);
  /* Walking on the land: the walker's eye rides on the ground under him (the yard is flat 0 as before; the road climbs through the pass). Wraps VoidExplorer.step
     for the walker in Vesper only, the way ncz-underground-integration.js puts the tunnels' floor under the walk. */
  if(typeof document!=='undefined'&&root.VoidExplorer&&!root.VoidExplorer.step.vesperGround){const E=root.VoidExplorer,step0=E.step;
-  E.step=function(p,input,dt,loc){const r=step0.apply(this,arguments);try{if(loc&&loc.id==='vesper'&&typeof walker!=='undefined'&&p===walker)p.y+=groundAt(p.x,p.z);}catch{}return r;};E.step.vesperGround=true;}
+  E.step=function(p,input,dt,loc){let mine=false;try{mine=!!(loc&&loc.id==='vesper'&&typeof walker!=='undefined'&&p===walker);}catch{}
+   if(mine&&sitesApi()?.ride&&sitesApi().rideStep?.(p,dt))return;   // riding the mine's cage: the walker stands in it (vesper-sites.js)
+   const r=step0.apply(this,arguments);try{if(mine)p.y+=groundAt(p.x,p.z);}catch{}return r;};E.step.vesperGround=true;}
  const api={road,WORKSHOP,KIT,REPLACED,vehicleBounds};
  api.models=quality=>({...(quality!=='low'?{[WORKSHOP.id]:{src:WORKSHOP.src,scale:1}}:{}),[KIT.id]:{src:KIT.src,scale:1}});
  // Before the merge: drop scatter off the road and parking, and the meshes the workshop model replaces (only if it loaded).
