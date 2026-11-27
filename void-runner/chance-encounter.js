@@ -28,6 +28,109 @@
   const last=rows.indexOf(selected.find(row=>row.playlistEnd)||selected.at(-1));
   return {before:rows.slice(0,first),cycle:rows.slice(first,last+1),after:rows.slice(last+1)};
  }
+ const completionOptions=[
+  ['reroll','Roll chance again'],
+  ['replay','Replay the preceding action and roll again'],
+  ['next','Continue to the next action'],
+  ['start','Return to the beginning of the main playlist'],
+  ['action','Return to a selected main action']
+ ];
+ function playlistSegments(rows){
+  const legacy=playlist(rows.filter(row=>!row.mainPlaylist)).cycle;
+  const groups=new Map(),segments=[];
+  for(const row of rows){
+   const key=row.mainPlaylist||(legacy.includes(row)?'legacy':'');
+   if(!key){segments.push({rows:[row],passes:1});continue;}
+   if(!groups.has(key)){
+    const segment={key,rows:[],passes:key==='legacy'?0:row.mainPasses,legacy:key==='legacy'};
+    segments.push(segment);groups.set(key,segment);
+   }
+   groups.get(key).rows.push(row);
+  }
+  return segments;
+ }
+
+ async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},repeat=(parent,_,run)=>run(parent)}){
+  const restart=Symbol('legacy main restart');
+  const segments=playlistSegments(rows);
+  let legacyActive=segments.some(segment=>segment.legacy);
+  async function actions(items,signal,main,legacyReturn,marked=null){
+   const next=index=>{
+    while(index<items.length&&marked&&!marked.has(items[index]))index++;
+    return index;
+   };
+   for(let index=next(0);index<items.length;){
+    signal.throwIfAborted();
+    const row=items[index];
+    observe({type:'action',row});
+    await play(row,signal,marked?.has(row)===true);
+    let target=next(index+1);
+    for(;;){
+     signal.throwIfAborted();
+     if(!row.branches?.length)break;
+     const roll=random(),branch=chooseBranch(row,roll);
+     observe({type:'roll',row,roll,branch});
+     if(!branch)break;
+     const child=branchPlaylist(branch,byId);
+     const complete=await sequence(child,branch.passes??1,signal,true,false,legacyReturn);
+     if(!complete)break;
+     const mode=branch.completion;
+     if(mode===undefined&&legacyReturn)throw restart;
+     if(mode==='reroll'){
+      observe({type:'return',row,mode,target:row});
+      await pause(250,signal);
+      continue;
+     }
+     if(mode==='replay')target=index;
+     if(mode==='start'&&main)target=0;
+     if(mode==='action'&&main){
+      const found=items.findIndex(item=>item.id===branch.returnAction);
+      if(found>=0)target=found;
+     }
+     observe({type:'return',row,mode:mode||'next',target:items[target]});
+     if(target<=index)await pause(250,signal);
+     break;
+    }
+    index=target;
+   }
+  }
+  async function sequence({before,cycle,after},passes,signal,child,legacy=false,legacyReturn=legacy){
+   await actions(before,signal,!child,legacyReturn);
+   if(cycle.length){
+    const result=await repeat(signal,{child,show:passes!==1||!child},async local=>{
+     const marked=new Set(cycle.filter(isRepeat));
+     for(let pass=0;passes===0||pass<passes;pass++){
+      local.throwIfAborted();
+      const partial=(legacy||child)&&pass>0&&marked.size>0;
+      try{await actions(cycle,local,!child,legacyReturn,partial?marked:null);}
+      catch(error){
+       if(child||!legacy||error!==restart)throw error;
+       observe({type:'return',mode:'start',target:cycle[0]});
+      }
+      if(passes===0||pass+1<passes)await pause(250,local);
+     }
+    });
+    if(result===false&&child)return false;
+   }
+   await actions(after,signal,!child,legacyReturn);
+   return true;
+  }
+  let jumpToLegacy=false;
+  for(const segment of segments){
+   if(jumpToLegacy&&!segment.legacy)continue;
+   jumpToLegacy=false;
+   if(segment.key){
+    await sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy);
+    if(segment.legacy)legacyActive=false;
+   }else{
+    try{await actions(segment.rows,signal,false,legacyActive);}
+    catch(error){if(error!==restart)throw error;jumpToLegacy=true;
+     observe({type:'return',mode:'start',target:segments.find(part=>part.legacy)?.rows[0]});
+    }
+   }
+  }
+ }
+
  function branchPlaylist(branch,byId){
   const rows=branch.actions.map(id=>byId.get(id));
   if(branch.startAction===undefined&&branch.endAction===undefined)return playlist(rows,(branch.passes??1)!==1);
@@ -37,9 +140,10 @@
  }
  function chooseBranch(row,roll=Math.random()){
   let limit=0;
+  const percent=Math.min(roll,1-Number.EPSILON)*100;
   for(const branch of row.branches||[]){
    limit+=branch.chance;
-   if(roll*100<limit)return branch;
+   if(percent<limit)return branch;
   }
   return null;
  }
@@ -54,8 +158,22 @@
    if(first.length>1||last.length>1||first.length&&last.length&&group.indexOf(first[0])>group.indexOf(last[0]))
     errors.push('Choose a first repeated action that precedes the last one in each playlist.');
   }
-  for(const group of Object.values(dialogueSections(graph)))checkBounds(group);
+  const sections=Object.values(dialogueSections(graph));
+  const mainGroups=new Map(),mainByRow=new Map();
+  for(const group of sections){
+   checkBounds(group);
+   for(const segment of playlistSegments(group)){
+    if(!segment.key)continue;
+    for(const row of segment.rows)mainByRow.set(row.id,segment.rows);
+    if(segment.legacy)continue;
+    if(mainGroups.has(segment.key)||segment.rows.some(row=>row.mainPasses!==segment.passes))
+     errors.push('Keep playlist members in one conversation section with matching passes.');
+    mainGroups.set(segment.key,segment);
+   }
+  }
   for(const row of rows){
+   if((row.mainPlaylist!==undefined||row.mainPasses!==undefined)&&(!mainByRow.has(row.id)||typeof row.mainPlaylist!=='string'||!/^main_[a-z0-9]{1,59}$/.test(row.mainPlaylist)||!Number.isInteger(row.mainPasses)||row.mainPasses<0||row.mainPasses>100))
+    errors.push('Choose a valid main playlist and 0 to 100 passes for '+row.id+'.');
    if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');
    if(!row.branches)continue;
    if(!Array.isArray(row.branches)||!/^(lace_(arrival|free|be_kade|wait)|branch)_/.test(row.id)){
@@ -67,6 +185,11 @@
      errors.push('Give each branch at '+row.id+' a percentage and at least one action.');continue;
     }
     if(branch.passes!==undefined&&(!Number.isInteger(branch.passes)||branch.passes<0||branch.passes>100))errors.push('Use 0 to 100 passes for a branch playlist.');
+    if(branch.completion!==undefined&&!completionOptions.some(([mode])=>mode===branch.completion))
+     errors.push('Choose a completion behavior on '+row.id+'.');
+    if(branch.completion==='start'&&!mainByRow.has(row.id))errors.push('Choose a main playlist for the branch return on '+row.id+'.');
+    if(branch.completion==='action'&&!mainByRow.get(row.id)?.some(target=>target.id===branch.returnAction))
+     errors.push('Choose a return action in the same main playlist on '+row.id+'.');
     const first=branch.actions.indexOf(branch.startAction===undefined?branch.actions[0]:branch.startAction);
     const last=branch.actions.indexOf(branch.endAction===undefined?branch.actions.at(-1):branch.endAction);
     if(first<0||last<first)errors.push('Choose starting and ending actions in order within the chance playlist on '+row.id+'.');
@@ -161,7 +284,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,branchPlaylist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);
