@@ -27,7 +27,7 @@
   districtBoard:['routine','long-haul','valuable','hazard'],
   /* Places Rook never sends freight to (Vesper, the faction homeworlds, and Meridian itself, where the freight starts). Places in a system the player
      cannot reach yet are never offered either. */
-  never:['vesper','nexus','order-homeworld','meridian'],
+  never:['vesper','nexus','order-homeworld','meridian','low-quay'],
   /* PROCEDURAL BOARD (District campaign, 21 Nov 2026). The owner: "For Rook after this make cargo missions Procedural".
      rook-cargo-gen.js builds each job of the districtBoard kinds above from these lists, seeded per player and per run, so a reload shows the same board
      and every finished run brings a new one. All of this is plain flavour text: change, add or remove entries freely (old saves keep their accepted job's text).

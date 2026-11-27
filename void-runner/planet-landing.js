@@ -40,6 +40,9 @@
   'order-homeworld':{id:'order',planet:'Natural Order homeworld',place:'Garrow System',pad:'LANDING PAD',at:[-4,-29,0],eye:2.8,face:[Math.sin(.3),Math.cos(.3)],arrive:[Math.sin(.3),Math.cos(.3)],leave:[-Math.sin(.3),-Math.cos(.3)],light:'day',weather:'none',
    sky:['#3f6da0','#80a8cc','#b8cde0'],fog:['#a3b8c8',.0016],clouds:'#eef2f5',cloudGlow:'#ffffff',ground:'dust',
    orbit:{ocean:'#1d4a78',land:'#5f7a3a',lights:'#ffd28a',cloud:'#f3f5f7',rim:'#8fc4ff',night:false,density:.08}},
+  'low-quay':{id:'lowquay',planet:'Stale System',place:'Low Quay',pad:'LANDING PAD',at:[-4,-437,0],eye:3.2,face:[0,1],arrive:[0,1],leave:[0,1],light:'night',weather:'none',
+   sky:['#03050b','#0a1020','#16213a'],fog:['#080d17',.0011],clouds:'#1a2236',cloudGlow:'#2a3550',ground:'steam',
+   orbit:{ocean:'#06121f',land:'#101a2a',lights:'#ffb347',cloud:'#3a4560',rim:'#5f8cff',night:true,density:.5}},
   vesper:{id:'vesper',planet:'Vesper',place:'Ward Freight Workshop',pad:'WORKSHOP YARD',at:[12,25,0],eye:3.4,face:[Math.sin(Math.PI+.4),Math.cos(Math.PI+.4)],arrive:[Math.sin(Math.PI+.4),Math.cos(Math.PI+.4)],leave:[-Math.sin(Math.PI+.4),-Math.cos(Math.PI+.4)],light:'day',weather:'dust',
    sky:['#6f8296','#9aaab9','#cfb99c'],fog:['#cfb99c',.0011],clouds:'#e2d6c4',cloudGlow:'#fff3de',ground:'dust',
    orbit:{ocean:'#8f8270',land:'#c2a584',lights:'#ffe0a8',cloud:'#e8dccb',rim:'#e9cfa8',night:false,density:.03}}};
@@ -363,13 +366,20 @@
   bt.box('vw',metal,-6,4,8,24,8,14);bt.box('vw',rust,-6,8.4,8,25,.8,15);bt.box('vw',metal,22,3,-6,12,6,10);for(let i=0;i<8;i++)bt.box('vc',rust,-20+i*3.2,1.3,-20,2.6,2.6,6);
   for(const [x,z,a,c] of scatter(17,q==='low'?24:48,1700,(x,z)=>Math.hypot(x,z)<200)){const h=40+a*160,w=140+c*300;bt.mesa('vr',rock,b.at[0]+x,b.at[1]+z,w,h,w*.6,a*3);}
   bt.build();buildPad(scene,b,'#d4bd87',false);return {tick(){}};}
+ // Low Quay (void-runner/low-quay.js): the raised pad on its piers over dark water, the viaduct running off to the lit city. Simple stand-in for the descent; the walkable scene is the real one.
+ function buildQuay(scene,b,q){const B=BABYLON,bt=batcher(scene,q),conc=litMat(scene,'qconc','#5a5750',{emit:.12}),amber=glowMat(scene,'qamber','#ffb347',1.1),pink=glowMat(scene,'qpink','#ff3fa6',1),teal=glowMat(scene,'qteal','#25c9c2',1),violet=glowMat(scene,'qviolet','#8f5cff',1);
+  const sea=B.MeshBuilder.CreateGround('ls-sea',{width:6000,height:6000},scene);sea.position.y=-9;sea.material=litMat(scene,'qsea','#04101a',{spec:.5,emit:.25});sea.isPickable=false;
+  bt.box('qpad',conc,0,-.7,-414,80,1.4,76);for(const z of [-446,-412,-382])for(const x of [-34,-17,0,17,34]){bt.box('qpier',conc,x,-5.5,z,4.4,7.6,4.8);bt.box('qglow',amber,x,-8.4,z+2.5,.4,.25,.4);}
+  bt.box('qdeck',conc,9,-.7,-20,14,1.4,700);for(let z=-376;z<=250;z+=24){bt.box('qpier',conc,9,-5.5,z,4.4,7.6,4.8);bt.box('qglow',amber,9-2.5,-8.4,z,.4,.25,.4);bt.box('qlamp',amber,2.2,1.6,z,.25,.25,.25);bt.box('qlamp',amber,15.8,1.6,z,.25,.25,.25);}
+  const r=rng(41);for(let i=0;i<70;i++){const w=14+r()*30,h=30+r()*150,x=-160+r()*340,z=330+r()*90;bt.box('qtow',litMat(scene,'qtow','#0c1020',{emit:.1}),x,h/2-9,z,w,h,w);const k=r();bt.box('qneon',k<.34?pink:k<.67?teal:violet,x,h*.5-9,z-w/2-.2,w*.18,h*.55,.4);}
+  bt.build();buildPad(scene,b,'#ffb347',true);return {tick(){}};}
  // ---- one sequence's scene ----
  function create(engine,id,kind){const B=BABYLON,b=biome(id),q=Q(),scene=new B.Scene(engine);scene.clearColor=new B.Color4(0,0,0,1);scene.autoClear=true;scene.skipPointerMovePicking=true;
   const cam=new B.FreeCamera('ls-cam',new B.Vector3(0,10,0),scene);cam.inputs.clear();cam.minZ=.5;cam.maxZ=7000;cam.fov=.95;scene.activeCamera=cam;
   const hemi=new B.HemisphericLight('ls-hemi',new B.Vector3(0,1,0),scene),sun=new B.DirectionalLight('ls-sun',new B.Vector3(-.6,-.5,.4),scene);
   const ip=scene.imageProcessingConfiguration;ip.contrast=1.25;ip.exposure=b.light==="night"?1.45:1;ip.vignetteEnabled=true;ip.vignetteWeight=1.6;ip.vignetteColor=new B.Color4(0,0,0,0);
   const stars=buildStars(scene,q),orbit=buildPlanet(scene,b,q),sky=buildSky(scene,b),clouds=buildClouds(scene,b,q);
-  const area=b.id==='cinder-landing'?buildSurveyPad(scene,b):b.id==='neochinatown'?buildCity(scene,b,q):b.id==='vantor'?buildVantor(scene,b,q):b.id==='nexus'?buildNexus(scene,b,q):b.id==='order'?buildOrder(scene,b,q):buildVesper(scene,b,q);
+  const area=b.id==='cinder-landing'?buildSurveyPad(scene,b):b.id==='lowquay'?buildQuay(scene,b,q):b.id==='neochinatown'?buildCity(scene,b,q):b.id==='vantor'?buildVantor(scene,b,q):b.id==='nexus'?buildNexus(scene,b,q):b.id==='order'?buildOrder(scene,b,q):buildVesper(scene,b,q);
   let glow=null;if(q!=='low'){try{glow=new B.GlowLayer('ls-glow',scene,{mainTextureRatio:q==='medium'?.25:.4,blurKernelSize:q==='medium'?24:40});glow.intensity=b.light==='night'?.75:.35;}catch{glow=null;}}
   const cityMeshes=scene.meshes.filter(m=>m!==stars&&m!==sky&&!clouds.includes(m)&&!orbit.root.getChildMeshes().includes(m));
   // orbit geometry: the camera's line in and the sun (night landings come in over the dark side with a lit crescent; day landings over the lit side)

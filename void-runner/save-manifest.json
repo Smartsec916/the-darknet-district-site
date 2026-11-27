@@ -16,16 +16,19 @@
     "servo-orbital",
     "vantor-relay",
     "cinder-landing",
+    "low-quay",
     "erebus-arrival",
     "sol-arrival",
     "communion-arrival",
-    "natural-order-arrival"
+    "natural-order-arrival",
+    "stale-arrival"
   ],
   "systems": [
     "erebus",
     "sol",
     "communion",
-    "natural-order"
+    "natural-order",
+    "stale"
   ],
   "missions": [
     "medicine",
