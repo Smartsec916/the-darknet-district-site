@@ -83,11 +83,12 @@
   const noise=(g,w,h,n,a,col='255,255,255')=>{for(let i=0;i<n;i++){g.fillStyle='rgba('+col+','+(Math.random()*a)+')';g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*3,1+Math.random()*3);}};
   // ---- kit machinery: parts per material are merged once, then instanced ----
   const kits=[],hide=m=>{m.isVisible=false;m.isPickable=false;m.parent=parent;return m;};
+  // done(): a lone part is baked so it keeps its offset in the kit (an instance's position replaces the mesh's own)
   function K(){const parts=new Map();const add=(mk,m)=>{m.material=mk;(parts.get(mk)||parts.set(mk,[]).get(mk)).push(m);return m;};
    return {box(mk,w,h,d,x,y,z,ry=0,rx=0,rz=0){const m=B.MeshBuilder.CreateBox('p',{width:w,height:h,depth:d},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);return add(mk,m);},
     cyl(mk,rad,h,x,y,z,t=10,rx=0,rz=0,top){const m=B.MeshBuilder.CreateCylinder('p',{diameterBottom:rad*2,diameterTop:(top??rad)*2,height:h,tessellation:t},scene);m.position.set(x,y,z);m.rotation.set(rx,0,rz);return add(mk,m);},
     plane(mk,w,h,x,y,z,ry=0,rx=0,uv){const m=B.MeshBuilder.CreatePlane('p',{width:w,height:h,sideOrientation:B.Mesh.DOUBLESIDE,frontUVs:uv,backUVs:uv},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,0);return add(mk,m);},
-    done(name){const out=[];for(const [mk,list] of parts){const m=list.length>1?B.Mesh.MergeMeshes(list,true,true,undefined,false,false):list[0];if(!m)continue;m.name=name;m.material=mk;out.push(hide(m));}parts.clear();kits.push(...out);return out;}};}
+    done(name){const out=[];for(const [mk,list] of parts){const m=list.length>1?B.Mesh.MergeMeshes(list,true,true,undefined,false,false):list[0];if(!m)continue;if(list.length===1)m.bakeCurrentTransformIntoVertices();m.name=name;m.material=mk;out.push(hide(m));}parts.clear();kits.push(...out);return out;}};}
   const frozen=[];   // every placed instance: frozen, and re-frozen when the world is lifted or lowered for the stairs (tick)
   const place=(kit,x,y,z,ry=0,sx=1,sy=1,sz=1)=>{for(const m of kit){const i=m.createInstance(m.name+'-i');i.position.set(x,y,z);i.rotation.y=ry;i.scaling.set(sx,sy,sz);i.parent=parent;i.isPickable=false;i.freezeWorldMatrix();frozen.push(i);}};
   // static (merged once) parts: the pad deck, station, towers, city
@@ -187,7 +188,7 @@
   for(const [x,z] of lampSpots)place(lampKit,x,0,z);
   S.box(hazard,80,.07,.07,0,1.0,Z.padA+.5);S.box(hazard,.07,.07,PAD.z1-PAD.z0,-39.5,1.0,(PAD.z0+PAD.z1)/2);S.box(hazard,.07,.07,PAD.z1-PAD.z0,39.5,1.0,(PAD.z0+PAD.z1)/2);
   // ---- the station platform and the line's deck at the pad ----
-  S.box(concD,19.6,1.44,Z.stB-Z.stA,-6.2,-.68,(Z.stA+Z.stB)/2);S.box(yel,.3,.04,Z.stB-Z.stA,3.1,.06,(Z.stA+Z.stB)/2);   // the platform reaches to within a step of the trainS.box(hazard,.1,.12,Z.stB-Z.stA,-15.9,.5,(Z.stA+Z.stB)/2);
+  S.box(concD,19.6,1.44,Z.stB-Z.stA,-6.2,-.68,(Z.stA+Z.stB)/2);S.box(yel,.3,.04,Z.stB-Z.stA,3.1,.06,(Z.stA+Z.stB)/2);S.box(hazard,.1,.12,Z.stB-Z.stA,-15.9,.5,(Z.stA+Z.stB)/2);   // the platform reaches to within a step of the train
   for(let z=Z.stA+3;z<Z.stB;z+=6){place(lampKit,-15.6,0,z);}
   // ---- THE STATION: a small curved-glass hall with a lit interior, a canopy, a mast and the owner's signs ----
   const st=S,stz=(Z.stA+Z.stB)/2-3;

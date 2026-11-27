@@ -768,6 +768,7 @@
       "vigil",
       "holdfast",
       "nexus",
+      "low-quay",
       "order-homeworld",
       "vesper-relay",
       "servo-orbital",
@@ -776,7 +777,8 @@
       "erebus-arrival",
       "sol-arrival",
       "communion-arrival",
-      "natural-order-arrival"
+      "natural-order-arrival",
+      "stale-arrival"
     ],
     "ships": [
       "starter",
@@ -61703,7 +61705,7 @@
       "spawn"
     ]
   },
-  "revision": "5d6fbd84d1f1fdd5",
+  "revision": "36e6245ca510bd89",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83331,7 +83333,7 @@
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "47e003bd8ffeda5c439b29cf0678e892ab88054940aa173ff917326c8360c84c",
-    "void-runner/babylon-renderer.js": "2cb8f8007ee69be559ee0ebe7d0f17ce13cc9b68251634f67ada477a98077843",
+    "void-runner/babylon-renderer.js": "30f049825d2b065bbd6536ef9aff130deef8cd76e1560e41bb83743dac3e3b46",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -83460,6 +83462,8 @@
     "void-runner/live-content.js": "8b271bcff9d5484b392f1d257cc130628a03ee3c3b77a41c21e7ed993637f24f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
+    "void-runner/low-quay-city.js": "7928153f1d5b5026bc464d02d5b546aed854a9b47201027d57bada07d889fc97",
+    "void-runner/low-quay.js": "010dd94f2c6cabd1991c2fa7ed57b59bd1f93193757c29b46fe08ad539625723",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
     "void-runner/main-story.js": "43c23d30e6351665208bcc411a8ec0aea8cbb3d0a7f75abd53edd5eb0b545c49",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
@@ -83551,7 +83555,7 @@
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/pixel-neon.js": "833388fac7102af2e33c98411daa18d0e61999e7052b2dc4316cf6c170c02f3a",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
-    "void-runner/planet-landing.js": "7e83f588296a65cc4351d4cd87dff194a9a517c8a169dd338d2dc42064dbdfd2",
+    "void-runner/planet-landing.js": "67b2111aa65ec14b409c8c74a9110751ca7bde8335cbcfba430c61bde5dc1682",
     "void-runner/planets.js": "d7e09f3f8af53f791c91368925b8b96f52d5f26f63a9623cda262e065f5413c7",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
@@ -83570,7 +83574,7 @@
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "4e386484bda8d6b5297320510c2fd1183f88e71a46c904c6fce8251bed38e1b6",
     "void-runner/rook-cargo-gen.js": "b6358f40ce2edc114354779615409ac917dcdd989c57231399029a1f8fdaeea6",
-    "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
+    "void-runner/rook-cargo-jobs.js": "f30c0cfdc11e88795e202e2a3a27d13f2d3ce525d6cd5482f25813bc7b5d310d",
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -83606,7 +83610,7 @@
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
     "void-runner/unified-controls.js": "0a4513e89596f4dc68e4b7dab4a30d62599afee859a1e6eb0393fcdbc12a6f3c",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
-    "void-runner/universe.js": "20a842f3fcc7ee6f8d05f2ae246b45d6be4bc5b1a404de16e92bd4129fe7277a",
+    "void-runner/universe.js": "21853b2a7ca50512d33be6ae16cd835638e3fd1e224e401667a6024c67e2f0d6",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
@@ -83639,7 +83643,7 @@
     "tools/admin-inventory.cjs": "4cba225b1c4a56bfa9ed659f9ed0dfc80028442615992ebecb43aa997c6b352a",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
     "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
-    "void-runner/save-manifest.json": "de6687d366a6549f09d5bd25fb130a7d4e1d1ec44ec856ed56206e69de76fc10"
+    "void-runner/save-manifest.json": "9dfd9a9a7a9e89e4021ce3d41893cb5b61dde3343176b6b58250a218f9e90116"
   },
   "coverage": {
     "structuredScenes": 1,
@@ -83665,16 +83669,19 @@
         "servo-orbital",
         "vantor-relay",
         "cinder-landing",
+        "low-quay",
         "erebus-arrival",
         "sol-arrival",
         "communion-arrival",
-        "natural-order-arrival"
+        "natural-order-arrival",
+        "stale-arrival"
       ],
       "systems": [
         "erebus",
         "sol",
         "communion",
-        "natural-order"
+        "natural-order",
+        "stale"
       ],
       "missions": [
         "medicine",

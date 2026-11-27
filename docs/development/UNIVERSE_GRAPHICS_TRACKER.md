@@ -87,3 +87,9 @@ Recommendation by asset type (a judgement from this one test, not a general law)
 ### Batch log addendum
 
 | 4 | Vantor Relay hangar shell plus Vantor animation and commercial/residential detail: rotating fans, steam, drips, dust motes, two lifts, a gantry hoist, flickering lamps; blade signs, noodle bar, air units and laundry on the stacked housing, elevator shafts, transit board gantry | `2026-11-26-universe-4` | pending |
+
+## Low Quay, Stale System (new location, 27 Nov 2026)
+
+| Star system | Location | Assets inspected | Assets built | Remaining improvements | Performance | Commit / deployment | Screenshots | Status |
+|---|---|---|---|---|---|---|---|---|
+| Stale (`stale`) | Low Quay (`low-quay`, walk id `planet-low-quay`) | the owner's concept image `universe-graphics/lowquay-reference.png`; `planets.js` landing-area wiring (as The Nexus) | code-built and instanced: raised pad on piers over water, six berths, berth terminal (Blender GLB `assets/models/low-quay/quay-terminal.glb`), station, viaduct and rail, two trains and the rail ride, vestibule, tunnel, subway hall, stairs, pedestrian quay city with canal; night sky, skyline, water | city facades and clutter (still box buildings with window textures), ambience and sound, NPCs, train doors/animation, sea-wall texture, a zone switch-off of the pad when under the quay | software renderer, Medium: about 100 to 600 draw calls depending on view (the busiest views look back over the whole line); real GPU unverified | batch 1, `2026-11-27-lowquay-1` | `universe-graphics/lowquay-*.jpg` | Batch 1 |
