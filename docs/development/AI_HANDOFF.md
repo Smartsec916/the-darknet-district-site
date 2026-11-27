@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 - Cardkey pickup glow
+
+The Pleasure Breach cardkey keeps its cyan status light and a subdued cyan rim. The ground halo is removed and the pickup focus outline is thinner. Build `2026-11-27-keycard-glow-1`.
+
 ## 27 Nov 2026 — Chance Encounters playlist editor
 
 The editor groups checked dialogue and animation actions into explicit main playlists, with drag reordering and finite or until-canceled passes. New chance playlists reroll at their insertion point by default. Existing graphs retain their saved repeat bounds, per-action repeat flags, and return behavior. Updating playlist membership applies the new full-action repeat rule. The editor preview, private playtest, and public runtime use the same execution rules. Main playlists are local to a conversation section, so player choices can be placed before or after a playlist. No production encounter content is authored by this change. Build `2026-11-27-chance-playlists-1`.
