@@ -22,7 +22,13 @@ const seed = require('../void-runner/chance-encounter-seed.json');
       const tools = { uid: 'test', authorized: true, request: async (path, body) => {
         if(path==='developer/voice-clips')return {missing:[]};
         if(!body)return { encounters: saved ? [saved] : [] };
-        saved={id:body.id,revision:body.revision+1,draft:structuredClone(body.graph)};
+        if(body.action==='unpublish'){
+          window.unpublishPayload=body;
+          saved={id:saved.id,revision:body.revision+1,draft:saved.draft};
+        }else{
+          saved={...saved,id:body.id,revision:body.revision+1,draft:structuredClone(body.graph)};
+          if(body.action==='publish'){saved.live=structuredClone(body.graph);saved.liveRevision=saved.revision;}
+        }
         return saved;
       } };
       window.mountEncounter = () => VoidEncounterEditor.mount(document.querySelector('main'), tools);
@@ -36,6 +42,13 @@ const seed = require('../void-runner/chance-encounter-seed.json');
       window.VoidLiveContent={env:{trees:[{missions:[{id:'awakening',name:'Awakening'}]}]}};
       await mountEncounter();
     });
+    const picker = page.getByLabel('Select an encounter');
+    const pickSeed = async () => {
+      assert.equal(await picker.inputValue(), '');
+      assert.equal(await page.getByLabel('Name', { exact: true }).count(), 0);
+      await picker.selectOption(seed.id);
+    };
+    await pickSeed();
     await page.getByLabel('Name', { exact: true }).fill('Old Town draft');
     await page.getByLabel('Start trigger',{exact:true}).selectOption('game-time');
     await page.getByLabel('Trigger mission').selectOption('awakening');
@@ -80,6 +93,7 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     const first=group('lace_free_01'),second=group('lace_free_02'),third=group('lace_free_03');
     await first.getByLabel('Spoken line',{exact:true}).fill('First main action');
     await second.getByLabel('Animation',{exact:true}).fill('sz-tiedbf-look-back-return');
+    await second.getByLabel('Animation speed (×)',{exact:true}).fill('0.5');
     await third.getByLabel('Spoken line',{exact:true}).fill('Third main action');
     await first.getByLabel('Select action',{exact:true}).check();
     await third.getByLabel('Select action',{exact:true}).check();
@@ -134,8 +148,10 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     await page.getByText('Saved draft',{exact:true}).waitFor();
     await page.evaluate(()=>mountEncounter());
+    assert.equal(await picker.inputValue(), seed.id);
     assert.deepEqual(await members(),['lace_free_01','lace_free_04','lace_free_02']);
     assert.equal(await main.getByLabel('Main playlist passes').inputValue(),'2');
+    assert.equal(await second.locator(':scope > .encounter-action-fields').getByLabel('Animation speed (×)',{exact:true}).inputValue(),'0.5');
     assert.equal(await chance.getByLabel('Chance (%)',{exact:true}).inputValue(),'50');
     assert.equal(await later.getByLabel('Return to action').inputValue(),'lace_free_01');
     await group('lace_arrival_02').getByText('Recorded',{exact:true}).waitFor();
@@ -160,6 +176,7 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     await page.getByText('Saved draft',{exact:true}).waitFor();
     await page.evaluate(()=>mountEncounter());
+    await pickSeed();
     await page.getByText('Saved Actions (1)',{exact:true}).click();
     await page.getByRole('button',{name:'Restore action',exact:true}).click();
     await page.getByRole('button',{name:'Apply',exact:true}).click();
@@ -177,29 +194,57 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     assert.equal(duplicated.length,2);
     assert.equal(duplicated[0].mainPlaylist,duplicated[1].mainPlaylist);
     assert.notEqual(duplicated[0].branches[0].actions[0],duplicated[1].branches[0].actions[0]);
+    const standalone=free.locator(':scope > [data-line-id]');
+    await main.getByRole('button',{name:'Add action before playlist',exact:true}).click();
+    await page.locator('textarea:focus').fill('New standalone action');
+    const added=standalone.filter({has:page.locator('textarea:focus')});
+    const addedId=await added.getAttribute('data-line-id');
+    const row=group(addedId);
+    await row.getByRole('button',{name:'Move later',exact:true}).click();
+    assert.equal(await row.evaluate(node=>node.previousElementSibling.classList.contains('encounter-main-playlist')),true);
+    await first.locator(':scope > .encounter-add-action').getByRole('button',{name:'Add action',exact:true}).click();
+    await page.locator('textarea:focus').fill('After the attached chance playlist');
+    assert.equal(await page.locator('textarea:focus').evaluate(node=>node.closest('[data-line-id]').previousElementSibling.dataset.lineId),'lace_free_01');
+    const branchFirst=chance.locator(':scope > [data-line-id]').first();
+    await branchFirst.getByRole('button',{name:'Add action before',exact:true}).click();
+    await page.locator('textarea:focus').fill('Inserted in chance playlist');
+    assert.equal(await chance.locator(':scope > [data-line-id]').first().getByLabel('Spoken line',{exact:true}).inputValue(),'Inserted in chance playlist');
+    await chance.locator(':scope > [data-line-id]').first().getByRole('button',{name:'Move action',exact:true}).click();
+    await page.getByLabel('Destination',{exact:true}).selectOption({label:'Free Lace / Conversation'});
+    await page.getByRole('button',{name:'Apply',exact:true}).click();
+    assert.equal(await standalone.last().getByLabel('Spoken line',{exact:true}).inputValue(),'Inserted in chance playlist');
+    page.on('dialog',dialog=>dialog.accept());
+    const encounterName=page.getByLabel('Name',{exact:true});
+    await page.getByRole('button',{name:'Publish',exact:true}).click();
+    await page.getByRole('button',{name:'Unpublish',exact:true}).waitFor();
+    await encounterName.fill('Unsaved after publish');
+    await page.getByRole('button',{name:'Unpublish',exact:true}).click();
+    await page.getByText('Unpublished · Unsaved draft changes',{exact:true}).waitFor();
+    assert.equal(await encounterName.inputValue(),'Unsaved after publish');
+    assert.equal(await page.getByRole('button',{name:'Play published version',exact:true}).count(),0);
+    assert.equal((await page.evaluate(()=>window.unpublishPayload)).graph,undefined);
+    await page.getByRole('button',{name:'Save draft',exact:true}).click();
+    await page.getByText('Saved draft',{exact:true}).waitFor();
+    await page.getByRole('button',{name:'New encounter',exact:true}).click();
+    const emptyFree=page.locator('section[data-section=free]');
+    await emptyFree.getByRole('button',{name:'Add action to conversation',exact:true}).click();
+    assert.equal(await emptyFree.locator(':scope > [data-line-id]').count(),1);
+    assert.equal(await emptyFree.locator('textarea:focus').count(),1);
     const game = await browser.newPage();
+    await game.addScriptTag({path:path.join(base,'chance-encounter.js')});
     const gameSource = require('node:fs').readFileSync(path.join(base,'chance-encounter-game.js'),'utf8');
-    await game.addScriptTag({content:gameSource.replace('root.VoidEncounterGame={','root.VoidEncounterGame={pickupReceipt,')});
-    await game.evaluate(()=>{
-      window.VoidApartments={door:()=>({id:'door',number:27}),slotNumber:()=>101,residenceKey:()=> 'door/0'};
-      window.heldInputs=[];
-      document.addEventListener('keydown',event=>heldInputs.push(event.code));
-      window.showKeyNotice=()=>VoidEncounterGame.pickupReceipt({
-        graph:{pickupNoticeSeconds:1},private:true,cardName:'Kade and Lace key',cardDescription:'Apartment access',
-        signal:new AbortController().signal
-      });
-      showKeyNotice();
+    await game.addScriptTag({content:gameSource
+      .replace('root.VoidEncounterGame={','root.VoidEncounterGame={runGraph,')
+      .replace('async function drop(run){','async function drop(run){run.holds=true;} async function originalDrop(run){')});
+    const pickedUp=await game.evaluate(async()=>{
+      const run={private:true,graph:{id:'dropped-cardkey',start:'item',nodes:[
+        {id:'item',kind:'item',edges:[{to:'end'}]},{id:'end',kind:'end',edges:[]}
+      ]},signal:new AbortController().signal};
+      await VoidEncounterGame.runGraph(run,'item');
+      return {holds:run.holds,node:run.node.id};
     });
-    const notice=game.getByRole('status');
-    assert.match(await notice.innerText(), /Kade and Lace key.*Apartment access.*Street Door 27.*Apartment 101/s);
-    assert.equal(await notice.evaluate(node=>getComputedStyle(node).pointerEvents),'none');
-    await game.keyboard.press('Shift+KeyW');
-    assert.ok((await game.evaluate(()=>heldInputs)).includes('KeyW'));
-    await game.keyboard.press('Digit0');
-    await notice.waitFor({state:'detached'});
-    await game.evaluate(()=>showKeyNotice());
-    await notice.waitFor({state:'visible'});
-    await notice.waitFor({state:'detached'});
+    assert.deepEqual(pickedUp,{holds:true,node:'end'});
+    assert.equal(await game.getByRole('status').count(),0);
     await game.close();
     console.log('Draft playback, selection, drag and drop, chance returns, cancellation and save/reload passed.');
   } finally {
