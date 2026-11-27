@@ -422,6 +422,77 @@ def build():
         for sx in (-1, 1):
             B.lamp((sx * 14, 7, z), AMBER if sx > 0 else WHITE, .5, 14)
 
+    # ------------------------------------------------------------------ batch 4: wall fans, signs, residential fittings, lifts, transit boards (rotors, steam, drips and cabs are added by vantor.js)
+    for fx in (-9.5, 9.5):       # fan housings on the pad side of the bulkhead (rotors animate in the game)
+        B.cyl((fx, 7.5, zb0 - .35), (fx, 7.5, zb0 - .05), 2.2, 'v_steel', 24)
+        B.cyl((fx, 7.5, zb0 - .6), (fx, 7.5, zb0 - .3), 1.95, 'trim_dark', 24)
+        B.cyl((fx, 7.5, zb0 - .55), (fx, 7.5, zb0 - .5), 1.5, 'trim_dark', 24, r2=1.5)
+        for k in range(4):
+            a = k * math.pi / 2
+            B.beam((fx, 7.5, zb0 - .7), (fx + 1.9 * math.cos(a), 7.5 + 1.9 * math.sin(a), zb0 - .7), .09, .09, 'v_steel')
+        B.box((fx - .3, 7.5 - 2.9, zb0 - .7), (fx + .3, 7.5 - 2.2, zb0 - .35), 'v_hazard')
+        B.lamp((fx, 7.5, zb0 - 2.0), WHITE, .35, 8)
+    # blade signs on the shop block (teal, amber, white boards hung off the facade)
+    for k, (z, mat) in enumerate(((10.6, 'lamp_teal'), (13.7, 'lamp_amber'), (16.8, 'lamp_white'), (19.9, 'lamp_amber'))):
+        B.box((-6.5, 3.55, z + .5), (-5.5, 5.0, z + .62), 'trim_dark')
+        B.box((-6.46, 3.65, z + .46), (-5.56, 4.9, z + .5), mat)
+        B.beam((-6.5, 4.8, z + .56), (-6.1, 4.8, z + .56), .06, .06, 'v_steel')
+    # noodle bar at the north end of the shop block: deep awning, steam stack, lit counter
+    B.box((-6.5, 2.75, 19.2), (-4.9, 2.9, 22.9), 'v_hazard')
+    B.box((-6.45, .95, 19.4), (-6.1, 1.15, 22.7), 'v_steel')
+    for k in range(3):
+        B.cyl((-6.25, 1.15, 19.8 + k * 1.1), (-6.25, 1.35, 19.8 + k * 1.1), .26, 'trim_dark', 10)
+    B.box((-12.9, 4.25, 21), (-12.4, 7.2, 21.5), 'v_steel')
+    # rooftop plant on the shop block: water tank and air units
+    B.cyl((-9.8, 4.25, 21.5), (-9.8, 6.0, 21.5), 1.3, 'v_steel', 18)
+    B.cyl((-9.8, 6.0, 21.5), (-9.8, 6.15, 21.5), 1.35, 'v_hazard', 18)
+    for k in range(3):
+        B.box((-12.0 + k * 2.0, 4.25, 10.0), (-10.8 + k * 2.0, 5.2, 11.4), 'trim_dark')
+        B.box((-11.9 + k * 2.0, 5.2, 10.1), (-10.9 + k * 2.0, 5.28, 11.3), 'lamp_amber' if k == 1 else 'v_hazard')
+    # industry block: stacked cargo crates on the roof, a loading arm, a hazard-marked gate, a wall board
+    for k in range(5):
+        B.box((8.2 + (k % 3) * 2.1, 6.0 + (k // 3) * 1.6, 10 + (k % 2) * 2.4), (9.8 + (k % 3) * 2.1, 7.6 + (k // 3) * 1.6, 11.7 + (k % 2) * 2.4), 'v_steel' if k % 2 else 'v_hazard')
+    B.beam((7.4, 5.9, 18.2), (5.2, 5.0, 19.6), .22, .22, 'v_steel')
+    B.box((7.38, 1.0, 20.2), (7.44, 3.4, 22.4), 'trim_dark')
+    B.box((7.34, 1.3, 20.3), (7.4, 3.1, 22.3), 'win_dim')
+    B.box((7.3, 3.5, 17.0), (7.4, 4.1, 20.4), 'lamp_amber')
+    # elevators: lit shafts up the cavern walls (cabs move in the game)
+    for sx in (-1, 1):
+        x = sx * 27.6
+        B.box((x - 1.5, -9, -4.6 - 1.5), (x + 1.5, 25, -4.6 - 1.2), 'v_steel')
+        B.box((x - 1.5, -9, -4.6 + 1.2), (x + 1.5, 25, -4.6 + 1.5), 'v_steel')
+        for yy in range(-8, 25, 8):
+            B.box((x - 1.7, yy, -4.6 - 1.6), (x + 1.7, yy + .25, -4.6 + 1.6), 'trim_dark')
+            B.box((x - .9, yy + .35, -4.6 - 1.65), (x + .9, yy + .5, -4.6 - 1.62), 'lamp_amber')
+    # transit board gantry across the concourse (departures)
+    B.box((-14.4, 0, 1.6), (-13.8, 8.6, 2.2), 'v_steel'); B.box((13.8, 0, 1.6), (14.4, 8.6, 2.2), 'v_steel')
+    B.box((-14.4, 8.0, 1.5), (14.4, 8.7, 2.3), 'trim_dark')
+    for k in range(6):
+        x0 = -12 + k * 4.2
+        B.box((x0, 8.7, 1.6), (x0 + 3.4, 9.7, 1.75), 'trim_dark')
+        B.box((x0 + .1, 8.8, 1.57), (x0 + 3.3, 9.6, 1.6), 'lamp_teal' if k % 2 == 0 else 'win_white')
+        for r in range(3):
+            B.box((x0 + .3, 9.0 + r * .25, 1.54), (x0 + 3.0 - (r % 2) * .8, 9.12 + r * .25, 1.57), 'trim_dark')
+    B.lamp((0, 8.5, 0.5), np.array([.5, .85, .8]), .5, 12)
+    # residential detail on every stacked building: air units, laundry lines, door lamps
+    for sx in (-1, 1):
+        for zi, (za, zb_) in enumerate(((Z0 + 3, Z0 + 14), (Z0 + 17, BULK - 3.5))):
+            xe = sx * 25.6 - sx * 0.05
+            rr = np.random.default_rng(300 + zi + (3 if sx > 0 else 0))
+            for f in range(7):
+                ya = -8.0 + 2.0 * (zi % 2) + f * 3.4
+                for k in range(3):
+                    z = za + 1.2 + rr.random() * (zb_ - za - 2.4)
+                    xa, xb = (xe - sx * 1.3 - .0, xe) if False else (xe, xe - sx * .9)
+                    B.box((min(xa, xb), ya + .4, z - .4), (max(xa, xb), ya + 1.2, z + .4), 'trim_dark')
+                    B.box((min(xa, xb) - (0 if sx > 0 else 0), ya + .5, z - .3), (max(xa, xb), ya + .6, z + .3), 'v_steel')
+                if f % 2 == 0:
+                    zz = za + 1.0 + rr.random() * 3
+                    B.beam((xe - sx * 1.2, ya + 2.1, zz), (xe - sx * 1.2, ya + 2.3, zz + 4.5), .02, .02, 'trim_dark')
+                    for q in range(5):
+                        B.box((xe - sx * 1.22 - .02, ya + 1.5, zz + .4 + q * .85), (xe - sx * 1.22 + .02, ya + 2.1, zz + .8 + q * .85), ['win_white', 'v_hazard', 'b_teal' if False else 'win_amber', 'v_steel', 'win_dim'][q % 5])
+    B.lamp((0, 3, 28), AMBER, .4, 10)
+
     # red emergency lamps: on the arches either side of the gate and over the pad
     for z in (-6.0, -14.0):
         for sx in (-1, 1):

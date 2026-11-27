@@ -3,7 +3,9 @@
  const progression=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
  const systems={erebus:{name:'Erebus System',hub:'meridian',ownerFaction:null,securityFaction:'erebus-local',populationPool:[],shopPool:[],missionPool:[]},sol:{name:'Tessaly System',hub:'sol-belt',ownerFaction:null,securityFaction:'sol-local',populationPool:[],shopPool:[],missionPool:[]},
   // Faction territory. Each system opens when the player accepts its District delivery.
-  communion:{name:'Cantor System',hub:'vigil',ownerFaction:'communion',securityFaction:'communion',populationPool:[],shopPool:[],missionPool:[]},'natural-order':{name:'Garrow System',hub:'holdfast',ownerFaction:'natural-order',securityFaction:'natural-order',populationPool:[],shopPool:[],missionPool:[]}};
+  communion:{name:'Cantor System',hub:'vigil',ownerFaction:'communion',securityFaction:'communion',populationPool:[],shopPool:[],missionPool:[]},'natural-order':{name:'Garrow System',hub:'holdfast',ownerFaction:'natural-order',securityFaction:'natural-order',populationPool:[],shopPool:[],missionPool:[]},
+  // Stale System (owner's request 27 Nov 2026): one location, Low Quay. Not discovered by any story step; reached with the Dev Tools jump until a mission opens it.
+  stale:{name:'Stale System',hub:'low-quay',ownerFaction:null,securityFaction:'neutral',populationPool:[],shopPool:[],missionPool:[]}};
  const locations={
   vesper:{system:'erebus',surface:true,name:'Vesper',district:'WARD FREIGHT WORKSHOP',color:'#c2a584',bar:'Workshop'},
   meridian:{system:'erebus'},kepler:{system:'erebus'},rusthaven:{system:'erebus'},foundry:{system:'erebus'},
@@ -14,6 +16,8 @@
   holdfast:{system:'natural-order',name:'Holdfast',district:'GARROW / NATURAL ORDER OUTPOST',color:'#d08a3c',bar:'Mess Hall',ownerFaction:'natural-order',securityFaction:'natural-order'},
   // Faction homeworlds (doc 10): open when the homeworld offer is accepted. The Natural Order world has no name yet.
   nexus:{system:'communion',name:'The Nexus',district:'CANTOR / COMMUNION HOMEWORLD',color:'#8fd4ee',bar:'Aid Station',ownerFaction:'communion',securityFaction:'communion',planet:true},
+  // Low Quay: a landing pad raised on viaducts over dark water at the edge of a quay city (void-runner/low-quay.js). Always night. District text PROPOSED.
+  'low-quay':{system:'stale',surface:true,name:'Low Quay',district:'STALE / QUAY LANDING',color:'#5fb4c8',bar:'Quay Canteen',ownerFaction:null,securityFaction:'neutral'},
   'order-homeworld':{system:'natural-order',name:'Natural Order Homeworld',district:'GARROW / NATURAL ORDER HOMEWORLD (NAME PENDING)',color:'#c9a24a',bar:'Cooperative Hall',ownerFaction:'natural-order',securityFaction:'natural-order',planet:true}
  };
  // Flight destinations retain their save IDs. Planet and settlement IDs identify geography
@@ -34,7 +38,7 @@
  });
  const bearings={vesper:-105,meridian:-64,kepler:35,rusthaven:-20,foundry:70,'vesper-relay':6,'cinder-landing':100,
   earth:-64,mars:35,'sol-belt':-20,'servo-orbital':6,'vantor-relay':70,nexus:35,vigil:-64,holdfast:-64,'order-homeworld':35,
-  'erebus-arrival':128,'sol-arrival':158,'communion-arrival':188,'natural-order-arrival':218};
+  'erebus-arrival':128,'sol-arrival':158,'communion-arrival':188,'natural-order-arrival':218,'low-quay':35,'stale-arrival':248};
  for(const [id,world] of Object.entries(planets)){
   world.settlementId=id+'-settlement';world.facilityId=id+'-pad';
   const pad=locations[world.pad],station=locations[world.orbital];
