@@ -1207,7 +1207,7 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models(def.planet,quality)||{}),...kestrel},task),'crowd models');
+    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models(def.planet,quality)||{}),...(root.VoidLowQuay?.models(def.planet,quality)||{}),...kestrel},task),'crowd models');
       planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;

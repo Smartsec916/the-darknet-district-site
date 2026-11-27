@@ -3,7 +3,7 @@
    lines (they end on the pad, clear the buildings), the NeoChinatown plan from the real layout, and the wiring (the sequence never changes mode or the route). */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const C=require('../void-runner/campaign.js'),U=require('../void-runner/universe.js'),N=require('../void-runner/nav-coords.js'),L=require('../void-runner/planet-landing.js');
-const NC=require('../void-runner/neochinatown.js'),CT=require('../void-runner/ncz-containers.js'),CO=require('../void-runner/corporate.js'),PL=require('../void-runner/planets.js'),ED=require('../void-runner/exploration-data.js');
+const NC=require('../void-runner/neochinatown.js'),CT=require('../void-runner/ncz-containers.js'),CO=require('../void-runner/corporate.js'),PL=require('../void-runner/planets.js'),LQ=require('../void-runner/low-quay.js'),ED=require('../void-runner/exploration-data.js');
 const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
 const district=()=>{const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;return s;};
 const pilot=()=>{const s=district();C.awardStarterShip(s);delete s.story.flags.area;s.location='earth';return s;};
@@ -30,11 +30,11 @@ test('always a way home: from every place the map can reach, in every marker mod
 });
 
 test('every planet location on the map is landable: a descent, a landing area, a walkable scene with a BOARD point',()=>{
- const s=pilot();N.grant(s,'t');for(const id of ['vigil','nexus','holdfast','order-homeworld'])U.discover(s,id);const reach=explore(s,()=>[]).seen;
- const planets=Object.keys(U.locations).filter(U.planetside);assert.deepEqual(planets.sort(),['cinder-landing','earth','mars','nexus','order-homeworld','vesper'].sort());
+ const s=pilot();N.grant(s,'t');for(const id of ['vigil','nexus','holdfast','order-homeworld','low-quay'])U.discover(s,id);const reach=explore(s,()=>[]).seen;
+ const planets=Object.keys(U.locations).filter(U.planetside);assert.deepEqual(planets.sort(),['cinder-landing','earth','low-quay','mars','nexus','order-homeworld','vesper'].sort());
  for(const id of planets){assert.ok(L.landable(id),id);assert.ok(reach.includes(id),id+' can be flown to');const b=L.biome(id);assert.ok(b.pad&&b.planet&&b.at.length===3,id);}
  // the walkable scene dock() enters for each (world-integration.js dock, homeworld-scenes.js), each with BOARD
- const scene={'cinder-landing':PL.layout('cinder-landing'),earth:NC.layout('street','port'),mars:ED.locations['mars-terminal'],nexus:PL.layout('nexus'),'order-homeworld':PL.layout('order-homeworld')};
+ const scene={'cinder-landing':PL.layout('cinder-landing'),earth:NC.layout('street','port'),mars:ED.locations['mars-terminal'],nexus:PL.layout('nexus'),'order-homeworld':PL.layout('order-homeworld'),'low-quay':PL.layout('low-quay')};
  for(const [id,l] of Object.entries(scene))assert.ok(l.interactions.some(i=>i.action==='board'),id+' has a BOARD point');
  assert.match(read('void-runner/world-integration.js'),/state\.location==='mars'\?'mars-terminal'/);assert.match(read('void-runner/homeworld-scenes.js'),/VoidPlanets\.worlds\[state\.location\]\)return enterWalking\('planet-'/);
  for(const id of Object.keys(U.locations))if(!U.planetside(id))assert.equal(L.landable(id),false,'no descent at a station: '+id);
