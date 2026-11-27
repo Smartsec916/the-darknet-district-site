@@ -61771,7 +61771,7 @@
       "spawn"
     ]
   },
-  "revision": "7a423a5446736e96",
+  "revision": "7be6a33174d7520d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83707,7 +83707,7 @@
     "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
     "void-runner/vehicle.js": "55e562463d132ef86bd01975d73287cff17306a1435a96436c19391a4fb057ca",
     "void-runner/vesper-sites-data.js": "c2fe51510ac386b87c99bfbf8b94b7e31ffd80cb26bad7a8d39f92829f0adf79",
-    "void-runner/vesper-sites.js": "22b18ddac974ac25710d1d2ae1146a0bfed87058f489f5c5ad488fa328a41821",
+    "void-runner/vesper-sites.js": "18831568da05528d2e9493be9d5655021c7290a6547a40b120ed1aa4245a5315",
     "void-runner/vesper-terrain.js": "eabe721718fb3fb66a4d658d5a09fcbfa724173f6ff28c7bd624ca03bd085c58",
     "void-runner/vesper-visuals.js": "4843fb84e033b55247464c6e255b7ef2c08b35cb4e3218149c72e36c2a6e00d1",
     "void-runner/vesper-world.js": "481183a36502c9b3a868e20f5b9e4292802d9c5418523ac02627fe5768416015",
