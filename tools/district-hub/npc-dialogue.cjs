@@ -11,7 +11,11 @@ class NpcDialogue {
   finish(group, peer) {
     if (!group.listeners.delete(peer)) return;
     if (this.activeByPeer.get(peer) === group) this.activeByPeer.delete(peer);
-    if (!group.listeners.size) group.next = this.now() + group.cooldown;
+    if (!group.listeners.size) {
+      group.next = this.now() + group.cooldown;
+      group.ready.clear();
+      group.collectUntil = null;
+    }
   }
   depart(peer) {
     for (const group of this.groups.values()) {
@@ -33,14 +37,18 @@ class NpcDialogue {
     peer.lastNpcReady = now;
     if (!group) {
       if (this.groups.size >= 256) return;
-      group = {ready:new Map(), listeners:new Set(), turn:0, next:now+600, touched:now};
+      group = {ready:new Map(), listeners:new Set(), turn:0, next:now, collectUntil:now+600, touched:now};
       this.groups.set(key, group);
     }
     group.touched = now;
     group.ready.set(peer, now);
     if (group.listeners.size || now < group.next) return;
+    // Collect listeners on every turn, not only when the group is first created.
+    if (group.collectUntil === null) group.collectUntil = now + 600;
+    if (now < group.collectUntil) return;
     const listeners = [...group.ready].filter(([p,at]) => now-at < 1200 && p.placed && !this.activeByPeer.has(p) && p.room === peer.room && Math.hypot(p.x-peer.x,p.z-peer.z) <= 18);
     group.ready.clear();
+    group.collectUntil = null;
     group.token = ++this.serial;
     group.cooldown = msg.cooldown * 1000;
     group.expires = now + 48000;
