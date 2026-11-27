@@ -95,9 +95,8 @@
     editor fetches it when the NPCs tab opens (root.VoidNPCClipIndex); the game itself does not load it (it checks added clips by their rules only, and the animation
     library checks the rig again when it applies a clip). */
  const INDEX=()=>{if(node){try{return require('./npc-clip-index.json');}catch{return null;}}return root.VoidNPCClipIndex||null;};
- // Clips for grown-ups only (VR companions, the studios, the clubs): never for NPCs marked youthful (Reverie, Lace: ordinary street residents with youthful faces).
+ // Adult motion access uses explicit actor eligibility and the existing model registry.
  const ADULT=/^(vr-companion|vr-player|studio-|npc-milked|npc-kai|npc-zane|npc-luna|npc-dax|npc-club)/;
- const YOUNG_NO=/smoke|drink|drunk|sway|beer|wine|cig/i,MOVE_CLIP=/^(walk|run|jog|sit-enter|sit-exit|walk-f|drunk-walk)$/;
  const CATS=[['idle',/idle|stand|breath|wait/],['walk / run',/walk|run|jog|stride/],['sit',/sit|seat|bench|ground|floor|lie/],['talk / gesture',/talk|gesture|wave|shrug|laugh|nod|point|look|watch|glance|head/],['dance',/dance|groove|bop|samba|hiphop/],
   ['V1 / device',/phone|device|selfie|scroll|menu/],['work',/work|wipe|pickup|interact|cook|smoke|drink|repair/],['combat / action',/aim|shoot|hit|duck|punch|fight|vr-/],['other',/./]];
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
@@ -340,6 +339,6 @@
      else if(from!==dest){const why=ESC()&&ESC().reachWhy?ESC().reachWhy(id,from,dest):'there is no way through.';if(why)out.push(bw+why);}}}
    if(b.mode!=='original'){const {from,to,name,cross,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={adultMotionTarget,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,NON_HUMANOID_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,scheduledScenePlan,mapData,snap,pick,inventory,posts,ledges,wrap};
+ const api={adultMotionTarget,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,scheduledScenePlan,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
