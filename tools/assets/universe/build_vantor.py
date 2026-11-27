@@ -254,15 +254,9 @@ def build():
 
     # floodlight towers
     def tower(x, z, h=14.0, face=(0, 0, 1)):
-        B.box((x - .4, 0, z - .4), (x + .4, h, z + .4), 'v_steel')
-        for k in range(1, 5):
-            B.beam((x - .4, h * k / 5, z - .4), (x + .4, h * k / 5 + h / 8, z + .4), .1, .1, 'v_steel')
-        # lamp bank
-        for a in range(2):
-            for b in range(3):
-                B.box((x - 1.4 + b * 1.0, h + .2 + a * .75, z - .35), (x - .6 + b * 1.0, h + .8 + a * .75, z + .35), 'lamp_white')
-        B.box((x - 1.5, h, z - .4), (x + 1.5, h + .2, z + .4), 'trim_dark')
-        B.lamp((x, h - 1, z + (1.5 if face[2] > 0 else -1.5)), WHITE, 1.2, 20)
+        import build_floodlight           # the lattice floodlight tower (the Blender candidate of the Blender-vs-Meshy test)
+        build_floodlight.build(H=h, B=B, ox=x, oz=z)
+        B.lamp((x, h - 1, z + 1.5), WHITE, 1.2, 20)
         B.lamp((x, 6, z), WHITE, .5, 14)
     tower(-13.0, -31.5, 15); tower(13.5, -31.5, 15); tower(-15.2, -12.5, 12); tower(15.2, -12.5, 12)
 

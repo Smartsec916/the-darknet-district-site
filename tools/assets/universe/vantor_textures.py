@@ -24,30 +24,29 @@ def _out(d, name, color, height, ao, rough, metal, ns):
     _jpg(os.path.join(d, name + '_orm.jpg'), _orm(ao, rough, metal), 92)
 
 
-def rock(d, n=1024):
+def rock(d, n=1024, name='v_rock', base=(.46, .24, .165), alt=(.30, .18, .145), vein_a=(.62, .38, .20), vein_b=(.18, .36, .36)):
     h = .55 * _spectral(n, 11, 2.6) + .30 * _spectral(n, 12, 1.6, lo=6) + .15 * _spectral(n, 13, .9, lo=24)
     strata = _spectral(n, 14, 3.2, ax=.15, ay=1.0, lo=2)              # horizontal bands
     h = h * .75 + strata * .35
     ledge = np.abs(np.sin((np.arange(n)[:, None] / n * 9 + strata * 2.2) * np.pi))   # terraced steps
     h = h * .8 + ledge * .18
     h = (h - h.min()) / (h.max() - h.min())
-    base = np.array([.46, .24, .165])                                # dark rust-red
-    alt = np.array([.30, .18, .145])
+    base, alt = np.array(base), np.array(alt)                        # Vantor: dark rust-red
     mix = _step(.35, .75, strata + .25 * _spectral(n, 15, 1.8))[..., None]
     col = base * (1 - mix) + alt * mix
     col = col * (.55 + .8 * h[..., None])
     # mineral veins: thin pale/teal-ish and orange lines
     veins = _spectral(n, 16, 2.2, lo=3)
     vein = (1 - _step(0, .018, np.abs(veins - .5))) * _step(.3, .7, _spectral(n, 17, 1.5))
-    col = col * (1 - vein[..., None] * .9) + vein[..., None] * np.array([.62, .38, .20]) * .9
+    col = col * (1 - vein[..., None] * .9) + vein[..., None] * np.array(vein_a) * .9
     v2 = (1 - _step(0, .012, np.abs(_spectral(n, 18, 2.2, lo=4) - .5))) * _step(.5, .8, _spectral(n, 19, 1.5))
-    col = col * (1 - v2[..., None] * .8) + v2[..., None] * np.array([.18, .36, .36]) * .8
+    col = col * (1 - v2[..., None] * .8) + v2[..., None] * np.array(vein_b) * .8
     wet = _step(.55, .8, _spectral(n, 20, 2.0, ax=.35, ay=1.0, lo=2))   # wet streaks run down
     col = col * (1 - .35 * wet[..., None])
     ao = (.35 + .65 * h) ** 1.2
     rough = (.92 - .5 * wet - .1 * h).clip(.3, 1)
     metal = np.clip(vein * .25, 0, 1)
-    _out(d, 'v_rock', col * 255, h, ao, rough, metal, 5.0)
+    _out(d, name, col * 255, h, ao, rough, metal, 5.0)
 
 
 def steel(d, n=1024):
@@ -116,6 +115,7 @@ def build(d):
     os.makedirs(d, exist_ok=True)
     for f in (rock, steel, floor, hazard):
         f(d)
+    rock(d, name='b_rock', base=(.34, .32, .30), alt=(.22, .21, .21), vein_a=(.70, .62, .50), vein_b=(.45, .5, .55))
 
 
 if __name__ == '__main__':
