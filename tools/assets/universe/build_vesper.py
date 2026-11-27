@@ -3,7 +3,8 @@
     python tools/assets/universe/build_vesper.py [outdir]
 
 Writes into void-runner/assets/models/vesper/:
-  vesper-workshop.glb  the workshop's outside: corrugated cladding over the existing walls, a low pitched roof with eaves, gutters and a ridge vent, roof plant
+  vesper-workshop.glb  the workshop's inside (batch B: bridge crane, pendant lamps at the existing lights, pegboard, shelving, compressor, air line, bins,
+                       lockers; objects wi_*) and outside: corrugated cladding over the existing walls, a low pitched roof with eaves, gutters and a ridge vent, roof plant
                        (condensers on a frame, water tank, vent stacks, cable tray, access ladder), the roller-door barrel and two flood lamps on the front header,
                        a generator skid, stacked spare hull panels, a thruster nozzle on a cradle and a parts rack on the east side, a salvage gantry with a hanging
                        engine block and a tyre stack on the west side, a horizontal fuel tank on a skid (in the existing fuel-tank footprint), and in the yard a
@@ -553,12 +554,157 @@ def roadkit():
     return B, groups
 
 
+# ------------------------------------------------------------------ workshop interior (batch B) ------------------------------------------------------------------
+def interior(B, groups):
+    """Inside the shop (walls' inner faces x = +-12.75, back wall z = -22.75, roof beams at y 5.7). Everything stays above head height, flat on the walls, or inside
+    existing solids (bench x -11.5..-8.5 z -15.5..-6.5; storage x 9..12 z -20.5..-15.5), clear of the interaction points and Mara's routes."""
+    mark = lambda: len(B.faces)
+    def group(name, start):
+        groups.setdefault(name, []).extend(range(start, len(B.faces)))
+
+    # --- overhead bridge crane: two runways on brackets along the side walls, a girder across at z -11, a trolley with a hoist block and hook ---
+    s0 = mark()
+    for sx in (-1, 1):
+        x = sx * 11.95
+        tinted(B, DARK)
+        B.box((x - .15, 4.95, -22.5), (x + .15, 5.25, .6), 'w_steel')                    # runway beam
+        B.box((x - .04, 4.65, -22.5), (x + .04, 4.95, .6), 'w_steel')                     # web
+        for z in np.arange(-21.0, 1.0, 4.0):
+            B.beam((sx * 12.7, 4.3, z), (x, 4.95, z), .14, .14, 'w_steel', up=(0, 0, 1))  # knee bracket from the column
+            B.box((min(x, sx * 12.72), 4.95, z - .12), (max(x, sx * 12.72), 5.05, z + .12), 'w_steel')
+        tinted(B, (.85, .2, .1))
+        for z in (-22.3, .4):
+            B.box((x - .12, 5.25, z - .1), (x + .12, 5.45, z + .1), 'w_paint')            # end stops
+    gz = -11.0
+    tinted(B, OCHRE)
+    B.box((-11.95, 5.25, gz - .32), (11.95, 5.75, gz + .32), 'w_paint')                  # girder (box section)
+    for sx in (-1, 1):
+        B.box((sx * 11.95 - .35, 5.15, gz - 1.0), (sx * 11.95 + .35, 5.6, gz + 1.0), 'w_paint')   # end trucks
+        tinted(B, DARK)
+        for dz in (-.7, .7):
+            B.cyl((sx * 11.95 - .2, 5.15, gz + dz), (sx * 11.95 + .2, 5.15, gz + dz), .14, 'w_grime', seg=10)
+        tinted(B, OCHRE)
+    tinted(B, (.9, .82, .1))
+    for x in np.arange(-11.0, 11.5, 1.6):                                                  # hazard blocks along the girder
+        B.box((x, 5.3, gz + .325), (x + .8, 5.7, gz + .33), 'w_paint', faces='n')
+        B.box((x, 5.3, gz - .33), (x + .8, 5.7, gz - .325), 'w_paint', faces='s')
+    tx = 3.2
+    tinted(B, DARK)
+    B.box((tx - .6, 4.85, gz - .55), (tx + .6, 5.25, gz + .55), 'w_grime')                # trolley
+    B.box((tx - .3, 4.2, gz - .3), (tx + .3, 4.85, gz + .3), 'w_grime')                   # hoist block
+    B.cyl((tx - .1, 4.2, gz), (tx - .1, 3.25, gz), .012, 'w_steel', seg=5, caps=False)
+    B.cyl((tx + .1, 4.2, gz), (tx + .1, 3.25, gz), .012, 'w_steel', seg=5, caps=False)
+    tinted(B, OCHRE)
+    B.box((tx - .16, 2.95, gz - .1), (tx + .16, 3.25, gz + .1), 'w_paint')                # hook block
+    tinted(B, DARK)
+    B.cyl((tx, 2.95, gz), (tx, 2.7, gz + .12), .04, 'w_steel', seg=8)
+    B.cyl((tx + .45, 4.4, gz + .35), (tx + .45, 2.1, gz + .35), .01, 'w_rubber', seg=4, caps=False)   # pendant control cord
+    tinted(B, OCHRE)
+    B.box((tx + .38, 1.85, gz + .3), (tx + .52, 2.1, gz + .4), 'w_paint')
+    group('wi_crane', s0)
+
+    # --- pendant work lamps at the shop's existing light positions (the scene's point lights now have visible sources) ---
+    s0 = mark()
+    # the last one hangs over the back wall: vesper.js adds its light (Medium and above) so the pegboard and shelving are not left black
+    for x, y, z in ((-5.0, 4.45, -15.0), (5.0, 4.45, -9.0), (-7.0, 3.3, -6.0), (7.0, 3.85, -1.2), (.5, 4.2, -20.4)):
+        tinted(B, DARK)
+        B.cyl((x, 5.75, z), (x, y + .3, z), .012, 'w_rubber', seg=4, caps=False)
+        tinted(B, (.35, .4, .36))
+        B.cyl((x, y + .3, z), (x, y, z), .07, 'w_paint', seg=12, r2=.32, caps=False)
+        B.cyl((x, y + .3, z), (x, y + .34, z), .08, 'w_paint', seg=12)
+        tinted(B, WHITE)
+        B.cyl((x, y + .1, z), (x, y + .02, z), .09, 'w_lens', seg=10)
+    group('wi_lamps', s0)
+
+    # --- back wall: pegboard with tools and a shelf, parts shelving, compressor, air line with hose reels ---
+    s0 = mark()
+    zb = -22.72
+    tinted(B, OLIVE)
+    B.box((-5.6, .95, zb), (1.6, 2.95, zb + .04), 'w_paint')
+    tinted(B, DARK)
+    B.box((-5.6, .9, zb), (1.6, .95, zb + .32), 'w_steel')
+    rng = np.random.default_rng(31)
+    for i in range(26):                                                                    # spanners, bars, a hammer: hung silhouettes
+        x = -5.3 + (i % 13) * .53 + rng.uniform(-.05, .05)
+        y0 = 1.25 + (i // 13) * .85
+        L = rng.uniform(.25, .6)
+        a = rng.uniform(-.15, .15)
+        tinted(B, [DARK, GREY, RED, DARK][i % 4])
+        B.beam((x, y0 + L, zb + .06), (x + math.sin(a) * L, y0, zb + .06), .045, .02, 'w_grime', up=(0, 0, 1))
+        if i % 5 == 0:
+            B.box((x - .07, y0 - .06, zb + .04), (x + .07, y0 + .02, zb + .09), 'w_grime')
+    for x in (-4.2, -1.6, .8):
+        tyre(B, x, 1.3, zb + .04, r=.16, w=.08, axis='z')                                   # coiled cable / hose loops
+    # parts shelving (0.45 m deep)
+    tinted(B, DARK)
+    for x in (2.4, 4.8, 7.2):
+        B.box((x - .04, 0, zb), (x + .04, 2.6, zb + .45), 'w_steel')
+    for y in (.15, .85, 1.55, 2.25):
+        B.box((2.4, y, zb), (7.2, y + .04, zb + .45), 'w_steel', faces='tb')
+        for k in range(6):
+            x = 2.6 + k * .76 + rng.uniform(-.05, .05)
+            if rng.random() < .8:
+                crate(B, x + .3, zb + .22, w=.55, h=rng.uniform(.22, .5), d=.38, y=y + .04, tint=[OLIVE, GREY, OCHRE, RED, BLUE][int(rng.integers(0, 5))])
+    # compressor (tank on feet, motor, belt guard) in the back right corner
+    tinted(B, RED)
+    B.cyl((9.6, .62, -22.2), (12.2, .62, -22.2), .38, 'w_paint', seg=16)
+    tinted(B, DARK)
+    for x in (9.9, 11.9):
+        B.box((x - .06, 0, -22.45), (x + .06, .3, -21.95), 'w_steel')
+    B.box((10.2, 1.0, -22.45), (11.0, 1.45, -21.95), 'w_grime')
+    B.cyl((11.4, 1.2, -22.2), (11.4, 1.2, -21.95), .22, 'w_grime', seg=14)
+    B.cyl((11.9, 1.0, -22.2), (11.9, 2.4, -22.6), .02, 'w_steel', seg=6, caps=False)
+    # air line along the back wall with two hose reels
+    tinted(B, (.25, .45, .62))
+    B.cyl((-12.4, 4.1, -22.6), (12.4, 4.1, -22.6), .03, 'w_paint', seg=8, caps=False)
+    for x in (-8.0, 1.0, 8.6):
+        B.cyl((x, 4.1, -22.6), (x, 3.3, -22.6), .02, 'w_paint', seg=6, caps=False)
+    tinted(B, DARK)
+    for x in (-8.0, 8.6):
+        B.cyl((x, 3.1, -22.72), (x, 3.1, -22.45), .3, 'w_grime', seg=14)
+        tinted(B, RED)
+        B.cyl((x, 3.1, -22.7), (x, 3.1, -22.47), .22, 'w_rubber', seg=12)
+        tinted(B, DARK)
+    # electrical distribution board
+    tinted(B, GREY)
+    B.box((-11.8, 1.4, zb), (-10.2, 2.9, zb + .22), 'w_paint')
+    tinted(B, WHITE)
+    for k in range(3):
+        B.box((-11.6 + k * .5, 2.6, zb + .221), (-11.5 + k * .5, 2.68, zb + .23), 'w_amber' if k else 'w_red', faces='n')
+    tinted(B, DARK)
+    for k in range(4):
+        B.cyl((-11.6 + k * .4, 2.9, zb + .1), (-11.6 + k * .4, 5.7, zb + .1), .025, 'w_steel', seg=6, caps=False)
+    group('wi_backwall', s0)
+
+    # --- left wall above the bench: parts bins on a rail; right wall: a bank of lockers between the light tubes ---
+    s0 = mark()
+    tinted(B, DARK)
+    B.box((-12.72, 2.35, -12.2), (-12.68, 2.4, -7.6), 'w_steel')
+    B.box((-12.72, 3.15, -12.2), (-12.68, 3.2, -7.6), 'w_steel')
+    for row, y in enumerate((2.4, 3.2)):
+        for k in range(7):
+            z = -12.0 + k * .63
+            tinted(B, [BLUE, RED, OCHRE, BLUE, GREY, OLIVE, BLUE][(k + row * 3) % 7])
+            B.box((-12.68, y, z), (-12.38, y + .3, z + .5), 'w_paint')
+    for k in range(3):
+        z0 = -8.35 + k * .92
+        tinted(B, [OLIVE, GREY, OLIVE][k])
+        B.box((12.33, 0, z0), (12.73, 2.1, z0 + .88), 'w_paint')
+        tinted(B, DARK)
+        for y in (1.75, 1.85, 1.95):
+            B.box((12.32, y, z0 + .15), (12.33, y + .03, z0 + .73), 'w_steel', faces='w')
+        B.box((12.31, .95, z0 + .7), (12.33, 1.15, z0 + .74), 'w_steel')
+    group('wi_walls', s0)
+    return groups
+
+
 def main(outdir=OUTDIR):
     os.makedirs(outdir, exist_ok=True)
     os.makedirs(TEXDIR, exist_ok=True)
     vesper_textures.build(TEXDIR)
     corr_texture(TEXDIR)
     B, groups = workshop()
+    interior(B, groups)          # the interior shares the exterior's texture set: one file, no duplicated maps
     n = B.write_objects(os.path.join(outdir, 'vesper-workshop.glb'), groups)
     print('vesper-workshop.glb faces', n)
     B, groups = roadkit()

@@ -3,7 +3,8 @@
    - prune(): before its static meshes are merged. Removes the loose scatter stones and scrub that would sit on the road (every tier) and, when the workshop model
      has loaded (Medium and above), the plain fuel cylinder the modelled tank replaces. Nothing functional is touched; the fuel-tank solid stays.
    - dress(): after the shadow setup. Adds the workshop model (tools/assets/universe/build_vesper.py, assets/models/vesper/vesper-workshop.glb: cladding, pitched roof,
-     roof plant, door barrel, flood lamps, generator, panels, nozzle, gantry with engine block, fuel tank, yard carts) on Medium and above, and the road on every tier:
+     roof plant, door barrel, flood lamps, generator, panels, nozzle, gantry with engine block, fuel tank, yard carts; inside: bridge crane, pendant lamps
+     at the existing lights plus one over the back wall (its point light is added here), pegboard, shelving, compressor, air line, bins, lockers) on Medium and above, and the road on every tier:
      a compacted regolith track with tyre ruts, soft shoulders, a parking apron, reflector posts, blank route signs and an open gate (vesper-roadkit.glb pieces).
    The road part is pure and runs in Node too: VoidVesper.road (centre line, width, usable length, parking spot, groundAt()) is what a vehicle drives on.
    If a model fails to load nothing is hidden and the old visuals stay; the road needs no model (its posts and signs are skipped without the kit). */
@@ -60,7 +61,7 @@
  };
  api.dress=({scene,parent,quality,shadow})=>{
   const B=root.BABYLON;if(!B||!parent)return null;const owned=[],nodes=[];
-  let model=null;if(quality!=='low'){model=root.VoidAssets?.instance?.(WORKSHOP.id,parent)||null;if(model){model.name='vesper-workshop-model';for(const m of model.getChildMeshes(false)){m.isPickable=false;m.checkCollisions=false;m.receiveShadows=true;if(shadow&&m.getTotalVertices()>0)shadow.addShadowCaster(m,false);}}else console.warn('[VOID Vesper] workshop model unavailable; the plain exterior stays');}
+  let model=null;if(quality!=='low'){model=root.VoidAssets?.instance?.(WORKSHOP.id,parent)||null;if(model){model.name='vesper-workshop-model';const back=new B.PointLight('vesper-backwall-lamp',new B.Vector3(.5,3.95,-20.4),scene);back.diffuse=B.Color3.FromHexString('#ffc884');back.intensity=30;back.range=11;back.parent=parent;owned.push(back);for(const m of model.getChildMeshes(false)){m.isPickable=false;m.checkCollisions=false;m.receiveShadows=true;if(shadow&&m.getTotalVertices()>0)shadow.addShadowCaster(m,false);}}else console.warn('[VOID Vesper] workshop model unavailable; the plain exterior stays');}
   try{nodes.push(...buildRoad({B,scene,parent,quality,owned}));}catch(e){console.warn('[VOID Vesper] road skipped',e.message);}
   return {model,dispose(){for(const n of nodes)n.dispose(false,false);for(const o of owned)o.dispose();}};
  };
