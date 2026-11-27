@@ -36,7 +36,7 @@ The owner asked for "a drivable road from there [the Vesper surface workshop] go
 
 ## The utility vehicle (merged in #631)
 
-`vesper.js` calls `VoidVehicle.configure('vesper', {groundHeight})` with `road.groundAt`, so the truck's wheels follow the road and terrain. Its parking spot (`vehicle-rules.js` `SPOTS.vesper`, x 19.5, z -8, east of the shop) and drivable area (the layout bounds) are left as the vehicle's own defaults; the road's parking apron at (38, 17.5) is an alternative spot if the owner prefers it beside the road. `tests/vesper-road.test.cjs` drives the vehicle's collision body along the whole walkable road and onto the apron. The thruster nozzle by the east wall was moved to z -14.6 so it stands clear of the truck.
+`vesper.js` calls `VoidVehicle.configure('vesper', {groundHeight})` with `road.groundAt`, so the truck's wheels follow the road and terrain. Its parking spot (`vehicle-rules.js` `SPOTS.vesper`, x 19.5, z -8, east of the shop) and drivable area (the layout bounds) are left as the vehicle's own defaults; the road's parking apron at (38, 17.5) is an alternative spot if the owner prefers it beside the road. `tests/vesper-road.test.cjs` drives the vehicle's collision body along the whole walkable road and onto the apron. Browser check (software GL, Medium): the truck entered at its door on the road at s = 40 m, driven with W, stayed on the road at height 0.02, not blocked (`docs/development/universe-graphics/vesper-road-truck.jpg`). Driving past the walkable x bound into the scenery stretch was not enabled: the player would step out beyond the walking area; that is an owner/vehicle decision (`inBounds` hook). The thruster nozzle by the east wall was moved to z -14.6 so it stands clear of the truck.
 
 ## Collision added
 
