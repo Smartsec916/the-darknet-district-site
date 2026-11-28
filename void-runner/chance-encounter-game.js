@@ -64,7 +64,7 @@
   }
   signal?.throwIfAborted();return play(figure,name,loop,speed);
  }
- async function lines(run,prefix,section,signal=run.signal,caption=announce){
+ async function lines(run,prefix,section,signal=run.signal,caption=announce,previewTarget){
   const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
   const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];
 
@@ -116,8 +116,8 @@
    return !signal.aborted;
   }
   const key=section||prefix;
-  await api.withSounds(run.sounds,run.graph.sectionSounds?.[key],signal,()=>api.runPlaylist(sections[key]||[],byId,{
-   signal,play:action,pause:delay,repeat,
+  await api.withSounds(run.sounds,previewTarget?undefined:run.graph.sectionSounds?.[key],signal,()=>api.runPlaylist(sections[key]||[],byId,{
+   signal,play:action,pause:delay,repeat,previewTarget,
    scope:(kind,item,local,work)=>api.withSounds(run.sounds,api.soundsFor(run.graph,key,kind,item),local,work)
   }));
  }
@@ -538,7 +538,7 @@
   // The encounter handles its own asset errors. The apartment still opens if a model is unavailable.
   return run.laceReady.catch(()=>{});
  }
- async function flat(run,jump){
+ async function flat(run,jump,opening=true){
   const a=address(run);preloadLace(run);
   if(jump&&run.private){
    run.openingFlat=true;
@@ -552,7 +552,7 @@
   await until(()=>typeof walkingLocation!=='undefined'&&walkingLocation?.part==='flat'&&walkingLocation.inst===a.target,run.signal);
   run.signal.throwIfAborted();run.entered=a.target;
   await (run.laceReady??=poseLace(run,a));
-  await lines(run,'arrival','opening');
+  if(opening)await lines(run,'arrival','opening');
  }
  async function releaseLace(run){
   if(!run.lace)await flat(run,true);
@@ -570,9 +570,9 @@
    if(t===1)break;await delay(30,run.signal);
   }
  }
- async function roleplay(run){
+ async function roleplay(run,preview){
   if(!run.lace)await flat(run,true);
-  if(await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
+  if(!preview&&await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
   if(run.rope){
    const rope=run.rope,meshes=rope.getChildMeshes(),start=performance.now();
    await until(()=>{
@@ -601,7 +601,8 @@
     run.pov={w,head,inst:walkingLocation.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
     head.computeWorldMatrix(true);const eye=head.getAbsolutePosition();
     w.yaw=Math.atan2(p.x-eye.x,p.z-eye.z);w.pitch=0;
-    await lines(phase,'be_kade');
+    await lines(phase,'be_kade',null,phase.signal,announce,preview?.target);
+    if(preview){announce('Playtest section complete.');run.sounds.finish();}
     await until(()=>walkingLocation?.inst!==run.pov?.inst,phase.signal);
    };
    await Promise.race([prompt(phase,'Playing as Kade Mercer',['Cancel and leave apartment']),animate()]);
@@ -721,26 +722,46 @@
    }catch(e){nextPoll=Date.now()+3000;console.warn('[Chance encounters]',e.message);}
   }
  }
- async function begin(graph,start,privateTest,token){
+ async function runTimeline(run,preview){
+  const {section,target}=preview;
+  if(run.graph.residence&&!run.graph.cast){
+   run.holds=true;await flat(run,true,false);
+   if(section==='be_kade')return roleplay(run,preview);
+   if(section==='free'){run.rope?.dispose();run.rope=null;}
+  }
+  await lines(run,section,section,run.signal,announce,target);
+  announce('Playtest section complete.');
+  run.sounds.finish();
+  await until(()=>false,run.signal);
+ }
+ async function begin(graph,start,privateTest,token,preview){
   stop();soundTail?.dispose();soundTail=null;const controller=new AbortController();
   const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
-  run.participating=graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
+  run.participating=!!preview||graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
   run.tracked=run.participating;running=run;
   const encounters=root.VoidChanceEncounter;
-  run.sounds=encounters.soundTimeline((cue,done)=>encounters.playSound(cue,done,privateTest));run.endSounds=run.sounds.open(graph.soundCues);
+  run.sounds=encounters.soundTimeline((cue,done)=>encounters.playSound(cue,done,privateTest));
+  if(!preview)run.endSounds=run.sounds.open(graph.soundCues);
   let completed=false;
   try{
    const location=graph.cast&&typeof walkingLocation!=='undefined'?walkingLocation:null;
    if(graph.cast?.length)await spawnCast(run);
-   const playback=runGraph(run,start);
+   const playback=preview?runTimeline(run,preview):runGraph(run,start);
    if(graph.id==='dropped-cardkey')await Promise.race([playback,watchApartment(run)]);
    else if(location)await Promise.race([playback,until(()=>walkingLocation!==location,run.signal)]);
    else await playback;
    completed=true;
   }finally{if(running===run)stop(completed);}
  }
- async function playtest(graph,start){
-  const errors=root.VoidChanceEncounter.validate(graph);if(errors.length)throw Error(errors.join(' '));
+ async function playtest(graph,start,preview){
+  const api=root.VoidChanceEncounter;
+  const errors=api.validate(graph,{sounds:!preview});
+  if(!errors.length&&preview){
+   const rows=api.dialogueSections(graph)[preview.section];
+   if(!rows?.length)throw Error('Choose a section with at least one action.');
+   errors.push(...api.previewSoundProblems(graph,preview.section,rows,new Map(graph.dialogue.map(row=>[row.id,row])),preview.target));
+  }
+  if(errors.length)throw Error(errors.join(' '));
   if(!graph.nodes.some(n=>n.id===start))throw Error('Choose a starting node.');
   const at=graph.playtest,scene=at.scene||root.VoidDistrictArea.KEY.street;
   const location=scene==='planet-low-quay'?'low-quay':'earth';
@@ -750,12 +771,12 @@
    async enter(){
     await enterWalking(scene,{silent:true,quarter:at.quarter,spawn:[at.x,1.7,at.z],yaw:at.yaw});
     if(typeof walker!=='undefined'&&walker)walker.pitch=at.pitch||0;
-    begin(graph,start,true).catch(e=>{if(e.name!=='AbortError')announce(e.message);});
+    begin(graph,start,true,undefined,preview).catch(e=>{if(e.name!=='AbortError')announce(e.message);});
    }});
   if(result.error||result.problem)throw Error(result.error||result.problem);
   const bar=document.getElementById('dev-test-banner');
   for(const old of bar.querySelectorAll('[data-chance-control]'))old.remove();
-  const controls=[['Restart Encounter',()=>playtest(graph,start)],['Stop Playtest',()=>{stop(true);root.VoidDevTest.exit();}]];
+  const controls=[['Restart Encounter',()=>playtest(graph,start,preview)],['Stop Playtest',()=>{stop(true);root.VoidDevTest.exit();}]];
   if(graph.item)controls.push(['Expire test keycard',()=>{
    if(!running?.private||!running.holds){announce('Collect the test keycard first.');return;}
    running.expiresAt=0;announce('Test keycard expired.');

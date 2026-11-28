@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — In-game encounter section start points
+
+On desktop, Start from this point opens a private in-game playtest at the selected dialogue section, main playlist, or chance playlist. It uses the encounter location and stages the cast or Lace, then plays the selected timeline with the game’s dialogue, animations and sound cues. Preview execution keeps the editor’s timing and branch trace available separately. Build `2026-11-27-encounter-in-game-start-points-1`.
+
 ## 27 Nov 2026 — Local files for encounter sound effects
 
 Each sound cue can import a local audio file or use the packaged library. Draft audio is stored in the authoring browser. Publishing uploads the audio through the existing content-addressed audio service, and live playback uses the Effects channel and the existing cue timing and loop controls. Build `2026-11-27-encounter-sound-import-1`.
