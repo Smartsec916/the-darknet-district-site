@@ -48,7 +48,7 @@ async function main(){
   const sdk=bundle.outputFiles[0].text;
   // Reuse the exact local Flask/API/Firestore bootstrap already covered by the Python suite.
   const proc=spawn('python',['-u','-c','from tests.test_character_emulator import CharacterEmulatorTests as C; import threading; C.setUpClass(); print(C.base,flush=True); threading.Event().wait()'],{cwd:root,stdio:['ignore','pipe','inherit']});
-  let browser,hub,fixture,staticHost;
+  let browser,secondBrowser,hub,fixture,staticHost;
   const lines=readline.createInterface({input:proc.stdout});
   try{
     const apiBase=await new Promise((resolve,reject)=>{
@@ -126,9 +126,14 @@ async function main(){
     await new Promise((resolve,reject)=>{fixture.once('error',reject);fixture.listen(5188,'127.0.0.1',resolve);});
     assert.equal((await fetch(origin+'/')).status,200,'fixture HTTP listener reachable');
     assert.equal((await fetch('http://127.0.0.1:'+hub.port+'/health')).status,200,'hub HTTP listener reachable');
-    browser=await chromium.launch({args:['--no-sandbox','--no-proxy-server',...(rendered?['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']:[])]});
-    async function session(){
-      const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1280,height:800},reducedMotion:'reduce'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[],assetFailures=[];
+    // Real gameplay sessions must not share Chromium's network/GPU process or
+    // be frozen merely because the other player is focused in CI. This changes
+    // only the test launcher, not the game's input or multiplayer implementation.
+    const args=['--no-sandbox','--no-proxy-server',...(rendered?['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']:[])];
+    browser=await chromium.launch({args});
+    if(rendered)secondBrowser=await chromium.launch({args});
+    async function session(owner=browser){
+      const ctx=await owner.newContext({serviceWorkers:'block',viewport:{width:1280,height:800},reducedMotion:'reduce'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[],assetFailures=[];
       page.on('pageerror',e=>errors.push(e.message));
       // Only local static paths/statuses, never headers, tokens or API payloads.
       page.on('response',response=>{const u=new URL(response.url());if(u.origin===origin&&staticAllowed(u.pathname)&&response.status()>=400&&assetFailures.length<30)assetFailures.push({path:u.pathname,status:response.status()});});
@@ -157,7 +162,7 @@ async function main(){
       await page.waitForFunction(()=>window.VoidAccount?.authStatus==='ready'&&!VoidAccount.user,{},{timeout:30000});
       return {ctx,page,errors,apiCalls,authCalls,socketEvents,assetFailures};
     }
-    const A=await session(),B=await session();
+    const A=await session(),B=await session(secondBrowser||browser);
     async function register(s,base){
       const email='browser-'+crypto.randomUUID()+'@example.test';
       const uid=await s.page.evaluate(async({email,password})=>{
@@ -229,7 +234,18 @@ async function main(){
       const end=Date.now()+10000;
       while(hub.hub.peers.size&&Date.now()<end)await new Promise(resolve=>setTimeout(resolve,25));
       assert.equal(hub.hub.peers.size,0,'raw fixture peers must leave before actual game startup');
+      // Keep raw-socket evidence separate from the real game phase.
+      hubEvents.length=0; A.socketEvents.length=0; B.socketEvents.length=0;
       const url=origin+'/void-runner.html?multiplayer=1&hub='+encodeURIComponent(hubUrl);
+      const connectionDiagnostic=async s=>({
+        ...(await s.page.evaluate(()=>({remote:window.VoidRemotePlayers?.diagnostics,
+          trace:window.VoidRemotePlayers?.trace,mode:typeof mode==='undefined'?null:mode,
+          pending:window.VoidAssets?.pending,focused:document.hasFocus(),
+          hidden:document.hidden,loopbackHub: /^ws:\/\/127\.0\.0\.1:\d+$/.test(window.VoidRemotePlayers?.hubUrl?.()||'')}))),
+        socketEvents:s.socketEvents.slice(-30),pageErrorCount:s.errors.length
+      });
+      const hubDiagnostic=()=>({events:hubEvents.slice(-40),sockets:hub.wss.clients.size,
+        peers:hub.hub.peers.size,placed:[...hub.hub.peers.values()].filter(p=>p.placed).length});
       async function enter(s,who){
         const page=s.page;page.setDefaultTimeout(240000);
         // The game deliberately ignores input in a background tab. A and B
@@ -264,7 +280,20 @@ async function main(){
           throw new Error('Rendered pod exit gate failed: '+JSON.stringify({diagnostic,assetFailures:s.assetFailures,pageErrorCount:s.errors.length}),{cause:e});
         }
       }
-      await enter(A,a);await enter(B,b);
+      async function enterAndConnect(s,who,label){
+        await enter(s,who);
+        // Distinguish socket/placement failure from mesh or animation failure.
+        // Neither real token validation nor the peer rendering assertions are bypassed.
+        try{
+          await s.page.waitForFunction(()=>window.VoidRemotePlayers?.connected,null,{timeout:120000,polling:200});
+          const deadline=Date.now()+15000;
+          while(!hub.hub.peers.get(who.uid)?.placed&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,50));
+          assert(hub.hub.peers.get(who.uid)?.placed,'actual game connection must be placed by hub');
+        }catch(e){
+          throw new Error('Rendered game connection '+label+' failed: '+JSON.stringify({client:await connectionDiagnostic(s),hub:hubDiagnostic()}),{cause:e});
+        }
+      }
+      await enterAndConnect(A,a,'A');await enterAndConnect(B,b,'B');
       const waitForPeer=(s,model)=>s.page.waitForFunction(model=>{
         const remote=window.VoidRemotePlayers,peer=remote?.peers[0];
         if(!remote?.connected||remote.peers.length!==1||!peer?.drawn||peer.model!==model||!VoidAssets.container('crowd:'+model))return false;
@@ -275,8 +304,8 @@ async function main(){
       },model,{timeout:120000,polling:200});
       try{await waitForPeer(A,b.model);await waitForPeer(B,a.model);}catch(e){
         const diagnostics=[];
-        for(const s of [A,B])diagnostics.push(await s.page.evaluate(()=>({remote:window.VoidRemotePlayers?.diagnostics,mode:typeof mode==='undefined'?null:mode,pending:window.VoidAssets?.pending})));
-        throw new Error('Rendered authenticated peer gate failed: '+JSON.stringify({diagnostics,assetFailures:[A.assetFailures,B.assetFailures]}),{cause:e});
+        for(const s of [A,B])diagnostics.push(await connectionDiagnostic(s));
+        throw new Error('Rendered authenticated peer gate failed: '+JSON.stringify({diagnostics,hub:hubDiagnostic(),assetFailures:[A.assetFailures,B.assetFailures]}),{cause:e});
       }
       assert.equal(hub.hub.peers.size,2);
       for(const who of [a,b])assert(hub.hub.peers.get(who.uid)?.placed,'authoritative hub must place the actual account');
@@ -308,7 +337,7 @@ async function main(){
       console.log('RENDERED_ACCOUNT_GATE_OK');
     }
   }finally{
-    try{if(browser)await browser.close();}finally{
+    try{try{if(secondBrowser)await secondBrowser.close();}finally{if(browser)await browser.close();}}finally{
       try{if(hub)await hub.close();}finally{try{if(fixture?.listening)await new Promise(resolve=>fixture.close(resolve));}finally{lines.close();proc.kill();if(staticHost)staticHost.kill();}}
     }
   }
