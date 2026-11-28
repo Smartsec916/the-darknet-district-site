@@ -4,7 +4,21 @@ const Campaign = require('../void-runner/campaign.js');
 const Comms = require('../void-runner/comms.js');
 const Traffic = require('../void-runner/traffic.js');
 const Nav = require('../void-runner/nav-coords.js');
+const Signals = require('../void-runner/signals.js');
+const Scan = require('../void-runner/warflying-scan.js');
+const WarFlying = require('../void-runner/warflying.js');
 const Freight = Campaign.districtFreight;
+
+test('Relay T-07 is a local scan contact with a stable, restorable identity', () => {
+  const id = 'satellite:relay-t07';
+  const source = Signals.source(id);
+  assert.equal(source.name, 'RELAY T-07');
+  assert.equal(source.localContact, true);
+  assert(!Scan.routeSources('earth', 'sol-belt').some(sample => sample.source.id === id));
+  const db = WarFlying.fresh();
+  assert.equal(WarFlying.observe(db, {sourceId:id, confidence:'confirmed', place:'sol:earth>sol-belt'}).points, 1);
+  assert.equal(WarFlying.restore(db).records[id].n, 'RELAY T-07');
+});
 
 function registeredPilot() {
   const state = Campaign.startDistrictCampaign(Campaign.fresh());

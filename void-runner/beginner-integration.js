@@ -61,6 +61,30 @@
  });
 
  let lane=null;
+ const relayName='RELAY T-07';
+ root.VoidDistrictRelayContact=()=>mode==='play'&&lane?.route===flight.route&&flight.route?.phase==='align'&&lane.relay&&lane.hop?.phase!=='warp'?lane.relay:null;
+ const drawLaneMarker=drawWarpMarker;
+ drawWarpMarker=function(){
+  const relay=root.VoidDistrictRelayContact();
+  if(!lane?.hop)drawLaneMarker();
+  if(!relay)return;
+  const color=relay.offline?'#99b7c1':'#55e0cc',p=flightPoint(relay);
+  if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){
+   drawNavigationEdge(relay,relayName,color);return;
+  }
+  ctx.save();ctx.translate(p.x,p.y);
+  ctx.lineWidth=2;ctx.strokeStyle=color;ctx.fillStyle=color;
+  if(relay.offline)ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(22,0);ctx.lineTo(0,22);ctx.lineTo(-22,0);ctx.closePath();ctx.stroke();
+  ctx.setLineDash([]);ctx.font='bold 12px monospace';ctx.textAlign='center';
+  ctx.fillText(relayName,0,38);
+  if(lane.hop?.aligned){
+   ctx.beginPath();ctx.arc(0,0,30,-Math.PI/2,-Math.PI/2+Math.PI*2*lane.hop.aligned/warpSpoolSeconds());ctx.stroke();
+  }
+  ctx.restore();
+ };
+ const drawLaneWarp=drawWarpEffect;
+ drawWarpEffect=function(route=flight.route){return drawLaneWarp(lane?.hop?.phase==='warp'?lane.hop:route);};
  const laneUpdate=update;
  update=function(dt){
   const route=flight.route;
@@ -79,8 +103,13 @@
    lane={route,panel,clock:0,passing:false,html:''};
    panel.addEventListener('click',e=>{
     const action=e.target.closest('button')?.value;
-    if(!action)return;
+    if(!action||lane.hop?.phase==='warp')return;
     if(action==='continue'){lane.passing=true;return;}
+    if(action==='target-relay'){
+     if(lane.hop){lane.hop=null;return;}
+     lane.hop={phase:'align',progress:0,aligned:0,policy:{kind:'local',seconds:2.5},encounter:{state:'cleared'},vector:FM.unit(lane.relay)};
+     clearInput();canvas.focus();return;
+    }
     if(action==='destroy'||action==='repair'){
      if(freight.relay(state,action)){save();hud();}
     }else if(freight.decide(state,action)){clearInput();save();}
@@ -91,15 +120,34 @@
   if(!lane.released){
    lane.released=true;document.exitPointerLock?.();clearInput();
    root.VoidTraffic.districtCouriers(ambientTraffic,flightBasis());
+   const v=route.vector;
+   lane.relay={x:v.x*113+v.z*35,y:v.y*113,z:v.z*113-v.x*35,signalId:'satellite:relay-t07'};
   }
   const flags=state.story.flags,offline=flags.districtRelayOffline===true;
+  lane.relay.offline=offline;
+  lane.relay.signature={total:offline?.7:1.5};
+  const hop=lane.hop;
+  if(hop){
+   if(hop.phase==='align')hop.vector=FM.unit(lane.relay);
+   const before=hop.phase;
+   VoidWarp.step(hop,dt,flightBasis().f,true,{held:VoidInput.down('warp'),seconds:warpSpoolSeconds()});
+   if(before!==hop.phase&&hop.phase==='warp')VoidAudio.event('warp',VoidFlightCraft.ship());
+   if(hop.phase==='arrived'){
+    for(const axis of ['x','y','z'])lane.relay[axis]=hop.vector[axis]*42;
+    lane.hop=null;lane.atRelay=true;
+    VoidAudio.event('exit',VoidFlightCraft.ship());
+    announce('ARRIVED · '+relayName);
+   }
+  }
   lane.clock+=dt;
   const traffic=freight.traffic(lane.clock,offline);
   const report=traffic.map(ship=>{
    const source=root.VoidSignals.source(ship.source);
    return '<div>'+escapeText(source?.name||'Freighter')+' · '+escapeText(ship.phase)+'</div>';
   }).join('');
-  const relay='<p>WarFlying relay · '+(offline?'OFFLINE':'ONLINE')+'</p>'+
+  const relay='<p>'+relayName+' · '+(offline?'OFFLINE':'ONLINE')+'</p>'+
+    (lane.hop?.phase==='warp'?'<p>Warping to '+relayName+'</p>':lane.hop?'<p>Align with '+relayName+' and hold '+escapeText(VoidInput.label(VoidInput.bindings.warp))+'</p><button value="target-relay">Cancel relay waypoint</button>':
+      lane.atRelay?'':'<button value="target-relay">Target '+relayName+'</button>')+
     (offline?'<button value="repair"'+(state.credits<15?' disabled':'')+'>Repair relay · 15 CR</button>':'<button value="destroy">Destroy relay</button>');
   const clearance=flags.districtClearance;
   let prompt='';
@@ -112,8 +160,10 @@
   else prompt='<p>'+(clearance==='escort'?'Escort route cleared · inspection at the Anchorage':clearance==='run'?'Stop refused · align and hold Warp':'Uncovered route · align and hold Warp')+'</p>';
   const html='<strong>TESSALY BELT FREIGHT LANE</strong>'+report+relay+prompt;
   if(lane.html!==html){lane.html=html;lane.panel.innerHTML=html;}
-  if(!clearance)route.recharge=Math.max(route.recharge||0,.2);
-  return laneUpdate(dt);
+  if(!clearance||lane.hop)route.recharge=Math.max(route.recharge||0,.2);
+  const result=laneUpdate(dt);
+  if(lane.hop?.phase!=='warp')moveRelative(lane.relay,flight.velocity,dt);
+  return result;
  };
  // State watcher (three times a second): offers, the V1, the KeyMap, boarding, launch, the jump and docking.
  const fire=name=>after(B.event(state,name,VoidMissions,C));

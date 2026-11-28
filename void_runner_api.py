@@ -266,34 +266,39 @@ def require_handle_if_guest(db, uid, message):
         raise ApiError(message, 403)
 
 
+def claim_character(db, ref, appearance):
+    """Claim the character field without competing read/write transaction locks."""
+    from google.api_core.exceptions import Conflict, FailedPrecondition, NotFound
+    record = {**appearance, 'createdAt': int(time.time())}
+    for _ in range(5):
+        snapshot = ref.get()
+        if (snapshot.to_dict() or {}).get('character'):
+            raise ApiError('This account already has a character.', 409)
+        try:
+            if snapshot.exists:
+                ref.update({'character': record}, option=db.write_option(last_update_time=snapshot.update_time))
+            else:
+                ref.create({'character': record})
+        except (Conflict, FailedPrecondition, NotFound):
+            # A competing creator or save changed the document. Re-read; never overwrite a winner.
+            continue
+        return record
+    if (ref.get().to_dict() or {}).get('character'):
+        raise ApiError('This account already has a character.', 409)
+    raise ApiError('Character creation is busy. Try again in a moment.', 503)
+
+
 @api.route('/character', methods=['GET', 'POST'])
 @signed_in
 def character(db, uid):
     """A single, account-bound character. Creation never changes a campaign save."""
-    from firebase_admin import firestore
     if request.method == 'GET':
         saved = player_ref(db, uid).get().to_dict() or {}
         extra = {'appearance': saved['appearance']} if saved.get('appearance') else {}
         return jsonify(character=saved.get('character'), **extra)
     require_handle_if_guest(db, uid, 'Register a District handle before creating a permanent character.')
     appearance = clean_character(request.get_json(silent=True), balance_admin(uid))
-    ref = player_ref(db, uid)
-
-    @firestore.transactional
-    def create(transaction):
-        saved = ref.get(transaction=transaction).to_dict() or {}
-        if saved.get('character'):
-            raise ApiError('This account already has a character.', 409)
-        record = {**appearance, 'createdAt': int(time.time())}
-        transaction.set(ref, {'character': record}, merge=True)
-        return record
-    try:
-        record = create(db.transaction())
-    except ValueError:
-        # Firestore gave up after repeated contention (several simultaneous creates). Never a 500: report what is now stored.
-        if (ref.get().to_dict() or {}).get('character'):
-            raise ApiError('This account already has a character.', 409)
-        raise ApiError('Character creation is busy. Try again in a moment.', 503)
+    record = claim_character(db, player_ref(db, uid), appearance)
     return jsonify(character=record), 201
 
 

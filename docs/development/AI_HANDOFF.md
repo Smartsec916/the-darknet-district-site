@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 28 Nov 2026 — Relay T-07 on the Tessaly freight lane
+
+On an active Servo-to-Anchorage freight run, Relay T-07 is a local WarFlying contact and a selectable warp waypoint. Target it in the lane panel, align with the diamond, and hold Warp to make the short approach jump. The port leg and Function clearance stay separate. The relay uses two Blender-authored GLBs. Destroying it plays the damaged model’s looping Service Panel Sparks clip and changes the marker and scan status to OFFLINE. Repair restores the functional model and the route uplink. The rebuild script is `tools/assets/build_relay_t07.py`.
+
 ## 28 Nov 2026 — District freight and WarFlying route prototype
 
 The owner’s [career and jurisdiction direction](AI_ROADMAP.md#2026-11-28-owner-direction--district-careers-and-jurisdiction) is the current plan for freight and free flight. The first local prototype uses the NeoChinatown Landing Terminal and Tessaly Belt Anchorage. The board opens after hull registration and offers legal and illicit loads. The route introduces two civilian couriers, a Function stop with a station-level manifest outcome, and a relay players can destroy or repair using a flight interaction. The outage interrupts existing WarFlying uploads on this lane. The prototype stores route and warrant state in campaign flags. Shared warrants, NPC and player tracking across sessions, independent bounty work, Admin’s exclusive stock, and faction commitments remain roadmap work. No approved dialogue or Relay broadcast script is changed.

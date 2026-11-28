@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/emulator-account-gate.yml'
       - 'tests/test_character_emulator.py'
+      - 'tests/test_void_runner_api.py'
+      - 'void_runner_api.py'
       - 'tests/district-hub-ws.cjs'
       - 'tests/emulator-browser-account.cjs'
       - 'tests/serve-modern.cjs'
