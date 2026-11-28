@@ -1,6 +1,6 @@
 /* LOW QUAY: the main alley and the food court (the owner's request, 27 Nov 2026).
    - The main alley runs straight north from the subway stairs (x -15..-10). Along its EAST side, the ground floor of the buildings is a row of shallow lit booths behind
-     tinted glass, softly lit deep red, magenta, purple and amber, curtains half drawn; each has floor space for a dancer to be added later. No people are added here.
+     tinted glass, softly lit red (BOOTH_LIGHT, owner 28 Nov 2026), curtains half drawn; each has floor space for a dancer to be added later. No people are added here.
      WINDOW_ANCHORS lists, per window, where a dancer would stand and which way she faces (yaw, radians; 0 = facing +z, -PI/2 = facing -x, i.e. out to the alley);
      that facing is the default (WINDOW_YAW), changeable per anchor (windowAnchors).
    - At the alley's north end (the end opposite the station) it opens into a food court: an open plaza of instanced food stalls, shared tables and stools, hanging coloured
@@ -13,12 +13,15 @@
  const ALLEY={x0:-15,x1:-10,z0:318,z1:410};
  const BOOTH={depth:2.6,height:3.6,width:3,pitch:4.5};   // the ground floor of the east-side buildings is set back BOOTH.depth for the booths
  const EAST_FACES=[[332,354],[358,384],[388,410]];          // the east-side blocks' faces on the alley (z ranges), all at x = ALLEY.x1
- const TINTS=['#8a0f2a','#b0156e','#5a1f9a','#b5601a'];       // deep red, magenta, purple, soft amber (never white)
- const WINDOWS=[];EAST_FACES.forEach(([a,b])=>{const n=Math.floor((b-a-1)/BOOTH.pitch),start=a+(b-a-n*BOOTH.pitch)/2+BOOTH.pitch/2;for(let i=0;i<n;i++)WINDOWS.push({z:start+i*BOOTH.pitch,tint:WINDOWS.length%TINTS.length});});
+ // The booths' light (owner, 28 Nov 2026: red, dim and sensual): one colour for the set, a default and not a rule. BOOTH_LIGHT.windows overrides it per window
+ // (index -> '#rrggbb'). It drives only the booths' own lit back wall, curtain glow, light strip and floor glow; no other Low Quay light reads it. Never white.
+ const BOOTH_LIGHT={color:'#8a0f2a',windows:{}};
+ const boothColor=i=>BOOTH_LIGHT.windows[i]||BOOTH_LIGHT.color;
+ const WINDOWS=[];EAST_FACES.forEach(([a,b])=>{const n=Math.floor((b-a-1)/BOOTH.pitch),start=a+(b-a-n*BOOTH.pitch)/2+BOOTH.pitch/2;for(let i=0;i<n;i++)WINDOWS.push({z:start+i*BOOTH.pitch});});
   // The facing is a default, not a rule (owner, 27 Nov 2026): WINDOW_YAW faces out to the alley; windowAnchors(yaw) builds the same anchors with another facing
  // (one value, or a function of the window's index), so a dancer added later can face any way the owner chooses. The tint is the booth's coloured light (never white).
  const WINDOW_YAW=-Math.PI/2;
- const windowAnchors=(yaw=WINDOW_YAW)=>WINDOWS.map((w,i)=>{const y=typeof yaw==='function'?yaw(i,w):yaw;return {id:'alley-window-'+i,x:ALLEY.x1+BOOTH.depth*.55,z:w.z,yaw:y,faces:y===WINDOW_YAW?'-x (out to the alley)':'custom',floor:'quay level (CITY_Y)',tint:TINTS[w.tint]};});
+ const windowAnchors=(yaw=WINDOW_YAW)=>WINDOWS.map((w,i)=>{const y=typeof yaw==='function'?yaw(i,w):yaw;return {id:'alley-window-'+i,x:ALLEY.x1+BOOTH.depth*.55,z:w.z,yaw:y,faces:y===WINDOW_YAW?'-x (out to the alley)':'custom',floor:'quay level (CITY_Y)',tint:boothColor(i)};});
  const WINDOW_ANCHORS=windowAnchors();
  const PLAZA={x0:-26,x1:22,z0:412,z1:451.5},U=4.5,BAND=4;   // the walkway is U above the court; bands BAND wide on the west, north and east
  const STAIR={z0:413,z1:425};                                 // the two flights (west and east bands) rise from z0 to z1
@@ -38,18 +41,18 @@
   STALLS.forEach((s,i)=>{const along=Math.abs(Math.sin(s.yaw))>.5;W('stall-'+i,s.x-(along?.8:1.7),s.x+(along?.8:1.7),s.z-(along?1.7:.8),s.z+(along?1.7:.8),1.2);});
   TABLES.forEach((t,i)=>W('table-'+i,t.x-.5,t.x+.5,t.z-1.6,t.z+1.6,.8));
   return S;}
- const api={ALLEY,BOOTH,EAST_FACES,TINTS,WINDOWS,WINDOW_YAW,windowAnchors,WINDOW_ANCHORS,PLAZA,U,BAND,STAIR,W_BAND,E_BAND,N_BAND,STALLS,TABLES,inBand,heightAt,inCourt,solids};
+ const api={ALLEY,BOOTH,EAST_FACES,BOOTH_LIGHT,boothColor,WINDOWS,WINDOW_YAW,windowAnchors,WINDOW_ANCHORS,PLAZA,U,BAND,STAIR,W_BAND,E_BAND,N_BAND,STALLS,TABLES,inBand,heightAt,inCourt,solids};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
 
  // ================= browser: the build (called from low-quay-city.js with its helpers; the quay ground is at Y) =================
  api.build=function(c){
   const {B,scene,parent,K,place,mat,glow,tex,sprite,owned,steel,dark,concD,conc,amber,Y,quality}=c,low=quality==='low',P=Math.PI,mid=(a,b)=>(a+b)/2;
   const S=K();
-  // ---------- the alley windows: one built booth per tint, placed along the east side ----------
+  // ---------- the alley windows: one built booth per booth colour (boothColor), placed along the east side ----------
   const {depth:bd,height:bh,width:bw,pitch}=BOOTH,X=ALLEY.x1;
   const frameM=mat('court-frame','#1a1418',{spec:.4,pow:60}),wallM=mat('court-booth-wall','#120c12',{spec:.1}),glassM=new B.StandardMaterial('lq-court-glass',scene);
   glassM.diffuseColor=B.Color3.FromHexString('#120a14');glassM.alpha=.32;glassM.specularColor=new B.Color3(.7,.5,.7);glassM.specularPower=140;glassM.backFaceCulling=false;owned.push(glassM);
-  const boothKits=TINTS.map((hex,k)=>{const t=tex('court-booth-'+k,256,256,(g,w,h)=>{const gr=g.createRadialGradient(w*.5,h*.62,8,w*.5,h*.6,w*.7);gr.addColorStop(0,hex);gr.addColorStop(.45,hex+'aa');gr.addColorStop(1,'#12060e');g.fillStyle=gr;g.fillRect(0,0,w,h);});
+  const colours=[...new Set(WINDOWS.map((w,i)=>boothColor(i)))],boothKits=colours.map((hex,k)=>{const t=tex('court-booth-'+k,256,256,(g,w,h)=>{const gr=g.createRadialGradient(w*.5,h*.62,8,w*.5,h*.6,w*.7);gr.addColorStop(0,hex);gr.addColorStop(.45,hex+'aa');gr.addColorStop(1,'#12060e');g.fillStyle=gr;g.fillRect(0,0,w,h);});
     const back=new B.StandardMaterial('lq-court-boothback-'+k,scene);back.diffuseColor=B.Color3.Black();back.emissiveTexture=t;back.disableLighting=true;back.specularColor=B.Color3.Black();t.level=1.8;owned.push(back);
     const cur=tex('court-curtain-'+k,128,256,(g,w,h)=>{g.clearRect(0,0,w,h);for(let x=0;x<w;x+=8){const a=.35+.3*Math.sin(x*.4);g.fillStyle='rgba(60,12,40,'+a.toFixed(2)+')';g.fillRect(x,0,8,h);}},true);
     const curM=new B.StandardMaterial('lq-court-curtain-'+k,scene);curM.diffuseTexture=cur;curM.useAlphaFromDiffuseTexture=true;curM.emissiveColor=B.Color3.FromHexString(hex).scale(.45);curM.specularColor=B.Color3.Black();curM.backFaceCulling=false;owned.push(curM);
@@ -62,7 +65,7 @@
     return k2.done('court-booth-'+k);});
   const pier=K();pier.box(frameM,bd+.1,bh+.4,pitch-bw,(bd+.1)/2-.05,(bh+.4)/2,0);const pierKit=pier.done('court-pier');
   for(const [a,b] of EAST_FACES){S.box(frameM,bd+.1,.4,b-a,X+(bd+.1)/2-.05,Y+bh+.2,mid(a,b));}   // the lintel over the row
-  WINDOWS.forEach((w,i)=>{place(boothKits[w.tint],X,Y,w.z);place(pierKit,X,Y,w.z+pitch/2);if(i===0||WINDOWS[i-1].z<w.z-pitch-1)place(pierKit,X,Y,w.z-pitch/2);});
+  WINDOWS.forEach((w,i)=>{place(boothKits[colours.indexOf(boothColor(i))],X,Y,w.z);place(pierKit,X,Y,w.z+pitch/2);if(i===0||WINDOWS[i-1].z<w.z-pitch-1)place(pierKit,X,Y,w.z-pitch/2);});
   // the face ends beyond the first and last window of each block
   for(const [a,b] of EAST_FACES){const ws=WINDOWS.filter(w=>w.z>a&&w.z<b),lo=ws[0].z-pitch/2,hi=ws[ws.length-1].z+pitch/2;if(lo-a>.05)S.box(frameM,bd+.1,bh+.4,lo-a,X+(bd+.1)/2-.05,Y+(bh+.4)/2,mid(a,lo));if(b-hi>.05)S.box(frameM,bd+.1,bh+.4,b-hi,X+(bd+.1)/2-.05,Y+(bh+.4)/2,mid(hi,b));}
   // ---------- the food court ----------

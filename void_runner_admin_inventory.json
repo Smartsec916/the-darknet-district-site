@@ -61821,7 +61821,7 @@
       "spawn"
     ]
   },
-  "revision": "cd9821cebda9ce5d",
+  "revision": "38c34fb64b23abe2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83983,7 +83983,7 @@
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/low-quay-city.js": "cb1459cac826f7d1996c6f43dee8ff80afbbd6fb9e858a63f8ff910882bbb83f",
     "void-runner/low-quay-club.js": "f21077af896f8aa9ef45e7466d11fe4972773816938f95ec0bd67fd36937936b",
-    "void-runner/low-quay-court.js": "4dbc9d8819176d7ea608ac75f15c734d977db6761a8010c95942d9b0ee9915f9",
+    "void-runner/low-quay-court.js": "2bb6a3aa19e3337d391849cf99478e895cb3786b50f4f89d419fc8f3ddfea8b3",
     "void-runner/low-quay.js": "0b7805c1e6c3c286b15f23bf2234201e344d220b377c22ccb6152e74e53dda24",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
     "void-runner/main-story.js": "43c23d30e6351665208bcc411a8ec0aea8cbb3d0a7f75abd53edd5eb0b545c49",

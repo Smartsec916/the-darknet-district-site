@@ -20,11 +20,22 @@ test('each window has a usable dancer anchor: inside its booth with room for a d
  assert.ok(CO.WINDOWS.length>=10);assert.equal(CO.WINDOW_ANCHORS.length,CO.WINDOWS.length);
  const DANCER=.35,valid=(a,w)=>[a.x,a.z,a.yaw].every(Number.isFinite)&&a.x>CO.ALLEY.x1+DANCER&&a.x<CO.ALLEY.x1+CO.BOOTH.depth-DANCER&&Math.abs(a.z-w.z)<CO.BOOTH.width/2-DANCER;
  CO.WINDOW_ANCHORS.forEach((a,i)=>{const w=CO.WINDOWS[i];assert.ok(valid(a,w),a.id+' stands inside its booth');assert.ok(!can(a.x,a.z),a.id+' (current build: booths not walkable)');
-  assert.ok(!/^#?(f{3}|f{6})$/i.test(a.tint)&&CO.TINTS.includes(a.tint),a.id+' coloured light, never white');});
+  assert.ok(!/^#?(f{3}|f{6})$/i.test(a.tint)&&a.tint===CO.boothColor(i),a.id+' coloured light, never white');});
  // the default faces out through the booth's glass to the alley (a component toward -x), whatever its exact angle
  assert.ok(CO.WINDOW_ANCHORS.every(a=>-Math.sin(a.yaw)>.5),'the default faces the alley');
  // any other facing the owner picks builds valid anchors too (one value, or one per window)
  for(const yaw of [0,Math.PI/2,Math.PI,-Math.PI*.75,-Math.PI/2+.4,(i)=>i*.7])CO.windowAnchors(yaw).forEach((a,i)=>{assert.ok(valid(a,CO.WINDOWS[i]),'yaw '+yaw+' '+a.id);assert.equal(a.yaw,typeof yaw==='function'?yaw(i):yaw);});
  // one side only: the alley's west side has no windows
  assert.ok(CO.WINDOWS.every(w=>w.z>CO.ALLEY.z0&&w.z<CO.ALLEY.z1));
+});
+// The owner (28 Nov 2026): the window booths are lit red. One setting for the set (BOOTH_LIGHT.color), overridable per window; a default, not a rule.
+test('the alley window booths are lit red by default, from one setting that can be changed per set or per window',()=>{
+ const red=h=>{const [r,g,b]=[1,3,5].map(k=>parseInt(h.slice(k,k+2),16));return r>=100&&r>2*g&&r>2*b;};
+ assert.match(CO.BOOTH_LIGHT.color,/^#[0-9a-f]{6}$/i);assert.ok(red(CO.BOOTH_LIGHT.color),'default booth light is red: '+CO.BOOTH_LIGHT.color);
+ CO.WINDOWS.forEach((w,i)=>assert.equal(CO.boothColor(i),CO.BOOTH_LIGHT.color,'window '+i+' uses the set colour'));
+ assert.ok(CO.WINDOW_ANCHORS.every(a=>red(a.tint)),'every anchor reports the red light');
+ const saved={...CO.BOOTH_LIGHT,windows:{...CO.BOOTH_LIGHT.windows}};
+ try{CO.BOOTH_LIGHT.windows[2]='#5a1f9a';assert.equal(CO.boothColor(2),'#5a1f9a');assert.equal(CO.boothColor(3),saved.color);
+  CO.BOOTH_LIGHT.color='#b0156e';assert.equal(CO.boothColor(0),'#b0156e');}
+ finally{CO.BOOTH_LIGHT.color=saved.color;CO.BOOTH_LIGHT.windows=saved.windows;}
 });
