@@ -44,7 +44,7 @@ const dir=path.resolve(__dirname,'..');
    await card.getByLabel('Level (%)').fill('40');await card.getByLabel('Level (%)').press('Tab');
    await card.getByText('Undo curve edit',{exact:true}).click();assert.equal(await card.getByLabel('Level (%)').inputValue(),'100');
    await card.getByText('Redo curve edit',{exact:true}).click();assert.equal(await card.getByLabel('Level (%)').inputValue(),'40');
-   await card.getByLabel('Interpolation').selectOption('smooth');await p.locator('.cs-bar').press('ArrowRight');
+   await card.getByLabel('Interpolation').selectOption('smooth');await p.getByRole('button',{name:'Running speed timing',exact:true}).press('ArrowRight');
    assert.equal(await p.locator('[data-place]').inputValue(),'street');
    await p.locator('[data-presets]').selectOption('visual/Extreme stimulant');await p.locator('[data-load]').click();
    await p.locator('[data-instant]').check();await p.locator('[data-split]').check();
