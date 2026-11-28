@@ -127,12 +127,13 @@
    const g=graph();if(!g){message.textContent=status;host.append(message);return;}
    bar.append(button('Duplicate',()=>newGraph(true)),button('Save draft',()=>send('save')));
    if(!tools.mobile)bar.append(button('Publish',()=>send('publish')),button('Delete',()=>send('delete')));
-   const launch=async(start)=>{
+   const launch=async(start,previewPoint)=>{
     const errors=api.animationSpeedProblems(g);
     if(errors.length){message.textContent=errors.join(' ');return;}
     try{
      sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
-     await root.VoidEncounterGame.playtest(structuredClone(g),start);
+     const snapshot=structuredClone({graph:g,previewPoint});
+     await root.VoidEncounterGame.playtest(snapshot.graph,start,snapshot.previewPoint);
     }
     catch(e){message.textContent=e.message;}
    };
@@ -885,7 +886,11 @@
        lane.append(heading);row.append(lane);keepOpen(lane,branch.actions[0]);
        const chanceFields=element('div');chanceFields.className='encounter-action-fields';lane.append(chanceFields);
        const run=sectionPreviews.get(sourceOf(line)?.section);
-       if(run&&branch.actions.length)chanceFields.append(startHere('Chance playlist '+(index+1),()=>run({branch})));
+       if(run&&branch.actions.length){
+        const label='Chance playlist '+(index+1),target={branch},section=sourceOf(line).section;
+        if(!tools.mobile)chanceFields.append(startHere(label,()=>launch(g.start,{section,target})));
+        chanceFields.append(button('Preview execution: '+label,()=>run(target)));
+       }
        const bounds=element('details');bounds.append(element('summary','Advanced chance settings'));lane.append(bounds);
        const boundFields=element('div');boundFields.className='encounter-action-fields';bounds.append(boundFields);
        lane.className='encounter-chance-playlist';
@@ -1052,7 +1057,9 @@
        lane=element('details');lane.className='encounter-main-playlist';section.append(lane);
        lane.append(element('summary','Main playlist '+(++playlistNumber)+' · '+segment.rows.length+' actions'));
        keepOpen(lane,key+':'+segment.key);
-       lane.append(startHere('Main playlist '+playlistNumber,()=>sectionPreviews.get(key)({segment})));
+       const label='Main playlist '+playlistNumber,target={segment};
+       if(!tools.mobile)lane.append(startHere(label,()=>launch(g.start,{section:key,target})));
+       lane.append(button('Preview execution: '+label,()=>sectionPreviews.get(key)(target)));
        duration(lane,()=>segmentTiming(segment));
        const soundKey=key+':'+segment.key;
        drawSounds(lane,'Main playlist sounds',()=>g.playlistSounds?.[soundKey],value=>soundMap('playlistSounds',soundKey,value));
@@ -1105,7 +1112,7 @@
      const status=element('output'),trace=element('ol');status.setAttribute('aria-live','polite');
      let active,controller;
      const stop=button('Stop execution preview',()=>controller?.abort());
-     const start=startHere(name,()=>run());
+     const start=button('Preview execution: '+name,()=>run());
      async function run(target){
       preview?.abort();previewSounds?.dispose();const runController=new AbortController();controller=preview=runController;
       const timeline=api.soundTimeline();previewSounds=timeline;
@@ -1153,6 +1160,7 @@
        if(preview===runController)preview=null;
       }
      }
+     if(!tools.mobile)toolsRow.append(startHere(name,()=>launch(g.start,{section:key})));
      toolsRow.append(start);panel.append(status,stop,trace);section.append(panel);
      return run;
     }
