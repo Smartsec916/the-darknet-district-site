@@ -95,8 +95,37 @@ function verifyPeerEvidence(appearance,assert){
   for(const [name,make,expected] of cases){const f=make();assert.equal(peerEvidence({model:f.model},f.root),expected,name);}
   return cases.length;
 }
+// The visible observer has its own active-play clock even while the other
+// browser receives keyboard input. Keep all campaign fields exact except for
+// the one documented clock flag, which must still advance at a bounded rate.
+function assertObserverCampaign(after,before,message,clock){
+  const {gameMin:oldMinute,capturedAt:oldTime,...oldCampaign}=before;
+  const {gameMin:newMinute,capturedAt:newTime,...newCampaign}=after;
+  assert.deepEqual(newCampaign,oldCampaign,message);
+  assert(Number.isSafeInteger(oldMinute)&&oldMinute>=0&&Number.isSafeInteger(newMinute)&&newMinute>=oldMinute,message+': invalid or reversed observer clock');
+  assert(Number.isFinite(oldTime)&&Number.isFinite(newTime)&&newTime>=oldTime,message+': invalid observer sampling times');
+  // The first tick after a sample may include up to MAX_STEP seconds from
+  // before the sample; the fractional clock also rounds to whole minutes.
+  const maxAdvance=Math.ceil(((newTime-oldTime)/1000+clock.MAX_STEP)*clock.RATE/60);
+  assert(newMinute-oldMinute<=maxAdvance,message+': observer clock exceeds local elapsed time');
+}
+function verifyObserverCampaign(clock){
+  const before={gameMin:17,capturedAt:1000,location:'earth',credits:100,quest:'inheritance',story:JSON.stringify({flags:{keymapSeen:true},events:[]}),model:'district-resident',uid:'observer'};
+  const after={...before,gameMin:29,capturedAt:61000};
+  assertObserverCampaign(before,before,'unchanged observer',clock);
+  assertObserverCampaign(after,before,'normal clock progress',clock);
+  const rejected=[
+    {gameMin:16},{gameMin:32},{gameMin:29.5},{gameMin:NaN},{capturedAt:999},
+    {credits:101},{story:JSON.stringify({flags:{keymapSeen:false},events:[]})},
+    {quest:'changed'},{location:'changed'},{model:'district-smuggler'},{uid:'other'}
+  ];
+  for(const patch of rejected)assert.throws(()=>assertObserverCampaign({...after,...patch},before,'observer isolation',clock));
+  return 2+rejected.length;
+}
 const evidenceCases=verifyPeerEvidence(require('../void-runner/character-appearance.js'),assert);
 console.log('PEER_EVIDENCE_CASES_OK '+evidenceCases);
+const campaignClock=require('../void-runner/game-clock.js');
+console.log('OBSERVER_CAMPAIGN_CASES_OK '+verifyObserverCampaign(campaignClock));
 if(process.argv.includes('--peer-evidence-only'))process.exit(0);
 const http=require('node:http'),crypto=require('node:crypto'),{spawn}=require('node:child_process'),readline=require('node:readline');
 const {create}=require('../tools/district-hub/emulator-providers.cjs');
@@ -405,7 +434,13 @@ async function main(){
       }
       assert.equal(hub.hub.peers.size,2);
       for(const who of [a,b])assert(hub.hub.peers.get(who.uid)?.placed,'authoritative hub must place the actual account');
-      const snap=s=>s.page.evaluate(()=>({location:state.location,credits:state.credits,quest:state.quest,story:JSON.stringify(state.story),model:VoidAccount.character.model}));
+      const snap=s=>s.page.evaluate(()=>{
+        const story=JSON.parse(JSON.stringify(state.story)),gameMin=story.flags.gameMin??0;
+        delete story.flags.gameMin;
+        return {location:state.location,credits:state.credits,quest:state.quest,
+          story:JSON.stringify(story),model:VoidAccount.character.model,uid:VoidAccount.user.uid,
+          gameMin,capturedAt:performance.now()};
+      });
       const before=await snap(A),start=await B.page.evaluate(()=>({x:walker.x,z:walker.z}));
       await B.page.bringToFront();
       try{
@@ -438,13 +473,14 @@ async function main(){
       await A.page.waitForFunction(()=>VoidRemotePlayers.peers[0]?.clip==='idle',null,{timeout:60000});
       const target=await B.page.evaluate(()=>({x:walker.x,z:walker.z}));
       await A.page.waitForFunction(p=>{const peer=VoidRemotePlayers.peers[0];return peer&&Math.hypot(peer.x-p.x,peer.z-p.z)<.35;},target,{timeout:60000});
-      assert.deepEqual(await snap(A),before,'other account walking must not change the observer campaign');
+      console.log('RENDERED_MOVEMENT_OK');
+      assertObserverCampaign(await snap(A),before,'other account walking must not change the observer campaign',campaignClock);
       assert.deepEqual([...A.errors,...B.errors],[]);
       // Removing one game page must remove only its peer, not the other account.
       await B.ctx.close();
       await A.page.waitForFunction(()=>VoidRemotePlayers.connected&&VoidRemotePlayers.peers.length===0,null,{timeout:60000});
       assert.equal(await A.page.evaluate(()=>VoidAccount.user.uid),a.uid);
-      assert.deepEqual(await snap(A),before,'disconnect must not change the observer campaign');
+      assertObserverCampaign(await snap(A),before,'disconnect must not change the observer campaign',campaignClock);
       console.log('RENDERED_ACCOUNT_GATE_OK');
     }
   }finally{

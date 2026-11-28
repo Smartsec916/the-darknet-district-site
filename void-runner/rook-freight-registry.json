@@ -47,6 +47,12 @@
       "hub": "holdfast",
       "surface": false,
       "gate": "orderDelivery"
+    },
+    "low-quay": {
+      "system": "stale",
+      "hub": "low-quay",
+      "surface": true,
+      "gate": null
     }
   },
   "goods": [
@@ -127,7 +133,8 @@
       "earth",
       "mars",
       "vigil",
-      "holdfast"
+      "holdfast",
+      "low-quay"
     ],
     "excluded": [],
     "cargo": [

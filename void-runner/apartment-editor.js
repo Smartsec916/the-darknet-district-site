@@ -18,10 +18,15 @@
  const categories=['Furniture','Plants','Decor','Lighting','Electronics','Other'];
  const localLibrary='../work/apartment-assets/';
  const privateLibrary='assets/models/apartment-library/';
+ // Convert the source units of these library models to apartment meters.
+ const libraryUnitScale=new Map([
+  ['d67d98425a6f406aaf3eb2a1a446a376',.02],
+  ['770cd4d0afad4e1eb223bec30a6a6738',.008]
+ ]);
  function localCatalog(rows,licensed=false){
   if(!Array.isArray(rows))return [];
   return rows.filter(r=>r&&/^[a-f0-9]{32}$/.test(r.id)&&typeof r.name==='string'&&r.name.trim()&&categories.includes(r.category))
-   .map(r=>({id:'local-'+r.id,name:r.name,category:r.category,origin:licensed?'Private library':'Local GLB',
+   .map(r=>({id:'local-'+r.id,name:r.name,category:r.category,unitScale:libraryUnitScale.get(r.id)??1,origin:licensed?'Private library':'Local GLB',
     src:licensed?privateLibrary+r.id+'.vrpak':localLibrary+r.id+'.glb'}));
  }
  const roomId=(door,slot)=>'apartment-design/'+door+'/'+slot;
@@ -237,9 +242,11 @@
   const inner=new B.TransformNode('apartment-placement-center',scene);inner.parent=node;
   for(const n of inst.rootNodes)n.parent=inner;
   const bounds=inner.getHierarchyBoundingVectors(true);
-  const dimensions=bounds.max.subtract(bounds.min).asArray();
+  const unitScale=asset.unitScale??1;
+  const dimensions=bounds.max.subtract(bounds.min).scale(unitScale).asArray();
   if(dimensions.some(n=>!Number.isFinite(n)||n<0)||Math.max(...dimensions)<.01){node.dispose(false,true);c.dispose();throw Error('The GLB has no usable mesh bounds.');}
-  inner.position.set(-(bounds.min.x+bounds.max.x)/2,-bounds.min.y,-(bounds.min.z+bounds.max.z)/2);
+  inner.scaling.setAll(unitScale);
+  inner.position.set(-(bounds.min.x+bounds.max.x)/2,-bounds.min.y,-(bounds.min.z+bounds.max.z)/2).scaleInPlace(unitScale);
   for(const mesh of node.getChildMeshes())mesh.isPickable=false;
   const colors=new Map();
   for(const mesh of node.getChildMeshes()){

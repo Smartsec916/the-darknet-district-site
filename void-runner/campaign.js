@@ -182,12 +182,16 @@
   const rookRunBase={ id: 'rook-run', name: 'Rook freight run', cargo: 'Rook freight', legal: true, destination: 'meridian', reward: 500, enemies: 4, tier: 1, duration: 36, contact: 'Rook', briefing: 'Rook always has another crate that needs to be somewhere else.' };
   function rookRunNumber(s){return (Number.isSafeInteger(s.story?.flags?.rookRuns)?s.story.flags.rookRuns:0)+1;}
   // Rook runs no freight to Vesper or the faction homeworlds, nor into a system Admin's delivery hasn't opened.
-  function rookPool(s){const u=s.universe||U.fresh();return Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&!RC.never.includes(id)&&Object.hasOwn(stations,id)&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));}
+  function rookPool(s){return Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&!RC.never.includes(id)&&rookReachable(s,id));}
+  /* One reachability rule for both of Rook's boards (the older routine board and the District board) and the server freight desk (void_runner_freight.py eligible):
+     a known place, in a known system, whose warp marker (the system's hub) is known unless it is Meridian's own system, and not held by Admin's delivery.
+     Low Quay (Stale System) follows it like every other place: offered once discovered, skipped while it is not (27 Nov 2026; it was on the never list). */
+  function rookReachable(s,id){const u=s.universe||U.fresh(),known=u.discoveredLocations||[],sys=U.system(id);return Object.hasOwn(stations,id)&&known.includes(id)&&(u.discoveredSystems||[]).includes(sys)&&(sys===U.system('meridian')||known.includes(U.systems[sys]?.hub))&&!heldForAdmin(s,sys);}
   function rookRunTarget(s){
     const u=s.universe||U.fresh(),served=String(s.story?.flags?.rookSystems||'erebus').split(',');
-    const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location&&!heldForAdmin(s,id));
+    const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location&&rookReachable(s,U.systems[id].hub));
     if(fresh)return U.systems[fresh].hub;
-    const pool=Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&id!=='vesper'&&id!=='nexus'&&id!=='order-homeworld'&&id!==s.location&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));
+    const pool=Object.keys(U.locations).filter(id=>U.locations[id].type!=='arrival'&&!U.locations[id].placeholder&&id!=='vesper'&&id!=='nexus'&&id!=='order-homeworld'&&id!==s.location&&rookReachable(s,id));
     return pool.length?pool[(rookRunNumber(s)-1)%pool.length]:'meridian';
   }
   // The board for the next run: one routine job at first, two from the second run, three from the fourth.
@@ -205,7 +209,7 @@
      each to a different reachable place (a known place in a known system whose warp marker is known, never Vesper, a homeworld or Meridian, nor a system Admin's
      delivery holds), with generated cargo, hold spaces (never more than the ship holds) and distance-based pay. Seeded by the player's story.flags.rookSeed and the
      run number, so a reload never rerolls it; each finished run brings a new board. */
-  function districtPool(s){const u=s.universe||U.fresh(),known=u.discoveredLocations||[];return rookPool(s).filter(id=>(u.discoveredSystems||[]).includes(U.system(id))&&(U.system(id)===U.system('meridian')||known.includes(U.systems[U.system(id)].hub)));}
+  function districtPool(s){return rookPool(s);}
   function districtBoard(s){
     const n=rookRunNumber(s),served=String(s.story?.flags?.rookSystems||'erebus').split(','),capacity=P.systems(s).cargo;
     return RG.board({seed:RG.seedOf(s),number:n,kinds:[...new Set(RC.districtBoard)],pool:districtPool(s),capacity,served}).map(g=>({...rookJobOffer(n,g.kind,g.destination),cargo:g.cargo,units:g.units,payment:g.payment,title:g.title,weightKg:g.weightKg,procedural:true,side:true}));
@@ -591,7 +595,7 @@
       }
     };
   }
-  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, rookOpen, districtBoard, districtPool, rookGen: RG, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookReachable, rookJobs, rookBoard, rookOpen, districtBoard, districtPool, rookGen: RG, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   api.districtFreight={jobs:freightJobs,available:freightAvailable,job:freightJob,accept:freightAccept,cancel:freightCancel,decide:freightDecision,relay:freightRelay,traffic:freightTraffic};
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
