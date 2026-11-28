@@ -11,6 +11,13 @@ test('apartment addresses exclude mission buildings and occupied units',()=>{
  assert.ok(available.find(d=>d.id===other.id).slots.includes(0));
  assert.notEqual(D.roomId(other.id,0),D.roomId(other.id,1));
 });
+test('NPC home editing includes assigned residents even on a mission street, but excludes player units',()=>{
+ const door=A.door('apt-road-n-27');
+ const rows=new Map([[door.id,{missions:[{id:'test'}],residents:[{id:'resident',name:'Resident',slot:1},{id:'shared',name:'Shared',slot:2}],players:[{slot:2}]}]]);
+ const homes=D.available(A,rows,true);
+ assert.deepEqual(homes.find(d=>d.id===door.id).slots,[1]);
+ assert.equal(homes.find(d=>d.id===door.id).units[0].residents[0].name,'Resident');
+});
 test('placement guide reserves entrances, interaction routes, and existing furniture in every layout',()=>{
  for(const style of A.STYLE_IDS){
   const def=A.layout('flat',style),guide=D.guideFor(A,E,def);

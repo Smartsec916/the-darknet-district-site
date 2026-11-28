@@ -10,6 +10,8 @@ Later the same day: every door is an automatic sliding door; an access point bes
 
 Open **Dev Tools → Apartment Editor**. Pick a neighborhood, an available street entrance, and an apartment number. **Go to street door** starts a private editor session facing that door. Enter the building as usual and walk to the selected apartment. The editor opens inside.
 
+To edit an assigned residence, choose **NPC homes** under **Apartment type**, then select the resident by name. The editor fills in their street entrance and apartment number. The same private session opens the NPC’s layout, including its resident positions. These designs save in this browser.
+
 - Use **Finishes and lighting** to recolor the walls, floor, bedding, furniture finishes, and trim. The **VR bedroom-inspired palette** starts with muted finishes and warm lighting. Adjust the light color and brightness from there.
 - Use **Asset Finder** to search by name, category, or source. Select an asset and choose **Place selected asset**. Move the marker over the floor plan and click to place it. The placed asset controls let you fine-tune its position, height, rotation, scale, and tint.
 - Red areas reserve existing furniture, door clearance, interaction approaches, and routes to the standard resident positions. A red asset marker shows a placement conflict. A teal marker shows a clear placement. Use **Walk room** to check how it feels in first person.

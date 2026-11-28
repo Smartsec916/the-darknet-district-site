@@ -24,7 +24,7 @@ function wave(){
   await page.addInitScript(()=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:'low',v:2,chosen:true})));
   const panel=page.getByRole('dialog',{name:'Apartment Editor',exact:true});
   const entry=page.locator('.apt-editor-browser');
-  async function open(doorId,slot){
+  async function open(doorId,slot,type='vacant'){
    await page.goto('http://localhost/void-runner.html');
    await page.waitForFunction(()=>VoidStartup?.started);
    await page.evaluate(()=>{
@@ -34,12 +34,16 @@ function wave(){
     VoidDevTools.tab='apartments';devPanel.hidden=false;VoidDevTools.render();
    });
    await page.waitForFunction(()=>!document.querySelector('.apt-editor-browser button')?.disabled);
-   if(doorId){
-    await entry.locator('select').nth(0).selectOption(A.door(doorId).quarter);
-    await entry.locator('select').nth(1).selectOption(doorId);
+   await entry.getByLabel('Apartment type').selectOption(type);
+   if(type==='npc'){
+    await entry.getByLabel('NPC home',{exact:true}).selectOption(D.roomId(doorId,slot));
+    assert.equal(await entry.getByLabel('Street entrance').inputValue(),doorId);
+   }else if(doorId){
+    await entry.getByLabel('Neighborhood').selectOption(A.door(doorId).quarter);
+    await entry.getByLabel('Street entrance').selectOption(doorId);
    }
-   const door=await entry.locator('select').nth(1).inputValue();
-   await entry.locator('select').nth(2).selectOption(String(slot));
+   const door=await entry.getByLabel('Street entrance').inputValue();
+   await entry.getByLabel('Apartment number').selectOption(String(slot));
    await page.getByRole('button',{name:'Go to street door'}).click();
    await page.waitForFunction(()=>VoidDevTest.active&&walkingLocation?.area==='street');
    await page.waitForFunction(id=>walkTarget?.action==='apt-door'&&walkTarget.door===id,door);
@@ -47,6 +51,7 @@ function wave(){
    await page.waitForFunction(()=>walkingLocation?.part==='hall');
    const selected=await page.evaluate(()=>walkingLocation.open.find(r=>r.id.startsWith('apartment-design/')));
    assert.equal(selected.slot,slot);
+   assert.equal(await page.evaluate(i=>walkingLocation.open.filter(r=>r.slot===i).length,slot),1);
    await page.evaluate(i=>{const it=walkingLocation.interactions.find(x=>x.id==='hall-door-'+i);
     walker.x=it.position[0];walker.z=it.position[2]-.45;walker.yaw=0;},slot);
    await page.waitForFunction(id=>walkTarget?.id===id,'hall-door-'+slot);
@@ -98,6 +103,12 @@ function wave(){
   assert.equal(await page.evaluate(()=>VoidBabylon.zone.finishColor('wall').toUpperCase()),'#A190A5');
   await panel.getByText('Apartment music',{exact:true}).click();
   await panel.getByText('room-track.wav',{exact:true}).waitFor();
-  assert.deepEqual(errors,[]);console.log('Saved palette, GLB and audio reopened after reload.');
+  console.log('Saved palette, GLB and audio reopened after reload.');
+  await open('apt-road-n-34',2,'npc');
+  assert.deepEqual(await page.evaluate(()=>walkingLocation.residents),['pixel']);
+  assert.equal(await page.evaluate(()=>walkingLocation.inst),'residence/apt-road-n-34/2');
+  await panel.getByRole('button',{name:'Save apartment'}).click();
+  await panel.getByText('Apartment saved in this browser.').waitFor();
+  assert.deepEqual(errors,[]);console.log('Pixel’s assigned home opened as a single unit and saved privately.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

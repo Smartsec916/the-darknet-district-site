@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Edit assigned NPC homes
+
+Apartment Editor has an **NPC homes** mode with a resident picker that fills the address and apartment number. The private test session opens the selected residence with its assigned residents and reserves their standard approaches in the placement guide. Edits save in the existing local apartment design store. Build `2026-11-27-npc-apartment-editor-1`.
+
 ## 27 Nov 2026 — Apartment Editor
 
 Dev Tools opens a private visit to an unreserved apartment from its street door. The room editor includes a VR bedroom-inspired palette, finish and light controls, a categorized GLB Asset Finder, per-room music, and red placement checks for walls, furniture, doors, interaction approaches, and standard resident routes. IndexedDB stores designs and imported files per developer account on this browser. Blender and Meshy use self-contained GLB exports. See [Editing a vacant apartment](APARTMENTS.md#editing-a-vacant-apartment). Build `2026-11-27-apartment-editor-1`.

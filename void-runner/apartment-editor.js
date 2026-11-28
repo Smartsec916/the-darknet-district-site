@@ -25,12 +25,13 @@
     src:licensed?privateLibrary+r.id+'.vrpak':localLibrary+r.id+'.glb'}));
  }
  const roomId=(door,slot)=>'apartment-design/'+door+'/'+slot;
- function available(A,rows){
+ function available(A,rows,npc=false){
   return A.doors().flatMap(door=>{
    const row=rows.get(door.id),players=row?.players||[],type=A.entranceType(door,row,players);
-   if(type==='mission'||type==='commercial')return [];
-   const slots=A.propertyRecord(door,row,players).units.filter(u=>!u.residents.length&&!u.players.length).map(u=>u.slot);
-   return slots.length?[{...door,slots}]:[];
+   if(!npc&&(type==='mission'||type==='commercial'))return [];
+   const units=A.propertyRecord(door,row,players).units
+    .filter(u=>!u.players.length&&(npc?u.residents.length>0:!u.residents.length));
+   return units.length?[{...door,slots:units.map(u=>u.slot),units}]:[];
   });
  }
  function footprint(item,dimensions){
@@ -64,7 +65,7 @@
    if(path)trace([spawn,...path.map(p=>({x:p.x-ox,z:p.z-oz}))]);
   }
   for(const item of def.interactions)reserveApproach(item.position[0],item.position[2]);
-  for(const index of [0,1]){
+  for(let index=0;index<Math.max(2,def.residents?.length||0);index++){
    const spot=A.residenceSpot(def.style,index);
    if(spot)reserveApproach(spot[0]+ox,spot[1]+oz);
   }
@@ -111,43 +112,66 @@
   });
   if(uid!==owner()||!tools().authorized)throw Error('Developer account changed.');
   if(!registry.complete)throw Error('Could not verify all mission and property reservations. Retry the address lookup.');
-  return available(A(),registry.rows);
+  return registry.rows;
  }
  function render(host){
   if(!document.getElementById('apartment-editor-style')){
    const style=el('link');style.id='apartment-editor-style';style.rel='stylesheet';style.href='void-runner/apartment-editor.css';document.head.append(style);
   }
   const panel=el('section');panel.className='apt-editor-browser';host.append(panel);
-  panel.append(el('h3','Apartment Editor'),el('p','Select an available street entrance and apartment number. Designs and imported files are saved in this browser.'));
-  const district=el('select'),door=el('select'),unit=el('select'),note=el('p');note.role='status';
-  let doors=[],chosen;
+  panel.append(el('h3','Apartment Editor'),el('p','Choose a vacant apartment or an NPC home. Designs and imported files are saved in this browser.'));
+  const type=el('select'),resident=el('select'),district=el('select'),door=el('select'),unit=el('select'),note=el('p');note.role='status';
+  resident.setAttribute('aria-label','NPC home');
+  const residentField=field('NPC home',resident);residentField.hidden=true;
+  type.append(option('Vacant apartments','vacant'),option('NPC homes','npc'));
+  let rows,doors=[],chosen;
   const go=button('Go to street door',attempt(panel,async()=>{
    go.disabled=true;
-   try{await start(chosen,Number(unit.value));}finally{go.disabled=false;}
+   try{await start(chosen,Number(unit.value),type.value==='npc');}finally{go.disabled=false;}
   }));
-  panel.append(field('Neighborhood',district),field('Street entrance',door),field('Apartment number',unit),go,note);
+  panel.append(field('Apartment type',type),residentField,field('Neighborhood',district),field('Street entrance',door),field('Apartment number',unit),go,note);
+  const syncResident=()=>{if(type.value==='npc')resident.value=chosen?roomId(chosen.id,Number(unit.value)):'';};
   function units(){
    chosen=doors.find(d=>d.id===door.value);
-   unit.replaceChildren(...(chosen?chosen.slots.map(i=>option(String(A().slotNumber(i,chosen.style)),String(i))):[]));
-   go.disabled=!chosen;
+   unit.replaceChildren(...(chosen?.units||[]).map(u=>option([u.number,...u.residents.map(r=>r.name)].join(' · '),String(u.slot))));
+   go.disabled=!chosen;syncResident();
   }
   function entrances(){
    door.replaceChildren(...doors.filter(d=>d.quarter===district.value).map(d=>option(d.name+' · '+d.number,d.id)));units();
   }
-  district.onchange=entrances;door.onchange=units;
-  const load=attempt(panel,async()=>{
-   go.disabled=true;setStatus(panel,'Checking available street entrances…');
-   doors=await addresses(owner());if(!panel.isConnected)return;
+  district.onchange=entrances;door.onchange=units;unit.onchange=syncResident;
+  resident.onchange=()=>{
+   const home=doors.find(d=>d.units.some(u=>roomId(d.id,u.slot)===resident.value));
+   if(!home)return;
+   const id=resident.value;
+   district.value=home.quarter;entrances();door.value=home.id;units();
+   unit.value=String(home.units.find(u=>roomId(home.id,u.slot)===id).slot);syncResident();
+  };
+  function filterHomes(){
+   if(!rows)return;
+   const npc=type.value==='npc';
+   doors=available(A(),rows,npc);
+   residentField.hidden=!npc;
+   if(npc){
+    const homes=doors.flatMap(d=>d.units.map(u=>option(u.residents.map(r=>r.name).join(', ')+' · '+u.number,roomId(d.id,u.slot))));
+    homes.sort((a,b)=>a.text.localeCompare(b.text));resident.replaceChildren(...homes);
+   }
    const quarters=[...new Set(doors.map(d=>d.quarter))];
    district.replaceChildren(...quarters.map(q=>option(root.VoidNeoChinatown?.quarter?.(q)?.name||q.replaceAll('-',' '),q)));
-   entrances();setStatus(panel,doors.length?'':'No available apartments were found.');
+   entrances();setStatus(panel,doors.length?'':npc?'No NPCs have an editable home assigned.':'No vacant apartments were found.');
+  }
+  type.onchange=filterHomes;
+  const load=attempt(panel,async()=>{
+   go.disabled=true;setStatus(panel,'Checking available street entrances…');
+   rows=await addresses(owner());if(panel.isConnected)filterHomes();
   });
   panel.append(button('Refresh addresses',load));load();
  }
- async function start(door,slot){
+ async function start(door,slot,npc){
   const uid=owner();
   if(!uid||!door||!A().geo(door.style).HALL.slots.some(s=>s.i===slot))throw Error('Choose an available apartment.');
-  if(!(await addresses(uid)).some(d=>d.id===door.id&&d.slots.includes(slot)))throw Error('This entrance or apartment is now reserved.');
+  const unit=available(A(),await addresses(uid),npc).find(d=>d.id===door.id)?.units.find(u=>u.slot===slot);
+  if(!unit)throw Error('This apartment is no longer available for editing.');
   const id=roomId(door.id,slot),design=await record('rooms',uid,id)||fresh(),assets=await record('assets',uid,null);
   const library=new Map();
   try{
@@ -157,7 +181,7 @@
   if(['localhost','127.0.0.1','[::1]'].includes(location.hostname)){
    try{const response=await fetch('work/apartment-assets/catalog.json');if(response.ok)for(const asset of localCatalog(await response.json()))library.set(asset.id,asset);}catch{}
   }
-  const target={id,key:id,door:door.id,residenceSlot:slot,number:A().slotNumber(slot,door.style),style:door.style,items:[]};
+  const target={id,key:npc?A().residenceKey(door.id,slot):id,door:door.id,residenceSlot:slot,number:unit.number,style:door.style,items:[],residents:unit.residents.map(r=>r.id)};
   const result=await root.VoidDevTest.session({kind:'apartment-editor',banner:'APARTMENT EDITOR · '+door.name+' / '+target.number,leave:'Exit Apartment Editor',
    build(){const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.districtBadge=true;return s;},
    async enter(){
@@ -184,7 +208,7 @@
   if(!bus)throw Error('Enable game audio to play this track.');
   const run=s.musicRun;
   await bus.context.resume();
-  if(session!==s||run!==s.musicRun||!s.room||walkingLocation?.inst!==s.id)return;
+  if(session!==s||run!==s.musicRun||!s.room||walkingLocation?.inst!==s.target.key)return;
   const url=URL.createObjectURL(s.design.music),element=new Audio(url);
   element.loop=true;
   const node=bus.context.createMediaElementSource(element),gain=bus.context.createGain();
@@ -386,7 +410,7 @@
   if(owner()!==s.uid||!tools().authorized||!root.VoidDevTest?.active){
    if(s.room)disposeRoom(s);A().setPreview(null);session=null;return;
   }
-  const room=typeof walkingLocation!=='undefined'&&walkingLocation?.inst===s.id&&currentZone()?.decorate?currentZone():null;
+  const room=typeof walkingLocation!=='undefined'&&walkingLocation?.inst===s.target.key&&currentZone()?.decorate?currentZone():null;
   if(s.room&&room!==s.room)disposeRoom(s);
   if(room&&!s.room){
    s.room=room;s.location=walkingLocation;s.guide=guideFor(A(),root.VoidNPCEscort,s.location);room.decorate(s.design);

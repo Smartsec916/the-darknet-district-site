@@ -26,7 +26,8 @@
   box-sizing: border-box;
 }
 #apartment-editor-room[hidden],
-#apartment-editor-return[hidden] { display: none; }
+#apartment-editor-return[hidden],
+.apt-editor-browser [hidden] { display: none; }
 #apartment-editor-room .apt-editor-heading {
   position: sticky;
   top: -1rem;
