@@ -53,13 +53,23 @@ async function main(){
       proc.once('error',e=>{clearTimeout(timer);reject(e);});
       proc.once('exit',code=>{clearTimeout(timer);reject(new Error('local API exited '+code));});
     });
-    hub=await start({identify:t=>providers.identify(t)});
+    const hubEvents=[];
+    hub=await start({identify:t=>providers.identify(t),log:(event,...args)=>{
+      // Record only transport event names and close codes, never auth tokens or account identifiers.
+      if(event==='leave')hubEvents.push('leave:'+args[1]);
+      else if(event==='identified')hubEvents.push('identified:'+args[0]);
+      else hubEvents.push(event);
+    }});
     const hubUrl='ws://127.0.0.1:'+hub.port;
     browser=await chromium.launch({args:['--no-sandbox']});
     async function session(){
-      const ctx=await browser.newContext({serviceWorkers:'block'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[];
+      const ctx=await browser.newContext({serviceWorkers:'block'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[];
       page.on('pageerror',e=>errors.push(e.message));
-      await ctx.route('**/*',async route=>{
+      // Do not intercept the real hub WebSocket upgrade with the HTTP fixture route.
+      // External HTTP(S) is still blocked; only the exact fixture origin is fulfilled.
+      await ctx.route('https://**/*',route=>route.abort());
+      await ctx.route(/^http:\/\/(?!127\.0\.0\.1(?::\d+)?\/)/,route=>route.abort());
+      await ctx.route(origin+'/**',async route=>{
         const req=route.request(),u=new URL(req.url());
         if(u.origin!==origin)return route.abort();
         if(authPaths.has(u.pathname)){
@@ -86,9 +96,15 @@ async function main(){
         if(u.pathname.startsWith('/api/'))return route.fulfill({status:503,contentType:'application/json',body:'{}'});
         return route.abort();
       });
+      page.on('websocket',ws=>{
+        if(ws.url()!==hubUrl&&ws.url()!==hubUrl+'/'){socketEvents.push('unexpected socket');return;}
+        socketEvents.push('socket created');
+        ws.on('socketerror',()=>socketEvents.push('socket error'));
+        ws.on('close',()=>socketEvents.push('socket closed'));
+      });
       await page.goto(origin+'/');
       await page.waitForFunction(()=>window.VoidAccount?.authStatus==='ready'&&!VoidAccount.user,{},{timeout:30000});
-      return {ctx,page,errors,apiCalls,authCalls};
+      return {ctx,page,errors,apiCalls,authCalls,socketEvents};
     }
     const A=await session(),B=await session();
     async function register(s,base){
@@ -108,20 +124,32 @@ async function main(){
     }
     const a=await register(A,'female'),b=await register(B,'male');
     assert.notEqual(a.uid,b.uid);
-    async function connect(s){
+    async function connect(s,uid){
       await s.page.evaluate(async url=>{
         const token=await VoidAccount.user.getIdToken();
         const socket=new WebSocket(url);
-        window.fixtureHub={socket,messages:[],closed:null};
+        window.fixtureHub={socket,messages:[],closed:null,failed:false,opened:false};
         socket.addEventListener('message',event=>fixtureHub.messages.push(JSON.parse(event.data)));
         socket.addEventListener('close',event=>fixtureHub.closed=event.code);
-        socket.addEventListener('open',()=>socket.send(JSON.stringify({t:'hello',token,room:'district-interior'})));
+        socket.addEventListener('error',()=>{fixtureHub.failed=true;});
+        socket.addEventListener('open',()=>{fixtureHub.opened=true;socket.send(JSON.stringify({t:'hello',token,room:'district-interior'}));});
       },hubUrl);
-      await s.page.waitForFunction(()=>fixtureHub.messages.some(m=>m.t==='welcome'),null,{timeout:15000});
+      try{
+        await s.page.waitForFunction(()=>fixtureHub.failed||fixtureHub.closed!==null||fixtureHub.messages.some(m=>['welcome','error','refused'].includes(m.t)),null,{timeout:15000});
+        assert(await s.page.evaluate(()=>fixtureHub.messages.some(m=>m.t==='welcome')),'real hub must welcome the authenticated browser');
+      }catch(e){
+        const status=await s.page.evaluate(()=>({opened:fixtureHub.opened,failed:fixtureHub.failed,closed:fixtureHub.closed,types:fixtureHub.messages.map(m=>m.t)}));
+        throw new Error('Browser hub handshake failed: '+JSON.stringify({status,socketEvents:s.socketEvents,hubEvents}),{cause:e});
+      }
       await s.page.evaluate(()=>fixtureHub.socket.send(JSON.stringify({t:'state',x:10,z:10,yaw:0})));
+      // The welcome is sent before first placement; wait for the authoritative
+      // server placement before joining the next client and checking its peer list.
+      const deadline=Date.now()+5000;
+      while(!hub.hub.peers.get(uid)?.placed&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,25));
+      assert(hub.hub.peers.get(uid)?.placed,'real hub must place the browser peer');
     }
-    await connect(A);
-    await connect(B);
+    await connect(A,a.uid);
+    await connect(B,b.uid);
     await A.page.waitForFunction(model=>fixtureHub.messages.some(m=>m.t==='join'&&m.peer.model===model),b.model,{timeout:15000});
     const welcome=await B.page.evaluate(()=>fixtureHub.messages.find(m=>m.t==='welcome'));
     assert(welcome.peers.some(p=>p.model===a.model),'hub sees the character created by the real API');
@@ -141,6 +169,7 @@ async function main(){
     assert.equal(await A.page.evaluate(()=>localStorage.getItem('tdd-dev-mp-token')),null);
     assert.equal(await B.page.evaluate(()=>localStorage.getItem('tdd-dev-mp-token')),null);
     assert.deepEqual([...A.errors,...B.errors],[]);
+    assert(![...A.socketEvents,...B.socketEvents].includes('unexpected socket'),'only the local test hub may be contacted');
     console.log('BROWSER_ACCOUNT_GATE_OK');
   }finally{
     try{if(browser)await browser.close();}finally{
