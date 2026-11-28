@@ -58,10 +58,13 @@
   }
   return clip;
  }
- async function assignedClip(figure,look,name,signal,loop=true,speed=1){
+ async function loadAssignedClip(figure,look,name){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
    await root.VoidAnimLibrary.apply(figure.made,look,{only:[name],catalog:false});
   }
+ }
+ async function assignedClip(figure,look,name,signal,loop=true,speed=1){
+  await loadAssignedClip(figure,look,name);
   signal?.throwIfAborted();return play(figure,name,loop,speed);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
@@ -572,6 +575,30 @@
    if(t===1)break;await delay(30,run.signal);
   }
  }
+ async function walkKadeToLace(figure,w,target,location,signal){
+  const route=root.VoidNPCEscort.gridRoute(w,target,location.solids,{radius:.3});
+  if(!route)throw Error('Kade could not find a clear route to Lace.');
+  const p=figure.parent.position;
+  play(figure,'walk');
+  for(const point of route){
+   const x=p.x,z=p.z,dx=point.x-x,dz=point.z-z;
+   const distance=Math.hypot(dx,dz);
+   if(distance<.01)continue;
+   const yaw=Math.atan2(dx,dz),start=performance.now();
+   figure.parent.rotation.y=yaw;
+   while(true){
+    signal.throwIfAborted();
+    if(walkingLocation!==location||walker!==w)throw new DOMException('The apartment changed','AbortError');
+    const progress=Math.min(1,(performance.now()-start)*.0012/distance);
+    p.x=x+dx*progress;p.z=z+dz*progress;
+    const turn=yaw-w.yaw;
+    w.yaw+=Math.atan2(Math.sin(turn),Math.cos(turn))*.12;
+    w.pitch*=.88;
+    if(progress===1)break;
+    await delay(16,signal);
+   }
+  }
+ }
  async function roleplay(run,preview){
   if(!run.lace)await flat(run,true);
   if(!preview&&await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
@@ -595,13 +622,19 @@
     for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
     const p=run.lace.parent.position,yaw=Math.PI/2;
     const back=run.graph.roleplayClip?.toLowerCase()==='sz-tiedbm'?.08:0;
-    standing(figure,{x:p.x-.77-Math.sin(yaw)*back,y:0,z:p.z-Math.cos(yaw)*back,yaw});
-    await assignedClip(figure,kadeLook,run.graph.roleplayClip);
+    const target={x:p.x-.77-back,z:p.z,yaw};
+    const w=walker,location=walkingLocation;
+    await loadAssignedClip(figure,kadeLook,run.graph.roleplayClip);
     phase.signal.throwIfAborted();
+    if(location!==walkingLocation||w!==walker)throw new DOMException('The apartment changed','AbortError');
     const head=joint(figure,'head');
     if(!head)throw Error('The player animation rig is missing its head joint.');
-    const w=walker;
-    run.pov={w,head,inst:walkingLocation.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
+    standing(figure,{x:w.x,z:w.z,yaw:w.yaw});
+    run.pov={w,head,inst:location.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
+    await walkKadeToLace(figure,w,target,location,phase.signal);
+    phase.signal.throwIfAborted();
+    standing(figure,target);
+    play(figure,run.graph.roleplayClip);
     head.computeWorldMatrix(true);const eye=head.getAbsolutePosition();
     w.yaw=Math.atan2(p.x-eye.x,p.z-eye.z);w.pitch=0;
     await lines(phase,'be_kade');

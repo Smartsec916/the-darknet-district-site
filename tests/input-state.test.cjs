@@ -24,10 +24,18 @@ test('seated look, transitions, VR menus and flight have distinct policies',()=>
   }
 });
 
-test('floating dialogue preserves deliberate walking and reserves the mouse for choices',()=>{
+test('floating dialogue keeps walking and look available with a separate cursor for choices',()=>{
   const floating=resolve('walking','floating',false,false,false);
-  assert.ok(floating.movement&&floating.ui);
-  assert.ok(!floating.pointerLock&&!floating.camera);
-  assert.equal(resolve('vr-seated','floating',false,false,true).movement,false);
+  assert.ok(floating.movement&&floating.ui&&floating.pointerLock&&floating.camera);
+  assert.equal(floating.shortcuts,'interface');
+  const cursor=resolve('walking','floating',false,true,false);
+  assert.ok(cursor.movement&&cursor.ui&&cursor.cursor&&!cursor.camera);
+  for(const mode of ['walking','vr-seated']){
+    const seated=resolve(mode,'floating',false,false,true);
+    assert.ok(seated.camera&&seated.pointerLock&&!seated.movement);
+    assert.equal(resolve(mode,'floating',false,true,true),states.conversation);
+  }
+  assert.equal(resolve('dialogue','floating',false,false,false),states.conversation);
+  assert.equal(resolve('walking','floating',true,false,false),states.background);
   assert.equal(resolve('walking','store',false,false,false).movement,false);
 });

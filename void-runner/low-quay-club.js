@@ -35,6 +35,7 @@
  const DINERS=[[...seatAt(0,160),'npc-club-f','sit-talk'],[...seatAt(0,220),'npc-club-m','sit'],[...seatAt(2,150),'npc-casual-f','sit'],[...seatAt(2,205),'npc-hacker','sit-talk'],
   [...seatAt(4,165),'npc-cyber-pvc','sit-talk'],[...seatAt(4,215),'npc-casual-m','sit'],[...seatAt(1,145),'npc-student','sit'],[...seatAt(1,205),'npc-lookout','sit-talk'],
   [38.9,359.25,0,'npc-club-f','sit-talk'],[40.3,359.25,0,'npc-club-m','sit']];
+ const NIA={id:'nia',name:'Nia',x:27.85,z:369.5,yaw:.5,action:'plugplay-nia'};
  const LOOKS=[...new Set(DINERS.map(d=>d[3]))];
  const inside=(x,z,m=0)=>x>CLUB.x0+WALL-m&&x<CLUB.x1-WALL+m&&z>CLUB.z0+WALL-m&&z<CLUB.z1-WALL+m;
  const isClubBlock=b=>b[0]===CLUB.x0&&b[1]===CLUB.x1&&b[2]===CLUB.z0&&b[3]===CLUB.z1;
@@ -55,10 +56,201 @@
   return S;}
  const ROBOT_PIECES=['base','upper','fore','spatula','ladle','gripper','carriage','rail'];
  const models=()=>({...Object.fromEntries(LOOKS.map(l=>['crowd:'+l,{src:'assets/models/crowd/'+l+'.glb',background:true}])),...Object.fromEntries(ROBOT_PIECES.map(p=>['lowquay:robot-'+p,{src:'assets/models/low-quay/robot-'+p+'.glb',scale:1}]))});
- const api={CLUB,WALL,H,DOOR,STAGE,SIDE,BACK,BACK_PROPS,KITCHEN,ARMS,GANTRY,ALCOVE,BOOTHS,BOOTH_R,BOOTH_ARC,SOFAS,LOUNGE_TABLES,PLANTERS,DINERS,LOOKS,seatAt,inside,isClubBlock,solids,models};
+ const api={CLUB,WALL,H,DOOR,STAGE,SIDE,BACK,BACK_PROPS,KITCHEN,ARMS,GANTRY,ALCOVE,BOOTHS,BOOTH_R,BOOTH_ARC,SOFAS,LOUNGE_TABLES,PLANTERS,DINERS,LOOKS,NIA,seatAt,inside,isClubBlock,solids,models};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
 
  // ================= browser: the build (called from low-quay-city.js with its helpers; the floor is at Y) =================
+ function rehearsalsEnabled(){
+  return ['localhost','127.0.0.1','[::1]'].includes(root.location?.hostname)
+   && new URLSearchParams(root.location.search).get('plugplay-rehearsal')==='1';
+ }
+ function rehearsal(c){
+  const {B,scene,parent,Y,owned,mat}=c,assets=root.VoidAssets;
+  const dancers=[],hosts=[],givers=[],containers=[];
+  let disposed=false,previous=null,onStage=0,phase='entrance';
+  const walking=1.05,top=STAGE.h+.02,floor=.05;
+  const rear=STAGE.x+STAGE.apothem,entry=[STAGE.x+.09,top,STAGE.z-.5];
+  const route=[[41.25,floor,STAGE.z],[40.14,floor,STAGE.z],[rear,top,STAGE.z],[37.1,top,STAGE.z],entry];
+  const exitRoute=route.slice(0,-1).reverse(),pole=[STAGE.x,top,STAGE.z];
+  const exitYaw=Math.atan2(exitRoute[0][0]-entry[0],exitRoute[0][2]-entry[2]);
+  const waits=[[41.6,floor,369.95],[41.6,floor,372.05]];
+  const hostRoutes=[
+   [[36.15,377.1,'Serving',0],[35.0,375.0],[30.52,374.95],[30.52,366.2,'Greeting',-Math.PI/2],[30.16,362.2,'Serving',-Math.PI/2,0],
+    [30.52,374.95],[35.0,375.0]],
+   [[37.15,377.1,'Serving',0],[34.1,377.15],[30.53,377.15],[30.53,379.8,'Greeting',-Math.PI/2],[30.16,375.8,'Serving',-Math.PI/2,2],
+    [30.53,377.15],[34.1,377.15]]
+  ];
+  const dishes=new Map();
+  const state={dancers,hosts,givers,dishes,get onStage(){return onStage;},get phase(){return phase;}};
+  const dishMats=[mat('rehearsal-tray','#29242c',{spec:.5}),mat('rehearsal-food','#b5754d',{}),mat('rehearsal-drink','#a54c2d',{spec:.7})];
+  function order(name){
+   const tray=new B.TransformNode('plugplay-order-'+name,scene);tray.parent=parent;owned.push(tray);
+   const parts=[[.23,.015,0,0,0],[.095,.036,-.047,.023,0],[.04,.105,.10,.056,.06],[.04,.09,.09,.049,-.06]];
+   for(const [i,[radius,height,x,y,z]] of parts.entries()){
+    const item=B.MeshBuilder.CreateCylinder('plugplay-service-prop',{diameter:2*radius,height,tessellation:16},scene);
+    item.parent=tray;item.position.set(x,y,z);item.material=dishMats[Math.min(i,2)];item.isPickable=false;
+   }
+   return tray;
+  }
+  function deliver(index){
+   if(dishes.has(index))return;
+   const tray=order('booth-'+index),[x,z]=BOOTHS[index];
+   tray.position.set(x+.15,Y+.748,z+.035);dishes.set(index,tray);
+  }
+  const place=(actor,[x,y,z])=>actor.holder.position.set(x,Y+y,z);
+  function play(actor,name,loop=false,blendSpeed=.14){
+   actor.clip?.stop();
+   const clip=actor.clips.get(name);
+   clip.enableBlending=true;clip.blendingSpeed=blendSpeed;
+   clip.start(loop,1);
+   actor.clip=clip;
+   return Math.max(.1,(clip.to-clip.from)/(clip.targetedAnimations[0]?.animation.framePerSecond||60));
+  }
+  function turnDelta(from,to){return Math.atan2(Math.sin(to-from),Math.cos(to-from));}
+  function walk(actor,to,dt,others=[],arrive=false){
+   const p=actor.holder.position,dx=to[0]-p.x,dz=to[2]-p.z,dist=Math.hypot(dx,dz);
+   if(dist<.018){place(actor,to);return true;}
+   const wanted=Math.atan2(dx,dz),delta=turnDelta(actor.holder.rotation.y,wanted);
+   actor.holder.rotation.y+=Math.sign(delta)*Math.min(Math.abs(delta),9*dt);
+   const pace=arrive?Math.max(.28,Math.min(1,dist/.65)):1;
+   const amount=Math.min(dist,walking*pace*dt),t=amount/dist,x=p.x+dx*t,z=p.z+dz*t;
+   if(others.some(other=>other!==actor&&Math.hypot(other.holder.position.x-x,other.holder.position.z-z)<.64
+     &&Math.hypot(other.holder.position.x-x,other.holder.position.z-z)<Math.hypot(other.holder.position.x-p.x,other.holder.position.z-p.z))){
+    if(actor.clips.has('Waiting')&&actor.clip!==actor.clips.get('Waiting'))play(actor,'Waiting',true);
+    return false;
+   }
+   const gait=actor.carrying?'CarryWalk':'Walking';
+   if(actor.clip!==actor.clips.get(gait))play(actor,gait,true);
+   actor.clip.speedRatio=pace;
+   p.set(x,p.y+(Y+to[1]-p.y)*t,z);
+   return false;
+  }
+  function create(id,container,names){
+   containers.push(container);
+   if(disposed){container.dispose();return null;}
+   const actor={id,holder:new B.TransformNode('plugplay-'+id,scene)};
+   actor.holder.parent=parent;
+   const prefix='plugplay-'+id+'-';
+   const instance=container.instantiateModelsToScene(name=>prefix+name,false);
+   for(const mesh of instance.rootNodes)mesh.parent=actor.holder;
+   assets.ownInstance(instance,actor.holder);
+   actor.clips=new Map(names.map(name=>[name,instance.animationGroups.find(g=>g.name===name||g.name===prefix+name)]));
+   if(names.some(name=>!actor.clips.get(name))){actor.holder.dispose();throw Error('Missing rehearsal animation for '+id);}
+   actor.holder.setEnabled(false);
+   return actor;
+  }
+  async function loadPair(ids,list,names,setup){
+   const results=await Promise.allSettled(ids.map(async id=>{
+    const container=await assets.loadContainer({src:'../work/pole-preview/'+id+'.glb'},scene,undefined,'plugplay:'+id);
+    return create(id,container,names);
+   }));
+   const loaded=results.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]);
+   if(disposed||loaded.length!==ids.length){
+    for(const actor of loaded)actor.holder.dispose();
+    if(!disposed)console.warn('[Plug & Play rehearsal]',results.find(r=>r.status==='rejected')?.reason);
+    return;
+   }
+   loaded.forEach((actor,i)=>{setup(actor,i);actor.holder.setEnabled(true);});
+   list.push(...loaded);
+  }
+  if(assets?.loadContainer){
+   loadPair([NIA.id],givers,['Waiting'],actor=>{
+    place(actor,[NIA.x,floor,NIA.z]);actor.holder.rotation.y=NIA.yaw;play(actor,'Waiting',true);
+   });
+   loadPair(['ike','eza'],dancers,['Walking','Waiting','PoleDance'],(actor,i)=>{
+    place(actor,waits[i]);actor.holder.rotation.y=-Math.PI/2;actor.path=0;play(actor,'Waiting',true);
+   });
+   loadPair(['lyra','raze'],hosts,['Walking','CarryWalk','Waiting','Greeting','Serving'],(actor,i)=>{
+    actor.stops=hostRoutes[i];actor.path=i?3:0;actor.remaining=0;
+    actor.hand=actor.holder.getChildTransformNodes().find(node=>node.name.endsWith('mixamorig:LeftHand'));
+    actor.tray=order(actor.id);actor.tray.setEnabled(false);
+    const [x,z]=actor.stops[actor.path];place(actor,[x,floor,z]);play(actor,'Waiting',true);
+   });
+  }
+  // The dance uses a pole-centred rig while each walk uses a foot-level origin.
+  // Move between the two origins and turn during the pose blend.
+  function stageBlend(actor,to,yaw){
+   const from=actor.holder.position.clone(),turn=actor.holder.rotation.y;
+   actor.blend={from,to:new B.Vector3(to[0],Y+to[1],to[2]),turn,
+    angle:turnDelta(turn,yaw),elapsed:0,duration:.78};
+  }
+  function advanceStageBlend(actor,dt){
+   const blend=actor.blend;
+   if(!blend)return false;
+   blend.elapsed+=dt;
+   const t=Math.min(1,blend.elapsed/blend.duration),ease=t*t*(3-2*t);
+   B.Vector3.LerpToRef(blend.from,blend.to,ease,actor.holder.position);
+   actor.holder.rotation.y=blend.turn+blend.angle*ease;
+   if(phase==='exit')actor.clip.speedRatio=.35+.65*ease;
+   if(t===1)actor.blend=null;
+   return true;
+  }
+  function dance(dt){
+   const actor=dancers[onStage];
+   if(!actor)return;
+   if(phase==='dance')actor.remaining-=dt;
+   if(advanceStageBlend(actor,dt))return;
+   if(phase==='dance'){
+    if(actor.remaining>0)return;
+    play(actor,'Walking',true,.045);actor.clip.speedRatio=.35;
+    stageBlend(actor,entry,exitYaw);actor.path=0;phase='exit';
+    return;
+   }
+   const entering=phase==='entrance';
+   const path=entering?route:[...exitRoute,waits[onStage]];
+   if(!walk(actor,path[actor.path],dt,[],entering&&actor.path===path.length-1))return;
+   if(++actor.path<path.length)return;
+   actor.path=0;
+   if(phase==='exit'){
+    play(actor,'Waiting',true);
+    onStage=(onStage+1)%dancers.length;phase='entrance';
+   }else{
+    stageBlend(actor,pole,0);
+    actor.remaining=play(actor,'PoleDance',false,.045);phase='dance';
+   }
+  }
+  function serve(actor,dt){
+   if(actor.remaining>0){
+    actor.remaining-=dt;
+    if(actor.table!==undefined&&actor.remaining<=actor.handoffAt){
+     deliver(actor.table);actor.table=undefined;actor.carrying=false;
+    }
+    if(actor.remaining<=0&&actor.stocking){actor.stocking=false;actor.carrying=true;}
+    return;
+   }
+   const [x,z,activity,yaw,table]=actor.stops[actor.path];
+   if(!walk(actor,[x,floor,z],dt,hosts))return;
+   actor.path=(actor.path+1)%actor.stops.length;
+   if(activity){
+    actor.holder.rotation.y=yaw;actor.remaining=play(actor,activity);
+    actor.table=table;actor.handoffAt=actor.remaining*.48;
+    actor.stocking=activity==='Serving'&&table===undefined;
+   }
+  }
+  function updateTray(actor){
+   actor.tray.setEnabled(!!actor.carrying&&!!actor.hand);
+   if(!actor.tray.isEnabled())return;
+   actor.hand.computeWorldMatrix(true);
+   const hand=B.Vector3.TransformCoordinates(actor.hand.getAbsolutePosition(),parent.getWorldMatrix().clone().invert());
+   actor.tray.position.set(hand.x,hand.y+.035,hand.z);
+  }
+  owned.push({dispose(){
+   disposed=true;
+   for(const actor of [...dancers,...hosts,...givers])actor.holder.dispose();
+   for(const container of containers)container.dispose();
+   if(api.state?.rehearsal===state)api.state=null;
+  }});
+  return {state,tick(time){
+   const dt=previous===null?0:Math.max(0,Math.min(.1,time-previous));previous=time;
+   if(!dt)return;
+   if(givers.length&&typeof walkingLocation!=='undefined'&&walkingLocation?.id==='planet-low-quay'){
+    const interactions=walkingLocation.interactions;
+    if(interactions&&!interactions.some(item=>item.id===NIA.action))
+     interactions.push({id:NIA.action,action:NIA.action,character:NIA.id,label:'TALK TO '+NIA.name.toUpperCase(),position:[NIA.x,1.7,NIA.z],range:2.35});
+   }
+   dance(dt);for(const actor of hosts){serve(actor,dt);updateTray(actor);}
+  }};
+ }
  api.build=function(c){
   const {B,scene,parent,K,place,mat,glow,tex,sprite,owned,steel,Y,quality}=c,low=quality==='low',C=h=>B.Color3.FromHexString(h),P=Math.PI;
   const plaster=mat('club-plaster','#3a2238',{spec:.08}),floorM=mat('club-floor','#0e0b10',{spec:.7,pow:110}),velvet=mat('club-velvet','#5a1a4a',{spec:.3,pow:40}),plum=mat('club-plum','#2c1236',{spec:.3,pow:40});
@@ -70,6 +262,7 @@
   const wMag=washOf('wash-mag','255,45,150',.45),wAmb=washOf('wash-amb','255,160,80',.42),wVio=washOf('wash-vio','175,60,235',.38);
   const flat=(m,w,h,x,y,z,ry=0,rx=0)=>{const p=B.MeshBuilder.CreatePlane('lq-club-flat',{width:w,height:h},scene);p.material=m;p.position.set(x,y,z);p.rotation.set(rx,ry,0);p.parent=parent;p.isPickable=false;owned.push(p);return p;};
   const glowTex=(key,w,h,draw)=>{const t=T(key,w,h,draw,true),m=new B.StandardMaterial('lq-club-'+key,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.opacityTexture=t;m.disableLighting=true;m.specularColor=B.Color3.Black();owned.push(m);return m;};
+  const localStaff=rehearsalsEnabled()?rehearsal(c):null;
   const S=K(),{x0,x1,z0,z1}=CLUB,cx=(x0+x1)/2,cz=(z0+z1)/2,fl=Y+.02;
   // ---- shell: walls (doorway open), black ceiling, polished floor ----
   S.box(plaster,x1-x0,H,WALL,cx,Y+H/2,z0+WALL/2);S.box(plaster,x1-x0,H,WALL,cx,Y+H/2,z1-WALL/2);S.box(plaster,WALL,H,z1-z0,x1-WALL/2,Y+H/2,cz);
@@ -88,8 +281,25 @@
   for(let i=0;i<STAGE.steps;i++){const d=(i+1)*STAGE.stepDepth,hh=sh*(STAGE.steps-i)/STAGE.steps;S.box(black,STAGE.stepDepth,hh,STAGE.stepWidth,sx-a-d+STAGE.stepDepth/2,Y+hh/2,sz);S.box(amb,.03,.03,STAGE.stepWidth,sx-a-d+.015,Y+hh-.02,sz);}
   S.cyl(chrome,.045,gh,sx,Y+sh+gh/2,sz,18);S.cyl(chrome,.16,.06,sx,Y+sh+.03,sz,20);
   for(let k=0;k<8;k++){const f=k*P/4,px=sx+Math.cos(f)*a,pz=sz+Math.sin(f)*a,ry=P/2-f;
-   const pane=B.MeshBuilder.CreateBox('lq-club-pane',{width:side-.08,height:gh-.1,depth:t},scene);pane.material=glassM;pane.position.set(px,Y+sh+gh/2,pz);pane.rotation.y=ry;pane.parent=parent;pane.isPickable=false;owned.push(pane);
-   for(const y of [Y+sh+.04,Y+sh+gh-.04]){const e=S.box(pink,side-.1,.035,.035,px+Math.cos(f)*(t/2+.02),y,pz+Math.sin(f)*(t/2+.02),ry);}
+   function pane(width,height,y,z){
+    const glass=B.MeshBuilder.CreateBox('lq-club-pane',{width,height,depth:t},scene);glass.material=glassM;
+    glass.position.set(px,y,z);glass.rotation.y=ry;glass.parent=parent;glass.isPickable=false;owned.push(glass);
+   }
+   if(localStaff&&k===0){
+    const door=1.06,wing=(side-.08-door)/2;
+    for(const sign of [-1,1]){
+     pane(wing,gh-.1,Y+sh+gh/2,pz+sign*(door+wing)/2);
+     S.box(steel,.14,2.4,.05,px,Y+sh+1.2,pz+sign*door/2);
+    }
+    pane(door,gh-2.4,Y+sh+(gh+2.4)/2,pz);
+    S.box(steel,.14,.08,door,px,Y+sh+2.4,pz);
+    const run=40.14-px,rise=sh+.02-.05;
+    S.box(black,Math.hypot(run,rise),.08,door-.1,px+run/2,Y+(.05+sh+.02)/2-.045,pz,0,0,-Math.atan2(rise,run));
+   }else pane(side-.08,gh-.1,Y+sh+gh/2,pz);
+   for(const y of [Y+sh+.04,Y+sh+gh-.04]){
+    if(localStaff&&k===0&&y<Y+sh+.1)continue;
+    S.box(pink,side-.1,.035,.035,px+Math.cos(f)*(t/2+.02),y,pz+Math.sin(f)*(t/2+.02),ry);
+   }
    const v=f+P/8,vx=sx+Math.cos(v)*R,vz=sz+Math.sin(v)*R;S.box(steel,.14,gh+.1,.14,vx,Y+sh+gh/2,vz);for(const y of [.4,1.4,2.4,3.3])S.cyl(chrome,.035,.05,vx+Math.cos(v)*.08,Y+sh+y,vz+Math.sin(v)*.08,8,P/2,0);}
   oct(glassM,R,.08,Y+sh+gh+.04);oct(steel,R+.12,.12,Y+sh+gh+.12).scaling.set(1,1,1);
   for(const dz of [-1.3,1.3]){S.cyl(black,.16,.22,sx-.6,Y+sh+gh-.12,sz+dz,12);S.cyl(vio,.1,.02,sx-.6,Y+sh+gh-.24,sz+dz,12);}
@@ -104,7 +314,7 @@
   S.box(plaster,BACK.t,H,lw,bxw,Y+H/2,BACK.z0+lw/2);S.box(plaster,BACK.t,H,rw,bxw,Y+H/2,BACK.z1-rw/2);S.box(plaster,BACK.t,H-bd.h,bd.half*2,bxw,Y+bd.h+(H-bd.h)/2,bd.z);
   flat(quilt,lw-.2,4.2,BACK.x-.01,Y+2.25,BACK.z0+lw/2,P/2);flat(quilt,rw-.2,4.2,BACK.x-.01,Y+2.25,BACK.z1-rw/2,P/2);   // facing the stage (-x)
   for(const s of [-1,1])S.box(chrome,BACK.t+.04,bd.h,.06,bxw,Y+bd.h/2,bd.z+s*(bd.half+.03));S.box(chrome,BACK.t+.04,.06,bd.half*2+.12,bxw,Y+bd.h+.03,bd.z);S.box(pink,.03,.03,bd.half*2,BACK.x-.02,Y+bd.h+.08,bd.z);
-  S.box(black,.05,bd.h-.04,bd.half*2-.04,BACK.x+BACK.t+.45,Y+bd.h/2,bd.z+bd.half+.1,-1.25);S.box(chrome,.05,.05,bd.half*2,BACK.x+BACK.t+.05,Y+.9,bd.z);for(const s of [-1,1])S.box(chrome,.05,.9,.05,BACK.x+BACK.t+.05,Y+.45,bd.z+s*bd.half);
+  S.box(black,.05,bd.h-.04,bd.half*2-.04,BACK.x+BACK.t+.45,Y+bd.h/2,bd.z+bd.half+.1,-1.25);if(!localStaff){S.box(chrome,.05,.05,bd.half*2,BACK.x+BACK.t+.05,Y+.9,bd.z);for(const s of [-1,1])S.box(chrome,.05,.9,.05,BACK.x+BACK.t+.05,Y+.45,bd.z+s*bd.half);}
   const sz0=SIDE.z,szc=SIDE.z+SIDE.t/2,dh=SIDE.doorH,[kd0,kd1]=SIDE.kitchenDoor,[bd0,bd1]=SIDE.backDoor,[h0,h1,hy0,hy1]=SIDE.hatch;
   const sideSeg=(a,b)=>S.box(plaster,b-a,H,SIDE.t,mid(a,b),Y+H/2,szc);sideSeg(SIDE.x0,kd0);sideSeg(kd1,h0);sideSeg(h1,bd0);sideSeg(bd1,BACK.x);
   for(const [a,b] of [[kd0,kd1],[bd0,bd1]]){S.box(plaster,b-a,H-dh,SIDE.t,mid(a,b),Y+dh+(H-dh)/2,szc);for(const x of [a-.03,b+.03])S.box(chrome,.06,dh,SIDE.t+.06,x,Y+dh/2,szc);S.box(pink,b-a,.03,.03,mid(a,b),Y+dh+.06,sz0-.02);}
@@ -211,8 +421,9 @@
   function seatAll(){if(!root.VoidAssets?.instance)return;DINERS.forEach(([x,z,yaw,look,clip],i)=>{if(seated[i])return;let n=null;try{n=root.VoidAssets.instance('crowd:'+look,parent);}catch{n=null;}if(!n)return;
    n.position.set(x,Y,z);n.rotation.y=yaw;try{root.VoidCrowd?.dress?.(n,look,'lq-club-'+i);}catch{}let ctrl=null;try{ctrl=root.VoidCrowd?.animate?.(n,look,clip);}catch{}seated[i]={node:n,ctrl};});}
   S.done('club-static').forEach(m=>{m.isVisible=true;});   // the club's own static parts, merged per material and drawn (kits are hidden instancing sources)
-  api.state={seated,robots,gantry:()=>gantry};   // for the browser checks (tests/*-browser, screenshots)
-  return {tick(time){if(seated.filter(Boolean).length<DINERS.length&&(tries++%30)===0)seatAll();robotTick(time);}};
+  api.state={seated,robots,gantry:()=>gantry,rehearsal:localStaff?.state};   // for the browser checks (tests/*-browser, screenshots)
+  return {tick(time){if(seated.filter(Boolean).length<DINERS.length&&(tries++%30)===0)seatAll();robotTick(time);localStaff?.tick(time);}};
  };
+ root.VoidInteractions?.register?.(NIA.action,({resume}={})=>resume?.());
  root.VoidLowQuayClub=api;
 })(globalThis);

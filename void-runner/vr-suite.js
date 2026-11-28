@@ -71,7 +71,7 @@
    if(map[k]){moveChoice(...map[k]);}else if(k==='Enter'||k==='e'||k==='E'){chooseFocused();}else if(k==='Escape'){closeChoices();}else return;e.preventDefault();e.stopImmediatePropagation();}
   window.addEventListener('keydown',onMenuKey,true);
   let padPrev=[];k.every(()=>{if(!choices)return padPrev=[];const pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected!==false);if(!pad)return;const now=pad.buttons.map(b=>b.pressed),ly=pad.axes[1]||0,lx=pad.axes[0]||0;
-   now[12]=now[12]||ly<-.6;now[13]=now[13]||ly>.6;now[14]=now[14]||lx<-.6;now[15]=now[15]||lx>.6;const hit=i=>now[i]&&!padPrev[i];
+   if(!root.VoidInputState.current.movement){now[12]=now[12]||ly<-.6;now[13]=now[13]||ly>.6;now[14]=now[14]||lx<-.6;now[15]=now[15]||lx>.6;}const hit=i=>now[i]&&!padPrev[i];
    if(hit(12))moveChoice(0,-1);else if(hit(13))moveChoice(0,1);else if(hit(14))moveChoice(-1,0);else if(hit(15))moveChoice(1,0);else if(hit(0))chooseFocused();else if(hit(1))closeChoices();padPrev=now;});
   screen.addEventListener('click',onChoice);
   function onChoice(e){const a=e.target.closest('button')?.dataset.action;if(!a?.startsWith('vr-choice:')||!choices)return;const f=choices[+a.slice(10)][1];choices=null;speech=null;f();}
