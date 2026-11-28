@@ -5,6 +5,25 @@
    two real game pages with the same emulator-backed browser identities. */
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+// Poll from the test runner rather than scheduling the readiness checks on
+// Chromium's heavily loaded render thread. Do not bypass the real input gate.
+function podExitEvidence(){
+  const evidence={mode,focus:document.hasFocus(),hidden:document.hidden,
+    input:VoidInputState.current.name,camera:VoidInputState.current.camera,
+    podFree:podFree(),podHidden:podWake.hidden,vendingHidden:podVend.box.hidden,
+    podPending:state.story.flags.podWakePending===true,walker:!!walker};
+  return {...evidence,ready:evidence.focus&&evidence.camera&&evidence.podFree&&evidence.podPending};
+}
+async function waitForPodExitReady(page,timeout=60000,now=Date.now,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))){
+  const deadline=now()+timeout;
+  for(;;){
+    const evidence=await page.evaluate(podExitEvidence);
+    if(evidence.ready)return evidence;
+    if(now()>=deadline)throw new Error('Pod input readiness deadline: '+JSON.stringify(evidence));
+    await pause(250);
+  }
+}
+
 function peerEvidence({model,diagnostic=false},root=window){
   // The wire/account model is the legacy identity. Both fixtures are creator
   // characters: remote-players.js migrates the appearance before assembly.
@@ -341,7 +360,8 @@ async function main(){
         await page.waitForSelector('#pod-wake:not([hidden])');
         await page.bringToFront();
         try{
-          await page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.camera&&podFree()&&state.story.flags.podWakePending===true,null,{timeout:15000,polling:200});
+          const ready=await waitForPodExitReady(page);
+          console.log('RENDERED_POD_INPUT_READY '+JSON.stringify(ready));
           await page.keyboard.press('KeyE');
           await page.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:30000,polling:200});
           // The district continuously schedules optional NPC packs, including
@@ -352,7 +372,7 @@ async function main(){
           assert.equal(await page.evaluate(()=>state.story.flags.podWakePending===true),false,'pod exit must complete');
           assert.equal(await page.evaluate(()=>podWake.hidden),true,'pod overlay must close');
         }catch(e){
-          const diagnostic=await page.evaluate(()=>{const exit=walker&&walkingLocation?VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1):null;return {mode,focus:document.hasFocus(),hidden:document.hidden,input:VoidInputState.current.name,podHidden:podWake.hidden,podPending:state.story.flags.podWakePending===true,exitBlocked:exit?VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation):null,assetPending:VoidAssets.pending,assetFailedCount:VoidAssets.failed.size};});
+          const diagnostic=await page.evaluate(()=>{const exit=walker&&walkingLocation?VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1):null;return {mode,focus:document.hasFocus(),hidden:document.hidden,input:VoidInputState.current.name,camera:VoidInputState.current.camera,podFree:podFree(),podHidden:podWake.hidden,vendingHidden:podVend.box.hidden,podPending:state.story.flags.podWakePending===true,walker:!!walker,exitBlocked:exit?VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation):null,assetPending:VoidAssets.pending,assetFailedCount:VoidAssets.failed.size};});
           throw new Error('Rendered pod exit gate failed: '+JSON.stringify({diagnostic,assetFailures:s.assetFailures,pageErrorCount:s.errors.length}),{cause:e});
         }
       }
