@@ -61813,7 +61813,7 @@
       "spawn"
     ]
   },
-  "revision": "138700bb4587bb72",
+  "revision": "b82e6e393face912",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80208,7 +80208,7 @@
     },
     {
       "source": "void-runner/nav-coords.js",
-      "line": 51,
+      "line": 53,
       "text": "function banner(){try{root.VoidV1?.notify?.({app:'map',key:'nav-coords',text:TEXT,hint:{text:'open',help:true}});}catch{}try{announce(TEXT);}catch{}}",
       "kind": "source-reference"
     },
@@ -83635,7 +83635,7 @@
     {
       "source": "void-runner/world-integration.js",
       "line": 248,
-      "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul><p class=\"fine\">Refit before taking the hotter lanes. Ship Outfitter carries upgraded pulse arrays, thrusters, hull armor and warp drives.</p>');",
+      "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul><p class=\"fine\">Check lane risk before departure. The Ship Outfitter can show the next hull.</p>');",
       "kind": "source-reference"
     },
     {
@@ -83847,12 +83847,12 @@
     "void-runner/babylon-renderer.js": "70090ee6361c2360124e1090d05fa34cdd5e7bafb071da67776eed682ec83f7e",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
-    "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
+    "void-runner/beginner-integration.js": "c0e0ddb5e091a2331554521f00eed4ef89871b55732439445ad0be0d74b39201",
     "void-runner/beginner.js": "b7a0e7b500706d75256d9703a46ea22b701094cf585ae0bc45222cf39dacf3e1",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
-    "void-runner/campaign.js": "eb6742a1d83b3baf255f516a2b11a8bb717fde3ccc417fa7b5ef623024851eb6",
+    "void-runner/campaign.js": "ceb62b21d908393319fc88915428f1011b72c0dc86e30472aac79b9c9f0738ff",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "9537b3ac79687f7ae96d5a8520ac431fe0ba2c401cb25010763eadb6733bc19b",
     "void-runner/chance-encounter-editor.js": "46d683eae9dbf664a9ee9c76cd0e2afb4e58ada18b93cf54eba8ad1a93b75b8c",
@@ -83875,7 +83875,7 @@
     "void-runner/cockpit.js": "b9a03c1a5c64abeaacc9cd536b412f2ba961ded243c25d4ec628e4d54f39aa96",
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "8a5b96a575cba8c867929a18c96209767a53bdd61e53e21f8af9b0596a96a743",
-    "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
+    "void-runner/comms.js": "cbef139730e1769ad261ab1273b20ea9fde19d619004027543ef8f2c9145ee15",
     "void-runner/companion-mobile.js": "ad56e714d984c859b791e9e5431f7c42934037d0b706b46a4804e3357efddd82",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/consumable-audio.js": "360275d8063abeefe27d752638b85ecaa23c71ec7cd39d760d888baf8f2efe1e",
@@ -83954,7 +83954,7 @@
     "void-runner/footsteps.js": "5caeb3f07017f1a72a1c91633de003f601104c9997862691e6b8b262ce1ff137",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
-    "void-runner/game.js": "6316fb5be4ee7f512f6179b73d70dfa8e35c8ac23e44337f3cec4b4a71e7f260",
+    "void-runner/game.js": "0e5411a35607fe1508e66ebc9d479f8326ff43a9e8c4b0647da710f3017c39f8",
     "void-runner/glb-downsizer.js": "b306d69bdbcb49713e9f6ee4eb2f8ae640c6962a492ac8ddfad23121d33df507",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/guide-route.js": "db25a16dadf6c3ee3d43f311417c6eba988fedf137c6580e6a396c1ef31bdf60",
@@ -84013,7 +84013,7 @@
     "void-runner/music-engine.js": "3058cb35f65337dfff3bead224182fd1db113b81c6a9459a16b7f22788d4d6e5",
     "void-runner/music-integration.js": "20c200159231f3525974c93c2d077e27a162296318b5a789a5f41edad983d75a",
     "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
-    "void-runner/nav-coords.js": "14d7b45fb1e12968ac86eeb968a8d5338eb034bd9b9ef91c573187163ed313ad",
+    "void-runner/nav-coords.js": "87d5a394000167f318730a1db8fe29cb8773a3235c8e7f722d9de815213c21d7",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
@@ -84075,8 +84075,8 @@
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "57614ddd295db94f323c7dca1674392443cf43441c1c57d638b9aacc05064e1b",
     "void-runner/preparation.js": "488475633495762419719b2875b689feb9d29cf9db45239de74b34d04787c407",
-    "void-runner/progression.js": "0e44e4f6750f19850f410e70101fbb579ef05796093bcf4f9fb33bbe2260aa35",
-    "void-runner/prologue-integration.js": "996cfe64c109d91c2dd6ec4c25989d8c72b81921b0d614145287241de09e7cf7",
+    "void-runner/progression.js": "07a3023e2607df4cbb5c3ecdc9ad97d2f88cc59bd1f6cea1419421e2d678a574",
+    "void-runner/prologue-integration.js": "4f9b1b8dd7b36b40569bc97eee05a78c0e8d767ab709d72b664439d81cbadb6c",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
@@ -84118,7 +84118,7 @@
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
     "void-runner/temple.js": "f6741486bce226c3915b8e59be3ff318af780175946dd8f9608fc50b1844bc9c",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
-    "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
+    "void-runner/traffic.js": "ee4edd26c32738fc603ec983f0de4e8de73f13fa5f144b9c4ac310bbacda800c",
     "void-runner/transition-veil.js": "938f6bd0388fae6ae52e6b13f025788848d1bec34b7417ebd5b5e8d02ffcdec0",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
     "void-runner/unified-controls.js": "c7265b9dc46a7cb0cc7daa7df532165a5fc60d8ac59dde620be1643696422223",
@@ -84151,7 +84151,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "30a496179b35d37bad45564db4f8f2fadd59cc4bb23a18ef1db279f4257b7cfc",
-    "void-runner/world-integration.js": "c3da83bf699ea349efe9d66cfd931623bced929d80544bf927a304929b3e01a1",
+    "void-runner/world-integration.js": "eb0c54e63adcbd1cea40846a76c6be3ccfcac436b1385ac08cd13b93a6008ec3",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "65ce71e34220ac5640678aa939c595b5233bd9a353a4ca58e1d758f30955d2c4",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",

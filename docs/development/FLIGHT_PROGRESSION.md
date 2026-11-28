@@ -1,6 +1,19 @@
 # Campaign flight progression
 
-Baseline figures use the default Combat Balance values and fresh loadouts with no legacy statistical upgrades. Refit rows equip all four listed parts. Each primary volley fires two bolts. Credits buy ships and parts at the in-game Ship Outfitter.
+## Proposed rollout by route
+
+The eight refit parts already have stable catalog IDs, prices, icons and fitted effects. Their general store listings are on hold. Existing purchases remain usable. The first Tessaly freight prototype and Mission 012’s safe Rook delivery work with the factory Kestrel.
+
+| Stop | When parts might be useful | Proposed store |
+| --- | --- | --- |
+| Servo / NeoChinatown | After pad registration, teach the stock ship’s three-second spool and offer optional local freight. Stock Kestrel is sufficient for these routes. | Use the Landing Terminal for jobs and practice. Reserve Admin’s exclusive stock for distinct equipment later. |
+| Meridian / Erebus | After delivering Mission 012, when Rook starts offering repeat freight and local threat can rise from one opponent to two trained pilots. Start by considering the 155 CR inducer and 170 CR laminate. List the thrusters and pulse array if pilots struggle to disengage or land hits. | Reuse Meridian’s existing Ship Outfitter and Hangar / Maintenance. Stage the Kestrel stock at this location after the route is tuned. |
+| Tessaly Belt Anchorage | Optional inspection, relay service and repeat freight. Legal runs pay 110 CR before future fees. Two clean runs would cover either early defensive part if later stocked. | Start with repair and cargo services. Consider a small maintenance counter if returning pilots need a convenient defensive refit. |
+| Faction ports in Cantor or Garrow | Before optional three-elite routes. The factory Cipher brings 124 hull, 30 shield and 2.25 s spool. Its refit drops spool to approximately 1.91 s. | Put the Cipher line at a named faction port or authorized regional outfitter once players have a reason to use it. Confirm a relay route for refitted Kestrels. |
+
+**Recommended next fully authored area:** expand the existing Meridian arrival into a compact Rook freight district around the hangar, his Dead Channel contact point and the Outfitter. Mission 012 already brings players there. Give the player a clear route from the dock to Rook and their first optional repeat job, one local story lead and a readable repair or equipment comparison. Then test a stock Kestrel against one rookie on an optional job before introducing two trained pilots or placing any part into stock. Tessaly Belt Anchorage is the follow-up for a physical Function inspection office and repair counter. This is a progression proposal for owner review.
+
+Baseline figures use the default Combat Balance values and fresh loadouts with no legacy statistical upgrades. Refit rows equip all four catalog parts. Each primary volley fires two bolts. The catalog prices below are available for the proposed store rollout.
 
 | Step | Max yaw | 180° from rest | Acceleration | Warp spool | Hull / shield | Pulse volley | Burst DPS | Cargo |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

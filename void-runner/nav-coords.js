@@ -35,7 +35,9 @@
  function hops(s,active){const here=s.location,need=new Set();for(const m of active||[]){if(!m||m.completed||!m.destination||!U.locations[m.destination]||m.destination===here)continue;need.add(U.nextHop(here,m.destination));}return need;}
  function mode(s,active){return has(s)?'full':hops(s,active).size?'route':'known';}
  /* The marker ids (location ids) flight shows. Always a subset of universe.js destinations(), so every marker can be flown to. */
- function markers(s,active){const all=U.destinations(s);if(has(s))return all;const need=hops(s,active);if(!need.size)return all;if(s.location!==HOME)need.add(U.nextHop(s.location,HOME));const route=all.filter(id=>need.has(id));return route.length?route:all;}
+ function markers(s,active){const all=U.destinations(s);
+  if(s.location===HOME&&['legal','illicit'].includes(s.story?.flags?.districtFreight)&&all.includes('sol-belt'))return ['sol-belt'];
+  if(has(s))return all;const need=hops(s,active);if(!need.size)return all;if(s.location!==HOME)need.add(U.nextHop(s.location,HOME));const route=all.filter(id=>need.has(id));return route.length?route:all;}
  const api={FLAG,ROOK_DONE,UNLOCK,OPEN_SYSTEMS,HOME,has,rookDone,coordinatePlaces,grant,qualifies,migrate,mode,markers};
  if(typeof module!=='undefined'){module.exports=api;return;}
  root.VoidNav=api;
