@@ -410,13 +410,19 @@ async function main(){
       await B.page.bringToFront();
       try{
         // First pod exit intentionally opens the KeyMap onboarding dialog.
-        // Dismiss it using the same visible control a player uses; do not
-        // manipulate flags, input state or any unrelated blocking surfaces.
-        const keymapClose=B.page.locator('#keymap:not([hidden]) [data-km="close"]');
-        if(await keymapClose.isVisible()){
-          await keymapClose.click({timeout:15000});
-          await B.page.waitForFunction(()=>!document.querySelector('#keymap:not([hidden])')&&!window.VoidKeyMapUI?.open,null,{timeout:15000,polling:200});
-          console.log('RENDERED_KEYMAP_DISMISSED');
+        // The normal close button's layout stability check can starve in
+        // software-rendered Chromium. Use the player's rebindable keyboard
+        // shortcut instead; never set flags or call the UI's show() directly.
+        const keymap=await B.page.evaluate(()=>({
+          open:!!window.VoidKeyMapUI?.open,
+          visible:!!document.querySelector('#keymap:not([hidden])'),
+          binding:window.VoidInput?.bindings?.keymap||'KeyK'
+        }));
+        if(keymap.open||keymap.visible){
+          assert(keymap.open&&keymap.visible,'KeyMap UI and DOM must agree before keyboard dismissal');
+          await B.page.keyboard.press(keymap.binding);
+          await B.page.waitForFunction(()=>!document.querySelector('#keymap:not([hidden])')&&!window.VoidKeyMapUI?.open,null,{timeout:30000,polling:200});
+          console.log('RENDERED_KEYMAP_DISMISSED '+keymap.binding);
         }
         await B.page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.movement,null,{timeout:15000,polling:200});
       }catch(e){

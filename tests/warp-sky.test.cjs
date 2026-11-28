@@ -11,9 +11,9 @@ test('leaving a planet, the jump point is up in the sky',()=>{
  }
 });
 
-test('leaving a station, the jump point stays level',()=>{
+test('leaving a station, the jump point uses the chart elevation',()=>{
  for(const origin of ['meridian','kepler','rusthaven','foundry','vigil','holdfast','sol-belt']){
-  assert.ok(!U.planetside(origin));assert.equal(W.create(origin,'vesper').vector.y,0);
+  assert.ok(!U.planetside(origin));assert.deepEqual(W.create(origin,'vesper').vector,U.direction(origin,'vesper'));
  }
 });
 

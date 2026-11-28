@@ -288,12 +288,17 @@ setInterval(()=>{try{const c=$('credits'),n=document.querySelector('header .wide
 const missionTracker=document.createElement('div');missionTracker.id='mission-tracker';missionTracker.hidden=true;document.body.append(missionTracker);
 const missionLogButton=document.createElement('button');missionLogButton.id='mission-log-button';missionLogButton.type='button';missionLogButton.textContent='MISSION LOG';missionLogButton.setAttribute('aria-keyshortcuts','L');missionLogButton.hidden=true;missionLogButton.addEventListener('click',()=>openMissionLog());document.body.append(missionLogButton);
 // Which markers: nav-coords.js (every location once Rook's coordinates are in; before that only the route to the mission and the way home). The angle follows the full list, so a marker never moves when the set changes.
-function flightRoutes(){const all=VoidUniverse.destinations(state),shown=globalThis.VoidNav?new Set(VoidNav.shown()):null;return all.map(id=>{const angle=VoidUniverse.locations[id].bearing;return {id,vector:VoidWarp.skyward(state.location,{x:Math.sin(angle),y:0,z:Math.cos(angle)})};}).filter(r=>!shown||shown.has(r.id));}
+function flightRoutes(){const all=VoidUniverse.destinations(state),shown=globalThis.VoidNav?new Set(VoidNav.shown()):null;return all.filter(id=>!shown||shown.has(id)).map(id=>({id,vector:VoidWarp.direction(state.location,id)}));}
 const worldUpdate=update;
 update=function(dt){
  if(mode==='play'&&flight.route?.phase==='departure'&&!globalThis.VoidDockingFlight?.departureStep(dt)){const speed=Math.max(0,Math.min(18,(flight.route.departure-1)*9));flight.velocity={x:0,y:0,z:speed};}
  worldUpdate(dt);
- if(mode==='play'&&state.universe.freeTravel&&flight.route?.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)>0){routeMarkers=flightRoutes();const chosen=routeMarkers.find(r=>FM.dot(flightBasis().f,r.vector)>.993);if(chosen&&chosen.id!==current.destination)setFlightDestination(chosen.id);const marker=routeMarkers.find(r=>r.id===current.destination);if(marker){flight.route.vector=marker.vector;flight.nav={x:marker.vector.x*140,y:marker.vector.y*140,z:marker.vector.z*140};}}
+ if(mode==='play'&&state.universe.freeTravel&&flight.route?.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)>0){
+  routeMarkers=flightRoutes();
+  const target=VoidFlightNav.target(state),hop=target&&VoidUniverse.nextHop(state.location,target);
+  const next=VoidFlightNav.alignedMarker(routeMarkers,flightBasis().f,hop);
+  if(next&&next!==current.destination)setFlightDestination(next);
+ }
  const tracked=['play','walking'].includes(mode)&&!globalThis.VoidFlightSkirmish?.active?VoidMissions.tracked(state,C):null;missionTracker.hidden=!tracked;if(tracked){const label=tracked.title+' / '+tracked.objective;if(missionTracker.textContent!==label)missionTracker.textContent=label;}
  // The on-screen reminder only shows in the starting area (Vesper); L opens the log anywhere.
  missionLogButton.hidden=!state.universe.missionLogUnlocked||state.location!=='vesper'||!['play','walking'].includes(mode)||!!globalThis.VoidFlightSkirmish?.active;
