@@ -252,25 +252,44 @@ async function main(){
           await page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.camera&&podFree()&&state.story.flags.podWakePending===true,null,{timeout:15000,polling:200});
           await page.keyboard.press('KeyE');
           await page.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:30000,polling:200});
-          await page.waitForFunction(()=>VoidAssets.pending===0,null,{timeout:120000,polling:200});
+          // The district continuously schedules optional NPC packs, including
+          // licensed assets absent from the CI checkout. Global queue idleness
+          // is not a gameplay readiness contract. Require the actual peer
+          // models and their rendered instances below, rather than waiting for
+          // unrelated background requests to stop.
+          assert.equal(await page.evaluate(()=>state.story.flags.podWakePending===true),false,'pod exit must complete');
+          assert.equal(await page.evaluate(()=>podWake.hidden),true,'pod overlay must close');
         }catch(e){
           const diagnostic=await page.evaluate(()=>{const exit=walker&&walkingLocation?VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1):null;return {mode,focus:document.hasFocus(),hidden:document.hidden,input:VoidInputState.current.name,podHidden:podWake.hidden,podPending:state.story.flags.podWakePending===true,exitBlocked:exit?VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation):null,assetPending:VoidAssets.pending,assetFailedCount:VoidAssets.failed.size};});
           throw new Error('Rendered pod exit gate failed: '+JSON.stringify({diagnostic,assetFailures:s.assetFailures,pageErrorCount:s.errors.length}),{cause:e});
         }
       }
       await enter(A,a);await enter(B,b);
-      const waitForPeer=(s,model)=>s.page.waitForFunction(model=>window.VoidRemotePlayers?.connected&&VoidRemotePlayers.peers.length===1&&VoidRemotePlayers.peers[0].drawn&&VoidRemotePlayers.peers[0].model===model,model,{timeout:120000});
+      const waitForPeer=(s,model)=>s.page.waitForFunction(model=>{
+        const remote=window.VoidRemotePlayers,peer=remote?.peers[0];
+        if(!remote?.connected||remote.peers.length!==1||!peer?.drawn||peer.model!==model||!VoidAssets.container('crowd:'+model))return false;
+        const node=VoidBabylon.scene?.getTransformNodeByName('remote-player:'+peer.id);
+        const meshes=node?.getChildMeshes()||[];
+        return meshes.some(m=>m.name!=='remote-tag'&&m.name!=='remote-fallback'&&m.isEnabled()&&m.isVisible&&m.getTotalVertices()>0)
+          &&!meshes.some(m=>m.name==='remote-fallback');
+      },model,{timeout:120000,polling:200});
       try{await waitForPeer(A,b.model);await waitForPeer(B,a.model);}catch(e){
         const diagnostics=[];
         for(const s of [A,B])diagnostics.push(await s.page.evaluate(()=>({remote:window.VoidRemotePlayers?.diagnostics,mode:typeof mode==='undefined'?null:mode,pending:window.VoidAssets?.pending})));
-        throw new Error('Rendered authenticated peer gate failed: '+JSON.stringify(diagnostics),{cause:e});
+        throw new Error('Rendered authenticated peer gate failed: '+JSON.stringify({diagnostics,assetFailures:[A.assetFailures,B.assetFailures]}),{cause:e});
       }
       assert.equal(hub.hub.peers.size,2);
       for(const who of [a,b])assert(hub.hub.peers.get(who.uid)?.placed,'authoritative hub must place the actual account');
       const snap=s=>s.page.evaluate(()=>({location:state.location,credits:state.credits,quest:state.quest,story:JSON.stringify(state.story),model:VoidAccount.character.model}));
       const before=await snap(A),start=await B.page.evaluate(()=>({x:walker.x,z:walker.z}));
       await B.page.bringToFront();
-      await B.page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.movement,null,{timeout:15000,polling:200});
+      try{
+        await B.page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.movement,null,{timeout:15000,polling:200});
+      }catch(e){
+        const input=await B.page.evaluate(()=>({mode,focus:document.hasFocus(),input:VoidInputState.current.name,
+          visiblePanels:[...document.querySelectorAll('dialog[open],#screen,#character-creator,[role="dialog"],#personal-device')].filter(el=>!el.closest('[hidden],.hidden,[aria-hidden="true"]')&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden').map(el=>el.id||el.tagName).slice(0,20)}));
+        throw new Error('Rendered movement input not ready: '+JSON.stringify(input),{cause:e});
+      }
       await B.page.keyboard.down('KeyW');
       try{
         await A.page.waitForFunction(()=>VoidRemotePlayers.peers[0]?.seen.includes('walk'),null,{timeout:90000});
