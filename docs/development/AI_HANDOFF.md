@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Consumable visual preview controls
+
+Consumable Effects places playback and comparison controls above the 3D view. Preview track, category, or all tracks enables Live effects and returns from Before effects. If preview accessibility hides a selected effect, the studio names the setting to enable and opens the preview-only controls. Build `2026-11-27-consumable-visual-preview-1`.
+
 ## 27 Nov 2026 — In-game encounter section start points
 
 On desktop, Start from this point opens a private in-game playtest at the selected dialogue section, main playlist, or chance playlist. It uses the encounter location and stages the cast or Lace, then plays the selected timeline with the game’s dialogue, animations and sound cues. Preview execution keeps the editor’s timing and branch trace available separately. Build `2026-11-27-encounter-in-game-start-points-1`.
