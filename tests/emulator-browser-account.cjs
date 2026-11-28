@@ -19,7 +19,7 @@ const sdkSource=[
   "import {getAuth,connectAuthEmulator,GoogleAuthProvider} from 'firebase/auth';",
   "const app=initializeApp({apiKey:'fake',authDomain:'localhost',projectId:'demo-darknet-local'});",
   "export const auth=getAuth(app),provider=new GoogleAuthProvider();",
-  "connectAuthEmulator(auth,"+JSON.stringify(authOrigin)+",{disableWarnings:true});",
+  "connectAuthEmulator(auth,"+JSON.stringify(origin)+",{disableWarnings:true});",
   "export {createUserWithEmailAndPassword,signInWithEmailAndPassword,onAuthStateChanged,signOut,getRedirectResult,isSignInWithEmailLink,signInWithEmailLink,sendSignInLinkToEmail,signInWithPopup,signInWithRedirect,signInAnonymously,EmailAuthProvider,linkWithCredential,linkWithPopup} from 'firebase/auth';"
 ].join('\n');
 const shell='<!doctype html><meta charset="utf-8"><div id="fixture"></div>'+
@@ -29,6 +29,15 @@ const shell='<!doctype html><meta charset="utf-8"><div id="fixture"></div>'+
  '<script src="/void-runner/network.js"></script><script src="/void-runner/account.js"></script>';
 const paths=new Set(['/void-runner/network.js','/void-runner/account.js','/district-identity.js']);
 const realApiPaths=new Set(['/api/void-runner/account','/api/void-runner/character']);
+// Firebase's emulator SDK uses these provider-prefixed REST paths. The browser
+// shell is a route-fulfilled fixture, so proxy these specific requests to the
+// real loopback emulator rather than relying on cross-origin browser transport.
+const authPaths=new Set([
+  '/identitytoolkit.googleapis.com/v1/accounts:signUp',
+  '/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword',
+  '/identitytoolkit.googleapis.com/v1/accounts:lookup',
+  '/securetoken.googleapis.com/v1/token'
+]);
 
 async function main(){
   const bundle=await esbuild.build({stdin:{contents:sdkSource,resolveDir:root,sourcefile:'emulator-auth.js'},nodePaths:[modules],bundle:true,platform:'browser',format:'esm',write:false});
@@ -48,12 +57,21 @@ async function main(){
     const hubUrl='ws://127.0.0.1:'+hub.port;
     browser=await chromium.launch({args:['--no-sandbox']});
     async function session(){
-      const ctx=await browser.newContext({serviceWorkers:'block'}),page=await ctx.newPage(),errors=[],apiCalls=[];
+      const ctx=await browser.newContext({serviceWorkers:'block'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[];
       page.on('pageerror',e=>errors.push(e.message));
       await ctx.route('**/*',async route=>{
         const req=route.request(),u=new URL(req.url());
-        if(u.origin===authOrigin)return route.continue();
         if(u.origin!==origin)return route.abort();
+        if(authPaths.has(u.pathname)){
+          assert.equal(req.method(),'POST','only emulator SDK POSTs are expected');
+          const result=await fetch(authOrigin+u.pathname+u.search,{
+            method:'POST',redirect:'error',
+            headers:{'content-type':req.headers()['content-type']||'application/json'},
+            body:req.postData()||undefined
+          });
+          authCalls.push({path:u.pathname,status:result.status});
+          return route.fulfill({status:result.status,contentType:'application/json',body:await result.text()});
+        }
         if(u.pathname==='/')return route.fulfill({contentType:'text/html',body:shell});
         if(u.pathname==='/firebase-auth.js')return route.fulfill({contentType:'text/javascript',body:sdk});
         if(paths.has(u.pathname))return route.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,u.pathname.slice(1)),'utf8')});
@@ -70,7 +88,7 @@ async function main(){
       });
       await page.goto(origin+'/');
       await page.waitForFunction(()=>window.VoidAccount?.authStatus==='ready'&&!VoidAccount.user,{},{timeout:30000});
-      return {ctx,page,errors,apiCalls};
+      return {ctx,page,errors,apiCalls,authCalls};
     }
     const A=await session(),B=await session();
     async function register(s,base){
@@ -80,6 +98,7 @@ async function main(){
         return (await fb.createUserWithEmailAndPassword(fb.auth,email,password)).user.uid;
       },{email,password});
       await s.page.waitForFunction(uid=>VoidAccount.user?.uid===uid&&VoidAccount.profileReady,uid,{timeout:30000});
+      assert(s.authCalls.some(x=>x.path.endsWith('/accounts:signUp')&&x.status===200),'real emulator signup must succeed');
       assert.equal(await s.page.evaluate(()=>VoidAccount.character),null);
       const created=await s.page.evaluate(base=>VoidAccount.completeMultiplayerCharacter({base}),base);
       assert.equal(created.created,true);
@@ -114,6 +133,7 @@ async function main(){
     await B.page.waitForFunction(()=>fixtureHub.messages.some(m=>m.t==='leave'),null,{timeout:15000});
     await A.page.evaluate(async({email,password})=>{const fb=await import('/firebase-auth.js');await fb.signInWithEmailAndPassword(fb.auth,email,password);},{email:a.email,password});
     await A.page.waitForFunction(({uid,model})=>VoidAccount.user?.uid===uid&&VoidAccount.profileReady&&VoidAccount.character?.model===model,a,{timeout:30000});
+    assert(A.authCalls.some(x=>x.path.endsWith('/accounts:signInWithPassword')&&x.status===200),'real emulator relogin must succeed');
     await A.page.reload();
     await A.page.waitForFunction(({uid,model})=>VoidAccount.user?.uid===uid&&VoidAccount.profileReady&&VoidAccount.character?.model===model,a,{timeout:30000});
     assert.equal(await B.page.evaluate(()=>VoidAccount.character.model),b.model);
