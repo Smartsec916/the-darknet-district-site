@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 28 Nov 2026 — Fixed universe navigation model
+
+The owner’s sketch was an example of system volumes and connecting routes. The current draft puts each system in a fixed chart and each port, pad, arrival beacon and Relay T-07 at a stable local position. Interstellar markers point toward the exit on the origin system’s boundary and arrive at the destination’s established beacon. The cockpit and V1 Map use the same bearing calculation. The V1 displays bearing and elevation. Surface launches retain the minimum sky clearance. Chart placements and scales are tuning values. Existing access, travel times and save IDs still apply.
+
 ## 28 Nov 2026 — Relay T-07 on the Tessaly freight lane
 
 On an active Servo-to-Anchorage freight run, Relay T-07 is a local WarFlying contact and a selectable warp waypoint. Target it in the lane panel, align with the diamond, and hold Warp to make the short approach jump. The port leg and Function clearance stay separate. The relay uses two Blender-authored GLBs. Destroying it plays the damaged model’s looping Service Panel Sparks clip and changes the marker and scan status to OFFLINE. Repair restores the functional model and the route uplink. The rebuild script is `tools/assets/build_relay_t07.py`.

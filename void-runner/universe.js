@@ -36,9 +36,26 @@
   'vantor-relay':{system:'sol',name:'Vantor Relay',type:'station',placeholder:true},
   'cinder-landing':{system:'erebus',name:'Survey Landing',surface:true,placeholder:true}
  });
- const bearings={vesper:-105,meridian:-64,kepler:35,rusthaven:-20,foundry:70,'vesper-relay':6,'cinder-landing':100,
-  earth:-64,mars:35,'sol-belt':-20,'servo-orbital':6,'vantor-relay':70,nexus:35,vigil:-64,holdfast:-64,'order-homeworld':35,
-  'erebus-arrival':128,'sol-arrival':158,'communion-arrival':188,'natural-order-arrival':218,'low-quay':35,'stale-arrival':248};
+ // Fixed navigation chart. World-up is +Y and chart north is +Z.
+ // System centers and local positions are in separate abstract scales.
+ const chart={
+  systems:{
+   sol:{center:[0,0,0],radius:180},erebus:{center:[96,12,-76],radius:180},
+   communion:{center:[-72,28,-121],radius:180},'natural-order':{center:[-131,-16,35],radius:180},
+   stale:{center:[-43,-38,158],radius:180}
+  },
+  points:{
+   earth:[0,0,0],'sol-belt':[-28,12,77],mars:[56,-5,65],'servo-orbital':[7,24,10],
+   'vantor-relay':[63,17,70],'sol-arrival':[38,19,-86],
+   vesper:[-60,-6,-16],meridian:[-32,0,24],kepler:[39,0,67],rusthaven:[-19,-9,85],
+   foundry:[81,23,-17],'vesper-relay':[-54,17,-3],'cinder-landing':[96,-12,-31],
+   'erebus-arrival':[58,12,-67],
+   vigil:[-39,13,42],nexus:[46,-4,54],'communion-arrival':[-14,26,-92],
+   holdfast:[-44,8,30],'order-homeworld':[40,-7,62],'natural-order-arrival':[-52,-9,-70],
+   'low-quay':[32,-3,43],'stale-arrival':[-73,21,-33]
+  },
+  contacts:{'satellite:relay-t07':{system:'sol',position:[-5,18,57]}}
+ };
  for(const [id,world] of Object.entries(planets)){
   world.settlementId=id+'-settlement';world.facilityId=id+'-pad';
   const pad=locations[world.pad],station=locations[world.orbital];
@@ -51,7 +68,6 @@
    ownerFaction:region.ownerFaction,securityFaction:region.securityFaction};
  }
  for(const [id,place] of Object.entries(locations)){
-  place.bearing=bearings[id]*Math.PI/180;
   place.testable=true;place.status=place.placeholder?'Functional placeholder':'Existing';
   if(place.placeholder)place.awaiting=['custom assets','NPCs','missions'];
   place.missionDestination=place.type!=='arrival'&&!place.placeholder;
@@ -60,6 +76,28 @@
  }
  for(const location of Object.values(locations)){location.ownerFaction??=null;location.securityFaction??=location.system==='sol'?'sol-local':'erebus-local';}
  function system(id){return locations[id]?.system||'erebus';}
+ function chartPoint(id){
+  if(Object.hasOwn(chart.points,id))return {system:locations[id].system,position:chart.points[id]};
+  return Object.hasOwn(chart.contacts,id)?chart.contacts[id]:null;
+ }
+ function vectorBetween(from,to){
+  const delta=to.map((v,i)=>v-from[i]),length=Math.hypot(...delta);
+  return length?{x:delta[0]/length,y:-delta[1]/length,z:delta[2]/length}:null;
+ }
+ function routeCoordinates(origin,destination){
+  const start=chartPoint(origin),target=chartPoint(destination);
+  if(!start||!target||origin===destination)return null;
+  if(start.system===target.system)return {origin:start,target,exit:null,entry:null};
+  const from=chart.systems[start.system],to=chart.systems[target.system];
+  const axis=to.center.map((v,i)=>v-from.center[i]),distance=Math.hypot(...axis);
+  const exit={system:start.system,position:axis.map(v=>v*from.radius/distance)};
+  const entry=chartPoint(systems[target.system].arrival);
+  return {origin:start,target:exit,exit,entry};
+ }
+ function direction(origin,destination){
+  const leg=routeCoordinates(origin,destination);
+  return leg?vectorBetween(leg.origin.position,leg.target.position):null;
+ }
  // Planetside locations (on the ground, not docked in space): departures from them warp up into the sky.
  function planetside(id){const l=locations[id];return !!(l&&(l.surface||l.planet));}
  // Risk increases by region and is sampled reproducibly for the same route and campaign checkpoint.
@@ -102,5 +140,5 @@
   const reachable=new Set(u.discoveredLocations.map(system));
   return [...new Set(local),...[...reachable].filter(id=>id!==here).map(id=>systems[id].arrival)];}
  function nextHop(origin,target){return system(origin)===system(target)?target:systems[system(target)].arrival;}
- const api={systems,locations,planets,system,planetside,route,routeThreat,threatBands,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
+ const api={systems,locations,planets,chart,chartPoint,routeCoordinates,direction,system,planetside,route,routeThreat,threatBands,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
 })(globalThis);

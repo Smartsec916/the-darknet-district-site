@@ -2,9 +2,15 @@
 (function(root){
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
  const config={skyPitch:18*Math.PI/180,alignmentCos:Math.cos(8*Math.PI/180),hold:3,departureSeconds:4,warpSeconds:U.route('meridian','kepler').seconds,destinationRevealSeconds:8,decelerationSeconds:3,approachSeconds:3,interruption:.42,interdictionRange:240,interdictionArc:.9};
- function create(origin,destination,mission,encounter=false){const heading=U.locations[destination]?.bearing??.55;const policy=U.route(origin,destination);encounter=encounter&&policy.interdiction;return {policy,origin,destination,mission:mission||null,progress:0,phase:U.locations[origin]?.type==='arrival'?'align':'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:skyward(origin,{x:Math.sin(heading),y:0,z:Math.cos(heading)})};}
+ function direction(origin,destination){return skyward(origin,U.direction(origin,destination)||{x:0,y:0,z:1});}
+ function create(origin,destination,mission,encounter=false){const policy=U.route(origin,destination);encounter=encounter&&policy.interdiction;return {policy,origin,destination,mission:mission||null,progress:0,phase:U.locations[origin]?.type==='arrival'?'align':'departure',departure:0,aligned:0,encounter:{type:encounter?'combat':'none',state:encounter?'pending':'cleared'},vector:direction(origin,destination)};}
  // Leaving a planet the jump point is up in the sky, never on the horizon behind the mountains.
- function skyward(origin,v){if(!U.planetside?.(origin))return v;const c=Math.cos(config.skyPitch);return {x:v.x*c,y:-Math.sin(config.skyPitch),z:v.z*c};} // flight space has +y pointing down
+ function skyward(origin,v){
+  const y=-Math.sin(config.skyPitch);
+  if(!U.planetside(origin)||v.y<=y)return v;
+  const horizontal=Math.hypot(v.x,v.z),c=Math.cos(config.skyPitch);
+  return horizontal?{x:v.x*c/horizontal,y,z:v.z*c/horizontal}:{x:0,y,z:c};
+ } // Flight space has +Y pointing down.
  function restore(raw,origin,destination,mission,encounter){
   const r=create(origin,destination,mission,encounter);
   if(!raw||raw.origin!==origin||raw.destination!==destination||raw.mission!==r.mission)return r;
@@ -63,5 +69,5 @@
  // An interdiction wave is already in the scene when the drop-out lands: fanned out ahead at long range,
  // inside radar range (280) but outside enemy weapons range (165), so the ships are seen closing in.
  function interdictionPoint(index,count,basis,range=config.interdictionRange){const n=Math.max(1,Math.floor(count)||1),i=((Math.floor(index)||0)%n+n)%n,yaw=n>1?(i/(n-1)-.5)*config.interdictionArc:0,pitch=n>1?(i%2?.07:-.07):0,f=basis.f,r=basis.r,u=basis.u,a=Math.cos(yaw)*Math.cos(pitch)*range,b=Math.sin(yaw)*Math.cos(pitch)*range,c=Math.sin(pitch)*range;return {x:f.x*a+r.x*b+u.x*c,y:f.y*a+r.y*b+u.y*c,z:f.z*a+r.z*b+u.z*c};}
- const api={config,create,restore,step,canSpool,aligned,interrupt,skyward,interdictionPoint};if(typeof module!=='undefined')module.exports=api;else root.VoidWarp=api;
+ const api={config,create,restore,step,canSpool,aligned,interrupt,direction,skyward,interdictionPoint};if(typeof module!=='undefined')module.exports=api;else root.VoidWarp=api;
 })(globalThis);

@@ -61813,7 +61813,7 @@
       "spawn"
     ]
   },
-  "revision": "95fea35a497f4ccf",
+  "revision": "d30cb24c017ecbf5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -83664,13 +83664,13 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 326,
+      "line": 331,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 337,
+      "line": 342,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -83847,7 +83847,7 @@
     "void-runner/babylon-renderer.js": "d7df168304411c228e4ac3e09be6aab01705dd36044b211aaa49df3b8e7c0f6f",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
-    "void-runner/beginner-integration.js": "fe8c54c000c7c73d4019898c1c0ccf648042ea710676e4c6c489f435d1408286",
+    "void-runner/beginner-integration.js": "dc9e0807b340fb5e91e14ed5f84a0ff36469e318447ef67a0d700f0c42c18a19",
     "void-runner/beginner.js": "b7a0e7b500706d75256d9703a46ea22b701094cf585ae0bc45222cf39dacf3e1",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
@@ -83942,7 +83942,7 @@
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-fx.js": "a39f921f115b6e0ec2830ed4a4b4dd150428654b6d5022b4ecadcfcd56bd8b97",
     "void-runner/flight-hud.js": "653ade17a4c1d4362e7a8c0661357d88a2b9c15f9c0700eae4121eb82513d060",
-    "void-runner/flight-nav.js": "f570e3bfc8a384c70a72d57ba808d54628f12914cee7e4129ac3f8863fca6eaa",
+    "void-runner/flight-nav.js": "697664862a7e849ebb454ee048c738f54bddf9bd7307131102db3d70acf91922",
     "void-runner/flight-physics.js": "b996699897bb5197930c37c4e397b701b0b1ee028f9b00d474137b7e4a40a40c",
     "void-runner/flight-presentation.js": "3a2cca4e6820a3d7a10292b861b468bdaa201a68a913fc376e6963b1afc444f3",
     "void-runner/flight-runtime-integration.js": "f2afb02e6cd1c98868de7276202ffe4f7ece0e54ba34e98ad5864abc442d44de",
@@ -84123,7 +84123,7 @@
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
     "void-runner/unified-controls.js": "c7265b9dc46a7cb0cc7daa7df532165a5fc60d8ac59dde620be1643696422223",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
-    "void-runner/universe.js": "a90c436d5eba3b8578d529673ef182e8d3afe218a2f4c9518b099973911b377d",
+    "void-runner/universe.js": "9ba15a370340371081a7087830e58b9b0e91906ce870196585d8e9c80d4df4db",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
     "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
@@ -84150,8 +84150,8 @@
     "void-runner/warflying-scan.js": "fdc27d22d70c12827d9deeac5ac751edb09699c81a99dd31cf3375d175654797",
     "void-runner/warflying-scanner.js": "065a91102a1090c014b56d1af9b41cdef0b6c8a6ce1ce9c376b055f476db71ca",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
-    "void-runner/warp.js": "30a496179b35d37bad45564db4f8f2fadd59cc4bb23a18ef1db279f4257b7cfc",
-    "void-runner/world-integration.js": "eb0c54e63adcbd1cea40846a76c6be3ccfcac436b1385ac08cd13b93a6008ec3",
+    "void-runner/warp.js": "126f7b6704b56d0fa405ae43f43898a49e1eacb38e55008f4a3cc2c382163726",
+    "void-runner/world-integration.js": "9130a9226cc8766455195a5e6a95ae92aae4490c658ae7c7626b4f063b0b80eb",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "65ce71e34220ac5640678aa939c595b5233bd9a353a4ca58e1d758f30955d2c4",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",

@@ -120,8 +120,8 @@
   if(!lane.released){
    lane.released=true;document.exitPointerLock?.();clearInput();
    root.VoidTraffic.districtCouriers(ambientTraffic,flightBasis());
-   const v=route.vector;
-   lane.relay={x:v.x*113+v.z*35,y:v.y*113,z:v.z*113-v.x*35,signalId:'satellite:relay-t07'};
+   const signalId='satellite:relay-t07',v=VoidWarp.direction(route.origin,signalId);
+   lane.relay={x:v.x*118,y:v.y*118,z:v.z*118,signalId};
   }
   const flags=state.story.flags,offline=flags.districtRelayOffline===true;
   lane.relay.offline=offline;
