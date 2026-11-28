@@ -35,7 +35,7 @@ let interdictionAlertRoute=null,interdictionAlertState=null,interdictionAlertSta
 function drawInterdictionWarning(){
  const r=flight.route;
  const now=performance.now();
- const status=r?.policy?.interdiction&&r.encounter?.type==='combat'?r.encounter.state:null;
+ const status=r?.policy?.interdiction&&r.encounter?.type==='combat'&&!r.encounter.evaded?r.encounter.state:null;
  if(interdictionAlertRoute!==r){interdictionAlertRoute=r;interdictionAlertState=null;interdictionAlertKind=null;}
  const active=status==='active'&&r.phase==='encounter';
  if(active&&interdictionAlertState!=='active'){interdictionAlertKind='active';interdictionAlertStart=now;}
@@ -51,6 +51,6 @@ function drawInterdictionWarning(){
  ctx.beginPath();ctx.moveTo(cx-half,y-h/2);ctx.lineTo(cx+half-10,y-h/2);ctx.lineTo(cx+half,y-h/2+10);ctx.lineTo(cx+half,y+h/2);ctx.lineTo(cx-half+10,y+h/2);ctx.lineTo(cx-half,y+h/2-10);ctx.closePath();ctx.fill();ctx.stroke();
  ctx.fillStyle=accent;ctx.fillRect(cx-half+5,y-8,3,16);ctx.fillRect(cx+half-8,y-8,3,16);
  ctx.font='bold 14px Consolas';ctx.fillText(cleared?'INTERDICTION CLEAR':'INTERDICTED',cx,y-6);
- ctx.font='10px Consolas';ctx.fillText(cleared?'WARP DRIVE AVAILABLE':'WARP DRIVE DISRUPTED',cx,y+8);
+ ctx.font='10px Consolas';ctx.fillText(cleared?'WARP DRIVE AVAILABLE':'HOSTILES IN RANGE',cx,y+8);
  ctx.restore();
 }

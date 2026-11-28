@@ -39,10 +39,10 @@
    objectives:[
     {id:'claim',label:'Register the courier hull at the Landing Terminal',on:'use-terminal',interaction:'terminal',award:'ship',say:[{who:'Landing terminal',text:'COURIER HULL REGISTERED TO YOU. PAD 01 UNLOCKED.'}]},
     {id:'board',label:'Board your ship at Pad 01',on:'board-ship',requires:['claim'],interaction:'board'}]},
-  {id:'first-departure',title:'FIRST DEPARTURE',type:'main',giver:'Admin',description:'Take your ship to Meridian Station. Clear the pad, steer the nose onto the MERIDIAN marker (mouse, or W S A D) and hold it there to jump. Dock when you arrive.',destination:'meridian',rewards:200,prerequisites:['first-ship'],
+  {id:'first-departure',title:'FIRST DEPARTURE',type:'main',giver:'Admin',description:'Take your ship to Meridian Station. Clear the pad, steer the nose onto the MERIDIAN marker (mouse, or W S A D) and hold the Warp control until the ring fills. Dock when you arrive.',destination:'meridian',rewards:200,prerequisites:['first-ship'],
    objectives:[
     {id:'launch',label:'Clear the pad',on:'launch'},
-    {id:'warp',label:'Line up on the MERIDIAN marker and jump',on:'warp-meridian',requires:['launch'],destination:'meridian'},
+    {id:'warp',label:'Line up on the MERIDIAN marker and spool warp',on:'warp-meridian',requires:['launch'],destination:'meridian'},
     {id:'arrive',label:'Dock at Meridian Station',on:'dock-meridian',requires:['warp'],destination:'meridian'}]}
  ];
  const byId=Object.fromEntries(MISSIONS.map(m=>[m.id,m]));

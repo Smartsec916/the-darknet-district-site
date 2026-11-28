@@ -55,7 +55,7 @@ test('the mouse map: each part says what it does in the context, and a part that
 });
 test('flight is its own layout; arrows and right Shift appear only while the action is on its default key',()=>{
  const f=K.place(K.entries('flight',K.DEFAULTS));const c=n=>f.keys.find(k=>k.code===n);
- assert.equal(c('Space').label,'Fire');assert.equal(c('KeyF').label,'Missile');assert.equal(c('ArrowUp').label,'Pitch up');assert.ok(!f.keys.some(k=>k.label==='Jump'||k.label==='Inventory'),'no on-foot actions in flight');assert.deepEqual(f.conflicts,[]);
+ assert.equal(c('Space').label,'Fire');assert.equal(c('KeyF').label,'Missile');assert.equal(c('KeyJ').label,'Hold to spool warp');assert.equal(c('ArrowUp').label,'Pitch up');assert.ok(!f.keys.some(k=>k.label==='Jump'||k.label==='Inventory'),'no on-foot actions in flight');assert.deepEqual(f.conflicts,[]);
  const moved=K.place(K.entries('flight',{...K.DEFAULTS,pitchUp:'KeyY'}));assert.ok(moved.keys.some(k=>k.code==='KeyY'&&k.label==='Pitch up'));assert.ok(!moved.keys.some(k=>k.code==='ArrowUp'),'the arrow alias is not offered once the action is rebound');
 });
 test('player-customised bindings are shown, and a shared key is reported instead of hidden',()=>{
@@ -69,13 +69,13 @@ test('first-exit trigger: only a real exit from the pod, only once, never in the
  assert.equal(T({},'pod-waking','character-creator',false),false,'still in the pod flow');assert.equal(T({},'walking','walking',false),false,'not every visit');assert.equal(T({},'menu','walking',false),false);assert.equal(T({},'',  'walking',false),false);
 });
 test('saved controls: the KeyMap takes K for a player who has none there; an existing K is never overwritten; custom bindings survive',()=>{
- const full=Object.fromEntries(Object.entries(loadInput().defaults).filter(([k])=>k!=='keymap'));   // a save from before the KeyMap
- let I=loadInput(full);assert.equal(I.bindings.keymap,'KeyK');assert.deepEqual({...I.bindings,keymap:undefined},{...full,keymap:undefined},'nothing else changed');
- I=loadInput({...full,missionLog:'KeyK'});assert.equal(I.bindings.missionLog,'KeyK','the player\'s own K stays on Mission log');assert.equal(I.bindings.keymap,'KeyJ','the KeyMap takes the next free key');assert.equal(K.toggleHint(I.bindings),'To hide the KeyMap Press J');
+ const full=Object.fromEntries(Object.entries(loadInput().defaults).filter(([k])=>!['keymap','warp'].includes(k)));   // a save from before the KeyMap
+ let I=loadInput(full);assert.equal(I.bindings.keymap,'KeyK');assert.deepEqual({...I.bindings,keymap:undefined,warp:undefined},{...full,keymap:undefined,warp:undefined},'nothing else changed');
+ I=loadInput({...full,missionLog:'KeyK'});assert.equal(I.bindings.missionLog,'KeyK','the player\'s own K stays on Mission log');assert.equal(I.bindings.keymap,'KeyJ','the KeyMap takes the next free key');assert.equal(I.bindings.warp,'KeyU','warp uses the next available key');assert.equal(K.toggleHint(I.bindings),'To hide the KeyMap Press J');
  I=loadInput({...full,missionLog:'KeyK',personalHud:'KeyJ',lock:'KeyN',pitchUp:'KeyM'});assert.equal(I.bindings.keymap,'KeyU');assert.equal(I.bindings.missionLog,'KeyK');
  I=loadInput({...full,fire:'KeyJ',throttleDown:'KeyV'});assert.equal(I.bindings.fire,'KeyJ');assert.equal(I.bindings.keymap,'KeyK');
  I=loadInput(undefined);assert.equal(I.bindings.keymap,'KeyK');I=loadInput({...full,keymap:'KeyU'});assert.equal(I.bindings.keymap,'KeyU','an explicit choice is kept');
  const bad=loadInput({...full,keymap:'KeyL'});assert.equal(bad.bindings.keymap,'KeyK','a duplicate saved set falls back to defaults, as before (unchanged behaviour)');
- const r=loadInput();assert.equal(r.bind('keymap','KeyL').error&&true,true,'binding KeyMap to a key already in use is refused with a message');assert.equal(r.bind('keymap','KeyJ').saved,true);assert.equal(r.bindings.keymap,'KeyJ');
+ const r=loadInput();assert.equal(r.bind('keymap','KeyL').error&&true,true,'binding KeyMap to a key already in use is refused with a message');assert.equal(r.bind('keymap','KeyY').saved,true);assert.equal(r.bindings.keymap,'KeyY');
  assert.equal(r.reset(),true);assert.equal(r.bindings.keymap,'KeyK');
 });

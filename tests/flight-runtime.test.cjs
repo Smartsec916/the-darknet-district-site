@@ -9,11 +9,11 @@ function harness(ship='starter',options={}){
  let c;const owner={status:'PREPARING'},saves=[];
  c=vm.createContext({VoidEquipmentProfiles:require('../void-runner/equipment-profiles.js'),VoidBalance:require('../void-runner/balance.js'),VoidFlightSession:{active:owner},VoidFlightRuntime:R,VoidShips:Ships,P,VoidContent:Content,VOID_BALANCE:B.defaults||B,
   state,ownedGear:ship==='ship3'?['spectre']:[],trialGear:null,devMissileTrial:false,VoidDevTools:{authorized:false},mode:'play',view:'flight',
-  save:()=>saves.push(copy(state)),hud(){},hangar(){},market(){},updateEquipmentHud(){},tone(){},panel(){},button(){},shipCard(){},clearInput(){},flightUI(){},VoidCombatEffects:{pulse(){}}});
+  save:()=>saves.push(copy(state)),hud(){},hangar(){},market(){},updateEquipmentHud(){},tone(){},VoidAudio:{event(){}},VoidWarp:{interrupt(){return false;}},VoidInput:{down(){return false;}},flight:{route:null},panel(){},button(){},shipCard(){},clearInput(){},flightUI(){},VoidCombatEffects:{pulse(){}}});
  c.C={...C,stats:s=>C.stats(s,c.ownedGear)};
  vm.runInContext(read('flight-runtime-integration'),c);
  const game=read('game'),expansion=read('expansion');
- vm.runInContext(game.slice(game.indexOf('function hurt(amount)'),game.indexOf('function pause()')),c);
+ vm.runInContext(game.slice(game.indexOf('function hurt(amount,'),game.indexOf('function pause()')),c);
  vm.runInContext(expansion.slice(expansion.indexOf('const expansionHurt='),expansion.indexOf('const expansionSpawn=')),c);
  vm.runInContext(expansion.slice(expansion.indexOf('function setOwnedGear('),expansion.indexOf('const expansionDock=')),c);
  c.VoidFlightCraft.initialize();owner.status='RUNNING';return {c,owner,state,saves};
@@ -22,7 +22,7 @@ for(const id of ['starter','ship2','ship3'])test('Campaign '+id+' configuration 
  const {c,owner,state}=harness(id),config=owner.craft.config,r=owner.craft.resources;
  assert.deepEqual(config.stats,copy(c.C.stats(state)));assert.deepEqual(config.systems,copy(P.systems(state)));assert.equal(config.shipId,id);
  assert.equal(r.hp,config.stats.hull);assert.equal(r.shieldHP,config.stats.shield);assert.equal(r.weaponBank.energy,config.systems.capacity);assert.equal(r.missileState.missileCapacity,Ships.ships[id].missile.capacity);assert.equal(r.missileState.missilesLoaded,4);
- assert.equal(config.systems.cargo,id==='ship3'?3:2);assert(Object.isFrozen(config.stats.flight));assert(Object.isFrozen(config.ship));
+ assert.equal(config.systems.cargo,P.tuning.ships[id].cargo);assert(Object.isFrozen(config.stats.flight));assert(Object.isFrozen(config.ship));
 });
 test('configuration records validated loadout and installed modules without source aliases',()=>{
  const {c,owner,state}=harness();assert.equal(owner.craft.config.modules.power,'capacitor');assert.equal(owner.craft.config.loadout.missile,'launcher');

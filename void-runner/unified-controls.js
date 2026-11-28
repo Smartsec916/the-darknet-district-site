@@ -7,7 +7,7 @@
   let active='keyboard',padIndex=-1,previousButtons=[],previousAxes=[0,0,0,0],capture=null,movePointer=null,lookPointer=null,lastMode='',lastPrompt='';
   const touchHeld=new Set(),padHeld=new Set(),move={x:0,z:0};
   const names=['A / Cross','B / Circle','X / Square','Y / Triangle','LB / L1','RB / R1','LT / L2','RT / R2','View / Share','Menu / Options','Left stick click (L3)','Right stick click (R3)','D-pad Up','D-pad Down','D-pad Left','D-pad Right','Home'];
-  const fpsActions=['fire','aim','jump','interact','reload','draw','crouch','sprint','pause'],flightActions=['fire','missile','nearest','next','previous','lock','throttleUp','throttleDown','pause'];
+  const fpsActions=['fire','aim','jump','interact','reload','draw','crouch','sprint','pause'],flightActions=['fire','missile','nearest','next','previous','lock','warp','throttleUp','throttleDown','pause'];
   const axisKeys=Object.keys(input.axes);
   const layer=document.createElement('div');layer.id='device-controls';layer.innerHTML='<div id="device-move" aria-label="Movement joystick"><span class="device-stick"></span></div><div id="device-look" aria-label="Drag to look"></div><div id="device-actions"></div><div id="device-rotate" role="status">ROTATE DEVICE<br><small>The Darknet District is designed for landscape gameplay.</small></div>';document.body.append(layer);
   const moveEl=layer.querySelector('#device-move'),knob=moveEl.firstElementChild,lookEl=layer.querySelector('#device-look'),buttons=layer.querySelector('#device-actions');
@@ -37,7 +37,7 @@
   function startTouch(id){touchHeld.add(id);input.virtual.add(id);dispatch(id,true);setActive('touch');}
   function stopTouch(id){touchHeld.delete(id);input.virtual.delete(id);dispatch(id,false);}
   function clearTouch(){for(const id of [...touchHeld])stopTouch(id);movePointer=lookPointer=null;move.x=move.z=0;knob.style.transform='translate(-50%,-50%)';}
-  function refreshButtons(){const flight=mode==='play';const spec=flight?[['fire','FIRE'],['missile','MISSILE'],['throttleUp','THRUST +'],['throttleDown','BRAKE'],['nearest','TARGET'],['lock','LOCK']]:[['fire','FIRE'],['aim','AIM'],['jump','JUMP'],['interact','INTERACT'],['reload','RELOAD'],['draw','DRAW'],['sprint','RUN']];
+  function refreshButtons(){const flight=mode==='play';const spec=flight?[['fire','FIRE'],['missile','MISSILE'],['warp','WARP'],['throttleUp','THRUST +'],['throttleDown','BRAKE'],['nearest','TARGET'],['lock','LOCK']]:[['fire','FIRE'],['aim','AIM'],['jump','JUMP'],['interact','INTERACT'],['reload','RELOAD'],['draw','DRAW'],['sprint','RUN']];
     const signature=mode;if(buttons.dataset.signature===signature)return;buttons.dataset.signature=signature;buttons.innerHTML=spec.filter(([id])=>id!=='interact'||mode==='walking').map(([id,text])=>'<button type="button" data-device-action="'+id+'" aria-label="'+text+'">'+text+'</button>').join('');
   }
   function resetMove(){move.x=move.z=0;movePointer=null;knob.style.transform='translate(-50%,-50%)';}
@@ -94,7 +94,7 @@
   function applyPrompts(){if(active==='keyboard')return;const tutorial=document.getElementById('tutorial-prompt');if(tutorial&&!tutorial.hidden){let value=tutorial.textContent;for(const [pattern,replacement] of [[/WASD \/ touch arrows/g,'LEFT STICK'],[/Space \/ Jump/g,label('jump')+' / Jump'],[/E \/ Interact/g,label('interact')+' / Interact'],[/Hold Shift/g,'Hold '+label('sprint')],[/right mouse \/ Aim/g,label('aim')+' / Aim'],[/Left mouse \/ Fire/g,label('fire')+' / Fire'],[/R \/ Reload/g,label('reload')+' / Reload'],[/1 \/ Draw/g,label('draw')+' / Draw']])value=value.replace(pattern,replacement);if(value!==tutorial.textContent)tutorial.textContent=value;}const hint=document.querySelector('#skirmish-hud .skirmish-controls');if(hint){const value=active==='gamepad'?'LEFT STICK MOVE · RIGHT STICK LOOK · '+label('fire')+' FIRE · '+label('aim')+' AIM · '+label('reload')+' RELOAD · '+label('pause')+' MENU':'JOYSTICK MOVE · DRAG LOOK · TOUCH ACTION BUTTONS';if(hint.textContent!==value)hint.textContent=value;}}
   const beforeUpdate=update;update=function(dt){poll(dt);beforeUpdate(dt);applyPrompts();};
   function gamepadLayout(){
-    const labels={sprint:'Sprint (hold while moving)',interact:'Interact / use',jump:'Jump',crouch:'Crouch (hold)',aim:'Aim (hold)',fire:'Fire',reload:'Reload',draw:'Draw weapon',personalHud:'Personal HUD',pause:'Pause / resume',missile:'Launch missile',nearest:'Target nearest',previous:'Previous target',next:'Next target',lock:'Lock target',throttleUp:'Increase throttle',throttleDown:'Decrease throttle'};
+    const labels={sprint:'Sprint (hold while moving)',interact:'Interact / use',jump:'Jump',crouch:'Crouch (hold)',aim:'Aim (hold)',fire:'Fire',reload:'Reload',draw:'Draw weapon',personalHud:'Personal HUD',pause:'Pause / resume',missile:'Launch missile',nearest:'Target nearest',previous:'Previous target',next:'Next target',lock:'Lock target',warp:'Spool warp drive (hold)',throttleUp:'Increase throttle',throttleDown:'Decrease throttle'};
     const rows=ids=>ids.map(id=>'<div class="binding-row"><span>'+labels[id]+'</span>'+button(names[input.controller.bindings[id]],'device-bind:'+id,true)+'</div>').join('');
     return '<h1>Gamepad layout</h1><p>Select a button binding to change it.</p><h2>On foot</h2>'+
       '<div class="binding-row"><span>Walk forward, backward and strafe</span><strong>Left stick</strong></div>'+

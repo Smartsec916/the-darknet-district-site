@@ -279,7 +279,7 @@ async function chain(browser,errors,posts){
  await page.screenshot({path:path.join(shots,'chain-port-1920.png'),timeout:180000});
  // board at Pad 01 (the same call as pressing E at the ship) and fly the real route to Meridian
  await page.evaluate(()=>leaveWalking());await page.waitForFunction(()=>mode==='play',null,{timeout:300000});
- await page.evaluate(()=>{window.__iv=setInterval(()=>{const r=flight.route;if(!r||r.phase!=='align'){flight.mouseX=0;flight.mouseY=0;return;}const m=flightRoutes().find(x=>x.id==='meridian');if(!m)return;const b=flightBasis(),v=m.vector,al=b.f.x*v.x+b.f.y*v.y+b.f.z*v.z,ex=b.r.x*v.x+b.r.y*v.y+b.r.z*v.z,ey=b.u.x*v.x+b.u.y*v.y+b.u.z*v.z;
+ await page.evaluate(()=>{window.__iv=setInterval(()=>{const r=flight.route;VoidInput.held[r?.phase==='align'?'add':'delete'](VoidInput.bindings.warp);if(!r||r.phase!=='align'){flight.mouseX=0;flight.mouseY=0;return;}const m=flightRoutes().find(x=>x.id==='meridian');if(!m)return;const b=flightBasis(),v=m.vector,al=b.f.x*v.x+b.f.y*v.y+b.f.z*v.z,ex=b.r.x*v.x+b.r.y*v.y+b.r.z*v.z,ey=b.u.x*v.x+b.u.y*v.y+b.u.z*v.z;
   const S=window.__st||(window.__st={sx:1,sy:1,flip:1});if(S.last!==undefined&&al<S.last-.002){if(S.flip===1)S.sy=-S.sy;else S.sx=-S.sx;S.flip=-S.flip;}S.last=al;flight.mouseX=Math.max(-1,Math.min(1,ex*4))*S.sx;flight.mouseY=Math.max(-1,Math.min(1,ey*4))*S.sy;},200);});
  for(let i=0;i<200;i++){await page.waitForTimeout(8000);const f=await page.evaluate(()=>({mode,loc:state.location,phase:flight?.route?.phase,progress:flight?.route?.progress}));if(i%5===0)log('flight '+JSON.stringify(f));if(['over','arrival','dock','walking'].includes(f.mode)||f.loc!=='earth')break;}
  await page.evaluate(()=>clearInterval(window.__iv));

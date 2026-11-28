@@ -8,17 +8,17 @@ const cockpitLaunch=launch;
 launch=function(){VoidDevTools?.applyPending();VoidFlightCraft.initialize();cockpitLaunch();if(mode!=='play')return;Object.assign(flight,{yaw:0,pitch:0,roll:0,yawRate:0,pitchRate:0,throttle:.8,mouseX:0,mouseY:0,travel:0,nav:{x:0,y:0,z:140}});VoidPilotFlight.reset(flight);flight.route=trialGear?null:VoidWarp.restore(state.travel,state.location,current.destination,current.id||state.quest,current.enemies>0||['salvage','hazard','escort'].includes(current.kind));
  flight.arrivalHeading=VoidUniverse.locations[state.location]?.type==='arrival'?[flight.yaw,flight.pitch]:null;
  // Modern departure has no bitmap asset dependency.
- if(flight.route){state.travel=flight.route;flight.nav={x:flight.route.vector.x*140,y:flight.route.vector.y*140,z:flight.route.vector.z*140};if(flight.route.encounter.state==='cleared')spawned=resolved=current.enemies;save();}
- resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';$('weapon').textContent=VoidFlightCraft.stats().piercing?'WRAITH / PIERCING':`PULSE MK ${VoidFlightCraft.upgrades().guns+1}`;flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · '+VoidInput.label(VoidInput.bindings.fire)+' primary · '+VoidInput.label(VoidInput.bindings.missile)+' missile · '+VoidInput.label(VoidInput.bindings.pause)+' menu');};
+ if(flight.route){state.travel=flight.route;flight.nav={x:flight.route.vector.x*140,y:flight.route.vector.y*140,z:flight.route.vector.z*140};if(flight.route.encounter.state==='cleared'&&!flight.route.encounter.evaded)spawned=resolved=current.enemies;save();}
+ resetMissileFlight();VoidCombatEffects.reset();$('route-status').textContent='DEPARTURE GUIDANCE';const weapon=VoidFlightCraft.active()?.config.modules.weapon,ship=VoidFlightCraft.ship();$('weapon').textContent=VoidFlightCraft.stats().piercing?'WRAITH / PIERCING':(VoidProgression.modules[weapon]?.name||VoidShips.factory[ship.id]?.weapon||`PULSE MK ${VoidFlightCraft.upgrades().guns+1}`).toUpperCase();flight.rocks=Array.from({length:34},(_,i)=>({x:(i%2?1:-1)*(28+random()*100),y:(random()-.5)*120,z:25+random()*300,size:1.5+random()*6,phase:random()*6}));announce('Cockpit online · '+VoidInput.label(VoidInput.bindings.fire)+' primary · '+VoidInput.label(VoidInput.bindings.missile)+' missile · '+VoidInput.label(VoidInput.bindings.pause)+' menu');};
 const cockpitUI=flightUI;
 flightUI=function(active){cockpitUI(active);document.body.classList.toggle('cockpit-flight',active);};
 aim=function(e){const rect=canvas.getBoundingClientRect();flight.mouseX=FM.clamp((e.clientX-rect.left-W/2)/(W*.3),-1,1);flight.mouseY=FM.clamp((e.clientY-rect.top-H*.44)/(H*.3),-1,1);};
 canvas.onpointerup=canvas.onpointercancel=()=>{pointer=false;firing=false;flight.mouseX=flight.mouseY=0;};
 canvas.onpointerleave=()=>{if(!pointer)flight.mouseX=flight.mouseY=0;};
 const cockpitClear=clearInput;
-clearInput=function(){cockpitClear();flight.mouseX=flight.mouseY=0;};
+clearInput=function(){cockpitClear();flight.mouseX=flight.mouseY=0;if(VoidWarp.canSpool(flight.route))flight.route.aligned=0;};
 const cockpitSpawn=spawnEnemy;
-spawnEnemy=function(){cockpitSpawn();const e=enemies[enemies.length-1],b=flightBasis();const spread=e.x*4;if(flight.route?.phase==='encounter')Object.assign(e,VoidWarp.interdictionPoint(spawned-1,interdictionSlots(),b));else{e.x=b.f.x*115+b.r.x*spread+b.u.x*e.y*3;e.y=b.f.y*115+b.r.y*spread+b.u.y*e.y*3;e.z=b.f.z*115+b.r.z*spread;}const d=FM.unit({x:-e.x,y:-e.y,z:-e.z});e.velocity={x:d.x*19,y:d.y*19,z:d.z*19};e.passTime=0;e.armor*=VOID_BALANCE.enemyHull/2;e.maxArmor=e.armor;e.shield=VOID_BALANCE.enemyShield;e.maxShield=e.shield;VoidEnemyPilots.init(e,state.quest!=='open'?'rookie':current.tier>=3?'elite':current.tier>=1?'trained':'rookie',spawned);};function interdictionSlots(){return Math.max(1,Math.min(current.enemies,4+Math.floor(current.tier)));}let interdictionRoute=null;function interdictionWave(){const route=flight.route;if(!route||route.phase!=='encounter'||interdictionRoute===route)return;interdictionRoute=route;while(spawned<current.enemies&&enemies.filter(VoidStory.hostile).length<4+Math.floor(current.tier))spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}
+spawnEnemy=function(){cockpitSpawn();const e=enemies[enemies.length-1],b=flightBasis();const spread=e.x*4;if(flight.route?.phase==='encounter')Object.assign(e,VoidWarp.interdictionPoint(spawned-1,interdictionSlots(),b));else{e.x=b.f.x*115+b.r.x*spread+b.u.x*e.y*3;e.y=b.f.y*115+b.r.y*spread+b.u.y*e.y*3;e.z=b.f.z*115+b.r.z*spread;}const d=FM.unit({x:-e.x,y:-e.y,z:-e.z});e.velocity={x:d.x*19,y:d.y*19,z:d.z*19};e.passTime=0;e.armor*=VOID_BALANCE.enemyHull/2;e.maxArmor=e.armor;e.shield=VOID_BALANCE.enemyShield;e.maxShield=e.shield;const tier=current.tier>=2?'elite':current.tier>=1?'trained':'rookie';VoidEnemyPilots.init(e,tier,spawned);if(!globalThis.VoidFlightSkirmish?.active){const spec=VoidEnemyPilots.tiers[tier];e.armor=e.maxArmor=(spec.armor+(e.heavy?10:e.interceptor?2:0))*VOID_BALANCE.enemyHull/2;}};function interdictionSlots(){return Math.max(1,Math.min(current.enemies,4+Math.floor(current.tier)));}let interdictionRoute=null;function interdictionWave(){const route=flight.route;if(!route||route.phase!=='encounter'||interdictionRoute===route)return;interdictionRoute=route;while(spawned<current.enemies&&enemies.filter(VoidStory.hostile).length<4+Math.floor(current.tier))spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}
 function moveRelative(o,v,dt){o.x-=v.x*dt;o.y-=v.y*dt;o.z-=v.z*dt;}
 function spawnAhead(distance,lateral=0,vertical=0){const b=flightBasis();return {x:b.f.x*distance+b.r.x*lateral+b.u.x*vertical,y:b.f.y*distance+b.r.y*lateral+b.u.y*vertical,z:b.f.z*distance+b.r.z*lateral+b.u.z*vertical};}
 const campaignEnemyHitConsequences=C.enemyHitConsequences(()=>state,()=>save());
@@ -65,14 +65,14 @@ update=function(dt){
  const route=flight.route,combat=!route||route.phase==='encounter';
  if(combat)elapsed+=dt*FM.clamp(flight.throttle/.8,.5,1.5);
  if(flight.arrivalHeading&&(route?.phase!=='align'||Math.hypot(flight.yaw-flight.arrivalHeading[0],flight.pitch-flight.arrivalHeading[1])>.025))flight.arrivalHeading=null;
- if(route){const changed=VoidWarp.step(route,dt,flight.arrivalHeading||typeof navigationReveal!=='undefined'&&route.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)<=0?{x:0,y:0,z:0}:b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;interdictionWave();announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
+ if(route&&!combat)advanceWarp(route,dt,b.f,stats.ship);
  if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'&&VoidUniverse.locations[route.destination]?.type==='arrival'){
   const completed=C.complete(state);
   if(completed?.connection){
    const next=completed.finalDestination||VoidNav.shown()[0]||VoidUniverse.destinations(state)[0];
    if(next)setFlightDestination(next);
    flight.arrivalHeading=[flight.yaw,flight.pitch];
-   save();hud();announce('Entered '+VoidUniverse.systems[VoidUniverse.system(state.location)].name+'. Align with a destination.');
+   save();hud();announce('Entered '+VoidUniverse.systems[VoidUniverse.system(state.location)].name+'. Align and hold warp.');
   }
   return;
  }if(route.phase==='arrived'){elapsed=current.duration;const docked=dockingApproach(dt);approachTime+=dt;if(docked)arrive();}return;}
@@ -84,14 +84,14 @@ update=function(dt){
   const pilot=VoidEnemyPilots.step(e,dt,{detected:!globalThis.VoidFlightSensors||distance<VoidSensors.detectableAt(VoidFlightSensors.state.signature),velocity,forward:b.f,right:b.r,shieldsDown:stats.shield>0&&shieldHP===0,lockThreat:missileLock.target===e&&missileLock.progress>.3,missileThreat:missiles.some(m=>m.target===e&&!m.dead),underFire:bullets.some(q=>Math.hypot(q.x-e.x,q.y-e.y,q.z-e.z)<24)}),skill=VoidEnemyPilots.tiers[pilot.tier];
   globalThis.VoidFlightSkirmish?.avoid(e);if(globalThis.VoidFlightSkirmish?.lineBlocked(e)){pilot.canFire=false;pilot.lock=0;}
   for(const axis of ['x','y','z'])e[axis]+=e.velocity[axis]*dt;moveRelative(e,velocity,dt);e.fire-=dt;
-  if(e.fire<=0&&pilot.canFire){VoidAudio.event('enemyFire',stats.ship,e,b);e.fire=(e.boss?1.4/3:e.heavy?2/3:Math.max(1,3-current.tier*.2)/3)/VOID_BALANCE.enemyFireRate;const spread=(1-VOID_BALANCE.enemyAccuracy*skill.accuracy)*distance*.3,lead=distance/VOID_BALANCE.enemyProjectileSpeed*skill.lead;const d=FM.unit({x:-e.x+velocity.x*lead+(random()-.5)*spread,y:-e.y+velocity.y*lead+(random()-.5)*spread,z:-e.z+velocity.z*lead});for(const offset of e.boss?[-.07,0,.07]:[0])hostile.push({x:e.x,y:e.y,z:e.z,vx:(d.x+offset)*VOID_BALANCE.enemyProjectileSpeed,vy:d.y*VOID_BALANCE.enemyProjectileSpeed,vz:d.z*VOID_BALANCE.enemyProjectileSpeed,damage:VOID_BALANCE.enemyLaserDamage*(e.heavy?2:1),life:5});}
+  if(e.fire<=0&&pilot.canFire){VoidAudio.event('enemyFire',stats.ship,e,b);e.fire=skill.fireInterval*(e.boss?.72:e.heavy?.85:1)/(3*VOID_BALANCE.enemyFireRate);const spread=(1-VOID_BALANCE.enemyAccuracy*skill.accuracy)*distance*.3,lead=VoidEnemyPilots.interceptTime({x:-e.x,y:-e.y,z:-e.z},velocity,VOID_BALANCE.enemyProjectileSpeed)*skill.lead;const d=FM.unit({x:-e.x+velocity.x*lead+(random()-.5)*spread,y:-e.y+velocity.y*lead+(random()-.5)*spread,z:-e.z+velocity.z*lead});for(const offset of e.boss?[-.07,0,.07]:[0])hostile.push({x:e.x,y:e.y,z:e.z,vx:(d.x+offset)*VOID_BALANCE.enemyProjectileSpeed,vy:d.y*VOID_BALANCE.enemyProjectileSpeed,vz:d.z*VOID_BALANCE.enemyProjectileSpeed,damage:VOID_BALANCE.enemyLaserDamage*skill.damage*(e.heavy?1.35:1),life:5});}
   if(pilot.lock>=1){launchEnemyMissile(e);pilot.lock=0;pilot.missileCooldown=9;}
   if(distance<3+e.size&&!e.colliding){hurt(VOID_BALANCE.collisionDamage*(e.heavy?25/12:1));e.colliding=true;}if(distance>12)e.colliding=false;
  }
  stepMissileCombat(dt,velocity);
- for(const shot of bullets){const from={x:shot.x,y:shot.y,z:shot.previousZ??shot.z};shot.life=(shot.life??2)-dt;shot.distance=(shot.distance||0)+VOID_BALANCE.laserProjectileSpeed*dt;if(shot.target&&!shot.target.dead){const d=FM.unit({x:shot.target.x-shot.x,y:shot.target.y-shot.y,z:shot.target.z-shot.z});shot.vx=d.x*VOID_BALANCE.laserProjectileSpeed;shot.vy=d.y*VOID_BALANCE.laserProjectileSpeed;shot.vz=d.z*VOID_BALANCE.laserProjectileSpeed;}shot.x+=(shot.vx||0)*dt;shot.y+=(shot.vy||0)*dt;shot.z+=(shot.vz??VOID_BALANCE.laserProjectileSpeed)*dt;moveRelative(shot,velocity,dt);
+ for(const shot of bullets){const from={x:shot.x,y:shot.y,z:shot.z};shot.life=(shot.life??2)-dt;shot.distance=(shot.distance||0)+VOID_BALANCE.laserProjectileSpeed*dt;if(shot.target&&!shot.target.dead){const d=FM.unit({x:shot.target.x-shot.x,y:shot.target.y-shot.y,z:shot.target.z-shot.z});shot.vx=d.x*VOID_BALANCE.laserProjectileSpeed;shot.vy=d.y*VOID_BALANCE.laserProjectileSpeed;shot.vz=d.z*VOID_BALANCE.laserProjectileSpeed;}shot.x+=(shot.vx||0)*dt;shot.y+=(shot.vy||0)*dt;shot.z+=(shot.vz??VOID_BALANCE.laserProjectileSpeed)*dt;moveRelative(shot,velocity,dt);
   if(globalThis.VoidFlightSkirmish?.blocksSegment(from,shot))shot.dead=true;
-  for(const e of enemies)if(!shot.dead&&VoidStory.hostile(e)&&!shot.hits?.has(e)&&FM.segmentHit(from,shot,e,e.size*2.1)){(shot.hits??=new Set()).add(e);shot.dead=!stats.piercing;const profile=VoidBalance.profiles[stats.piercing?'wraith':'pulse'];const scale=profile?.damageCurve?VoidEquipmentProfiles.sample(profile.damageCurve,shot.distance/VOID_BALANCE.laserRange):1;hitEnemy(e,shot.damage*scale,undefined,profile);}shot.previousZ=undefined;
+  for(const e of enemies)if(!shot.dead&&VoidStory.hostile(e)&&!shot.hits?.has(e)&&FM.segmentHit(from,shot,e,e.size*2.1)){(shot.hits??=new Set()).add(e);shot.dead=!stats.piercing;const profile=VoidBalance.profiles[stats.piercing?'wraith':'pulse'];const scale=profile?.damageCurve?VoidEquipmentProfiles.sample(profile.damageCurve,shot.distance/VOID_BALANCE.laserRange):1;hitEnemy(e,shot.damage*scale,undefined,profile);}
  }
  for(const h of hostile){const from={x:h.x,y:h.y,z:h.z};h.x+=(h.vx||0)*dt;h.y+=(h.vy||0)*dt;h.z+=(h.vz??-VOID_BALANCE.enemyProjectileSpeed)*dt;moveRelative(h,velocity,dt);h.life=(h.life??5)-dt;if(globalThis.VoidFlightSkirmish?.blocksSegment(from,h)){h.dead=true;continue;}if(h.escort){if(FM.segmentHit(from,h,typeof escortShip!=='undefined'&&escortShip?escortShip:{x:0,y:5,z:25},4)){h.x=0;h.y=2.4;escortImpact(h);h.dead=true;}}else if(FM.segmentHit(from,h,{x:0,y:0,z:0},1.8)){hurt(h.damage);h.dead=true;}}
  enemies=enemies.filter(e=>!e.dead);bullets=bullets.filter(o=>!o.dead&&o.life>0);hostile=hostile.filter(o=>!o.dead&&o.life>0);
@@ -100,8 +100,37 @@ update=function(dt){
  VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),'encounter',true);
  const progress=route?route.progress:Math.min(1,elapsed/current.duration);if(!route){$('progress').style.width=progress*100+'%';$('route-status').textContent=`${Math.floor(progress*100)}% / ${routeClear()?'ROUTE CLEAR':'HOSTILE ACTIVITY'}`;
  $('flight-objective').textContent=current.kind==='salvage'&&objectiveCount<3?`RECOVER SIGNALS ${objectiveCount} / 3 · Steer through cyan beacons`:current.kind==='escort'?`SHUTTLE ${escortHP}% · Destroy attackers to protect it`:routeClear()?'Route clear · Docking guidance engaged':'Clear hostiles · Red arrows point toward off-screen ships';}
- if(route)updateWarpHud();else if(mode==='play'&&elapsed>=current.duration&&routeClear()) {alignDockingFlight(dt);approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}
+ if(route&&mode==='play'){
+  advanceWarp(route,dt,b.f,stats.ship);
+  updateWarpHud();
+ }else if(!route&&mode==='play'&&elapsed>=current.duration&&routeClear()) {alignDockingFlight(dt);approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}
 };
+function warpSpoolSeconds(){return VoidFlightCraft.stats().spool||VoidWarp.config.hold;}
+function canEscapeInterdiction(){
+ return !['salvage','escort','hazard'].includes(current.kind);
+}
+function advanceWarp(route,dt,forward,ship){
+ const before=route.phase,visible=warpMarkerOpacity()>0;
+ const trainingReady=current.kind!=='training'||['throttle','steer','roll'].every(id=>state.progression.flags[id]);
+ const clear=routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration);
+ const changed=VoidWarp.step(route,dt,visible&&trainingReady?forward:{x:0,y:0,z:0},clear,{
+  held:VoidInput.down('warp'),escape:canEscapeInterdiction(),seconds:warpSpoolSeconds()
+ });
+ if(!changed)return;
+ if(before==='encounter'&&route.phase==='warp'){
+  selectedTarget=null;missileLock=VoidTargeting.fresh();
+  enemies.length=hostile.length=enemyMissiles.length=0;
+  bullets.length=missiles.length=0;
+  announce('JUMP ENGAGED · Interdiction evaded.');
+ }
+ state.travel=route;save();
+ VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',ship);
+ if(route.phase==='encounter'){
+  VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;interdictionWave();
+  announce(canEscapeInterdiction()?'INTERDICTION · Fight or spool warp to escape.':'INTERDICTION · Complete the objective to resume warp.');
+ }
+ if(route.phase==='align'&&before==='encounter')announce('Route clear. Align and hold '+VoidInput.label(VoidInput.bindings.warp)+' to spool warp.');
+}
 // A surrounding sphere of stars stays fixed in space as the cockpit turns.
 const domeStars=Array.from({length:850},()=>{const y=random()*2-1,a=random()*Math.PI*2,r=Math.sqrt(1-y*y);return {x:Math.cos(a)*r*1000,y:y*1000,z:Math.sin(a)*r*1000,bright:random()};});
 let skyRenderer, skyRendererAttempted=false;
@@ -146,7 +175,7 @@ draw=function(){
  flight.arrows=[];for(const e of enemies){const p=flightPoint(e);if(p.z<=0||p.x<W*.12||p.x>W*.88||p.y<H*.15||p.y>H*.72)cockpitArrow(e,!VoidStory.hostile(e)?VoidStory.relationship(e).toUpperCase():e.generator?'RELAY':'HOSTILE',VoidStory.contactColors[VoidStory.relationship(e)]);}
  for(const o of missionObjects)if(o.kind==='salvage'){const p=flightPoint(o);if(p.z<=0||p.x<0||p.x>W||p.y<0||p.y>H*.75)cockpitArrow(o,'SIGNAL','#58ffe1');}
  drawFlightHud();
- drawWarpMarker();drawMissileReticle();drawEnemyLockWarning();VoidCombatEffects.draw();VoidDevTools?.debug();
+ drawWarpMarker();drawWarpSpool();drawMissileReticle();drawEnemyLockWarning();VoidCombatEffects.draw();VoidDevTools?.debug();
 };
 // Touch controls remain outside the canopy; buttons alter the same flight throttle.
 const throttleControls=document.createElement('div');throttleControls.id='flight-throttle';throttleControls.innerHTML='<button type="button" aria-label="Decrease throttle">− THRUST</button><button type="button" aria-label="Increase throttle">+ THRUST</button>';

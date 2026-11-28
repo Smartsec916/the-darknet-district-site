@@ -62,6 +62,17 @@
  function system(id){return locations[id]?.system||'erebus';}
  // Planetside locations (on the ground, not docked in space): departures from them warp up into the sky.
  function planetside(id){const l=locations[id];return !!(l&&(l.surface||l.planet));}
+ // Risk increases by region and is sampled reproducibly for the same route and campaign checkpoint.
+ const threatBands={sol:{tier:0,chance:.20,enemies:1},erebus:{tier:1,chance:.38,enemies:2},communion:{tier:2,chance:.62,enemies:3},'natural-order':{tier:2,chance:.62,enemies:3},stale:{tier:3,chance:.80,enemies:4}};
+ function routeThreat(origin,destination,completed=0){
+  const band=threatBands[system(destination)]||threatBands.sol;
+  const routeKey=origin+'>'+destination+'#'+Math.max(0,Math.floor(completed||0));
+  let hash=2166136261;
+  for(const char of routeKey)hash=Math.imul(hash^char.charCodeAt(0),16777619);
+  hash=Math.imul(hash^(hash>>>16),0x45d9f3b);
+  const encounter=((hash^(hash>>>16))>>>0)/4294967296<band.chance;
+  return {tier:band.tier,enemies:route(origin,destination).interdiction&&encounter?band.enemies:0};
+ }
  function route(a,b){const interstellar=system(a)!==system(b);return {kind:interstellar?'interstellar':'local',seconds:progression.tuning.jump[interstellar?'interstellar':'local'],interdiction:!interstellar};}
  function fresh(){return {currentSystem:'erebus',discoveredSystems:['erebus'],discoveredLocations:['vesper','meridian'],visitedLocations:['vesper'],missionLogUnlocked:false,freeTravel:false,trackedMission:null,trackingInitialized:false,autoTrack:true,missions:{},completedObjectives:[],station:null};}
  function restore(raw={},state={}){const out={...fresh()},valid=xs=>Array.isArray(xs)?[...new Set(xs.filter(x=>Object.hasOwn(locations,x)))]:[];
@@ -91,5 +102,5 @@
   const reachable=new Set(u.discoveredLocations.map(system));
   return [...new Set(local),...[...reachable].filter(id=>id!==here).map(id=>systems[id].arrival)];}
  function nextHop(origin,target){return system(origin)===system(target)?target:systems[system(target)].arrival;}
- const api={systems,locations,planets,system,planetside,route,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
+ const api={systems,locations,planets,system,planetside,route,routeThreat,threatBands,fresh,restore,unlock,visit,discover,destinations,nextHop};if(typeof module!=='undefined')module.exports=api;else root.VoidUniverse=api;
 })(globalThis);

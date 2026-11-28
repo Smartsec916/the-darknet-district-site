@@ -1,5 +1,16 @@
 /* One audio owner: persistent categories, procedural beds, spatial SFX and voice. */
 (function(root) {
+  const cueRoot = root.document?.currentScript?.src;
+  const combatCues = {
+    pistol: ['ward',.46,1,4400],
+    pistolDistant: ['ward',.38,.88,1850],
+    pistolReload: ['reload',.37,1,6500],
+    laser: ['pulse',.36,1,5600],
+    enemyFire: ['pulse',.31,.82,3200],
+    asteroidImpact: ['impact',.45,1,4400],
+    hull: ['impact',.28,1.3,1850]
+  };
+  const combatBuffers=new Map();
   const key = 'void-runner-audio-v1',
     defaults = {
       master: .6,
@@ -64,6 +75,12 @@
     }
   };
   const effects = {
+    pistol: [150,.16,'triangle',.09],
+    pistolDistant: [125,.17,'triangle',.06],
+    pistolReload: [880,.09,'triangle',.04],
+    pistolDry: [720,.035,'triangle',.035],
+    pistolHit: [88,.13,'triangle',.06],
+    asteroidImpact: [62,.36,'triangle',.13],
     laser: [620, .08, 'sawtooth', .035],
     enemyFire: [390, .12, 'triangle', .035],
     missile: [160, .5, 'sawtooth', .07],
@@ -180,6 +197,7 @@
   function unlock() {
     activated = true;
     ensureContext();
+    loadCombatCues();
     try {
       if (context?.state === 'suspended') context.resume()?.catch(() => {});
     } catch {}
@@ -280,10 +298,58 @@
     } catch {}
   }
 
-  function event(name, ship, position, basis) {
+  function loadCombatCues(){
+    if(!cueRoot||!context)return;
+    for(const [file] of Object.values(combatCues)){
+      if(combatBuffers.has(file))continue;
+      combatBuffers.set(file,null);
+      fetch(new URL('assets/audio/combat/'+file+'.mp3',cueRoot))
+        .then(response=>{if(!response.ok)throw Error(response.status);return response.arrayBuffer();})
+        .then(bytes=>context.decodeAudioData(bytes))
+        .then(buffer=>{
+          // Skip any silent lead-in so the first transient lands with the animation.
+          const samples=buffer.getChannelData(0);
+          let start=0;
+          while(start<Math.min(samples.length,buffer.sampleRate*.18)&&Math.abs(samples[start])<.025)start++;
+          combatBuffers.set(file,{buffer,offset:Math.max(0,start/buffer.sampleRate-.002)});
+        }).catch(()=>{});
+    }
+  }
+
+  function combatSample(name,ear){
+    const cue=combatCues[name],sample=cue&&combatBuffers.get(cue[0]);
+    if(!sample||!settings.enabled||context?.state!=='running')return false;
+    const [,level,rate,cutoff]=cue;
+    const source=context.createBufferSource(),filter=context.createBiquadFilter();
+    const gain=context.createGain(),pan=context.createStereoPanner?.();
+    source.buffer=sample.buffer;
+    source.playbackRate.value=rate;
+    filter.type='lowpass';
+    filter.frequency.value=cutoff;
+    gain.gain.value=level*ear.volume;
+    source.connect(filter).connect(gain);
+    if(pan){
+      pan.pan.value=ear.pan;
+      gain.connect(pan).connect(buses.effects);
+    }else gain.connect(buses.effects);
+    source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();pan?.disconnect();};
+    source.start(0,sample.offset);
+    return true;
+  }
+
+  function groundShot(actor,listener){
+    const offset={x:actor.x-listener.x,y:0,z:actor.z-listener.z};
+    const basis={r:{x:Math.cos(listener.yaw),y:0,z:-Math.sin(listener.yaw)}};
+    const ear=spatial(offset,basis);
+    ear.volume=1/(1+(Math.hypot(offset.x,offset.z)/13)**2);
+    event('pistolDistant',null,offset,basis,ear);
+  }
+
+  function event(name, ship, position, basis, ear=spatial(position,basis)) {
     if (root.VoidSoundStudio?.event(name)) return;
+    if (combatSample(name,ear)) return;
     if (effects[name]) tone(...effects[name], position, basis);
-    if (['explosion', 'missile', 'hull', 'dock', 'boost', 'door'].includes(name)) noise(name ===
+    if (['explosion', 'missile', 'hull', 'dock', 'boost', 'door', 'pistol', 'pistolDistant', 'asteroidImpact', 'laser'].includes(name)) noise(name ===
       'explosion' ? 1 : .35, name === 'explosion' ? .22 : .06, position, basis);
   }
 
@@ -531,6 +597,8 @@
     unlock,
     tone,
     event,
+    groundShot,
+    playCombatCue(name,position,basis){return combatSample(name,spatial(position,basis));},
     scene,
     tick,
     update,
