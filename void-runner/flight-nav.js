@@ -8,10 +8,20 @@
 (function(root){
  'use strict';
  const Uof=()=>typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
+ const Warp=()=>typeof module!=='undefined'?require('./warp.js'):root.VoidWarp;
  const Nav=()=>typeof module!=='undefined'?require('./nav-coords.js'):root.VoidNav;
  /* The markers flight shows now (nav-coords.js: every location with Rook's coordinates, else the route to the mission and the way home, else the known places). act: active missions. */
  const shownList=(s,U,act)=>{const N=Nav();return N?N.markers(s,act||[]):U.destinations(s);};
  const nameOf=(U,id)=>(U.locations[id]?.name)||(root.C?.stations?.[id]?.name)||id.replace(/(^|-)./g,m=>m.toUpperCase().replace('-',' '));
+ function alignedMarker(markers,forward,target){
+  let closest=null,best=.993;
+  for(const {id,vector} of markers){
+   const dot=forward.x*vector.x+forward.y*vector.y+forward.z*vector.z;
+   if(id===target&&dot>.993)return id;
+   if(dot>best){best=dot;closest=id;}
+  }
+  return closest;
+ }
  /* The marker (a route id from destinations()) that leads toward place id from where the player is; null when there is none (unknown system, the place itself). */
  function markerFor(s,id,U=Uof(),act){if(!id||!U.locations[id]||id===s.location)return null;const hop=U.nextHop(s.location,id),list=shownList(s,U,act);return list.includes(hop)?hop:null;}
  /* What the Map app lists in flight. kind: 'station' | 'planet' | 'warp' (the jump to another system's hub). */
@@ -19,14 +29,19 @@
   for(const id of shownList(s,U,act)){const other=U.system(id)!==here,l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:other?'warp':l.type==='anchorage'?'anchorage':(l.surface||l.planet)?'planet':'station',marker:id,direct:true});}
   // known places in other systems that are not their hub: reached through that system's warp marker
   for(const id of known)if(U.locations[id]?.type!=='arrival'&&id!==s.location&&U.system(id)!==here&&!out.some(e=>e.id===id)){const m=markerFor(s,id,U,act);if(!m)continue;const l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:(l.surface||l.planet)?'planet':'station',marker:m,direct:false});}
-  return out;}
+  return out.map(entry=>{
+   const v=Warp().direction(s.location,entry.marker),degrees=180/Math.PI;
+   const bearing=(Math.round(Math.atan2(v.x,v.z)*degrees)+360)%360;
+   const elevation=Math.round(Math.atan2(-v.y,Math.hypot(v.x,v.z))*degrees);
+   return {...entry,bearing,elevation};
+  });}
  /* Active missions whose destination is in another system: the warp marker toward it, with the mission's title. */
  function missionMarkers(s,active,U=Uof()){const here=U.system(s.location),out=new Map();for(const m of active||[]){if(!m||m.completed||!m.destination||!U.locations[m.destination]||U.system(m.destination)===here)continue;const mk=markerFor(s,m.destination,U,active);if(mk&&!out.has(mk))out.set(mk,{marker:mk,mission:m.title||m.id,destination:m.destination});}return [...out.values()];}
  const target=s=>{const t=s?.story?.flags?.navTarget;return typeof t==='string'&&Uof().locations[t]?t:null;};
  function select(s,id,U=Uof()){if(!s?.story?.flags)return false;if(id==null||id===''){delete s.story.flags.navTarget;return true;}if(!U.locations[id]||!U.destinations(s).includes(id)&&!(s.universe?.discoveredLocations||[]).includes(id)||id===s.location)return false;s.story.flags.navTarget=id;return true;}
  /* Arriving where the target is ends it. */
  function arrived(s){if(target(s)&&s.story.flags.navTarget===s.location){delete s.story.flags.navTarget;return true;}return false;}
- const api={markerFor,entries,missionMarkers,target,select,arrived};
+ const api={markerFor,alignedMarker,entries,missionMarkers,target,select,arrived};
  if(typeof module!=='undefined'){module.exports=api;return;}
  root.VoidFlightNav=api;
 
@@ -53,6 +68,7 @@
   const row=e=>{const sel=t===e.id,m=missOn(e.marker),hereMission=active().find(x=>!x.completed&&x.destination===e.id);
    return '<button type="button" class="fn-row'+(sel?' fn-sel':'')+'" data-nav="'+esc(e.id)+'" aria-pressed="'+sel+'"><span class="fn-kind">'+({station:'▣ STATION',planet:'◉ LANDING PAD',anchorage:'◇ ANCHORAGE',warp:'✧ SYSTEM WARP'}[e.kind])+'</span><b>'+esc(e.name)+'</b>'
     +(e.kind==='warp'?'<small>warp marker to '+esc(e.systemName)+'</small>':!e.direct?'<small>in '+esc(e.systemName)+' · through the warp marker to '+esc(nameOf(U,e.marker))+'</small>':'')
+    +'<small>BEARING '+String(e.bearing).padStart(3,'0')+'° · ELEVATION '+(e.elevation>0?'+':'')+e.elevation+'°</small>'
     +(sel?'<em class="fn-tag fn-blue">■ NAV TARGET</em>':'')+((m&&e.kind==='warp')||hereMission?'<em class="fn-tag fn-yellow">◆ MISSION'+(hereMission?' · '+esc(hereMission.title):m?' · '+esc(m.mission):'')+'</em>':'')+'</button>';};
   const inSys=list.filter(e=>e.kind!=='warp'&&e.direct),warps=list.filter(e=>e.kind==='warp'),far=list.filter(e=>!e.direct);
   const pilots=root.VoidRemotePlayers?.arrivalPilots||[];
