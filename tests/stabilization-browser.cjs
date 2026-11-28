@@ -335,7 +335,8 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   await settled();
   const accepted=await page.evaluate(({id,home})=>{
    const content={format:'darknet-district-mission-content',version:1,
-    characters:{[id]:{name:'Doorway return test walker',model:'npc-casual-m',adult:false}},
+    // The persisted character schema uses omission, not false, for the default flag.
+    characters:{[id]:{name:'Doorway return test walker',model:'npc-casual-m'}},
     npcs:{[id]:{mode:'stay',...home,yaw:0,actions:['idle'],tier:1}}};
    const ok=VoidLiveContent.use(content,'published',1);VoidLiveContent.replan();
    return {ok,refused:VoidLiveContent.current.refused};
