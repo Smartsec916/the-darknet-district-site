@@ -47,6 +47,7 @@
   if(!records.has(seed.id))records.set(seed.id,{id:seed.id,revision:0,draft:seed});
   let id,selected,dirty=false,busy=false,status='';
   let working,addBranch='arrival',dialogueOpen=!tools.mobile,preview,previewSounds,audition;
+  function stopEditorAudio(){preview?.abort();previewSounds?.dispose();audition?.dispose();preview=previewSounds=audition=null;}
   const durationLabels=[];
   const checked=new Set(),closed=new Set();
   const record=()=>records.get(id),graph=()=>working;
@@ -113,7 +114,7 @@
    }catch(e){message.textContent=e.message;}finally{busy=false;host.inert=false;}
   }
   function draw(){
-   preview?.abort();previewSounds?.dispose();audition?.dispose();durationLabels.length=0;
+   stopEditorAudio();durationLabels.length=0;
    host.replaceChildren();
    const bar=element('div');bar.className='dev-actions';host.append(bar);
    const entries=[...records.values()].filter(r=>!r.deleted);
@@ -131,6 +132,7 @@
     const errors=api.animationSpeedProblems(g);
     if(errors.length){message.textContent=errors.join(' ');return;}
     try{
+     stopEditorAudio();
      sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
      const snapshot=structuredClone({graph:g,previewPoint});
      await root.VoidEncounterGame.playtest(snapshot.graph,start,snapshot.previewPoint);
@@ -147,6 +149,7 @@
     bar.append(button('Unpublish',()=>send('unpublish')));
     bar.append(button('Play published version',async()=>{
      try{
+      stopEditorAudio();
       sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
       await root.VoidEncounterGame.playtest(structuredClone(live),live.start);
      }catch(e){message.textContent=e.message;}
@@ -356,13 +359,29 @@
        control.parentElement.append(hint);check();
       };
       const imported=api.importedSoundHash(cue.src);
-      const file=field(form,'Sound file',input(imported?'':cue.src,value=>{cue.src=value.trim();delete cue.name;delete cue.type;mark();}));file.setAttribute('list',soundFiles.id);
-      if(imported)file.placeholder='Imported: '+(cue.name||'Local sound');
+      const source=element('small',imported?'Using imported file: '+(cue.name||'Local sound'):'Choose a built-in sound or import a local file.');
+      source.setAttribute('role','status');form.append(source);
+      const file=element('input');file.value=imported?'':cue.src;file.placeholder='Choose a built-in sound';file.setAttribute('list',soundFiles.id);
+      field(form,'Built-in sound',file);
+      const libraryField=file.parentElement;
+      libraryField.hidden=!!imported;
+      const showLibrary=imported?button('Choose a built-in sound instead',()=>{libraryField.hidden=false;file.focus();}):null;
+      if(showLibrary)form.append(showLibrary);
+      file.onchange=()=>{
+       const value=file.value.trim();
+       if(!soundLibrary.includes(value)){
+        file.value=imported?'':cue.src;
+        source.textContent=imported?'Still using imported file: '+(cue.name||'Local sound')+'. Select a built-in sound to replace it.':'Select a sound from the built-in list or import a local file.';
+        return;
+       }
+       audition?.dispose();cue.src=value;delete cue.name;delete cue.type;mark();
+       if(imported)update();else source.textContent='Using built-in sound: '+value.split('/').at(-1);
+      };
       const imports=root.VoidVoiceImports;
       if(imports){
        const local=element('input');local.type='file';local.accept='audio/*,.ogg,.mp3,.wav,.m4a,.webm,.flac';
        field(form,'Import local sound file',local);
-       const feedback=element('small',imported?(cue.name||'Local sound'):'');feedback.setAttribute('role','status');form.append(feedback);
+       const feedback=source;
        local.onchange=async()=>{
         const chosen=local.files[0];if(!chosen)return;
         local.disabled=file.disabled=true;
@@ -371,7 +390,7 @@
          if(!prepared.ok)throw Error(prepared.why);
          await imports.store(prepared.hash,prepared.type,prepared.data,prepared.duration);
          if(!current()||graph()!==g||!get()?.includes(cue))return;
-         cue.src='imported:'+prepared.hash;cue.name=prepared.name.replace(/<[^>]*>|[\u0000-\u001f]/g,'').trim()||'Sound effect';cue.type=prepared.type;mark();
+         audition?.dispose();cue.src='imported:'+prepared.hash;cue.name=prepared.name.replace(/<[^>]*>|[\u0000-\u001f]/g,'').trim()||'Sound effect';cue.type=prepared.type;mark();
          if(form.isConnected)update();else draw();
         }catch(error){feedback.textContent=error.message;}
         finally{local.value='';local.disabled=file.disabled=false;}
@@ -392,7 +411,7 @@
        if(cue.stop==='seconds')number('Loop duration (seconds)',cue.seconds,.01,3600,v=>{cue.seconds=v;});
       }
       if(root.VoidSoundStudio)form.append(button('Preview sound',()=>{
-       audition?.dispose();if(soundLibrary.includes(cue.src)||api.importedSoundHash(cue.src))audition=api.playSound({...cue,loop:false});
+       stopEditorAudio();if(soundLibrary.includes(cue.src)||api.importedSoundHash(cue.src))audition=api.playSound({...cue,loop:false});
       }),button('Stop preview',()=>audition?.dispose()));
       form.append(button('Remove sound effect',()=>{set(cues.filter(value=>value!==cue));mark();update();}));
      }
@@ -1114,7 +1133,7 @@
      const stop=button('Stop execution preview',()=>controller?.abort());
      const start=button('Preview execution: '+name,()=>run());
      async function run(target){
-      preview?.abort();previewSounds?.dispose();const runController=new AbortController();controller=preview=runController;
+      stopEditorAudio();const runController=new AbortController();controller=preview=runController;
       const timeline=api.soundTimeline();previewSounds=timeline;
       const {signal}=runController;
       panel.hidden=false;trace.replaceChildren();start.disabled=true;stop.disabled=false;

@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Explicit sound sources for encounter cues
+
+Imported sound cues display their active filename without a required library selection. Only choosing a valid built-in sound replaces the import. Editor sound auditions stop before a scene playtest starts. Build `2026-11-27-encounter-sound-source-1`.
+
 ## 27 Nov 2026 — Continue in-game playtests after the selected start point
 
 Starting from a dialogue section or playlist plays forward through the encounter’s remaining actions and choices. Selecting a chance playlist enters it directly and then follows its configured return behavior. The separate editor execution preview can still isolate a playlist. Build `2026-11-27-encounter-start-continuation-1`.
