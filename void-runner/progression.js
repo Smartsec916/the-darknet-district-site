@@ -29,8 +29,9 @@
  };
  for(const [id,[base,name,price]] of Object.entries(cipherRefits)){
   const standard=modules[base];
-  modules[id]={...standard,name,price,compatible:['ship2'],refit:'cipher'};
+  modules[id]={...standard,name,price,compatible:['ship2'],refit:'cipher',listed:false};
   standard.refit='kestrel';
+  standard.listed=false;
   standard.compatible=['starter','ship3'];
  }
  // Things a player carries (progression.personal.items). 'hacking-device' is RESERVED (19 Nov 2026) for the Mission Editor's "Hack the access point" step
@@ -96,7 +97,7 @@
  function next(s){sync(s);return (groundDone(s)?flight:s.progression.opening?.version===2?openingGround:ground).find(id=>!s.progression.flags[id])||null;}
  // On-foot weapons bought from a vendor (zones.js PISTOL: Admin's base pistol, 19 Nov 2026): bought once, kept in personal.weapons; the drawn gun is personal.weapon.
  function buyWeapon(s,id,price){const p=s.progression;if(!WEAPONS.includes(id)||!Number.isFinite(price)||price<0||(p.personal.weapons||[]).includes(id)||s.credits<price)return false;s.credits-=price;p.personal.weapons=[...(p.personal.weapons||[]),id];if(!p.personal.weapon)p.personal.weapon=id;return true;}
- function buy(s,id,vendor='outfitter'){const m=modules[id],p=s.progression;if(!m||m.reward||m.available===false||(m.vendor||'outfitter')!==vendor||m.refit&&!m.compatible.includes(s.activeShip)||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
+ function buy(s,id,vendor='outfitter'){const m=modules[id],p=s.progression;if(!m||m.reward||m.available===false||m.listed===false||(m.vendor||'outfitter')!==vendor||m.refit&&!m.compatible.includes(s.activeShip)||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
  function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||m.available===false||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine','sensor','thrusters','signal','armor','warp'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
  function systems(s){const ship=Ships.get(s).id,t={...tuning.ships[ship],cost:tuning.laser.cost,heat:tuning.laser.heat};for(const id of Object.values(s.progression?.equipment.installed[ship]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;const profiles=(typeof module!=='undefined'?require('./balance.js'):root.VoidBalance)?.profiles;const overrides=id==='capacitor'?profiles?.capacitor:['pulse','cipher-pulse'].includes(id)?profiles?.pulseCoils:null;if(['pulse','cipher-pulse'].includes(id)&&overrides?.energyCurve)t.energyCurve=overrides.energyCurve;for(const [k,v]of Object.entries({...m.stats,...overrides}))if(['capacity','recharge','cooling','heatLimit'].includes(k))t[k]+=v;else if(k==='cost'||k==='heat')t[k]*=v;}return t;}
  function stats(s,value){const out={...value,flight:{...value.flight}};for(const id of Object.values(s.progression?.equipment.installed[s.activeShip]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats)){if(k==='damage')out.damage*=v;if(k==='cooldown'||k==='spool')out[k]*=v;if(k==='hull')out.hull+=v;if(k==='topSpeed')out.flight.maxSpeed*=v;if(k==='shield'||k==='shieldRegen')out[k]+=v;if(k==='turn')for(const a of ['yawRate','pitchRate','rollRate'])out.flight[a]*=v;if(k==='acceleration')out.flight.acceleration*=v;if(k==='angularAcceleration')out.flight.angularAcceleration*=v;if(k==='angularDamping')out.flight.angularDamping*=v;if(k==='lockTime')out.lockTime=(out.lockTime||1)*v;}}return out;}

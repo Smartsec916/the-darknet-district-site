@@ -5,6 +5,80 @@
    two real game pages with the same emulator-backed browser identities. */
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+function peerEvidence({model,diagnostic=false},root=window){
+  // The wire/account model is the legacy identity. Both fixtures are creator
+  // characters: remote-players.js migrates the appearance before assembly.
+  // Require the actual replacement GLB and a visible mesh cloned from it.
+  const expected=({
+    'district-smuggler':{look:'street-casual-m',source:'npc-casual-m'},
+    'district-resident':{look:'street-casual-f',source:'npc-casual-f'}
+  })[model];
+  const remote=root.VoidRemotePlayers,peer=remote?.peers[0],scene=root.VoidBabylon?.scene;
+  const appearance=root.VoidCharacterAppearance;
+  const shown=appearance?.validate(peer?.appearance)?appearance.migrate(peer.appearance):null;
+  const actualSource=shown&&appearance.CATALOG.looks[shown.look]?.model;
+  const node=peer&&scene?.transformNodes.find(n=>n.name==='remote-player:'+peer.id&&!n.isDisposed());
+  const meshes=node?.getChildMeshes()||[];
+  const body=meshes.filter(m=>m.name!=='remote-tag'&&m.name!=='remote-fallback'&&m.isEnabled()&&m.isVisible&&m.getTotalVertices()>0);
+  // Asset-pipeline.instance prefixes cloned mesh names with the exact asset id.
+  // Checking geometry provenance rejects an unrelated visible mesh or a cached
+  // correct source with the wrong model mounted.
+  const modelBody=expected?body.filter(m=>m.name.startsWith('crowd:'+expected.source+'-')):[];
+  const fallback=meshes.some(m=>m.name==='remote-fallback');
+  let lo=Infinity,hi=-Infinity;
+  for(const m of modelBody){
+    m.computeWorldMatrix(true);
+    const box=m.getBoundingInfo().boundingBox;
+    lo=Math.min(lo,box.minimumWorld.y);hi=Math.max(hi,box.maximumWorld.y);
+  }
+  const height=modelBody.length?hi-lo:0;
+  const evidence={connected:!!remote?.connected,peerCount:remote?.peers.length||0,
+    drawn:!!peer?.drawn,expectedModel:model,actualModel:peer?.model||null,
+    assembled:!!shown,expectedLook:expected?.look||null,actualLook:shown?.look||null,
+    expectedSource:expected?.source||null,actualSource:actualSource||null,
+    sourceReady:!!expected&&!!root.VoidAssets?.container('crowd:'+expected.source),
+    nodeFound:!!node,meshCount:meshes.length,bodyCount:body.length,modelBodyCount:modelBody.length,
+    visibleVertices:modelBody.reduce((n,m)=>n+m.getTotalVertices(),0),fallback,
+    height:Number.isFinite(height)?Math.round(height*100)/100:null};
+  const ready=!!expected&&evidence.connected&&evidence.peerCount===1&&evidence.drawn&&
+    evidence.actualModel===model&&evidence.assembled&&evidence.actualLook===expected.look&&
+    evidence.actualSource===expected.source&&evidence.sourceReady&&evidence.nodeFound&&
+    evidence.modelBodyCount>0&&!evidence.fallback&&Number.isFinite(height)&&height>0;
+  return diagnostic?{...evidence,ready}:ready;
+}
+
+function verifyPeerEvidence(appearance,assert){
+  const fixture=(model='district-smuggler')=>{
+    const source=model==='district-smuggler'?'npc-casual-m':'npc-casual-f';
+    const peer={id:'fixture',model,appearance:appearance.defaults(model),drawn:true};
+    const mesh={name:'crowd:'+source+'-body',isEnabled:()=>true,isVisible:true,getTotalVertices:()=>100,
+      computeWorldMatrix(){},getBoundingInfo:()=>({boundingBox:{minimumWorld:{y:0},maximumWorld:{y:1.7}}})};
+    const meshes=[mesh],node={name:'remote-player:fixture',isDisposed:()=>false,getChildMeshes:()=>meshes};
+    const cache=new Set(['crowd:'+source]);
+    const root={VoidCharacterAppearance:appearance,VoidRemotePlayers:{connected:true,peers:[peer]},
+      VoidBabylon:{scene:{transformNodes:[node]}},VoidAssets:{container:id=>cache.has(id)?{}:null}};
+    return {model,root,peer,mesh,meshes,cache,node};
+  };
+  const cases=[
+    ['male retired identity, correct replacement',()=>fixture(),true],
+    ['female retired identity, correct replacement',()=>fixture('district-resident'),true],
+    ['already migrated appearance',()=>{const f=fixture();f.peer.appearance=appearance.defaults('street-casual-m');return f;},true],
+    ['wrong geometry despite correct cached model',()=>{const f=fixture();f.mesh.name='crowd:npc-casual-f-body';return f;},false],
+    ['wrong appearance despite correct mesh',()=>{const f=fixture();f.peer.appearance=appearance.defaults('street-casual-f');return f;},false],
+    ['legacy cache only',()=>{const f=fixture();f.cache.clear();f.cache.add('crowd:district-smuggler');return f;},false],
+    ['fallback mesh present',()=>{const f=fixture();f.meshes.push({...f.mesh,name:'remote-fallback'});return f;},false],
+    ['hidden body',()=>{const f=fixture();f.mesh.isVisible=false;return f;},false],
+    ['wrong account model',()=>{const f=fixture();f.peer.model='district-resident';return f;},false],
+    ['disconnected',()=>{const f=fixture();f.root.VoidRemotePlayers.connected=false;return f;},false],
+    ['no node',()=>{const f=fixture();f.root.VoidBabylon.scene.transformNodes=[];return f;},false],
+    ['invalid or missing appearance',()=>{const f=fixture();f.peer.appearance=null;return f;},false]
+  ];
+  for(const [name,make,expected] of cases){const f=make();assert.equal(peerEvidence({model:f.model},f.root),expected,name);}
+  return cases.length;
+}
+const evidenceCases=verifyPeerEvidence(require('../void-runner/character-appearance.js'),assert);
+console.log('PEER_EVIDENCE_CASES_OK '+evidenceCases);
+if(process.argv.includes('--peer-evidence-only'))process.exit(0);
 const http=require('node:http'),crypto=require('node:crypto'),{spawn}=require('node:child_process'),readline=require('node:readline');
 const {create}=require('../tools/district-hub/emulator-providers.cjs');
 const {start}=require('../tools/district-hub/hub-server.cjs');
@@ -296,33 +370,6 @@ async function main(){
         }
       }
       await enterAndConnect(A,a,'A');await enterAndConnect(B,b,'B');
-      // Inspect the actual peer contract, not just the aggregate rendered count.
-      // An assigned model, cached source asset and live visible geometry are
-      // separate facts. Report which is missing without logging account IDs.
-      const peerEvidence=({model,diagnostic=false})=>{
-        const remote=window.VoidRemotePlayers,peer=remote?.peers[0],scene=window.VoidBabylon?.scene;
-        const node=peer&&scene?.transformNodes.find(n=>n.name==='remote-player:'+peer.id&&!n.isDisposed());
-        const meshes=node?.getChildMeshes()||[];
-        const body=meshes.filter(m=>m.name!=='remote-tag'&&m.name!=='remote-fallback'&&m.isEnabled()&&m.isVisible&&m.getTotalVertices()>0);
-        const fallback=meshes.some(m=>m.name==='remote-fallback');
-        let lo=Infinity,hi=-Infinity;
-        for(const m of body){
-          m.computeWorldMatrix(true);
-          const box=m.getBoundingInfo().boundingBox;
-          lo=Math.min(lo,box.minimumWorld.y);hi=Math.max(hi,box.maximumWorld.y);
-        }
-        const height=body.length?hi-lo:0;
-        const evidence={connected:!!remote?.connected,peerCount:remote?.peers.length||0,
-          drawn:!!peer?.drawn,expectedModel:model,actualModel:peer?.model||null,
-          assembled:!!peer?.appearance,sourceReady:!!window.VoidAssets?.container('crowd:'+model),
-          nodeFound:!!node,meshCount:meshes.length,bodyCount:body.length,
-          visibleVertices:body.reduce((n,m)=>n+m.getTotalVertices(),0),fallback,
-          height:Number.isFinite(height)?Math.round(height*100)/100:null};
-        const ready=evidence.connected&&evidence.peerCount===1&&evidence.drawn&&
-          evidence.actualModel===model&&evidence.sourceReady&&evidence.nodeFound&&
-          evidence.bodyCount>0&&!evidence.fallback&&height>0;
-        return diagnostic?{...evidence,ready}:ready;
-      };
       const waitForPeer=(s,model)=>s.page.waitForFunction(peerEvidence,{model},{timeout:120000,polling:500});
       try{await Promise.all([waitForPeer(A,b.model),waitForPeer(B,a.model)]);}catch(e){
         const diagnostics=[];
