@@ -865,19 +865,21 @@
     t.update();
     return t;
   }
-  let surfaceHandle=null;
+  let surfaceHandle=null,relayNode=null,relayPrepared=false;
   async function prepareSpace(id, shipTypes = ['raider', 'interceptor', 'gunship', 'courier', 'security', 'shuttle'], task,extraModels={}) {
     if(!task) return VoidPreparation.run(t=>prepareSpace(id,shipTypes,t,extraModels));
     await initialize(task);
     scene.getLightByName('ambient').intensity=.48;scene.getLightByName('sun').intensity=1.5;
     task.check();
-    if (activeLocation === id && spaceRoot && diagnostics.exteriorReady) {
+    const needsRelay=id==='earth'&&typeof state!=='undefined'&&!!state?.story?.flags?.districtFreight;
+    if (activeLocation === id && spaceRoot && diagnostics.exteriorReady && (!needsRelay||relayPrepared)) {
       spaceRoot.setEnabled(true);
       roomRoot?.setEnabled(false);
       room = null;
       return;
     }
     release();
+    relayPrepared=false;
     // The modelled station kit (station-kit.js) for every Meridian-class hull; the older cladding stays as the fallback.
     const stationKit=VoidStationLayouts.meridianClass.includes(id)&&!!(await root.VoidStationKit?.fetchAll(task));if(stationKit&&quality!=='low')await root.VoidStationKit.fetchProps('exterior',task);task.check();
     const b = B();
@@ -887,6 +889,10 @@
     scene.clearColor = new b.Color4(.008, .018, .035, 1);
     await task.wait('assets',()=>VoidAssets.prepare(scene, {
       ...extraModels,
+      ...(needsRelay?{
+        'relay:functional':{src:'assets/models/relay/relay-t07-functional.glb'},
+        'relay:damaged':{src:'assets/models/relay/relay-t07-damaged.glb'}
+      }:{}),
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...(id==='vesper'&&root.VoidVesper?root.VoidVesper.models(quality):{}),
       ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)||key==='starter'&&shipTypes.includes('ship2')).map(([key, value]) => ['ship:' + key, value])),
@@ -897,6 +903,7 @@
         ['station:' + id]: VoidAssets.models.stations[id]||VoidMeridian.model
       } : {})
     },task), 'registered space models');
+    relayPrepared=needsRelay;
     const texturePath = ['meridian', 'kepler', 'rusthaven', 'foundry'].includes(id) ? id : 'kepler';
     sky = b.MeshBuilder.CreateSphere('painted-sky', {
       diameter: 3000,
@@ -1149,6 +1156,22 @@
     diagnostics.surfaceDeparture=!!surfaceHandle&&atOrigin;
     diagnostics.stationVisible=!surfaceHandle&&station.isEnabled();
     diagnostics.stationPosition=station.position.asArray();
+    const relay=globalThis.VoidDistrictRelayContact?.();
+    if(relayNode?.isDisposed())relayNode=null;
+    const variant=relay?.offline?'damaged':'functional';
+    if(relayNode&&(!relay||relayNode.metadata.variant!==variant)){relayNode.dispose();relayNode=null;}
+    if(relay&&!relayNode){
+      relayNode=VoidAssets.instance('relay:'+variant,spaceRoot);
+      if(relayNode){
+        relayNode.metadata.variant=variant;
+        for(const group of relayNode.metadata.animationGroups)group.start(true);
+      }
+    }
+    if(relayNode){
+      relayNode.position.copyFrom(vector(relay));
+      relayNode.rotation.y=.4;
+      relayNode.scaling.setAll(3);
+    }
     const present = new Set();
     for (const e of snapshot.ships) {
       present.add(e);

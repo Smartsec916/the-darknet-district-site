@@ -26,7 +26,7 @@
   const station=id=>Signals.source('station:'+id);
   if(station(origin))out.push({source:station(origin),at:.02});
   for(const [system,from,span] of a===b?[[a,.1,.8]]:[[a,.05,.4],[b,.55,.4]])
-   for(const s of Signals.staticSources(system).filter(s=>s.category==='beacon'||s.category==='satellite'))
+   for(const s of Signals.staticSources(system).filter(s=>!s.localContact&&(s.category==='beacon'||s.category==='satellite')))
     if(hash(key+'|'+s.id)%config.passShare===0)out.push({source:s,at:from+(hash(s.id+'|'+key)%1000)/1000*span});
   if(station(destination))out.push({source:station(destination),at:.98});
   return out.sort((x,y)=>x.at-y.at);
