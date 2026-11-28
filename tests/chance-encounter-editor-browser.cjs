@@ -9,6 +9,8 @@ const seed = require('../void-runner/chance-encounter-seed.json');
   try {
     const page = await browser.newPage({viewport:{width:1400,height:1250}});
     await page.route('http://localhost/**', route => {
+      if (route.request().url().endsWith('/asset-pipeline.js')) return route.fulfill({path:path.join(base,'asset-pipeline.js'),contentType:'text/javascript'});
+      if (route.request().url().endsWith('/sound-library.json')) return route.fulfill({json:['assets/audio/ambience/door-lock.ogg']});
       if (route.request().url().endsWith('.json')) return route.fulfill({ json: seed });
       return route.fulfill({ contentType: 'text/html', body: '<main></main>' });
     });
@@ -16,19 +18,26 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     for (const file of ['voice-imports.js','chance-encounter.js', 'chance-encounter-editor.js']) {
       await page.addScriptTag({ path: path.join(base, file) });
     }
+    await page.addScriptTag({url:'http://localhost/asset-pipeline.js'});
     await page.addStyleTag({path:path.join(base,'chance-encounter.css')});
     await page.evaluate(async () => {
       let saved;
       const tools = { uid: 'test', authorized: true, request: async (path, body) => {
         if(path==='developer/voice-clips')return {missing:[]};
         if(!body)return { encounters: saved ? [saved] : [] };
-        saved={id:body.id,revision:body.revision+1,draft:structuredClone(body.graph)};
+        if(body.action==='unpublish'){
+          window.unpublishPayload=body;
+          saved={id:saved.id,revision:body.revision+1,draft:saved.draft};
+        }else{
+          saved={...saved,id:body.id,revision:body.revision+1,draft:structuredClone(body.graph)};
+          if(body.action==='publish'){saved.live=structuredClone(body.graph);saved.liveRevision=saved.revision;}
+        }
         return saved;
       } };
       window.mountEncounter = () => VoidEncounterEditor.mount(document.querySelector('main'), tools);
-      window.VoidEncounterGame = { playtest: (graph, start) => {
+      window.VoidEncounterGame = { playtest: (graph, start, point) => {
         window.waitingRepeat = graph.dialogue.find(line => line.id === 'lace_wait_01')?.repeatSpeech;
-        window.testStart = start;window.playedGraph=structuredClone(graph);
+        window.testStart = start;window.testPoint=point;window.playedGraph=structuredClone(graph);
         window.decisionAfter = graph.decisionAfter;
         window.testRecording = graph.dialogue[0]?.recording;
         sessionStorage.setItem('chance-editor-return', graph.id);
@@ -36,6 +45,13 @@ const seed = require('../void-runner/chance-encounter-seed.json');
       window.VoidLiveContent={env:{trees:[{missions:[{id:'awakening',name:'Awakening'}]}]}};
       await mountEncounter();
     });
+    const picker = page.getByLabel('Select an encounter');
+    const pickSeed = async () => {
+      assert.equal(await picker.inputValue(), '');
+      assert.equal(await page.getByLabel('Name', { exact: true }).count(), 0);
+      await picker.selectOption(seed.id);
+    };
+    await pickSeed();
     await page.getByLabel('Name', { exact: true }).fill('Old Town draft');
     await page.getByLabel('Start trigger',{exact:true}).selectOption('game-time');
     await page.getByLabel('Trigger mission').selectOption('awakening');
@@ -80,6 +96,7 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     const first=group('lace_free_01'),second=group('lace_free_02'),third=group('lace_free_03');
     await first.getByLabel('Spoken line',{exact:true}).fill('First main action');
     await second.getByLabel('Animation',{exact:true}).fill('sz-tiedbf-look-back-return');
+    await second.getByLabel('Animation speed (×)',{exact:true}).fill('0.5');
     await third.getByLabel('Spoken line',{exact:true}).fill('Third main action');
     await first.getByLabel('Select action',{exact:true}).check();
     await third.getByLabel('Select action',{exact:true}).check();
@@ -91,7 +108,12 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     await second.getByLabel('Select action',{exact:true}).check();
     await main.getByRole('button',{name:'Add selected to this playlist'}).click();
     assert.deepEqual(await members(),['lace_free_01','lace_free_02','lace_free_03']);
-    await third.getByText('Drag to reorder',{exact:true}).dragTo(second.getByText('Drag to reorder',{exact:true}));
+    const transfer=await page.evaluateHandle(()=>new DataTransfer());
+    await third.getByText('Drag to reorder',{exact:true}).dispatchEvent('dragstart',{dataTransfer:transfer});
+    const dropHandle=second.getByText('Drag to reorder',{exact:true});
+    await dropHandle.dispatchEvent('dragover',{dataTransfer:transfer});
+    await dropHandle.dispatchEvent('drop',{dataTransfer:transfer});
+    await transfer.dispose();
     assert.deepEqual(await members(),['lace_free_01','lace_free_03','lace_free_02']);
     await third.getByRole('button',{name:'Move earlier',exact:true}).click();
     assert.deepEqual(await members(),['lace_free_03','lace_free_01','lace_free_02']);
@@ -123,19 +145,44 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     await page.getByRole('button', { name: 'Preview in apartment' }).click();
     assert.equal(await page.evaluate(() => window.testStart), 'flat');
 
+    await page.locator('.encounter-board').getByRole('button',{name:'Lace',exact:true}).click();
+    await page.getByRole('button',{name:'Start from this point: Free Lace',exact:true}).last().click();
+    assert.equal(await page.evaluate(()=>window.testStart),'rescue');
+    await free.getByRole('button',{name:'Start from this point: Free Lace',exact:true}).click();
+    assert.deepEqual(await page.evaluate(()=>window.testPoint),{section:'free'});
+    await chance.getByRole('button',{name:'Start from this point: Chance playlist 1',exact:true}).click();
+    assert.deepEqual(await page.evaluate(()=>[window.testPoint.section,window.testPoint.target.branch.actions.length]),['free',1]);
+    await main.getByRole('button',{name:'Start from this point: Main playlist 1',exact:true}).click();
+    assert.equal(await page.evaluate(()=>window.testPoint.target.segment.rows[0].id),'lace_free_01');
+    const branchStart=chance.getByRole('button',{name:'Preview execution: Chance playlist 1',exact:true});
+    await branchStart.click();
+    await free.getByText(/Playing .*Branch dialogue/).waitFor();
+    await free.getByText('Preview complete',{exact:true}).waitFor();
+    await page.evaluate(()=>{Math.random=()=>.99;});
+    await main.getByRole('button',{name:'Preview execution: Main playlist 1',exact:true}).click();
+    await free.getByText(/Playing .*First main action/).waitFor();
+    await free.getByRole('button',{name:'Stop execution preview',exact:true}).click();
+    await free.getByText('Preview stopped',{exact:true}).waitFor();
+
     await page.evaluate(()=>{const rolls=[.1,.2,.95,.3,.99,.3];Math.random=()=>rolls.shift()??.99;});
-    await free.getByRole('button',{name:'Preview execution',exact:true}).click();
+    const encounterSounds=page.locator('.encounter-sound-cues').filter({has:page.getByText(/Encounter start and stop sounds/)});
+    await encounterSounds.locator('summary').click();
+    await encounterSounds.getByRole('button',{name:'Add sound effect',exact:true}).click();
+    await free.getByRole('button',{name:'Preview execution: Free Lace',exact:true}).click();
     await free.getByText(/Playing .*First main action/).waitFor();
     await free.getByText(/Reroll after .*First main action/).first().waitFor();
     await free.getByText(/Rolled 95.00% after .*First main action .* Continue/).first().waitFor();
     await free.getByRole('button',{name:'Stop execution preview',exact:true}).click();
     await free.getByText('Preview stopped',{exact:true}).waitFor();
+    await encounterSounds.getByRole('button',{name:'Remove sound effect',exact:true}).click();
     if(process.env.ENCOUNTER_SCREENSHOT)await free.screenshot({path:process.env.ENCOUNTER_SCREENSHOT});
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     await page.getByText('Saved draft',{exact:true}).waitFor();
     await page.evaluate(()=>mountEncounter());
+    assert.equal(await picker.inputValue(), seed.id);
     assert.deepEqual(await members(),['lace_free_01','lace_free_04','lace_free_02']);
     assert.equal(await main.getByLabel('Main playlist passes').inputValue(),'2');
+    assert.equal(await second.locator(':scope > .encounter-action-fields').getByLabel('Animation speed (×)',{exact:true}).inputValue(),'0.5');
     assert.equal(await chance.getByLabel('Chance (%)',{exact:true}).inputValue(),'50');
     assert.equal(await later.getByLabel('Return to action').inputValue(),'lace_free_01');
     await group('lace_arrival_02').getByText('Recorded',{exact:true}).waitFor();
@@ -160,6 +207,7 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     await page.getByText('Saved draft',{exact:true}).waitFor();
     await page.evaluate(()=>mountEncounter());
+    await pickSeed();
     await page.getByText('Saved Actions (1)',{exact:true}).click();
     await page.getByRole('button',{name:'Restore action',exact:true}).click();
     await page.getByRole('button',{name:'Apply',exact:true}).click();
@@ -177,29 +225,112 @@ const seed = require('../void-runner/chance-encounter-seed.json');
     assert.equal(duplicated.length,2);
     assert.equal(duplicated[0].mainPlaylist,duplicated[1].mainPlaylist);
     assert.notEqual(duplicated[0].branches[0].actions[0],duplicated[1].branches[0].actions[0]);
-    const game = await browser.newPage();
-    const gameSource = require('node:fs').readFileSync(path.join(base,'chance-encounter-game.js'),'utf8');
-    await game.addScriptTag({content:gameSource.replace('root.VoidEncounterGame={','root.VoidEncounterGame={pickupReceipt,')});
-    await game.evaluate(()=>{
-      window.VoidApartments={door:()=>({id:'door',number:27}),slotNumber:()=>101,residenceKey:()=> 'door/0'};
-      window.heldInputs=[];
-      document.addEventListener('keydown',event=>heldInputs.push(event.code));
-      window.showKeyNotice=()=>VoidEncounterGame.pickupReceipt({
-        graph:{pickupNoticeSeconds:1},private:true,cardName:'Kade and Lace key',cardDescription:'Apartment access',
-        signal:new AbortController().signal
-      });
-      showKeyNotice();
+    const standalone=free.locator(':scope > [data-line-id]');
+    await main.getByRole('button',{name:'Add action before playlist',exact:true}).click();
+    await page.locator('textarea:focus').fill('New standalone action');
+    const added=standalone.filter({has:page.locator('textarea:focus')});
+    const addedId=await added.getAttribute('data-line-id');
+    const row=group(addedId);
+    await row.getByRole('button',{name:'Move later',exact:true}).click();
+    assert.equal(await row.evaluate(node=>node.previousElementSibling.classList.contains('encounter-main-playlist')),true);
+    await first.locator(':scope > .encounter-add-action').getByRole('button',{name:'Add action',exact:true}).click();
+    await page.locator('textarea:focus').fill('After the attached chance playlist');
+    assert.equal(await page.locator('textarea:focus').evaluate(node=>node.closest('[data-line-id]').previousElementSibling.dataset.lineId),'lace_free_01');
+    const branchFirst=chance.locator(':scope > [data-line-id]').first();
+    await branchFirst.getByRole('button',{name:'Add action before',exact:true}).click();
+    await page.locator('textarea:focus').fill('Inserted in chance playlist');
+    assert.equal(await chance.locator(':scope > [data-line-id]').first().getByLabel('Spoken line',{exact:true}).inputValue(),'Inserted in chance playlist');
+    await chance.locator(':scope > [data-line-id]').first().getByRole('button',{name:'Move action',exact:true}).click();
+    await page.getByLabel('Destination',{exact:true}).selectOption({label:'Free Lace / Conversation'});
+    await page.getByRole('button',{name:'Apply',exact:true}).click();
+    assert.equal(await standalone.last().getByLabel('Spoken line',{exact:true}).inputValue(),'Inserted in chance playlist');
+    page.on('dialog',dialog=>dialog.accept());
+    const encounterName=page.getByLabel('Name',{exact:true});
+    await page.getByRole('button',{name:'Publish',exact:true}).click();
+    await page.getByRole('button',{name:'Unpublish',exact:true}).waitFor();
+    await encounterName.fill('Unsaved after publish');
+    await page.getByRole('button',{name:'Unpublish',exact:true}).click();
+    await page.getByText('Unpublished · Unsaved draft changes',{exact:true}).waitFor();
+    assert.equal(await encounterName.inputValue(),'Unsaved after publish');
+    assert.equal(await page.getByRole('button',{name:'Play published version',exact:true}).count(),0);
+    assert.equal((await page.evaluate(()=>window.unpublishPayload)).graph,undefined);
+    await page.getByRole('button',{name:'Save draft',exact:true}).click();
+    await page.getByText('Saved draft',{exact:true}).waitFor();
+    await page.evaluate(()=>{
+      window.VoidSoundStudio={asset:(_,src)=>({src}),player:asset=>{
+        window.auditionSrc=asset.src;window.auditionStopped=false;
+        return {dispose(){window.auditionStopped=true;}};
+      }};
     });
-    const notice=game.getByRole('status');
-    assert.match(await notice.innerText(), /Kade and Lace key.*Apartment access.*Street Door 27.*Apartment 101/s);
-    assert.equal(await notice.evaluate(node=>getComputedStyle(node).pointerEvents),'none');
-    await game.keyboard.press('Shift+KeyW');
-    assert.ok((await game.evaluate(()=>heldInputs)).includes('KeyW'));
-    await game.keyboard.press('Digit0');
-    await notice.waitFor({state:'detached'});
-    await game.evaluate(()=>showKeyNotice());
-    await notice.waitFor({state:'visible'});
-    await notice.waitFor({state:'detached'});
+    await page.getByRole('button',{name:'New encounter',exact:true}).click();
+    await page.getByLabel('Encounter location',{exact:true}).selectOption('planet-low-quay');
+    await page.getByRole('button',{name:'Add cast member',exact:true}).click();
+    const file=require('node:fs').readFileSync(path.join(base,'assets/models/keycards/kade-lace-key.glb'));
+    await page.getByLabel('Import .glb',{exact:true}).setInputFiles({name:'Nia_Meshy_preview.glb',mimeType:'model/gltf-binary',buffer:file});
+    await page.getByText('Local model: Nia_Meshy_preview.glb',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('NPC ID',{exact:true}).inputValue(),'nia');
+    assert.equal(await page.getByLabel('NPC name',{exact:true}).inputValue(),'Nia');
+    const emptyFree=page.locator('section[data-section=opening]');
+    await emptyFree.getByRole('button',{name:'Add action to conversation',exact:true}).click();
+    assert.equal(await emptyFree.locator(':scope > [data-line-id]').count(),1);
+    assert.equal(await emptyFree.locator('textarea:focus').count(),1);
+    assert.equal(await emptyFree.getByLabel('Speaker',{exact:true}).inputValue(),'nia');
+    const sounds=emptyFree.locator('.encounter-dialogue-action > .encounter-sound-cues');
+    await sounds.locator('summary').click();
+    const addSound=sounds.getByRole('button',{name:'Add sound effect',exact:true});
+    await addSound.click();
+    const builtIn=sounds.getByLabel('Built-in sound',{exact:true});
+    await builtIn.fill('assets/audio/ambience/door-lock.ogg');await builtIn.press('Tab');
+    await sounds.getByLabel('Loop sound effect',{exact:true}).check();
+    await sounds.getByLabel('Stop loop',{exact:true}).selectOption('seconds');
+    await sounds.getByLabel('Loop duration (seconds)',{exact:true}).fill('2');
+    await addSound.click();
+    const mp3=require('node:fs').readFileSync(path.join(base,'assets/audio/voice/kade-taxi-impact.mp3'));
+    await sounds.getByLabel('Import local sound file',{exact:true}).nth(1).setInputFiles({name:'taxi.mp3',mimeType:'audio/mpeg',buffer:mp3});
+    await sounds.getByText('Using imported file: taxi.mp3',{exact:true}).waitFor();
+    assert.equal(await builtIn.nth(1).isVisible(),false);
+    await sounds.getByRole('button',{name:'Choose a built-in sound instead'}).click();
+    await builtIn.nth(1).fill('Sound01');await builtIn.nth(1).press('Tab');
+    await sounds.getByText(/Still using imported file: taxi.mp3/).waitFor();
+    const volume=sounds.getByLabel('Volume (0–1)',{exact:true}).nth(1);
+    await volume.fill('2');
+    await sounds.getByText('Enter a value from 0 to 1.',{exact:true}).waitFor();
+    assert.equal(await volume.getAttribute('aria-invalid'),'true');
+    await volume.fill('1');
+    assert.equal(await volume.getAttribute('aria-invalid'),'false');
+    await sounds.getByLabel('Cue moment',{exact:true}).nth(1).selectOption('end');
+    assert.match(await emptyFree.locator('.encounter-duration').first().innerText(),/Estimated duration/);
+    await page.getByRole('button',{name:'Publish',exact:true}).click();
+    await page.getByText(/Imported GLBs are stored in this browser/).waitFor();
+    await page.getByRole('button',{name:'Save draft',exact:true}).click();
+    await page.getByText('Saved draft',{exact:true}).waitFor();
+    if(!await sounds.getByRole('button',{name:'Preview sound',exact:true}).nth(1).isVisible())await sounds.locator('summary').click();
+    await sounds.getByRole('button',{name:'Preview sound',exact:true}).nth(1).click();
+    assert.match(await page.evaluate(()=>window.auditionSrc),/^imported:/);
+    await page.getByRole('button',{name:/Play This Chance Encounter/}).click();
+    assert.equal(await page.evaluate(()=>window.auditionStopped),true);
+    const castDraft=await page.evaluate(async()=>{
+      const graph=window.playedGraph;
+      const cues=graph.dialogue[0].soundCues;
+      const hash=VoidChanceEncounter.importedSoundHash(cues[1].src);
+      return {scene:graph.playtest.scene,name:graph.cast[0].name,bytes:(await VoidChanceEncounter.castAsset(graph.cast[0].localAsset)).size,cues:cues.map(cue=>[cue.when,cue.stop]),soundBytes:(await VoidVoiceImports.getData(hash)).byteLength};
+    });
+    assert.deepEqual(castDraft,{scene:'planet-low-quay',name:'Nia',bytes:file.length,cues:[['start','seconds'],['end',undefined]],soundBytes:mp3.length});
+    const game = await browser.newPage();
+    await game.addScriptTag({path:path.join(base,'chance-encounter.js')});
+    const gameSource = require('node:fs').readFileSync(path.join(base,'chance-encounter-game.js'),'utf8');
+    await game.addScriptTag({content:gameSource
+      .replace('root.VoidEncounterGame={','root.VoidEncounterGame={runGraph,')
+      .replace('async function drop(run){','async function drop(run){run.holds=true;} async function originalDrop(run){')});
+    const pickedUp=await game.evaluate(async()=>{
+      const run={private:true,graph:{id:'dropped-cardkey',start:'item',nodes:[
+        {id:'item',kind:'item',edges:[{to:'end'}]},{id:'end',kind:'end',edges:[]}
+      ]},signal:new AbortController().signal};
+      await VoidEncounterGame.runGraph(run,'item');
+      return {holds:run.holds,node:run.node.id};
+    });
+    assert.deepEqual(pickedUp,{holds:true,node:'end'});
+    assert.equal(await game.getByRole('status').count(),0);
     await game.close();
     console.log('Draft playback, selection, drag and drop, chance returns, cancellation and save/reload passed.');
   } finally {

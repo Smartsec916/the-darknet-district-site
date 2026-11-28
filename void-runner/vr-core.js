@@ -227,7 +227,12 @@
  function sit(seat){if(!session)return;session.seat={...seat,before:{x:walker.x,z:walker.z,y:walker.y}};mode='vr-seated';clearInput();walkingKeys?.clear?.();walker.x=seat.x;walker.z=seat.z;walker.y=seat.eye||1.15;walker.yaw=seat.yaw;walker.pitch=seat.pitch||0;announce((seat.text||'You sit down.')+' E or Space to stand.');}
  function stand(){if(!session?.seat)return;const b=session.seat.before;walker.x=b.x;walker.z=b.z;walker.y=1.7;session.seat=null;session.world?.onStand?.();if(globalThis.VoidConversationUI?.continueWalking())return;resumeWalking();}
  addEventListener('mousemove',e=>{if(mode!=='vr-seated'||!VoidInputState.current.camera||document.pointerLockElement!==canvas)return;walker.yaw+=e.movementX*.003;walker.pitch=Math.max(-1.2,Math.min(1.2,walker.pitch+e.movementY*.003));});
- addEventListener('keydown',e=>{if(mode!=='vr-seated'||VoidInputState.current.shortcuts!=='seat')return;if(['KeyE','Space','KeyW','KeyA','KeyS','KeyD','Enter'].includes(e.code)){e.preventDefault();e.stopPropagation();stand();}},true);
+ addEventListener('keydown',e=>{
+  if(mode!=='vr-seated')return;
+  const policy=VoidInputState.current,walkKey=['KeyW','KeyA','KeyS','KeyD'].includes(e.code);
+  if(policy.name==='conversation'&&policy.camera&&walkKey){stand();return;}
+  if(policy.shortcuts==='seat'&&(walkKey||['KeyE','Space','Enter'].includes(e.code))){e.preventDefault();e.stopPropagation();stand();}
+ },true);
  // ---- Called by the renderer (prepareRoom) to build a world, and each frame through the room's tick ----
  async function buildWorld(def,ctx){const exp=registry.get(def.vr);const world=await exp.build({...ctx,opts:session?.opts||{},settings:session?.settings||{},api});if(session)session.world=world;return world;}
  /* Brightness inside a simulation (found 16 Nov 2026). On Medium and High the renderer's sharpen pass has multiplied the finished picture by 0.3 since 12 Nov

@@ -1,8 +1,60 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Kade walks up to Lace
+
+In Pleasure Breach, choosing to play as Kade starts a first-person walk from the player’s position in the apartment. Kade uses the indoor route around furniture, then starts the assigned clip at its original mark. The encounter’s cancel control is available during the approach.
+
+## 27 Nov 2026 — Explicit sound sources for encounter cues
+
+Imported sound cues display their active filename without a required library selection. Only choosing a valid built-in sound replaces the import. Editor sound auditions stop before a scene playtest starts. Build `2026-11-27-encounter-sound-source-1`.
+
+## 27 Nov 2026 — Continue in-game playtests after the selected start point
+
+Starting from a dialogue section or playlist plays forward through the encounter’s remaining actions and choices. Selecting a chance playlist enters it directly and then follows its configured return behavior. The separate editor execution preview can still isolate a playlist. Build `2026-11-27-encounter-start-continuation-1`.
+
+## 27 Nov 2026 — Consumable visual preview controls
+
+Consumable Effects places playback and comparison controls above the 3D view. Preview track, category, or all tracks enables Live effects and returns from Before effects. If preview accessibility hides a selected effect, the studio names the setting to enable and opens the preview-only controls. Build `2026-11-27-consumable-visual-preview-1`.
+
+## 27 Nov 2026 — In-game encounter section start points
+
+On desktop, Start from this point opens a private in-game playtest at the selected dialogue section, main playlist, or chance playlist. It uses the encounter location and stages the cast or Lace, then plays the selected timeline with the game’s dialogue, animations and sound cues. Preview execution keeps the editor’s timing and branch trace available separately. Build `2026-11-27-encounter-in-game-start-points-1`.
+
+## 27 Nov 2026 — Local files for encounter sound effects
+
+Each sound cue can import a local audio file or use the packaged library. Draft audio is stored in the authoring browser. Publishing uploads the audio through the existing content-addressed audio service, and live playback uses the Effects channel and the existing cue timing and loop controls. Build `2026-11-27-encounter-sound-import-1`.
+
+## 27 Nov 2026 — Clear V1 camera viewfinder and Lace arrival
+
+The shared panel theme was painting its dark panel fill over the live camera image. The viewfinder now draws its own transparent frame and corner marks. The apartment doorway transition waits for Lace's model and starting pose before revealing the room. Dialogue starts after entry. Build `2026-11-27-camera-lace-arrival-1`.
+
+## 27 Nov 2026 — Chance Encounter start points
+
+In the desktop encounter editor, select a Choice node to launch a private in-game playtest at any connected destination. Dialogue sections and expanded main and chance playlists have the same start button for the editor’s execution preview. Playlist previews start directly at the selected playlist, use its repeat rules and sound cues, and stop at its end. Previewing a chance playlist skips its parent probability roll. Build `2026-11-27-encounter-start-point-1`.
+
+## 27 Nov 2026 — Chance Encounter timing and sound cues
+
+The editor estimates line, section, main-playlist and chance-playlist durations using delays, recording lengths, known animation lengths, playback speed and repeat settings. Chance paths and unmeasured clips are labelled. A line can carry sound without dialogue or animation.
+
+Encounter, node, section, main-playlist, chance-playlist and action cues use the packaged sound library and the game's Effects channel. Each cue has a start or end anchor, offset, volume and optional loop. Loop stops can follow the active scope, encounter completion or a set duration. Use a timed loop for an end cue. Effects can play concurrently and do not extend dialogue or playlist execution. The desktop execution preview uses the same scheduler. Build `2026-11-27-encounter-sound-cues-1`.
+
+## 27 Nov 2026 — Cast for new Chance Encounters
+
+New drafts can choose a location and trigger and add a cast from registered NPC models or browser-local GLBs. Each cast member has a stable NPC ID, display name, placement and idle clip. Cast dialogue assigns speakers and their embedded animations, and a Cast conversation node waits for the player to approach before presenting Talk. The new location selector covers NeoChinatown street quarters, the District interior and Low Quay. Existing bespoke encounters retain their graphs and staging.
+
+Imported GLBs are stored in browser IndexedDB. Publishing requires a registered game model from the regular asset pipeline. The Python API enforces that distinction and checks the selected location when rolling opportunities. Build `2026-11-27-encounter-cast-1`.
+
+## 27 Nov 2026 — Plug & Play local rehearsal
+
+Ike and Eza take turns at the pole using a rehearsal-only rear opening and ramp. One reaches the backstage waiting spot before the next crosses the ramp. The approach slows near the pole and the walking and dancing poses blend while the rig eases between their different origins and headings. The first routines use KickPole and No-FeetSPin from the owner's RigModels archive. The bone-only source files use different axes and proportions. The local conversion matches joint directions and preserves motion relative to an estimated pole position. Pole grip and foot contact may need per-clip adjustment.
+
+Lyra and Raze use separate paths between the kitchen hatch and the booths. They stop to greet guests and carry trays with food and drinks to the tables. Their existing GLBs supply walking. The rehearsal builder adds simple greeting, tray-carry and serving poses. Lyra and Raze are hosts. Nia is the separate mission giver, standing just inside the entrance with a Talk prompt and a Mission Editor roster entry. No mission or dialogue is assigned. The local rehearsal page has a Nia view.
+
+Build with `tools/animation-pipeline/build_plugplay_rehearsal.py POLE_ZIP IKE_GLB EZA_GLB --hosts LYRA_GLB RAZE_GLB --nia NIA_GLB`. The generated files are ignored under `work/pole-preview/`. On a localhost game URL, enable `?plugplay-rehearsal=1` and visit Low Quay's Plug & Play. This workstation also has an ignored preview page at `/work/pole-preview/index.html` with stage and hosts views. Browser verification exercised the dancer handoff, tray delivery at two booths, and scene disposal. RigModels usage terms are pending. Build `2026-11-27-plugplay-nia-1`.
+
 ## 27 Nov 2026 - Cardkey pickup glow
 
-The Pleasure Breach cardkey keeps its cyan status light and a subdued cyan rim. The ground halo is removed and the pickup focus outline is thinner. Build `2026-11-27-keycard-glow-1`.
+The Pleasure Breach cardkey has a brighter cyan rim, a cyan status light and a soft cyan pool on the pavement where it lands. The spill is a local additive mesh that is disposed with the pickup. Build `2026-11-27-cardkey-ground-glow-1`.
 
 ## 27 Nov 2026 — Chance Encounters playlist editor
 

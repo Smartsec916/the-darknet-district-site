@@ -4,11 +4,61 @@ const engine=require('../void-runner/chance-encounter.js');
 const seed=require('../void-runner/chance-encounter-seed.json');
 const crossing=require('../void-runner/chance-crossing.js');
 
+test('in-game playlist starts continue to the later actions',async()=>{
+ const child={id:'child'},branch={chance:0,actions:['child'],completion:'next'};
+ const first={id:'first'},parent={id:'parent',mainPlaylist:'main',mainPasses:1,branches:[branch]},last={id:'last'};
+ const rows=[first,parent,last],byId=new Map([...rows,child].map(row=>[row.id,row]));
+ for(const [target,expected] of [[{segment:{key:'main'}},['parent','last']],[{branch},['child','last']]]){
+  const played=[];
+  await engine.runPlaylist(rows,byId,{signal:new AbortController().signal,startTarget:target,play:row=>played.push(row.id),pause:()=>{},random:()=>.99});
+  assert.deepEqual(played,expected);
+ }
+});
+
+test('sound validation names an imported cue with a volume above full',()=>{
+ const cue={src:'imported:'+'a'.repeat(64),name:'taxi.mp3',when:'start',offset:1,volume:2,loop:true,stop:'scope'};
+ assert.deepEqual(engine.soundProblems({soundCues:[cue]}),['Sound effect 1 (taxi.mp3). Set Volume to 0–1 (1 is full volume).']);
+ cue.volume=1;
+ assert.deepEqual(engine.soundProblems({soundCues:[cue]}),[]);
+});
+
+test('a section preview validates its action and branch cues without blocking on other sections',()=>{
+ const cue={src:'imported:'+'a'.repeat(64),name:'effect.mp3',when:'start',offset:1,volume:1,loop:true,stop:'scope'};
+ const child={id:'branch_child',soundCues:[{...cue,volume:2}]};
+ const branch={actions:[child.id],chance:10};
+ const arrival={id:'arrival',soundCues:[cue],branches:[branch]};
+ const graph={soundCues:[{...cue,src:''}],sectionSounds:{free:[{...cue,volume:2}]},dialogue:[arrival,child]};
+ const byId=new Map(graph.dialogue.map(row=>[row.id,row]));
+ assert.match(engine.previewSoundProblems(graph,'opening',[arrival],byId)[0],/Set Volume/);
+ child.soundCues[0].volume=1;
+ assert.deepEqual(engine.previewSoundProblems(graph,'opening',[arrival],byId),[]);
+ assert.equal(engine.soundProblems(graph).length,2);
+});
+
+test('encounter captions and their timing leave out delivery tags',()=>{
+ const text='[whispers] Keep the lights low while we wait here [pause], and listen. [sighs]';
+ const spoken='Keep the lights low while we wait here, and listen.';
+ assert.equal(engine.spokenText(text),spoken);
+ assert.equal(engine.lineSeconds({text}).seconds,engine.lineSeconds({text:spoken}).seconds);
+ assert.equal(engine.lineSeconds({text,recording:{duration:4}}).seconds,4);
+ assert.equal(engine.spokenText('Check panel [2].'),'Check panel [2].');
+ assert.equal(engine.spokenText('[sighs]'),'');
+});
+
 test('a delayed taxi must travel through the crossing before the card drops',()=>{
  const taxi={s:96,pathLen:100},plan={start:96,distance:8,taxi};
  assert.equal(crossing.crossingProgress(plan),0);
  taxi.s=0;assert.equal(crossing.crossingProgress(plan),.5);
  taxi.s=5;assert.equal(crossing.crossingProgress(plan),1);
+});
+
+test('the tire squeal starts just before impact at the current taxi speed',()=>{
+ const plan={distance:20,taxi:{speed:10}};
+ assert.equal(crossing.tireSquealDue(plan,.8),false);
+ assert.equal(crossing.tireSquealDue(plan,.9),true);
+ assert.equal(crossing.tireSquealDue(plan,1),false);
+ plan.taxi.speed=3;
+ assert.equal(crossing.tireSquealDue(plan,.9),false);
 });
 
 test('all apartment choices are reachable after the crossing and drop',()=>{
@@ -158,6 +208,60 @@ test('finished bounded and nested branches restart the active main cycle and rel
   assert.deepEqual(log,nested?['intro','first','roll','B','C','inner','inner','first']:['intro','first','roll','B','C','B','C','first']);
   assert.equal(buttons.size,0);
  }
+});
+
+test('timeline animation playback uses the speed of each action', async () => {
+ const source=require('node:fs').readFileSync(require.resolve('../void-runner/chance-encounter-game.js'),'utf8');
+ const context={VoidChanceEncounter:engine,performance,addEventListener(){},setInterval(){}};
+ require('node:vm').runInNewContext(source.replace('root.VoidEncounterGame={','root.VoidEncounterGame={lines,'),context);
+ const speeds=[];
+ const clip={name:'lace-gesture',start(loop,speed){speeds.push(speed);}};
+ const dialogue=[2,0.5,undefined].map((animationSpeed,i)=>({
+  id:'lace_free_'+i,text:'',animation:'gesture',animationSpeed
+ }));
+ const signal=new AbortController().signal;
+ await context.VoidEncounterGame.lines({graph:{dialogue},signal,lace:{made:{metadata:{animationGroups:[clip]}}}},'free',null,signal,()=>{});
+ assert.deepEqual(speeds,[2,0.5,1]);
+});
+
+test('timing counts delays, concurrent speech and animation, and repeat gaps',()=>{
+ const a={id:'a',text:'Talk',recording:{duration:2},animation:'walk',animationSeconds:8,animationSpeed:2,delay:1};
+ const part={before:[],cycle:[a],after:[]};
+ assert.deepEqual(engine.lineSeconds(a),{seconds:5,unknown:false,variable:false});
+ assert.equal(engine.timing(part,2).seconds,10.25);
+ assert.equal(engine.timing(part,0).loop,true);
+ assert.equal(engine.timing(part,0,undefined,false,60).variable,true);
+ assert.equal(engine.timing(part,0,undefined,false,100).loop,false);
+});
+
+test('sound cues overlap and stop on their scope, encounter, or timer',()=>{
+ let time=0,next=0;
+ const jobs=new Map(),voices=[];
+ const timers={setTimeout(fn,delay){jobs.set(++next,{at:time+delay,fn});return next;},clearTimeout(id){jobs.delete(id);}};
+ const timeline=engine.soundTimeline(cue=>{
+  const voice={type:cue.stop,ended:false,dispose(){this.ended=true;}};
+  voices.push(voice);return voice;
+ },timers);
+ const advance=ms=>{
+  const until=time+ms;
+  for(;;){
+   const due=[...jobs.entries()].filter(([,job])=>job.at<=until).sort((a,b)=>a[1].at-b[1].at)[0];
+   if(!due)break;
+   jobs.delete(due[0]);time=due[1].at;due[1].fn();
+  }
+  time=until;
+ };
+ const cue=(changes={})=>({src:'assets/audio/ambience/door-lock.ogg',when:'start',offset:0,volume:1,loop:true,...changes});
+ const end=timeline.open([cue({stop:'scope'}),cue({stop:'encounter'}),cue({stop:'seconds',seconds:2,offset:.5}),cue({when:'end',loop:false})]);
+ advance(500);
+ assert.equal(voices.filter(v=>!v.ended).length,3);
+ end();
+ assert.deepEqual(voices.map(v=>v.ended),[true,false,false,false]);
+ advance(2000);
+ assert.deepEqual(voices.map(v=>v.ended),[true,false,true,false]);
+ timeline.finish();
+ assert.deepEqual(voices.map(v=>v.ended),[true,true,true,false]);
+ timeline.dispose();assert.ok(voices.every(v=>v.ended));
 });
 
 test('main playlist continuation rolls after each complete pass', async () => {

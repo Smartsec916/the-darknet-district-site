@@ -39,21 +39,24 @@
   const media=new Audio(),owner=root.VoidAudio?.connectMedia?.(media,channel);
   if(!owner)return null;
   const ctx=owner.context,g=owner.gain.gain;
-  let closed=false,tail=null,ended=false,additional=null;
-  media.crossOrigin='anonymous';media.preload='auto';media.src=options.url||mediaUrl(a.src);
+  let closed=false,tail=null,ended=false,additional=null,objectUrl;
+  media.crossOrigin='anonymous';media.preload='auto';
   media.preservesPitch=true;
   media.playbackRate=limit(a.rate,.25,4);
   let output=owner.gain,pitch;
   if(a.pitch){const bus=root.VoidAudio.bus(channel).node;output.disconnect(bus);pitch=transpose(ctx,output,a.pitch);output=pitch.output;output.connect(bus);}
   const level=limit(a.volume*volume,0,1);g.value=0;
-  function dispose(){if(closed)return;closed=true;clearTimeout(tail);media.pause();media.removeAttribute('src');media.load();pitch?.dispose();owner.dispose();additional?.disconnect();}
+  function dispose(){if(closed)return;closed=true;clearTimeout(tail);media.pause();media.removeAttribute('src');media.load();if(objectUrl)URL.revokeObjectURL(objectUrl);pitch?.dispose();owner.dispose();additional?.disconnect();}
   function fade(seconds){if(closed||tail)return;if(seconds<=0){dispose();return;}
    g.cancelScheduledValues(ctx.currentTime);g.setValueAtTime(g.value,ctx.currentTime);g.linearRampToValueAtTime(0,ctx.currentTime+seconds);tail=setTimeout(dispose,seconds*1000+30);}
   function start(){if(closed)return;media.currentTime=limit(options.seek??a.start,a.start,Math.max(a.start,(a.end||media.duration)-.02));
    const now=ctx.currentTime;g.cancelScheduledValues(now);g.setValueAtTime(0,now);g.linearRampToValueAtTime(level,now+Math.max(.01,a.fadeIn,options.fade||0));
-   media.play().catch(()=>{ended=true;dispose();});}
+   media.play().catch(failed);}
   function finish(){if(ended||closed)return;if(options.loop??a.loop){start();return;}ended=true;dispose();options.done?.();}
-  media.addEventListener('loadedmetadata',start,{once:true});media.onended=finish;media.onerror=()=>{ended=true;dispose();options.done?.();};
+  function failed(){if(closed)return;ended=true;dispose();options.done?.();}
+  media.addEventListener('loadedmetadata',start,{once:true});media.onended=finish;media.onerror=failed;
+  if(options.blob)Promise.resolve().then(()=>options.blob()).then(blob=>{if(!closed)media.src=objectUrl=URL.createObjectURL(blob);}).catch(failed);
+  else media.src=options.url||mediaUrl(a.src);
   media.ontimeupdate=()=>{const left=(a.end||media.duration)-media.currentTime;if(left<=.02)finish();
    else if(!tail&&a.fadeOut>0&&left<a.fadeOut)g.setTargetAtTime(level*left/a.fadeOut,ctx.currentTime,.05);};
   return {media,get remaining(){return ((a.end||media.duration)-media.currentTime)/media.playbackRate;},get ended(){return ended||closed;},fade,dispose,

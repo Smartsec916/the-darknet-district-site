@@ -26,11 +26,12 @@
   return fog;
  }
  // A space: {id, name, flag (story.flags key for the fog), bounds, cell, model():{streets,buildings,walls,pois,bounds}}. Registered once by the area's module.
- function register(space){if(!space||!space.id||!space.flag||!Array.isArray(space.bounds))throw new Error('A map space needs id, flag and bounds.');spaces.set(space.id,{cell:8,...space});return spaces.get(space.id);}
+ function register(space){if(!space?.id||(!space.publicMap&&!space.flag)||!Array.isArray(space.bounds))throw new Error('A map space needs id and bounds, plus a flag for exploration fog.');spaces.set(space.id,{cell:8,...space});return spaces.get(space.id);}
  const get=id=>spaces.get(id)||null,list=()=>[...spaces.values()];
  // Save and restore through story.flags. Never throws: an unreadable value just means "unexplored".
  function load(space,flags){const fog=createFog(space.bounds,space.cell);try{fog.decode(flags?.[space.flag]);}catch{}return fog;}
  function save(space,fog,flags){if(!flags)return false;const text=fog.encode();if(text.length>190)return false;flags[space.flag]=text;return true;}
  const api={createFog,register,get,list,load,save,spaces};
+ if(root.VoidLowQuay?.mapSpace)register(root.VoidLowQuay.mapSpace);
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidAreaMap=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -64,12 +64,15 @@
     const c=input.controller,digital=mode==='play'?flightActions:fpsActions;
     const raw=pad.buttons.map(b=>!!b&&(b.pressed||b.value>.55));const lx=dead(pad.axes[0]||0,c.leftDeadZone),ly=dead(pad.axes[1]||0,c.leftDeadZone),rx=dead(pad.axes[2]||0,c.rightDeadZone),ry=dead(pad.axes[3]||0,c.rightDeadZone);
     if(capture){const index=raw.findIndex((pressed,i)=>pressed&&!previousButtons[i]);if(index>=0){const result=input.bindController(capture,index),status=document.getElementById('device-binding-status');if(result.error){if(status)status.textContent=result.error;}else{capture=null;mainAction('device-bindings');if(document.getElementById('device-binding-status'))document.getElementById('device-binding-status').textContent=result.saved?'Binding saved.':'Binding active for this session.';}}previousButtons=raw;return;}
-    if(VoidInputState.current.shortcuts!=='game'&&!(mode==='menu'&&VoidMenu.returnTo&&VoidInputState.current.name!=='background')){previousButtons=raw;previousAxes=[lx,ly,rx,ry];return;}
+    const policy=VoidInputState.current;
+    const conversation=policy.name==='conversation'&&(policy.movement||policy.camera);
+    if(!conversation&&policy.shortcuts!=='game'&&!(mode==='menu'&&VoidMenu.returnTo&&policy.name!=='background')){previousButtons=raw;previousAxes=[lx,ly,rx,ry];return;}
     const axes=[lx,ly,rx,ry];if((Math.hypot(...axes)>.24&&axes.some((value,i)=>Math.abs(value-previousAxes[i])>.08))||raw.some((pressed,i)=>pressed&&!previousButtons[i]))setActive('gamepad');
     if(active==='gamepad'){input.axes.moveX=lx;input.axes.moveZ=-ly;input.axes.flightX=lx;input.axes.flightY=ly;input.axes.roll=rx;input.axes.lookX=rx;input.axes.lookY=ry*(c.invertY?-1:1);
-      if(mode==='walking'&&walker){walker.yaw+=rx*c.sensitivity*dt*2.5;walker.pitch=FM.clamp(walker.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.35,1.35);}
+      if(policy.camera&&['walking','vr-seated'].includes(mode)&&walker){walker.yaw+=rx*c.sensitivity*dt*2.5;walker.pitch=FM.clamp(walker.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.35,1.35);}
       else if(mode==='skirmish-fps'&&root.VoidSkirmish?.active){const p=root.VoidSkirmish.active.player;p.yaw+=rx*c.sensitivity*dt*2.5;p.pitch=FM.clamp(p.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.25,1.25);}
     }
+    if(conversation){previousButtons=raw;previousAxes=axes;return;}
     for(const id of digital){const index=c.bindings[id],pressed=!!raw[index]&&active==='gamepad'&&(activeModes.has(mode)||(id==='pause'&&mode==='menu'&&VoidMenu.returnTo));if(pressed){input.virtual.add(id);padHeld.add(id);}else{input.virtual.delete(id);padHeld.delete(id);}if(pressed&&!previousButtons[index])dispatch(id,true);else if(!pressed&&previousButtons[index])dispatch(id,false);}
     if(active==='gamepad'&&mode==='walking'&&raw[c.bindings.fire])dispatch('fire',true);
     if(active==='gamepad'&&mode==='skirmish-fps'&&raw[c.bindings.fire])dispatch('fire',true);

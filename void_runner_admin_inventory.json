@@ -471,6 +471,13 @@
         "draft": true,
         "group": "earlier"
       },
+      "nia": {
+        "name": "Nia",
+        "canTalk": true,
+        "players": true,
+        "draft": true,
+        "group": "earlier"
+      },
       "nyx": {
         "name": "Nyx",
         "canTalk": true,
@@ -58090,6 +58097,7 @@
       "mercer",
       "milked-eva",
       "milked-fish",
+      "nia",
       "nyx",
       "nyx-district",
       "rin-takeda",
@@ -61775,7 +61783,7 @@
       "spawn"
     ]
   },
-  "revision": "6aa56dbdbdaa296d",
+  "revision": "bbf661aa57b762a5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74332,13 +74340,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 253,
+      "line": 255,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 296,
+      "line": 298,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -74482,440 +74490,578 @@
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 8,
-      "text": "while(graph.dialogue.some(line=>line.id===prefix+String(n).padStart(2,'0')))n++;",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 13,
-      "text": "const index=before?graph.dialogue.indexOf(before):last?graph.dialogue.indexOf(last)+1:graph.dialogue.length;",
+      "line": 9,
+      "text": "while(reserved.has(id)||graph.dialogue.some(line=>line.id===id))id=prefix+String(++n).padStart(2,'0');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
       "line": 14,
+      "text": "const index=before?graph.dialogue.indexOf(before):last?graph.dialogue.indexOf(last)+1:graph.dialogue.length;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 15,
       "text": "graph.dialogue.splice(index,0,line);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 47,
-      "text": "let working,addBranch='arrival',dialogueOpen=!tools.mobile,preview;",
+      "line": 49,
+      "text": "let working,addBranch='arrival',dialogueOpen=!tools.mobile,preview,previewSounds,audition;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 59,
-      "text": "draft.start='start';draft.dialogue=[];delete draft.item;delete draft.residence;",
+      "line": 64,
+      "text": "draft.start='start';draft.dialogue=[];draft.cast=[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 76,
+      "line": 74,
+      "text": "return hash?[{hash,type:cue.type,text:cue.name||'sound effect'}]:[];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 94,
       "text": "const recordings=[...(g.dialogue||[]),...(g.savedActions||[]).flat()].flatMap(line=>line.recording?[line.recording]:[]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 179,
+      "line": 252,
+      "text": "for(const row of [...g.dialogue,...g.nodes,...(g.savedActions||[]).flat()])if(row.speaker===actor.id){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 322,
       "text": "g.placement?.clip,...(g.dialogue||[]).map(line=>line.animation),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 201,
+      "line": 437,
       "text": "if(Array.isArray(g.dialogue)){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 202,
+      "line": 438,
       "text": "const dialogue=element('details');dialogue.className='encounter-playlist-editor';dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=dialogueOpen;dialogue.ontoggle=()=>{if(dialogue.isConnected)dialogueOpen=dialogue.open;};host.insertBefore(dialogue,props);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 203,
-      "text": "const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));",
+      "line": 439,
+      "text": "const editable=!g.cast&&(g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line)));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 207,
+      "line": 443,
       "text": "position.replaceChildren(new Option('End of this conversation',''));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 210,
+      "line": 446,
       "text": "const branch=select(conversations,addBranch,v=>{addBranch=v;fillPositions();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 212,
+      "line": 448,
       "text": "const arrival=g.dialogue.filter(l=>l.id.startsWith('lace_arrival_'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 213,
+      "line": 449,
       "text": "const decisionControl=field(dialogue,'Show player choices',select([['end','After all arrival lines'],['before','Before the first line'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 215,
+      "line": 451,
       "text": "const updated=api.dialogueSections({...g,decisionAfter:v});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 222,
+      "line": 458,
       "text": "field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 224,
-      "text": "const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};",
+      "line": 460,
+      "text": "const line={id:nextLineId(g,addBranch),speaker:g.cast?.[0]?.id||'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 225,
+      "line": 461,
       "text": "insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 228,
+      "line": 464,
       "text": "add.disabled=g.dialogue.length>=100;dialogue.append(add);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 231,
+      "line": 467,
       "text": "dialogue.append(element('p','Enter the spoken text first. For bulk import, name each recording after its line ID, such as lace_arrival_01.ogg.'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 233,
+      "line": 469,
       "text": "field(dialogue,'Bulk import recordings',bulk);dialogue.append(report);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 243,
+      "line": 479,
       "text": "const ordered=(editable?[...conversations.flatMap(([key])=>branchLines(g,key)),...g.dialogue.filter(l=>!branchOf(l))]:g.dialogue).filter(l=>!l.id.startsWith('branch_'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 249,
-      "text": "g.dialogue.push({id,speaker:'lace',text:'',animation:'',delay:0,tags:''});return id;",
+      "line": 485,
+      "text": "g.dialogue.push({id,speaker:g.cast?.[0]?.id||'lace',text:'',animation:'',delay:0,tags:''});return id;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 254,
+      "line": 490,
       "text": "const line=g.dialogue.find(row=>row.id===id);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 257,
+      "line": 493,
       "text": "g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 259,
-      "text": "const sections=api.dialogueSections(g),selectionControls=[];",
+      "line": 495,
+      "text": "const sections=api.dialogueSections(g),selectionControls=[],sectionPreviews=new Map();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 260,
+      "line": 496,
       "text": "const byId=new Map(g.dialogue.map(line=>[line.id,line])),actionOptions=new Map();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 263,
+      "line": 499,
       "text": "const selectionBar=element('div');selectionBar.className='encounter-selection-bar';dialogue.append(selectionBar);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 264,
+      "line": 500,
       "text": "const savedPanel=element('details');savedPanel.append(element('summary','Saved Actions ('+saved.flat().length+')'));dialogue.append(savedPanel);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 293,
+      "line": 529,
       "text": "if(!branch.actions.length)for(const parent of g.dialogue)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 300,
+      "line": 536,
       "text": "for(const parent of g.dialogue)for(const branch of parent.branches||[])",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 310,
+      "line": 546,
       "text": "g.dialogue=g.dialogue.filter(action=>!members.has(action));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 316,
+      "line": 552,
       "text": "dialogue.querySelector('.encounter-action-destination')?.remove();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 326,
+      "line": 563,
       "text": "const parent=g.dialogue.find(line=>line.branches?.includes(target.owner));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 329,
+      "line": 566,
       "text": "return name+(target.segment?' / Main playlist '+(target.segment.rows[0].text||target.segment.key).slice(0,55):' / Conversation');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 352,
+      "line": 589,
       "text": "if(!toSaved&&mode!=='move'&&g.dialogue.length+adding>100){feedback.textContent='The encounter can have up to 100 active actions.';return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 357,
-      "text": "if(target.rows.some(row=>moved.has(row))||g.dialogue.some(row=>moved.has(row)&&row.branches?.includes(target.owner))){",
+      "line": 594,
+      "text": "if(target.owner&&g.dialogue.some(row=>moved.has(row)&&row.branches?.includes(target.owner))){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 361,
+      "line": 600,
       "text": "g.dialogue=g.dialogue.filter(row=>!moved.has(row));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 366,
+      "line": 605,
       "text": "const conversation=target?.section==='opening'||target?.section==='remaining'?'arrival':target?.section;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 372,
-      "text": "const id=i||toSaved||target.owner?branchId():nextLineId(g,conversation);",
+      "line": 607,
+      "text": "const reserved=new Set(mode==='move'&&!target.owner?rows.filter(row=>branchOf(row)===conversation).map(row=>row.id):[]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 397,
+      "line": 613,
+      "text": "const staysInConversation=!inBranch&&branchOf(item)===conversation;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 614,
+      "text": "const id=mode==='move'&&(staysInConversation||inBranch&&item.id.startsWith('branch_'))?item.id:inBranch?branchId():nextLineId(g,conversation,reserved);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 639,
       "text": "links.splice(at,0,row.id);g.dialogue.push(row);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 401,
+      "line": 642,
+      "text": "const last=after||(!before&&scope.filter(row=>g.dialogue.includes(row)).at(-1));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 644,
       "text": "const at=last?g.dialogue.indexOf(last)+1:before||boundary?g.dialogue.indexOf(before||boundary):g.dialogue.length;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 402,
+      "line": 645,
       "text": "g.dialogue.splice(at,0,row);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 406,
+      "line": 649,
       "text": "g.dialogue.push(...group.slice(1));after=row;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 420,
+      "line": 663,
       "text": "const orderedActive=[...targets.flatMap(target=>target.rows),...g.dialogue.filter(row=>!sourceOf(row))].filter(row=>checked.has(row.id));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 475,
-      "text": "row.append(element('legend',number?number+' · '+(line.text.trim()?'Dialogue':line.animation?'Animation':'Action'):line.id));parent.append(row);",
+      "line": 688,
+      "text": "const owner=Object.entries(api.dialogueSections(g)).find(([,items])=>items.includes(legacyRows[0]))?.[0];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 482,
-      "text": "const list=owner?owner.actions:g.dialogue,index=peers.indexOf(item);",
+      "line": 721,
+      "text": "if(g.dialogue.length>=100){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 517,
-      "text": "if(owner||branchOf(line))row.classList.add('encounter-dialogue-action');",
+      "line": 735,
+      "text": "const conversation=line?branchOf(line):section==='opening'||section==='remaining'?'arrival':section;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 518,
-      "text": "if(!owner&&branchOf(line))row.dataset.conversation=branchOf(line);",
+      "line": 736,
+      "text": "id=nextLineId(g,conversation);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 527,
-      "text": "field(row,'Conversation for this line',select(conversations,currentBranch,destination=>{",
+      "line": 737,
+      "text": "const added={id,speaker:g.cast?.[0]?.id||'lace',text:'',animation:'',delay:conversation==='wait'?12:0,tags:''};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 531,
-      "text": "g.dialogue.splice(g.dialogue.indexOf(line),1);",
+      "line": 739,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(line)+(after?1:0),0,added);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 540,
-      "text": "if(number)legend.textContent=number+' · '+(line.text.trim()?'Dialogue':line.animation?'Animation':'Action');",
+      "line": 743,
+      "text": "insertLine(g,added,conversation,section==='opening'?sections.remaining[0]:null);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 567,
-      "text": "const group=owner?g.dialogue.filter(r=>owner.actions.includes(r.id)):Object.values(api.dialogueSections(g)).find(rows=>rows.includes(line));",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 575,
-      "text": "});add.disabled=g.dialogue.length>=100;toolbar.append(add);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 608,
-      "text": "const action=g.dialogue.find(r=>r.id===id);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 622,
-      "text": "const conversation=branchOf(anchor);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 632,
-      "text": "g.dialogue.splice(g.dialogue.indexOf(action),1);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 633,
-      "text": "action.id=nextLineId(g,conversation);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 635,
-      "text": "g.dialogue.splice(g.dialogue.indexOf(last)+1,0,action);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 664,
-      "text": "addAction.disabled=g.dialogue.length>=100;branchTools.append(moveSelected,addSelected,addAction,button('Delete chance playlist permanently',()=>{",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 696,
-      "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 716,
-      "text": "const section=element('section');section.className='encounter-conversation';section.dataset.conversation=branchOf(group[0]);",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/chance-encounter-editor.js",
-      "line": 717,
-      "text": "section.append(element('h3',names[key]));dialogue.append(section);",
+      "line": 746,
+      "text": "if(conversation==='wait')g.waitingDialogueConfigured=true;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
       "line": 762,
-      "text": "const line={id,speaker:'lace',text:'',animation:'',delay:0,tags:''};",
+      "text": "row.append(element('legend',number?number+' · '+(line.text.trim()?'Dialogue':line.animation?'Animation':'Action'):line.id));parent.append(row);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 763,
+      "line": 769,
+      "text": "const list=owner?owner.actions:g.dialogue,index=peers.indexOf(item);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 797,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(line),1);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 800,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(boundary)+(step>0&&!following?1:0),0,line);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 803,
+      "text": "g.decisionAfter=g.dialogue.findLast(row=>sections[section].includes(row)).id;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 813,
+      "text": "before.disabled=g.dialogue.length>=100;toolbar.append(before);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 825,
+      "text": "if(owner||branchOf(line))row.classList.add('encounter-dialogue-action');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 826,
+      "text": "if(!owner&&branchOf(line))row.dataset.conversation=branchOf(line);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 835,
+      "text": "field(row,'Conversation for this line',select(conversations,currentBranch,destination=>{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 839,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(line),1);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 848,
+      "text": "if(number)legend.textContent=number+' · '+(line.text.trim()?'Dialogue':line.animation?'Animation':'Action');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 893,
+      "text": "const group=owner?g.dialogue.filter(r=>owner.actions.includes(r.id)):Object.values(api.dialogueSections(g)).find(rows=>rows.includes(line));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 901,
+      "text": "});add.disabled=g.dialogue.length>=100;toolbar.append(add);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 942,
+      "text": "const action=g.dialogue.find(r=>r.id===id);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 956,
+      "text": "const conversation=branchOf(anchor);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 966,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(action),1);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 967,
+      "text": "action.id=nextLineId(g,conversation);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 969,
+      "text": "g.dialogue.splice(g.dialogue.indexOf(last)+1,0,action);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 998,
+      "text": "addAction.disabled=g.dialogue.length>=100;branchTools.append(moveSelected,addSelected,addAction,button('Delete chance playlist permanently',()=>{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1030,
+      "text": "const response=await tools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1048,
+      "text": "const names={opening:g.cast?'Encounter dialogue':'Arrival',remaining:'Arrival after choices',free:'Free Lace',be_kade:'Be Kade',wait:'Waiting for choice'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1051,
+      "text": "const section=element('section');section.className='encounter-conversation';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1052,
+      "text": "section.dataset.conversation=key==='opening'||key==='remaining'?'arrival':key;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1054,
+      "text": "section.append(element('h3',names[key]));dialogue.append(section);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1109,
+      "text": "const line={id,speaker:g.cast?.[0]?.id||'lace',text:'',animation:'',delay:0,tags:''};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1110,
       "text": "g.dialogue.splice(g.dialogue.indexOf(last)+1,0,line);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 768,
+      "line": 1115,
       "text": "add.disabled=g.dialogue.length>=100;controls.append(add);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-editor.js",
-      "line": 773,
+      "line": 1120,
+      "text": "outside.disabled=g.dialogue.length>=100;controls.append(outside);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1125,
+      "text": "actionFooter(section,'Add action to conversation',()=>insertAction(group.at(-1),null,null,true,key));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-editor.js",
+      "line": 1127,
       "text": "for(const line of ordered)if(!drawn.has(line.id))drawRow(line,dialogue,null);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 67,
+      "line": 68,
       "text": "const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 68,
+      "line": 69,
       "text": "const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 85,
+      "line": 88,
       "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 166,
+      "line": 181,
       "text": ".catch(error=>{if(!waitController.signal.aborted)console.warn('Encounter waiting dialogue:',error);});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 196,
-      "text": "'Somewhere a little checkbox says pedestrian detected.',",
+      "line": 213,
+      "text": "[3,'Somewhere a little checkbox says pedestrian detected.'],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-game.js",
+      "line": 770,
+      "text": "const rows=api.dialogueSections(graph)[preview.section];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter-game.js",
+      "line": 772,
+      "text": "errors.push(...api.previewSoundProblems(graph,preview.section,rows,new Map(graph.dialogue.map(row=>[row.id,row])),preview.target));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
       "line": 5,
-      "text": "trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',",
+      "text": "trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',cast:'Cast conversation',",
       "kind": "source-reference"
     },
     {
@@ -74932,74 +75078,104 @@
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 156,
+      "line": 178,
       "text": "function dialogueProblems(graph){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 157,
+      "line": 179,
       "text": "const errors=[],rows=graph.dialogue??[],seen=new Set();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 158,
+      "line": 180,
       "text": "if(!Array.isArray(rows)||rows.length>100||rows.some(row=>typeof row?.id!=='string'||typeof row.text!=='string'))return ['Use up to 100 valid dialogue actions.'];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 160,
+      "line": 182,
       "text": "if(ids.size!==rows.length)errors.push('Each dialogue action needs a distinct ID.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 167,
+      "line": 189,
       "text": "const sections=Object.values(dialogueSections(graph));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 176,
+      "line": 198,
       "text": "errors.push('Keep playlist members in one conversation section with matching passes.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 185,
+      "line": 207,
       "text": "if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 188,
+      "line": 210,
       "text": "errors.push('Branches must start from conversation actions.');continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 224,
-      "text": "const errors=dialogueProblems(encounter||{}),nodes=encounter?.nodes;",
+      "line": 247,
+      "text": "const rows=Array.isArray(graph?.dialogue)?graph.dialogue:[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 292,
-      "text": "if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;",
+      "line": 259,
+      "text": "const speech=text?(row.recording?.duration||Math.max(1.5,text.length*.055)):0;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 293,
-      "text": "return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};",
+      "line": 261,
+      "text": "return {seconds:(text||animation||row.soundCues?.length?row.delay||0:0)+Math.max(speech,(clip||0)/(validAnimationSpeed(row.animationSpeed)?row.animationSpeed:1)),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
       "line": 295,
-      "text": "const api={kinds,startTriggers,isVisitTrigger,validate,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};",
+      "text": "const rows=[...(Array.isArray(graph.dialogue)?graph.dialogue:[]),...(Array.isArray(graph.savedActions)?graph.savedActions.flat():[])];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 415,
+      "text": "if(Array.isArray(graph.dialogue))for(const row of graph.dialogue){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 438,
+      "text": "const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter),...castProblems(encounter),...(sounds?soundProblems(encounter):[])],nodes=encounter?.nodes;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 510,
+      "text": "if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 511,
+      "text": "return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/chance-encounter.js",
+      "line": 513,
+      "text": "const api={kinds,startTriggers,isVisitTrigger,validate,spokenText,lineSeconds,timing,soundLists,soundProblems,previewSoundProblems,importedSoundHash,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};",
       "kind": "source-reference"
     },
     {
@@ -76494,6 +76670,24 @@
       "source": "void-runner/low-quay-club.js",
       "line": 6,
       "text": "dialogue, no new behaviours); an octagonal stage set back from the back wall, closed in on every side and over the top by thick bulletproof glass in a bolted steel",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/low-quay-club.js",
+      "line": 78,
+      "text": "[[36.15,377.1,'Serving',0],[35.0,375.0],[30.52,374.95],[30.52,366.2,'Greeting',-Math.PI/2],[30.16,362.2,'Serving',-Math.PI/2,0],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/low-quay-club.js",
+      "line": 80,
+      "text": "[[37.15,377.1,'Serving',0],[34.1,377.15],[30.53,377.15],[30.53,379.8,'Greeting',-Math.PI/2],[30.16,375.8,'Serving',-Math.PI/2,2],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/low-quay-club.js",
+      "line": 163,
+      "text": "loadPair(['lyra','raze'],hosts,['Walking','CarryWalk','Waiting','Greeting','Serving'],(actor,i)=>{",
       "kind": "source-reference"
     },
     {
@@ -79001,258 +79195,264 @@
     {
       "source": "void-runner/mission-givers.js",
       "line": 22,
-      "text": "attendant:{name:'Arcade attendant',group:D,say:'Arcade attendant',where:'The Darknet District VR booths. Today the ACCESS VR EXPERIENCES prompt opens the VR menu (vr-core.js); the attendant only speaks if that menu is missing (prologue-integration.js).',targets:[],players:false,draft:false,",
+      "text": "nia:{name:'Nia',group:E,say:'nia',where:'At the entrance to Plug & Play on Low Quay.',targets:[{action:'plugplay-nia',character:'nia'}],layout:'plugplay-nia',enter:AREA.station('low-quay'),players:true,draft:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 23,
-      "text": "why:'The VR prompt opens the VR menu, not a conversation (needs a code change to talk to the attendant).'},",
+      "text": "attendant:{name:'Arcade attendant',group:D,say:'Arcade attendant',where:'The Darknet District VR booths. Today the ACCESS VR EXPERIENCES prompt opens the VR menu (vr-core.js); the attendant only speaks if that menu is missing (prologue-integration.js).',targets:[],players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 24,
+      "text": "why:'The VR prompt opens the VR menu, not a conversation (needs a code change to talk to the attendant).'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 25,
       "text": "'landing-terminal':{name:'Landing terminal',group:D,kind:'machine',say:'Landing terminal',where:'The Landing Terminal on the street by Pad 01, The Port (neochinatown.js: terminal).',targets:[{action:'terminal'}],layout:'terminal',enter:AREA.street('port'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 26,
+      "line": 27,
       "text": "'milked-eva':{name:'Eva',group:D,say:'milked-eva',where:'Milked reception, Far South (milked-integration.js: Eva). Main Street south through the South Gate.',targets:[{action:'milked-eva'}],layout:'milked-eva',enter:AREA.milked,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 28,
+      "line": 29,
       "text": "'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],layout:'milked-fish',enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 29,
+      "line": 30,
       "text": "'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 33,
+      "line": 34,
       "text": "'v1-translator':{name:'V1 translation',group:D,kind:'device',say:'v1-translator',where:'The player\\u2019s V1 device: translates what is said in another language, in the speaker\\u2019s own voice.',targets:[],players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 36,
+      "line": 37,
       "text": "'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, at the bar talking with Halden Reyes, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 39,
+      "line": 40,
       "text": "'halden-reyes':{name:'Halden Reyes',group:D,say:'Halden Reyes',where:'NULL, at the bar talking with Juno Vex (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 43,
+      "line": 44,
       "text": "'tea-associate-1':{name:'Associate 1',group:D,say:'Associate 1',where:'The underground tea house (under-tea-room), placed by Mission 004 (mission cast).',targets:[],photo:true,place:'under-tea-room',players:false,draft:false,why:'No TALK prompt: overheard in Mission 004.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 44,
+      "line": 45,
       "text": "'tea-associate-2':{name:'Associate 2',group:D,say:'Associate 2',where:'The underground tea house (under-tea-room), placed by Mission 004 (mission cast).',targets:[],photo:true,place:'under-tea-room',players:false,draft:false,why:'No TALK prompt: overheard in Mission 004.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 45,
+      "line": 46,
       "text": "'blackrock-associate':{name:'Blackrock associate',group:D,say:'Blackrock associate',where:'The underground fight pit (under-fight-pit), then Far South, placed by Mission 007 (mission cast).',targets:[],photo:true,place:'under-fight-pit',players:false,draft:false,why:'No TALK prompt: watched, photographed and followed in Mission 007.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 46,
+      "line": 47,
       "text": "'blackrock-entrance':{name:'Commercial back entrance',group:D,kind:'thing',say:'Commercial back entrance',where:'No. 166, Main Street (Far South): the back entrance the Blackrock associate goes into (Mission 007; a marker the V1 camera identifies).',targets:[],photo:true,place:'far-south',players:false,draft:false,why:'A doorway, not a person: something to photograph.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 48,
+      "line": 49,
       "text": "'robed-1':{name:'Blackrock Member 1',group:D,say:'robed-1',where:'The Blackrock Cult Room (cult-room.js): robed figure 1, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 1 (Jacob L.), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 49,
+      "line": 50,
       "text": "'robed-2':{name:'Blackrock Member 2',group:D,say:'robed-2',where:'The Blackrock Cult Room (cult-room.js): robed figure 2, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 2 (Edward Sterling), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 50,
+      "line": 51,
       "text": "'robed-3':{name:'Blackrock Member 3',group:D,say:'robed-3',where:'The Blackrock Cult Room (cult-room.js): robed figure 3, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 3 (Cole), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 51,
+      "line": 52,
       "text": "'robed-4':{name:'Blackrock Member 4',group:D,say:'robed-4',where:'The Blackrock Cult Room (cult-room.js): robed figure 4, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 4 (Alex), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 52,
+      "line": 53,
       "text": "'robed-5':{name:'Blackrock Member 5',group:D,say:'robed-5',where:'The Blackrock Cult Room (cult-room.js): robed figure 5, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 5 (Dean), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 53,
+      "line": 54,
       "text": "'robed-6':{name:'Blackrock Member 6',group:D,say:'robed-6',where:'The Blackrock Cult Room (cult-room.js): robed figure 6, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 6 (Gareth), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 56,
+      "line": 57,
       "text": "'street-cat':{name:'Street cat',group:D,say:'street-cat',where:'The Avenue (or wherever Developer Tools > NPCs places it), the north pavement by the LAUNDRY door (ncz-street-pair.js: PET THE CAT).',targets:[{action:'street-cat',character:'street-cat'}],layout:'street-cat',enter:AREA.street('avenue'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 61,
+      "line": 62,
       "text": "'tea-host':{name:'Tea Room Host',group:D,say:'tea-host',where:'The Underground: the tea room, behind the tea station (or wherever Developer Tools > NPCs places him) (npc-made.js: TALK TO TEA ROOM HOST).',targets:[{action:'made-npc',character:'tea-host'}],layout:null,enter:AREA.street('underground'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 64,
+      "line": 65,
       "text": "rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 65,
+      "line": 66,
       "text": "reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 66,
+      "line": 67,
       "text": "nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 68,
+      "line": 69,
       "text": "mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 69,
+      "line": 70,
       "text": "reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship (once a mission grants one) can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 70,
+      "line": 71,
       "text": "elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 71,
+      "line": 72,
       "text": "elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 73,
+      "line": 74,
       "text": "marcus:{name:'Marcus Vale',group:E,say:'Marcus Vale',where:'Holdfast, Garrow System (station-layouts.js: TALK / MARCUS VALE).',targets:[{action:'talk',character:'marcus'}],layout:'marcus',enter:AREA.station('holdfast'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 75,
+      "line": 76,
       "text": "kess:{name:'Dr. Adrian Kess',group:E,say:'Dr. Adrian Kess',where:'The Nexus, the Communion homeworld (planets.js: TALK / DR. ADRIAN KESS).',targets:[{action:'homeworld-talk',character:'kess'}],layout:'kess',enter:AREA.station('nexus'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 77,
+      "line": 78,
       "text": "mercer:{name:'Daniel Mercer',group:E,say:'Daniel Mercer',where:'The Natural Order homeworld, Garrow (planets.js: TALK / DANIEL MERCER).',targets:[{action:'homeworld-talk',character:'mercer'}],layout:'mercer',enter:AREA.station('order-homeworld'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 79,
+      "line": 80,
       "text": "iona:{name:'Iona Vale',group:E,say:'iona',where:'Rusthaven Port (station-layouts.js: TALK / IONA).',targets:[{action:'talk',character:'iona'}],layout:'iona',enter:AREA.station('rusthaven'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 81,
+      "line": 82,
       "text": "sol:{name:'Dr. Sol',group:E,say:'sol',where:'Kepler, the clinic network’s station (station-layouts.js: TALK / DR. SOL).',targets:[{action:'talk',character:'sol'}],layout:'sol',enter:AREA.station('kepler'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 101,
+      "line": 102,
       "text": "/* What a step can ask for. supported: the game can run it today (draft play and publish). The others are listed so the owner can plan them; they say \"needs a code change\". */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 109,
+      "line": 110,
       "text": "{id:'enter',name:'Enter a place',supported:true,needs:'region',note:'Done while the player is inside the place (places.js; a player already inside when the step starts counts). Use “say it as a Comms call” for a call that arrives as they walk in.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 112,
+      "line": 113,
       "text": "{id:'send-photo',name:'Send a photo to someone',supported:true,needs:'recipient',note:'In Messages: the player opens the recipient’s conversation, ATTACH, picks the photo, SEND. Only a photo of the chosen person taken during this mission counts. “What is said” is the reply to the right photo; the second set of lines is the reply to any other photo (unlimited tries, no fail). Photos stay on the player’s computer; only what was checked when the photo was taken is used.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 115,
+      "line": 116,
       "text": "{id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 122,
+      "line": 123,
       "text": "{id:'anim',name:'Someone plays an animation',supported:true,needs:'anim',note:'The person you choose does the animation (a shrug, a laugh, looking about …) where they stand, as soon as the step before is done and the conversation is closed; the mission then waits the seconds you set (0 to 30) and goes on to the next step. Only animations that person really has.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 131,
+      "line": 132,
       "text": "{id:'overhear',name:'Overhear a conversation (eavesdrop)',supported:true,needs:'observe',note:'While the player stays within the distance (and not too close) the lines play as overheard subtitles, one by one. Walking away pauses it; too close: “they noticed you”, it starts again once the player backs off. Done when the last line is heard. Unlimited tries.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 147,
+      "line": 148,
       "text": "{id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 172,
+      "line": 173,
       "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many feet of the person chosen (4 to 98 ft; 16 ft if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 173,
+      "line": 174,
       "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 205,
+      "line": 206,
       "text": "out.push({id,name,say:/^[a-zA-Z][\\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,",
       "kind": "source-reference"
     },
@@ -83576,13 +83776,13 @@
     "void-runner/anim-library.js": "3c8856db93b375570f00f37993ae04571ae0bdc93dfd66aa609e1b9beedbfa74",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
-    "void-runner/apartment-integration.js": "067ecbef9ec952513cf6a7572e81acef4439bdf510e6883e2796f11267746c97",
+    "void-runner/apartment-integration.js": "e85f7b9b7a0fad5bacb2f76c852f081c55d4d6b1f48df8010f592d0fe2ae35da",
     "void-runner/apartments.js": "532be531c83ab3db842e0fd22df6b180b160473e63fba7e4c943af7626153d5a",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
-    "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
+    "void-runner/area-map.js": "900ee4fc782a339ccaee6393b3643f214869263c22657ac1cce7d7a64f89125d",
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "47e003bd8ffeda5c439b29cf0678e892ab88054940aa173ff917326c8360c84c",
+    "void-runner/babylon-integration.js": "df6ed81f17669782eadac4920bfabedd083f2b724b5db50c4ea03f42f5ca1284",
     "void-runner/babylon-renderer.js": "c6d48603aaf4d300aa0fda1ae54bdd1fca99fb860caac380daa29609490f5d5a",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
@@ -83593,10 +83793,10 @@
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
     "void-runner/campaign.js": "66a931be09b92248eb5cc316b849d9636cf0e9a1708fa64b3c6c4e089c8091f7",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
-    "void-runner/chance-crossing.js": "0db03d605107d53e40df52c8068f30a50790061ec5d02d44d86d4517ec0fc79b",
-    "void-runner/chance-encounter-editor.js": "4d727bf81e4d3c6f08dd3752a10465cbe3a0ad16fecc1a8a9d3c123017721796",
-    "void-runner/chance-encounter-game.js": "a2f93d09fd10b8af837589ed805665c936847f9a7b7b871fbadf2ae44efb0f8e",
-    "void-runner/chance-encounter.js": "be99a26f03a147f00a72ec32997e9bcf04d312ba88fb19ca05dd23878cec88b1",
+    "void-runner/chance-crossing.js": "9537b3ac79687f7ae96d5a8520ac431fe0ba2c401cb25010763eadb6733bc19b",
+    "void-runner/chance-encounter-editor.js": "46d683eae9dbf664a9ee9c76cd0e2afb4e58ada18b93cf54eba8ad1a93b75b8c",
+    "void-runner/chance-encounter-game.js": "fa2f637a007d05216ae6b686af7a8c4e976a3b8d2836db31746924fec9060560",
+    "void-runner/chance-encounter.js": "8b2cbaf5080b881c92e5c1c8b8bf67f75546c2202f645b4c61cd1749a1ab335a",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -83623,7 +83823,7 @@
     "void-runner/consumable-gameplay.js": "8ba2340c021c7ec5c6c12fc8eb705027aee54c66880a6f2811bc4996b7120e9d",
     "void-runner/consumable-renderer.js": "b78947437dd2926c92d9620f0b75854306b6579e7134d0777a95834d6220dfda",
     "void-runner/consumable-spec.js": "525cd53833e3297fa757ac72959fa19cbdf20f2a2c301027d84923a5f9979301",
-    "void-runner/consumable-studio.js": "7edea7c293358b1a9c8125e01b59bc1409d4a4ff2a2b4231df775cc4cde9d9b9",
+    "void-runner/consumable-studio.js": "6a2e0b66eb6c2e50b656574b10a4c7e72233d0108ba27812d5e2f4cfe834d1a0",
     "void-runner/consumables.js": "0eb3d639a0d43543c8686571c582783a2ea3497e7228d1d24aef904ea2f0d98c",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
@@ -83654,7 +83854,7 @@
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "e9c5f020689661541de5187452fa936df8c1b9f4955b021687d3e49cad6a58f3",
-    "void-runner/district-map.js": "e7a7bd40fd39a499cf9d12758f7afdefa1b27953288107980a712ad6c5da12b0",
+    "void-runner/district-map.js": "5c4b9f9f86f111e79ad078c9b95bee66d08e0fa2f4d35e3404a13707c83cf07e",
     "void-runner/district-people.js": "14bc80f15ded29f9dc47f4976387d7866bc6aed60322f2356e7b3865407012d7",
     "void-runner/district-rooms.js": "03178692e6f969a25be4447aa8197758da8ab527b9921d21e02a7e493fa0850c",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
@@ -83713,8 +83913,8 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/low-quay-city.js": "2b75023c1f625a73652d5934e5edbebef0e13ea9d82099f12a6b120a0984d27f",
-    "void-runner/low-quay-club.js": "4b92168ca59abd1357a163a70c500511b177145addac9cbe9ca21253df9d567f",
-    "void-runner/low-quay.js": "be7e557e93b2fedf8f6e6f3b29e78466a801a8a7e463c90df7f54a7f7e0a72d4",
+    "void-runner/low-quay-club.js": "a4a56eb49236d57a599d94d288f9a6f70c92244ded4d53f47491808381ca6c6b",
+    "void-runner/low-quay.js": "d897f4fd7f8803508825bda17f63212396b6ce52339ebcd2e589da2f9a979c66",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
     "void-runner/main-story.js": "43c23d30e6351665208bcc411a8ec0aea8cbb3d0a7f75abd53edd5eb0b545c49",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
@@ -83734,7 +83934,7 @@
     "void-runner/mission-content.js": "13aeeebfa27f465f4eea086c953a74f750cd7065b3b0b77aefa9acfbc0a7e921",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "24a14003f4211c3977ab524107ebaa74897e70ce0c69a3eb2b62cc11908a9c2a",
-    "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
+    "void-runner/mission-givers.js": "4eb623008b4a95f5fb638483ab22d6300ccc8411fb3a6afc9f524725c402892d",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "4d6fb498b6ebb3777c5cd5807c6ee293b82a61403ff51206cb261e0658dbc936",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
@@ -83801,7 +84001,7 @@
     "void-runner/opening-scene.js": "90f20c75cfbca0519c8da4370b8453e0e1b24a216118766b559ca79749ab0554",
     "void-runner/ordnance.js": "058611efdb6a6db1ea6a10da24c0362207cc447c29c47642c61c58eac236b8f3",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
-    "void-runner/personal-device.js": "f1d9d66becd050cb1b0d8e3a74f7b43c863a4e805aa5e6ca975fb233bc69d309",
+    "void-runner/personal-device.js": "22ae17214a0a7951300b71908da1853bc7fd64eae73ac34e2ba40989938f05e1",
     "void-runner/personal-hud.js": "a9126fc52339462d86eb60228b6fbfe96deb02b57df991b13e57514b486d6be5",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/pixel-neon.js": "41192cc6dd889113e7ebc05833119e505172c51170267555b7d98561fc0a7001",
@@ -83839,7 +84039,7 @@
     "void-runner/skirmish.js": "f8446088784856e81db46395cd22abb3e43174f8dfdcb6a068d4fad2b267f8b8",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/sound-studio-editor.js": "18382f9f26e4641af878e9436a2a668f8129ccca1bd32e2daf72654fbdcb4b04",
-    "void-runner/sound-studio-runtime.js": "4dc408d955f1e7efc8d46dbae5fbbcbba7dfceb30a958d1aa26396feab11e66b",
+    "void-runner/sound-studio-runtime.js": "10ed6dfd7bfdcd61111a8938f299ce6bc148fdd5bc853c34277af425a455cfbc",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-kit.js": "eb1df0abe38814d48c6488bd45b0895c1a6a84710d386465570ce9d58b7981ac",

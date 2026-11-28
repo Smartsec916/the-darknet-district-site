@@ -6,9 +6,9 @@
  const uid=()=>window.VoidAccount?.user?.uid||'guest';
  function hasContent(){return !!speech||!!screen.querySelector('.choice-menu');}
  function floating(){return !!activeMode&&!!walkingLocation&&!!walker&&hasContent();}
- function show(){if(!floating())return;mode=activeMode;screen.classList.add('conversation-live');screen.classList.toggle('hidden',minimized);restore.hidden=!minimized;if(!minimized&&document.pointerLockElement)document.exitPointerLock?.();canvas.focus({preventScroll:true});}
+ function show(){if(!floating())return;mode=activeMode;screen.classList.add('conversation-live');screen.classList.toggle('hidden',minimized);restore.hidden=!minimized;}
  const priorTalk=talk;
- talk=function(...args){activeMode=['walking','vr-seated'].includes(mode)?mode:null;minimized=false;lastLine=null;priorTalk(...args);if(floating())document.exitPointerLock?.();show();};
+ talk=function(...args){activeMode=['walking','vr-seated'].includes(mode)?mode:null;minimized=false;lastLine=null;priorTalk(...args);show();};
  const priorRender=renderLine;
  renderLine=function(...args){priorRender(...args);if(!floating())return;
   const line=speech.lines[speech.index],signature=speech.index+':'+line.who+':'+line.text;

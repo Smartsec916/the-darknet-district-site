@@ -4,7 +4,7 @@
  const laceFile='assets/models/crowd/npc-lib-eb1d6cc8.vrpak';
  const keyModel='assets/models/keycards/kade-lace-key.glb';
  const kadeLook='npc-hacker',laceLook='npc-lib-eb1d6cc8';
- let running=null;
+ let running=null,soundTail=null;
  function delay(ms,signal){
   return new Promise((resolve,reject)=>{
    if(signal.aborted){reject(signal.reason);return;}
@@ -37,9 +37,10 @@
   }
   return {parent,made};
  }
- function play(figure,name,loop=true){
+ function play(figure,name,loop=true,speed=1){
   const all=figure.made.metadata.animationGroups||[];
-  const clip=all.find(g=>g.name.toLowerCase().endsWith('-'+name));
+  const key=name.toLowerCase();
+  const clip=all.find(g=>g.name.toLowerCase()===key||g.name.toLowerCase().endsWith('-'+key));
   if(!clip)throw Error('The assigned animation is unavailable: '+name);
   if(figure.returnToPose){
    const {group,observer}=figure.returnToPose;
@@ -47,7 +48,7 @@
   }
   for(const group of all)if(group!==clip&&group.isPlaying)group.stop();
   if(!loop&&clip.isStarted)clip.stop();
-  clip.start(loop);
+  clip.start(loop,speed);
   if(!loop&&name==='sz-tiedbf-look-back-return'){
    const observer=clip.onAnimationGroupEndObservable.addOnce(()=>{
     figure.returnToPose=null;
@@ -57,11 +58,14 @@
   }
   return clip;
  }
- async function assignedClip(figure,look,name,signal,loop=true){
+ async function loadAssignedClip(figure,look,name){
   if(!figure.made.metadata.animationGroups.some(g=>g.name.toLowerCase().endsWith('-'+name))){
    await root.VoidAnimLibrary.apply(figure.made,look,{only:[name],catalog:false});
   }
-  signal?.throwIfAborted();return play(figure,name,loop);
+ }
+ async function assignedClip(figure,look,name,signal,loop=true,speed=1){
+  await loadAssignedClip(figure,look,name);
+  signal?.throwIfAborted();return play(figure,name,loop,speed);
  }
  async function lines(run,prefix,section,signal=run.signal,caption=announce){
   const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
@@ -69,14 +73,16 @@
 
   async function action(line,signal,replay){
    signal.throwIfAborted();
-   const text=replay&&!line.repeatSpeech?'':line.text.trim();
+   const text=replay&&!line.repeatSpeech?'':api.spokenText(line.text);
    const animation=replay&&!line.repeatAnimation?'':line.animation;
-   if(text||animation){
+   if(text||animation||line.soundCues?.length){
     if(line.delay)await delay(line.delay*1000,signal);
-    const clip=animation&&run.lace?await assignedClip(run.lace,laceLook,animation,signal,false):null;
+    const speed=api.validAnimationSpeed(line.animationSpeed)?line.animationSpeed:1;
+    const cast=run.cast?.get(line.speaker);
+    const clip=animation&&(cast?play(cast,animation,false,speed):run.lace?await assignedClip(run.lace,laceLook,animation,signal,false,speed):null);
     try{
      if(text){
-      caption(line.speaker+' · '+text);
+      caption((cast?.name||line.speaker)+' · '+text);
       const recording=line.recording&&{...line.recording,src:run.private?'draft':'live'};
       const bus=root.VoidAudio?.bus('voice');
       if(bus&&(recording||root.VoidVoiceClips?.has(line.speaker,line.text))){
@@ -88,6 +94,7 @@
      }
      if(clip)await until(()=>!clip.isPlaying,signal);
     }finally{if(clip&&signal.aborted)clip.stop();}
+    if(clip&&cast?.idle&&!signal.aborted)play(cast,cast.idle);
    }
    signal.throwIfAborted();
   }
@@ -111,7 +118,13 @@
    parentSignal.throwIfAborted();
    return !signal.aborted;
   }
-  await api.runPlaylist(sections[section||prefix]||[],byId,{signal,play:action,pause:delay,repeat});
+  const key=section||prefix;
+  const startTarget=run.startPoint?.section===key?run.startPoint.target:undefined;
+  if(run.startPoint?.section===key)run.startPoint=null;
+  await api.withSounds(run.sounds,startTarget?undefined:run.graph.sectionSounds?.[key],signal,()=>api.runPlaylist(sections[key]||[],byId,{
+   signal,play:action,pause:delay,repeat,startTarget,
+   scope:(kind,item,local,work)=>api.withSounds(run.sounds,api.soundsFor(run.graph,key,kind,item),local,work)
+  }));
  }
  function standing(figure,pose){
   figure.parent.position.set(pose.x,pose.y||0,pose.z);
@@ -125,8 +138,13 @@
   return {door,slot:home.slot,number:root.VoidApartments.slotNumber(home.slot,door.style),
    target:root.VoidApartments.residenceKey(door.id,home.slot)};
  }
- function stop(){
+ function stop(ending=false){
   if(!running)return;
+  if(ending===true){
+   running.endSounds?.();
+   running.sounds?.finish();
+   soundTail=running.sounds;
+  }else running.sounds?.dispose();
   running.controller.abort(new DOMException('Encounter stopped','AbortError'));
   for(const obj of running.owned)obj.dispose?.();
   running.panel?.remove();running=null;root.dispatchEvent?.(new Event('void-encounter-journal'));
@@ -173,6 +191,7 @@
  }
  async function walk(run){
   await until(()=>root.VoidRoadTaxi?.world?.quarter==='oldtown',run.signal,30000);
+  if(run.graph.item&&run.graph.dropPosition)preloadCard(run);
   run.actor=await model(run,'crowd:'+kadeLook,'assets/models/crowd/'+kadeLook+'.glb',1.78);
   run.impactVoice=await voiceBuffer(run,'kade-taxi-impact.mp3');
   const crossing=root.VoidChanceCrossing;
@@ -187,15 +206,15 @@
    if(progress>lastProgress){lastProgress=progress;lastMotion=performance.now();}
    else if(performance.now()-lastMotion>60000)throw Error('The taxi could not reach the crossing.');
    standing(run.actor,crossing.walking(run.plan,progress*run.plan.seconds));
+   if(!run.tiresSquealed&&crossing.tireSquealDue(run.plan,progress)){run.tiresSquealed=true;tireSqueal(run);}
    return progress>=1;
   },run.signal);
  }
  const witnessLines=[
-  'So unsafe. I liked it better when I could yell at a person.',
-  "They're revolting! Yesterday mine demanded a tip.",
-  'Somewhere a little checkbox says pedestrian detected.',
-  'My taxi asked me to rate the ride. Does he get a vote?',
-  'It stopped for a plastic bag this morning. A plastic bag.'
+  [1,'So unsafe. I liked it better when I could yell at a person.'],
+  [2,"They're revolting! Yesterday mine demanded a tip."],
+  [3,'Somewhere a little checkbox says pedestrian detected.'],
+  [5,'It stopped for a plastic bag this morning. A plastic bag.']
  ];
  // The model folds at its knees while its centre of mass rolls away from the bumper.
  function impactPose(actor,recover=false){
@@ -230,6 +249,19 @@
   source.onended=()=>{source.disconnect();run.signal.removeEventListener('abort',stop);};
   run.signal.addEventListener('abort',stop,{once:true});source.start();
  }
+ function tireSqueal(run){
+  const bus=root.VoidAudio?.bus('effects');if(!bus)return;
+  const ctx=bus.context,now=ctx.currentTime,tire=ctx.createOscillator(),gain=ctx.createGain();
+  tire.type='triangle';tire.frequency.setValueAtTime(920,now);
+  tire.frequency.exponentialRampToValueAtTime(1480,now+.07);
+  tire.frequency.exponentialRampToValueAtTime(760,now+.23);
+  gain.gain.setValueAtTime(.001,now);gain.gain.exponentialRampToValueAtTime(.07,now+.045);
+  gain.gain.exponentialRampToValueAtTime(.001,now+.25);
+  tire.connect(gain);gain.connect(bus.node);
+  const stop=()=>tire.stop();
+  tire.onended=()=>{tire.disconnect();gain.disconnect();run.signal.removeEventListener('abort',stop);};
+  run.signal.addEventListener('abort',stop,{once:true});tire.start(now);tire.stop(now+.26);
+ }
  function taxiImpact(run){
   const bus=root.VoidAudio?.bus('effects');
   if(bus){
@@ -245,10 +277,10 @@
   if(!event)return;
   run.signal.addEventListener('abort',event.end,{once:true});
   if(event.reactions.some(person=>person.mode==='watch')){
-   const index=Math.floor(Math.random()*witnessLines.length);
-   Promise.all([delay(1400,run.signal),voiceBuffer(run,'taxi-witness-'+(index+1)+'.ogg')]).then(([,buffer])=>{
+   const [clip,text]=witnessLines[Math.floor(Math.random()*witnessLines.length)];
+   Promise.all([delay(1400,run.signal),voiceBuffer(run,'taxi-witness-'+clip+'.ogg')]).then(([,buffer])=>{
     if(!run.signal.aborted&&walkingLocation?.area==='street'&&root.VoidRoadTaxi?.world?.quarter==='oldtown'){
-     announce('Passer-by: '+witnessLines[index]);playVoice(run,buffer);
+     announce('Passer-by: '+text);playVoice(run,buffer);
     }
    }).catch(e=>{if(e.name!=='AbortError')console.warn(e);});
   }
@@ -259,12 +291,41 @@
     .then(r=>r.ok?r.arrayBuffer():null).then(bytes=>bytes?root.VoidAssets.open(bytes):null).catch(()=>null);
   }
  }
+ function cardGroundGlow(scene,card,x,y,z){
+  const b=B(),size=128;
+  const texture=new b.DynamicTexture('encounter-card-spill-mask',size,scene);
+  texture.hasAlpha=true;
+  const ctx=texture.getContext(),center=size/2;
+  const fade=ctx.createRadialGradient(center,center,0,center,center,center);
+  fade.addColorStop(0,'rgba(255,255,255,.82)');
+  fade.addColorStop(.24,'rgba(255,255,255,.57)');
+  fade.addColorStop(.58,'rgba(255,255,255,.19)');
+  fade.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=fade;ctx.fillRect(0,0,size,size);texture.update();
+
+  const material=new b.StandardMaterial('encounter-card-spill',scene);
+  material.disableLighting=true;material.disableDepthWrite=true;
+  material.emissiveColor.set(.04,.62,.80);
+  material.opacityTexture=texture;
+  material.alphaMode=b.Engine.ALPHA_ADD;
+  const spill=b.MeshBuilder.CreateGround('encounter-card-spill',{width:1.15,height:1.15},scene);
+  spill.position.set(x,y+.002,z);
+  spill.material=material;spill.isPickable=false;
+  card.onDisposeObservable.addOnce(()=>{spill.dispose();material.dispose(false,true);});
+  return spill;
+ }
+ function preloadCard(run){
+  const assets=root.VoidAssets,id='encounter-key:'+keyModel;
+  if(!run.cardLoad&&!assets.container(id))run.cardLoad=assets.load(id,{src:keyModel,background:true},root.VoidBabylon.scene).catch(()=>{});
+  return run.cardLoad;
+ }
  async function drop(run){
-  const home=address(run);
-  const info=run.private?{name:"Kade and Lace's Apartment Key",position:run.graph.dropPosition,range:run.graph.pickupDistance,model:keyModel}:
-   await root.VoidConsumableGame.request('chance-encounters/drop',{id:run.graph.id,run:run.token});
-  const card=await model(run,'encounter-key',info.model||keyModel);
-  const at=run.dropPosition=info.position,plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
+  const home=address(run),at=run.graph.dropPosition;
+  const request=run.private?Promise.resolve({name:"Kade and Lace's Apartment Key",position:at,range:run.graph.pickupDistance,model:keyModel}):
+   root.VoidConsumableGame.request('chance-encounters/drop',{id:run.graph.id,run:run.token}).catch(error=>({error}));
+  await run.cardLoad;
+  let card=await model(run,'encounter-key:'+keyModel,keyModel);
+  const plan={drop:at,hit:run.plan?.hit||{x:at.x+1.65,z:at.z-.45}};
   const scene=root.VoidBabylon.scene,ray=new (B().Ray)(new (B().Vector3)(at.x,.65,at.z),B().Vector3.Down(),1.2);
   const ground=scene.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&/sidewalk|paving|asphalt|road|city-ground/i.test(m.material?.name||m.name));
   const surface=ground?.hit?ground.pickedPoint.y:0;
@@ -276,6 +337,18 @@
    if(t>=.85)break;
    await delay(16,run.signal);
   }while(true);
+  let spill=cardGroundGlow(scene,card.parent,at.x,surface,at.z);
+  const info=await request;
+  run.signal.throwIfAborted();if(info.error)throw info.error;
+  run.dropPosition=info.position;
+  if(info.model&&info.model!==keyModel){
+   const old=card;card=await model(run,'encounter-key:'+info.model,info.model);
+   card.parent.position.copyFrom(old.parent.position);card.parent.rotation.copyFrom(old.parent.rotation);card.parent.scaling.copyFrom(old.parent.scaling);
+   old.parent.dispose();run.owned.delete(old.parent);
+   spill=cardGroundGlow(scene,card.parent,at.x,surface,at.z);
+  }
+  card.parent.position.x=info.position.x;card.parent.position.z=info.position.z;
+  spill.position.x=info.position.x;spill.position.z=info.position.z;
   if(run.actor){
    const actor=run.actor;
    const recover=async()=>{
@@ -292,7 +365,7 @@
   const rim=meshes.find(mesh=>mesh.material?.name?.includes('Brushed edge'));
   if(rim){
    const edge=rim.material.clone('encounter-card-edge');rim.material=edge;
-   edge.emissiveColor.set(.08,.30,.34);
+   edge.emissiveColor.set(.23,.88,1.05);
    card.parent.onDisposeObservable.addOnce(()=>edge.dispose());
   }
   const outlineColor=new (B().Color3)(.26,.57,.62);
@@ -322,27 +395,9 @@
      position:{quarter:walkingLocation.quarter,area:'street',x:walker.x,z:walker.z}});
     await root.VoidConsumableGame.refresh();
    }
-   run.holds=true;run.participating=true;run.tracked=true;root.dispatchEvent(new Event('void-encounter-journal'));run.cardName=info.name;run.cardDescription=info.description;preloadLace(run);
+   run.holds=true;run.participating=true;run.tracked=true;root.dispatchEvent(new Event('void-encounter-journal'));preloadLace(run);
    if(run.private)run.expiresAt=performance.now()+86400000;
   }finally{document.removeEventListener('keydown',key,true);host.hidden=true;card.parent.dispose();run.owned.delete(card.parent);}
- }
- function pickupReceipt(run){
-  const a=address(run),host=document.createElement('aside');
-  host.className='encounter-pickup-notice';host.setAttribute('role','status');
-  Object.assign(host.style,{
-   position:'fixed',right:'2vw',bottom:'10vh',zIndex:'75',maxWidth:'24rem',padding:'14px',
-   background:'#0c1720',color:'#e1eeec',border:'1px solid #536f7c',borderRadius:'6px',
-   boxShadow:'0 8px 30px #0009',pointerEvents:'none'
-  });
-  const title=document.createElement('strong');title.textContent='You picked up '+run.cardName+'.';
-  const description=document.createElement('p');description.textContent=run.cardDescription||'A residential access card belonging to Kade Mercer and Lace.';
-  const addressLine=document.createElement('p');addressLine.textContent='Street Door '+a.door.number+' — Apartment '+a.number;
-  const hint=document.createElement('small');hint.textContent='Press 0 to dismiss';
-  host.append(title,description,addressLine,hint);document.body.append(host);
-  const dismiss=()=>{clearTimeout(timer);document.removeEventListener('keydown',keys,true);run.signal.removeEventListener('abort',dismiss);host.remove();};
-  const keys=event=>{if(event.code==='Digit0'&&!event.repeat&&!event.target?.closest?.('input,textarea,select,[contenteditable]'))dismiss();};
-  const timer=setTimeout(dismiss,(run.graph.pickupNoticeSeconds??8)*1000);
-  document.addEventListener('keydown',keys,true);run.signal.addEventListener('abort',dismiss,{once:true});
  }
  // glTF joints are linked transform nodes; reading the animated node respects each imported rig's bind scale.
  function joint(figure,name){
@@ -457,16 +512,9 @@
   }
   figure.parent.position.y+=floor-bottom;
  }
- async function flat(run,jump){
-  const a=address(run);preloadLace(run);
-  if(jump&&run.private){
-   await root.VoidApartments.enterHall(a.door,[]);
-   await root.VoidApartments.enterFlat({id:'residence-'+a.slot,key:a.target,door:a.door.id,style:a.door.style,
-    residenceSlot:a.slot,number:a.number,items:[],residents:[]});
-  }
-  await until(()=>typeof walkingLocation!=='undefined'&&walkingLocation?.part==='flat'&&walkingLocation.inst===a.target,run.signal);
-  run.signal.throwIfAborted();run.entered=a.target;
-  run.lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
+ async function poseLace(run,a){
+  preloadLace(run);
+  const lace=await model(run,'crowd:'+laceLook,laceFile,1.68,await run.laceBytes);run.laceBytes=null;
   const placement=run.graph.placement,anchor=root.VoidApartments.world([placement.x,placement.y,placement.z]);
   // Older drafts used the original default position half a metre from the bed.
   const room=root.VoidApartments.geo(a.door.style);
@@ -476,14 +524,40 @@
    bedEdge=anchor[0]+bed[0]-placement.x;
    anchor[0]=bedEdge-.04;anchor[2]+=(bed[2]+bed[3])/2-placement.z;
   }
-  standing(run.lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
-  run.lace.parent.scaling.setAll(placement.scale);
+  standing(lace,{x:anchor[0],y:anchor[1],z:anchor[2],yaw:placement.yaw});
+  lace.parent.scaling.setAll(placement.scale);
   const transition=['sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip);
-  const posed=await assignedClip(run.lace,laceLook,placement.clip,run.signal,!transition);
+  const posed=await assignedClip(lace,laceLook,placement.clip,run.signal,!transition);
   posed.goToFrame(posed.from);
-  groundPose(run.lace,anchor[1],bedEdge,room.FURN.bed[4]);
-  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(run.lace,room,a.door.style);
-  await lines(run,'arrival','opening');
+  groundPose(lace,anchor[1],bedEdge,room.FURN.bed[4]);
+  if(['sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return'].includes(placement.clip))run.rope=addWristRope(lace,room,a.door.style);
+  run.lace=lace;
+ }
+ function prepareApartment(inst){
+  const run=running;
+  if(!run||(!run.holds&&!run.openingFlat)||!run.graph.placement||!run.graph.residence||run.entered)return;
+  let a;
+  try{a=address(run);}catch{return;}
+  if(inst!==a.target)return;
+  run.laceReady??=poseLace(run,a);
+  // The encounter handles its own asset errors. The apartment still opens if a model is unavailable.
+  return run.laceReady.catch(()=>{});
+ }
+ async function flat(run,jump,opening=true){
+  const a=address(run);preloadLace(run);
+  if(jump&&run.private){
+   run.openingFlat=true;
+   try{
+    await root.VoidApartments.enterHall(a.door,[]);
+    run.signal.throwIfAborted();
+    await root.VoidApartments.enterFlat({id:'residence-'+a.slot,key:a.target,door:a.door.id,style:a.door.style,
+     residenceSlot:a.slot,number:a.number,items:[],residents:[]});
+   }finally{run.openingFlat=false;}
+  }
+  await until(()=>typeof walkingLocation!=='undefined'&&walkingLocation?.part==='flat'&&walkingLocation.inst===a.target,run.signal);
+  run.signal.throwIfAborted();run.entered=a.target;
+  await (run.laceReady??=poseLace(run,a));
+  if(opening)await lines(run,'arrival','opening');
  }
  async function releaseLace(run){
   if(!run.lace)await flat(run,true);
@@ -501,9 +575,33 @@
    if(t===1)break;await delay(30,run.signal);
   }
  }
- async function roleplay(run){
+ async function walkKadeToLace(figure,w,target,location,signal){
+  const route=root.VoidNPCEscort.gridRoute(w,target,location.solids,{radius:.3});
+  if(!route)throw Error('Kade could not find a clear route to Lace.');
+  const p=figure.parent.position;
+  play(figure,'walk');
+  for(const point of route){
+   const x=p.x,z=p.z,dx=point.x-x,dz=point.z-z;
+   const distance=Math.hypot(dx,dz);
+   if(distance<.01)continue;
+   const yaw=Math.atan2(dx,dz),start=performance.now();
+   figure.parent.rotation.y=yaw;
+   while(true){
+    signal.throwIfAborted();
+    if(walkingLocation!==location||walker!==w)throw new DOMException('The apartment changed','AbortError');
+    const progress=Math.min(1,(performance.now()-start)*.0012/distance);
+    p.x=x+dx*progress;p.z=z+dz*progress;
+    const turn=yaw-w.yaw;
+    w.yaw+=Math.atan2(Math.sin(turn),Math.cos(turn))*.12;
+    w.pitch*=.88;
+    if(progress===1)break;
+    await delay(16,signal);
+   }
+  }
+ }
+ async function roleplay(run,preview){
   if(!run.lace)await flat(run,true);
-  if(await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
+  if(!preview&&await prompt(run,'Temporarily play Kade’s animation? You can cancel at any time.',['Begin','Cancel'])!=='Begin')return;
   if(run.rope){
    const rope=run.rope,meshes=rope.getChildMeshes(),start=performance.now();
    await until(()=>{
@@ -514,6 +612,7 @@
    rope.dispose();run.rope=null;
   }
   const sceneController=new AbortController(),phase={...run,controller:sceneController,signal:sceneController.signal,owned:new Set()};
+  if(preview)run.startPoint=null;
   const cancel=()=>sceneController.abort(new DOMException('Roleplay ended','AbortError'));
   run.signal.addEventListener('abort',cancel,{once:true});
   try{
@@ -523,13 +622,19 @@
     for(const mesh of figure.made.getChildMeshes())mesh.visibility=0;
     const p=run.lace.parent.position,yaw=Math.PI/2;
     const back=run.graph.roleplayClip?.toLowerCase()==='sz-tiedbm'?.08:0;
-    standing(figure,{x:p.x-.77-Math.sin(yaw)*back,y:0,z:p.z-Math.cos(yaw)*back,yaw});
-    await assignedClip(figure,kadeLook,run.graph.roleplayClip);
+    const target={x:p.x-.77-back,z:p.z,yaw};
+    const w=walker,location=walkingLocation;
+    await loadAssignedClip(figure,kadeLook,run.graph.roleplayClip);
     phase.signal.throwIfAborted();
+    if(location!==walkingLocation||w!==walker)throw new DOMException('The apartment changed','AbortError');
     const head=joint(figure,'head');
     if(!head)throw Error('The player animation rig is missing its head joint.');
-    const w=walker;
-    run.pov={w,head,inst:walkingLocation.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
+    standing(figure,{x:w.x,z:w.z,yaw:w.yaw});
+    run.pov={w,head,inst:location.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
+    await walkKadeToLace(figure,w,target,location,phase.signal);
+    phase.signal.throwIfAborted();
+    standing(figure,target);
+    play(figure,run.graph.roleplayClip);
     head.computeWorldMatrix(true);const eye=head.getAbsolutePosition();
     w.yaw=Math.atan2(p.x-eye.x,p.z-eye.z);w.pitch=0;
     await lines(phase,'be_kade');
@@ -545,24 +650,74 @@
    if(!run.signal.aborted&&walkingLocation?.inst===run.entered)await root.VoidApartments.backToHall();
   }
  }
+ async function spawnCast(run){
+  const assets=root.VoidAssets,scene=root.VoidBabylon.scene;
+  run.cast=new Map();
+  for(const actor of run.graph.cast){
+   const file=actor.localAsset&&await root.VoidChanceEncounter.castAsset(actor.localAsset);
+   if(actor.localAsset&&(!run.private||!file))throw Error('Import the GLB for '+actor.name+' on this browser before playing.');
+   if(!file&&!root.VoidMadeNPCs?.modelOf(actor.model))throw Error('Choose a registered game model for '+actor.name+'.');
+   const src=file?'assets/models/encounter-local.glb':root.VoidMadeNPCs.fileOf(actor.model);
+   const localBuffer=file?await file.arrayBuffer():undefined;
+   const container=await assets.loadContainer({src,localBuffer},scene,undefined,'encounter-cast-'+actor.id);
+   if(run.signal.aborted||scene!==root.VoidBabylon.scene||scene.isDisposed){
+    container.dispose();throw new DOMException('Encounter location changed','AbortError');
+   }
+   const parent=new (B().TransformNode)('encounter-cast-'+actor.id,scene);
+   run.owned.add(parent);parent.position.set(actor.x,actor.y,actor.z);
+   parent.rotation.y=actor.yaw;parent.scaling.setAll(actor.scale);
+   parent.metadata={character:actor.id,displayName:actor.name};
+   let instance;
+   try{instance=container.instantiateModelsToScene(name=>'cast-'+actor.id+'-'+name,false);}
+   catch(error){container.dispose();throw error;}
+   for(const node of instance.rootNodes)node.parent=parent;
+   // Register clones before the container so scene changes release them in order.
+   assets.ownInstance(instance,parent);
+   parent.onDisposeObservable.addOnce(()=>container.dispose());
+   const figure={parent,name:actor.name,made:{metadata:{animationGroups:instance.animationGroups}},idle:actor.idle};
+   if(!figure.idle&&instance.animationGroups.some(group=>/(^|-)idle$/i.test(group.name)))figure.idle='idle';
+   if(figure.idle)play(figure,figure.idle);
+   run.cast.set(actor.id,figure);
+  }
+ }
+ async function castConversation(run,node){
+  const actor=(node.speaker&&run.cast.get(node.speaker))||run.cast.values().next().value;
+  if(!actor)throw Error('Add a cast member in the editor.');
+  const nearby=()=>typeof walker!=='undefined'&&walker&&Math.hypot(actor.parent.position.x-walker.x,actor.parent.position.z-walker.z)<=2.75;
+  if(!run.startPoint)await until(nearby,run.signal);
+  const answer=run.startPoint?'Talk':await prompt(run,node.name==='Talk to the cast'?'Talk to '+actor.name:node.name,['Talk','Cancel encounter']);
+  if(answer!=='Talk'){
+   if(!run.private){
+    const ending=run.graph.nodes.find(n=>n.kind==='end');
+    await root.VoidConsumableGame.request('chance-encounters/outcome',{id:run.graph.id,run:run.token,outcome:ending.id});
+   }
+   stop(true);return;
+  }
+  const sections=['opening','remaining','wait','free','be_kade'];
+  for(const section of run.startPoint?sections.slice(sections.indexOf(run.startPoint.section)):sections)await lines(run,section,section);
+ }
  async function runGraph(run,start){
   const sequence=root.VoidChanceEncounter.createRun(run.graph,start);
-  let first=true;
+  let first=true,endNodeSounds;
   while(sequence.node){
+   endNodeSounds?.();
+   endNodeSounds=run.sounds?.open(sequence.node.soundCues);
    run.signal.throwIfAborted();
    const node=run.node=sequence.node;root.dispatchEvent?.(new Event('void-encounter-journal'));let choice;
+   if(node.kind==='cast'){await castConversation(run,node);run.signal.throwIfAborted();}
    if(node.kind==='move')await walk(run);
-   if(node.kind==='item'){await drop(run);pickupReceipt(run);}
+   if(node.kind==='item')await drop(run);
    if(node.kind==='location'){if(first)run.holds=true;await flat(run,first);}
    if(node.kind==='choice'){
     if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}
     const exit=run.lace&&node.edges.find(e=>run.graph.nodes.some(n=>n.id===e.to&&n.kind==='end'&&n.id==='leave'));
     choice=await prompt(run,node.name,node.edges.map(e=>e.label),exit?.label,!!run.lace&&node.speaker==='lace');
-    if(run.lace&&node.speaker==='lace'&&choice!==exit?.label)await lines(run,'arrival','remaining');
+    if(run.lace&&node.speaker==='lace'&&choice!==exit?.label&&!run.alreadyPlayedRemaining)await lines(run,'arrival','remaining');
+    run.alreadyPlayedRemaining=false;
    }
    if(node.kind==='animation'){
     if(node.action==='release')await releaseLace(run);
-    else if(node.action==='roleplay')await roleplay(run);
+    else if(node.action==='roleplay')await roleplay(run,run.startPoint?.section==='be_kade');
     else if(node.action==='stumble'){
      if(!run.actor)await walk(run);
      impactPose(run.actor);taxiImpact(run);
@@ -580,6 +735,7 @@
    }
    sequence.step(choice);first=false;
   }
+  endNodeSounds?.();
  }
  async function watchApartment(run){
   let nextPoll=0,left=false;
@@ -603,33 +759,67 @@
    }catch(e){nextPoll=Date.now()+3000;console.warn('[Chance encounters]',e.message);}
   }
  }
- async function begin(graph,start,privateTest,token){
-  stop();const controller=new AbortController();
-  const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
-  run.participating=graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
-  run.tracked=run.participating;running=run;
-  try{
-   const playback=runGraph(run,start);
-   if(graph.id==='dropped-cardkey')await Promise.race([playback,watchApartment(run)]);
-   else await playback;
-  }finally{if(running===run)stop();}
+ async function runTimeline(run,preview){
+  const {section}=preview,nodes=run.graph.nodes;
+  run.startPoint=preview;
+  let node;
+  if(run.graph.residence&&!run.graph.cast){
+   if(section==='opening')node=nodes.find(n=>n.kind==='location');
+   else{
+    run.holds=true;await flat(run,true,false);
+    if(section==='remaining'){await lines(run,'arrival','remaining');run.alreadyPlayedRemaining=true;}
+    node=section==='free'||section==='be_kade'
+     ?nodes.find(n=>n.kind==='animation'&&n.action===(section==='free'?'release':'roleplay'))
+     :nodes.find(n=>n.kind==='choice'&&n.speaker==='lace');
+   }
+  }
+  else if(run.graph.cast)node=nodes.find(n=>n.kind==='cast');
+  if(!node)throw Error('Connect this section to an encounter node before starting the playtest.');
+  await runGraph(run,node.id);
  }
- async function playtest(graph,start){
-  const errors=root.VoidChanceEncounter.validate(graph);if(errors.length)throw Error(errors.join(' '));
+ async function begin(graph,start,privateTest,token,preview){
+  stop();soundTail?.dispose();soundTail=null;const controller=new AbortController();
+  const run={graph:root.VoidChanceEncounter.withWaitingDialogue(graph),private:privateTest,token,controller,signal:controller.signal,owned:new Set(),holds:false,expiresAt:Infinity};
+  run.participating=!!preview||graph.id!=='dropped-cardkey'||graph.nodes.some(node=>node.id===start&&node.kind==='location');
+  run.tracked=run.participating;running=run;
+  const encounters=root.VoidChanceEncounter;
+  run.sounds=encounters.soundTimeline((cue,done)=>encounters.playSound(cue,done,privateTest));
+  if(!preview)run.endSounds=run.sounds.open(graph.soundCues);
+  let completed=false;
+  try{
+   const location=graph.cast&&typeof walkingLocation!=='undefined'?walkingLocation:null;
+   if(graph.cast?.length)await spawnCast(run);
+   const playback=preview?runTimeline(run,preview):runGraph(run,start);
+   if(graph.id==='dropped-cardkey')await Promise.race([playback,watchApartment(run)]);
+   else if(location)await Promise.race([playback,until(()=>walkingLocation!==location,run.signal)]);
+   else await playback;
+   completed=true;
+  }finally{if(running===run)stop(completed);}
+ }
+ async function playtest(graph,start,preview){
+  const api=root.VoidChanceEncounter;
+  const errors=api.validate(graph,{sounds:!preview});
+  if(!errors.length&&preview){
+   const rows=api.dialogueSections(graph)[preview.section];
+   if(!rows?.length)throw Error('Choose a section with at least one action.');
+   errors.push(...api.previewSoundProblems(graph,preview.section,rows,new Map(graph.dialogue.map(row=>[row.id,row])),preview.target));
+  }
+  if(errors.length)throw Error(errors.join(' '));
   if(!graph.nodes.some(n=>n.id===start))throw Error('Choose a starting node.');
-  const at=graph.playtest;
+  const at=graph.playtest,scene=at.scene||root.VoidDistrictArea.KEY.street;
+  const location=scene==='planet-low-quay'?'low-quay':'earth';
   sessionStorage.setItem('chance-editor-return',graph.id);
   const result=await root.VoidDevTest.session({kind:'encounter',banner:graph.name,leave:'Return to Editor',
-   build(){const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.districtBadge=true;s.location='earth';return s;},
+   build(){const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.districtBadge=true;s.location=location;return s;},
    async enter(){
-    await enterWalking(root.VoidDistrictArea.KEY.street,{silent:true,quarter:at.quarter,spawn:[at.x,1.7,at.z],yaw:at.yaw});
+    await enterWalking(scene,{silent:true,quarter:at.quarter,spawn:[at.x,1.7,at.z],yaw:at.yaw});
     if(typeof walker!=='undefined'&&walker)walker.pitch=at.pitch||0;
-    begin(graph,start,true).catch(e=>{if(e.name!=='AbortError')announce(e.message);});
+    begin(graph,start,true,undefined,preview).catch(e=>{if(e.name!=='AbortError')announce(e.message);});
    }});
   if(result.error||result.problem)throw Error(result.error||result.problem);
   const bar=document.getElementById('dev-test-banner');
   for(const old of bar.querySelectorAll('[data-chance-control]'))old.remove();
-  const controls=[['Restart Encounter',()=>playtest(graph,start)],['Stop Playtest',()=>{stop();root.VoidDevTest.exit();}]];
+  const controls=[['Restart Encounter',()=>playtest(graph,start,preview)],['Stop Playtest',()=>{stop(true);root.VoidDevTest.exit();}]];
   if(graph.item)controls.push(['Expire test keycard',()=>{
    if(!running?.private||!running.holds){announce('Collect the test keycard first.');return;}
    running.expiresAt=0;announce('Test keycard expired.');
@@ -688,13 +878,13 @@
       begin(graph,location.id,false,saved.run).catch(e=>{if(e.name!=='AbortError')console.warn('[Chance encounters]',e.message);});
      break;
     }
-    if(walkingLocation?.area!=='street')continue;
+    if(!root.VoidChanceEncounter.matchesScene(graph.cast?p:{quarter:c.quarter},walkingLocation))continue;
     const pulse=trigger.kind==='near'?nearEvents.get(nearKey):visit&&startEvents.get(trigger.kind+'/'+(trigger.target||''));
     const usedKey=graph.id+'/event/'+trigger.kind+'/'+(trigger.target||''),pending=pulse&&pulse.token!==nextCheck.get(usedKey);
-    if(!graph.enabled||walkingLocation?.quarter!==c.quarter||!walker||Math.hypot(walker.x-p.x,walker.z-p.z)>c.radius||(!pending&&now<(nextCheck.get(graph.id)||0))||now<(nextCheck.get(graph.id+'/retry')||0))continue;
+    if(!graph.enabled||!walker||Math.hypot(walker.x-p.x,walker.z-p.z)>c.radius||(!pending&&now<(nextCheck.get(graph.id)||0))||now<(nextCheck.get(graph.id+'/retry')||0))continue;
     nextCheck.set(graph.id,now+c.intervalSeconds*1000);
     const event=await root.VoidConsumableGame.request('chance-encounters/opportunity',{id:graph.id,
-     ...(pending?{startEvent:pulse}:{}),position:{area:'street',quarter:walkingLocation.quarter,x:walker.x,z:walker.z}});
+     ...(pending?{startEvent:pulse}:{}),position:{area:walkingLocation.area,quarter:walkingLocation.quarter,scene:graph.cast?p.scene:undefined,x:walker.x,z:walker.z}});
     if(pending&&user.uid===root.VoidAccount?.user?.uid){
      if(event.rolled)nextCheck.set(usedKey,pulse.token);
      else nextCheck.set(graph.id+'/retry',event.next?event.next*1000:now+5000);
@@ -726,7 +916,7 @@
   else position=[run.graph.playtest.x,1,run.graph.playtest.z];
   return position?{position,quarter,key:'encounter:'+run.graph.id+'|'+run.node.id,label:run.node.name,encounter:true}:null;
  }
- root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,setTracked(value){if(running?.participating)running.tracked=value;},playerStep(w){
+ root.VoidEncounterGame={recordStartEvent,playtest,stop,journal,waypoint,prepareApartment,setTracked(value){if(running?.participating)running.tracked=value;},playerStep(w){
    const pov=running?.pov;if(!pov||pov.w!==w||walkingLocation?.inst!==pov.inst||pov.head.isDisposed())return false;
    pov.head.computeWorldMatrix(true);const eye=pov.head.getAbsolutePosition();w.x=eye.x;w.y=eye.y+.06;w.z=eye.z;return true;
   },hidesResident:id=>running?.graph.residence?.character===id,get privateSession(){return document.getElementById('dev-test-banner')?.dataset.kind==='encounter';},

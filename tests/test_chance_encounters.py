@@ -50,6 +50,23 @@ class ChanceTests(unittest.TestCase):
         with self.assertRaises(encounters.DraftError):
             self.edit('publish',3)
 
+    def test_unpublish_removes_live_version_and_preserves_saved_draft(self):
+        self.edit('publish', 0)
+        self.graph['name'] = 'Newer saved draft'
+        self.edit('save', 1)
+        with self.assertRaises(encounters.DraftError):
+            self.edit('unpublish', 1)
+        record = encounters.edit(self.db, self.uid, dict(id=self.graph['id'], action='unpublish', revision=2))
+        self.assertEqual(record['revision'], 3)
+        self.assertNotIn('live', record)
+        self.assertNotIn('liveRevision', record)
+        self.assertEqual(record['draft']['name'], 'Newer saved draft')
+        snapshot = encounters.refs(self.db).document(self.graph['id']).get()
+        with patch.object(fixtures.Collection, 'stream', return_value=[snapshot], create=True):
+            self.assertEqual(encounters.catalog(self.db)['encounters'], [])
+            self.assertEqual(encounters.catalog(self.db, developer=True)['encounters'], [record])
+        self.assertEqual(self.edit('publish', 3)['liveRevision'], 4)
+
     def test_chance_bounds_survive_publication_and_stay_in_their_own_playlist(self):
         row = self.graph['dialogue'][0]
         ids = ['branch_a', 'branch_b', 'branch_c']
@@ -113,6 +130,16 @@ class ChanceTests(unittest.TestCase):
         with self.assertRaises(encounters.DraftError):
             self.edit('publish', 1)
 
+    def test_animation_speed_survives_publication_and_requires_a_positive_number(self):
+        line = self.graph['dialogue'][0]
+        line['animationSpeed'] = 0.5
+        self.assertEqual(self.edit('publish', 0)['live']['dialogue'][0]['animationSpeed'], 0.5)
+        for invalid in (0, -1, '2', True, float('inf')):
+            with self.subTest(speed=invalid):
+                line['animationSpeed'] = invalid
+                with self.assertRaises(encounters.DraftError):
+                    encounters.validate(self.graph)
+
     def test_authorized_run_issues_one_pickup_for_registered_residence(self):
         self.edit('publish',0)
         door='apt-road-n-27'
@@ -156,6 +183,79 @@ class ChanceTests(unittest.TestCase):
         self.assertFalse(encounters.outcome(self.db,self.uid,dict(request,outcome='rescued'))['duplicate'])
         self.assertFalse(encounters.resume(self.db,self.uid,self.graph['id'])['active'])
         self.assertFalse(encounters.opportunity(self.db,self.uid,{'id':self.graph['id'],'position':pos})['active'])
+
+    def test_half_daily_limit_skips_the_next_game_day_per_player(self):
+        conditions = self.graph['conditions']
+        conditions.update(dailyLimit=0.5, repeatable=True)
+        self.edit('publish', 0)
+        body = dict(id=self.graph['id'], position=dict(area='street', quarter='oldtown', x=52, z=-84))
+
+        def attempt(day, uid=self.uid):
+            with patch.object(items, 'saved_minute', return_value=day * 1440), patch.object(encounters.time, 'time', return_value=10000 + day * 100000):
+                return encounters.opportunity(self.db, uid, body)['active']
+
+        self.assertTrue(attempt(0))
+        ref = self.db.collection('vr_encounter_runs').document(items._tag(self.uid + '/' + self.graph['id']))
+        self.db.data[ref.key].update(stage='finished', finished=True, next=0)
+        self.assertFalse(attempt(0))
+        self.assertFalse(attempt(1))
+        self.assertTrue(attempt(1, 'different-player'))
+        self.assertTrue(attempt(2))
+
+        conditions['dailyLimit'] = 1.5
+        with self.assertRaises(encounters.DraftError):
+            encounters.validate(self.graph)
+
+    def test_sound_cues_publish_and_require_known_files_and_loop_end(self):
+        cue = dict(src='assets/audio/ambience/door-lock.ogg', when='start', offset=0.5,
+                   volume=0.7, loop=True, stop='seconds', seconds=2)
+        self.graph['soundCues'] = [cue]
+        self.graph['dialogue'][0]['soundCues'] = [dict(cue, stop='scope')]
+        self.graph['sectionSounds'] = {'opening': [dict(cue, when='end')]}
+        live = self.edit('publish', 0)['live']
+        self.assertEqual(live['soundCues'], [cue])
+        self.assertEqual(live['dialogue'][0]['soundCues'][0]['stop'], 'scope')
+        cue['when'], cue['stop'] = 'end', 'scope'
+        with self.assertRaisesRegex(encounters.DraftError, 'loop ends'):
+            encounters.validate(self.graph)
+        cue['src'] = 'assets/audio/not-in-library.ogg'
+        with self.assertRaisesRegex(encounters.DraftError, 'packaged audio library'):
+            encounters.validate(self.graph)
+
+    def test_imported_sound_can_save_before_upload_and_must_exist_to_publish(self):
+        hash_value = 'a' * 64
+        cue = dict(src='imported:' + hash_value, type='audio/wav', name='train.wav',
+                   when='start', offset=0, volume=0.5, loop=False)
+        self.graph['nodes'][0]['soundCues'] = [cue]
+        self.assertEqual(self.edit('save', 0)['draft']['nodes'][0]['soundCues'], [cue])
+        with self.assertRaisesRegex(encounters.DraftError, 'Upload the imported sound effects'):
+            self.edit('publish', 1)
+        with patch.object(world, 'clips_missing', return_value=[]) as check:
+            self.assertEqual(self.edit('publish', 1)['live']['nodes'][0]['soundCues'], [cue])
+            check.assert_called_once_with(self.db, [hash_value])
+
+    def test_registered_cast_on_low_quay_and_local_draft_only(self):
+        self.graph.pop('item')
+        self.graph.pop('residence')
+        self.graph['playtest'].update(scene='planet-low-quay', x=27.4, z=371)
+        self.graph.update(start='meet', nodes=[
+            dict(id='meet', kind='cast', name='Meet the cast', edges=[dict(to='end')]),
+            dict(id='end', kind='end', name='End', edges=[]),
+        ])
+        actor = dict(id='nia', name='Nia', x=28, y=0, z=372, yaw=0, scale=1, idle='',
+                     localAsset='enc-glb-00000000-0000-0000-0000-000000000000')
+        self.graph['cast'] = [actor]
+        self.graph['dialogue'] = []
+        self.assertEqual(self.edit('save', 0)['draft']['cast'][0]['id'], 'nia')
+        with self.assertRaisesRegex(encounters.DraftError, 'registered game model'):
+            self.edit('publish', 1)
+        actor.pop('localAsset')
+        actor['model'] = 'npc-nyx'
+        with patch.object(items, 'inventory', return_value={'madeCharacters': {'models': {'npc-nyx': {}}}}):
+            self.edit('publish', 1)
+        at = {'x': 27.4, 'z': 371, 'quarter': 'oldtown', 'area': 'street'}
+        self.assertFalse(encounters.opportunity(self.db, self.uid, {'id': self.graph['id'], 'position': at})['active'])
+        self.assertTrue(encounters.opportunity(self.db, self.uid, {'id': self.graph['id'], 'position': {**at, 'scene': 'planet-low-quay'}})['active'])
 
     def test_place_start_preserves_probability_interval_and_event_identity(self):
         cond = self.graph['conditions']
