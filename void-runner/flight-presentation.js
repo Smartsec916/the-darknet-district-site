@@ -75,7 +75,7 @@ function drawWarpSpool(){
  }
  ctx.restore();
 }
-function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
+function drawWarpEffect(r=flight.route){if(!r||r.phase!=='warp')return;
  const slow=warpSpeed(r);drawWarpObjects(r,slow);
  ctx.save();ctx.globalAlpha=(reducedMotion?.12:.65)*slow;ctx.lineWidth=1.5;
  const cx=W*.5,cy=H*.44;

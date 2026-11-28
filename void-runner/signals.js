@@ -31,6 +31,7 @@
  function staticSources(system){
   if(!U.systems[system])return [];
   const code=systemNames[system],out=[];
+  if(system==='sol')out.push({id:'satellite:relay-t07',category:'satellite',name:'RELAY T-07',system,affiliation:null,localContact:true});
   for(const [id,l] of Object.entries(U.locations))if(U.system(id)===system)
    out.push({id:'station:'+id,category:settlements.includes(id)?'settlement':'station',name:placeName(id),system,location:id,affiliation:l.ownerFaction||null});
   for(let n=1;n<=3;n++)out.push({id:'beacon:'+system+'-'+n,category:'beacon',name:'NAV '+code+'-'+n,system,affiliation:null});
