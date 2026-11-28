@@ -56,7 +56,7 @@ function arrive() {
   VoidAudio.event('dock');mode = 'arrival'; clearInput(); save(); flightUI(false); hud();
   const station = C.stations[state.location];
   if (reward.training) { panel('PRACTICE CIRCUIT COMPLETE / VESPER', 'Clean<br><em>landing.</em>', '<p>Mara’s voice crackles over the comm: “Not bad. That’s the basics; the rest you learn out there. Come see me, then take her to Meridian. Rook will be waiting.”</p>', button('EXIT TO THE WORKSHOP →', 'dock'), shipCard()); tone(620, .3); return; }
-  let story = reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
+  let story = reward.freightResult ? escapeText(reward.freightResult)+(reward.reward?' · '+reward.reward+' CR.':'.') : reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
   if(reward.repairCharged)story+=` Dock servicing costs ${reward.repairCharged} credits.`;
   if (reward.gunReward) story += ' Iona Vale meets you at the loading ramp. “You came through when nobody else would. Take these pulse cannons. Next time, come back alive.” Her crew installs your MK 2 guns.';
   else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';

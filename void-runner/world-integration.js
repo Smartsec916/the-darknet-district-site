@@ -245,7 +245,7 @@ function rookFreightOffer(){
  talk('',[{who:'rook',text:district?RL.board:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');
  speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';
  screen.querySelector('.dialogue-window')?.classList.add('choice-menu');
- screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class="rook-board">'+jobs+'</ul><p class="fine">Refit before taking the hotter lanes. Ship Outfitter carries upgraded pulse arrays, thrusters, hull armor and warp drives.</p>');
+ screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class="rook-board">'+jobs+'</ul><p class="fine">Check lane risk before departure. The Ship Outfitter can show the next hull.</p>');
  screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+(district&&globalThis.VoidAccount?.user&&!globalThis.VoidAccount.user.isAnonymous?button('ACCOUNT FREIGHT CONTRACT','freight-offer'): '')+button('NOT NOW','walk-resume',true));
 }
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(!a||!state)return;
@@ -316,7 +316,7 @@ function districtRoute(id){if(walkingLocation?.id!=='neochinatown'||walkingLocat
 function guideDistanceLabel(w){const l=typeof guideFollower!=='undefined'&&guideFollower.last;return l&&l.key===w.key?VoidUnits.fmtDist(l.length):'';}
 const worldMarker=drawWarpMarker;
 drawWarpMarker=function(){
- if(!state.universe.freeTravel||flight.route?.phase==='encounter')return worldMarker();if(flight.route?.phase!=='align'||VoidNavigationReveal.opacity(navigationReveal)<=0)return;
+ if(!state.universe.freeTravel||flight.route?.phase==='encounter'||current?.districtFreight)return worldMarker();if(flight.route?.phase!=='align'||VoidNavigationReveal.opacity(navigationReveal)<=0)return;
  const guide=VoidMissions.guidance(state,VoidMissions.tracked(state,C),false);for(const r of flightRoutes()){const v={x:r.vector.x*140,y:r.vector.y*140,z:r.vector.z*140},p=flightPoint(v),interstellar=VoidUniverse.route(state.location,r.id).kind==='interstellar',isTracked=guide?.destination===r.id;if(p.z<=0||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){if(isTracked)drawNavigationEdge(v,'MISSION / '+guide.label);continue;}ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor='#000';ctx.shadowBlur=isTracked?14:3;ctx.strokeStyle=isTracked?'#ffe58b':interstellar?'#bda0e0':'#83c4b5';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=isTracked?3:current.destination===r.id?2:1;ctx.beginPath();for(let i=0;i<=6;i++){const a=i*Math.PI/3;const radius=isTracked?29:interstellar?27:18;i?ctx.lineTo(Math.cos(a)*radius,Math.sin(a)*radius):ctx.moveTo(Math.cos(a)*radius,Math.sin(a)*radius);}ctx.stroke();ctx.font=isTracked?'bold 13px monospace':'11px monospace';ctx.textAlign='center';ctx.fillText((isTracked?'◆ MISSION / ':'')+(interstellar?'INTERSTELLAR / ':'')+C.stations[r.id].name.toUpperCase(),0,43);ctx.restore();}
 };
 function closeMissionLog(){if(!missionPanel)return;missionPanel.remove();missionPanel=null;mode=missionReturn;missionReturn=null;clearInput();walkingKeys.clear();canvas.focus();}

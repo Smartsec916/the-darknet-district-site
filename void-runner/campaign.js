@@ -341,7 +341,47 @@
     if(s.quest==='open'&&s.destination&&stations[s.destination]&&s.destination!==s.location)return {...base,name:'Free transit',destination:s.destination,duration:20,enemies:3,tier:1,reward:0,kind:'transit'};
     return null;
   }
+  const freightJobs={legal:{cargo:'Water filters',legal:true,pay:110},illicit:{cargo:'Unregistered memory wafers',legal:false,pay:230}};
+  const freightJob=s=>Object.hasOwn(freightJobs,s.story?.flags?.districtFreight)?freightJobs[s.story.flags.districtFreight]:null;
+  const freightAvailable=s=>s.location==='earth'&&Missions.closed(s)&&s.universe?.freeTravel&&S.hasShip(s);
+  function freightAccept(s,key){
+    if(!freightAvailable(s)||s.contract||freightJob(s)||holdFree(s)<1||!Object.hasOwn(freightJobs,key))return false;
+    s.story.flags.districtFreight=key;
+    delete s.story.flags.districtClearance;
+    s.destination='sol-belt';s.travel=null;U.discover(s,'sol-belt');
+    return true;
+  }
+  function freightCancel(s){
+    if(!freightAvailable(s)||!freightJob(s))return false;
+    delete s.story.flags.districtFreight;delete s.story.flags.districtClearance;
+    s.destination=null;s.travel=null;
+    return true;
+  }
+  function freightDecision(s,choice){
+    const f=s.story.flags;
+    if(!freightJob(s)||s.location!=='earth'||f.districtClearance||!['escort','run','bypass'].includes(choice))return false;
+    if(choice==='bypass'&&(!f.districtRelayOffline||f.districtWarrant>0))return false;
+    f.districtClearance=choice;
+    if(choice==='run')f.districtWarrant=Math.min(100,(f.districtWarrant||0)+1);
+    return true;
+  }
+  function freightRelay(s,action){
+    const f=s.story.flags;
+    if(action==='destroy'&&!f.districtRelayOffline){f.districtRelayOffline=true;return true;}
+    if(action!=='repair'||!f.districtRelayOffline||s.credits<15)return false;
+    s.credits-=15;delete f.districtRelayOffline;
+    return true;
+  }
+  function freightTraffic(time,offline){
+    return Object.values(freightJobs).map((job,index)=>{
+      const age=Math.max(0,time-index*2),inspected=!offline||job.legal;
+      return {source:'ship:sol-cargo-'+(index+1),phase:age<3?'departing':age<7?(inspected?'accepting escort':'taking an uncovered approach'):'docked',
+        earned:age<7||inspected&&!job.legal?0:job.pay};
+    });
+  }
   function flight(s){
+    const freight=freightJob(s);
+    if(freight&&s.location==='earth')return {...freight,id:'district-freight',name:'District freight',destination:'sol-belt',duration:U.route('earth','sol-belt').seconds,enemies:0,tier:0,reward:0,kind:'transit',districtFreight:true};
     let mission=missionFlight({...s,destination:null});
     /* A Rook job whose destination is where the player already is (every login wakes them in their pod in NeoChinatown, so a job to NeoChinatown taken before a reload
        starts there): it is not delivered by flying away. The flight is a transit with the cargo still aboard; the job is delivered on the next real arrival there
@@ -357,7 +397,7 @@
     if(mission?.destination===s.destination)return mission;
     const destination=U.nextHop(s.location,s.destination);
     const policy=U.route(s.location,destination);
-    const firstRookFlight=(s.universe.missions?.['first-departure']&&!s.universe.missions['first-departure'].completed&&s.destination==='meridian');
+    const firstRookFlight=s.destination==='meridian'&&(s.story.flags.kestrelCargo==='aboard'||s.universe.missions?.['first-departure']&&!s.universe.missions['first-departure'].completed);
     const threat=firstRookFlight?{tier:0,enemies:0}:U.routeThreat(s.location,destination,s.completed+(Number(s.story.flags.localTransitCount)||0));
     return {name:'Free transit',destination,duration:policy.seconds,...threat,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
   }
@@ -378,7 +418,7 @@
     // A District campaign has no old missions to complete, but a pilot who owns a ship (the beginner campaign's award, or a developer test ship) must still be able to ARRIVE
     // from a free transit: without this the flight never ended and the ship could never reach another place.
     if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&(s.universe?.freeTravel&&flight(s)?.kind==='transit'||s.contract==='rook-run'&&rookOpen(s))))return null;   // ... and Rook's side missions deliver
-    const f = flight(s); if (!f) return null;
+    const f = flight(s); if (!f||f.districtFreight&&!s.story.flags.districtClearance) return null;
     const previous = s.quest, origin = s.location;
     s.story.flags.flightCheckpoint=true;
     if(f.enemies>0&&!s.travel?.encounter?.evaded){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
@@ -400,7 +440,20 @@
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);
-    if(f.kind==='transit'){if(U.route(origin,f.destination).interdiction)s.story.flags.localTransitCount=(Number(s.story.flags.localTransitCount)||0)+1;s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
+    if(f.kind==='transit'){
+      let freightResult;
+      if(f.districtFreight){
+        const flags=s.story.flags,job=freightJob(s),seized=!job.legal&&flags.districtClearance==='escort';
+        const fine=seized?Math.min(s.credits,60):0;
+        f.reward=seized?0:job.pay;s.credits+=f.reward-fine;
+        if(seized)flags.districtWarrant=Math.min(100,(flags.districtWarrant||0)+2);
+        delete flags.districtFreight;delete flags.districtClearance;
+        freightResult=seized?'Cargo impounded at inspection · '+fine+' CR fine':job.legal?'Legal freight delivered':'Illicit cargo delivered';
+      }
+      if(U.route(origin,f.destination).interdiction)s.story.flags.localTransitCount=(Number(s.story.flags.localTransitCount)||0)+1;
+      s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);
+      return {...f,repairCharged,gunReward:false,freightResult};
+    }
     if(f.id==='prologue-missiles')return {...f,repairCharged,gunReward:false};
     // Rook's runs are tracked by their Mission Log entries (completion waits for Rook's pay on some), not here.
     if(!f.faction&&f.kind!=='sealed'&&!/^rook-run-/.test(f.id||'')&&!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);
@@ -481,7 +534,7 @@
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
   function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
   function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}
-  function chooseDestination(s,id){if(!s.universe?.freeTravel||!stations[id]||id===s.location)return false;
+  function chooseDestination(s,id){if(!s.universe?.freeTravel||!stations[id]||id===s.location||freightJob(s)&&s.location==='earth'&&id!=='sol-belt')return false;
     const hop=U.nextHop(s.location,id);
     if(!U.destinations(s).includes(hop)||hop!==id&&!s.universe.discoveredLocations.includes(id))return false;
     s.destination=hop;s.travel=null;return true;}
@@ -539,6 +592,7 @@
     };
   }
   const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, rookOpen, districtBoard, districtPool, rookGen: RG, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  api.districtFreight={jobs:freightJobs,available:freightAvailable,job:freightJob,accept:freightAccept,cancel:freightCancel,decide:freightDecision,relay:freightRelay,traffic:freightTraffic};
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

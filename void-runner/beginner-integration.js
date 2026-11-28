@@ -32,6 +32,89 @@
   });
  }
  wrap('admin','talk-admin');wrap('district-iris','talk-iris');wrap('district-bar','visit-bar',{show:false});wrap('district-shop','visit-shop',{show:false});wrap('terminal','use-terminal',{refreshPad:true});
+ const freight=C.districtFreight;
+ const terminal=VoidInteractions.handlers.get('terminal');
+ VoidInteractions.register('terminal',arg=>{
+  if(!freight.available(state))return terminal?.(arg);
+  const active=freight.job(state);
+  const list=Object.entries(freight.jobs);
+  const choice=document.createElement('dialog');
+  choice.setAttribute('aria-label','District freight');
+  choice.className='shop-layout';
+  choice.innerHTML='<h2>District freight</h2><p>Servo → Tessaly Belt Anchorage · 1 hold space</p>'+
+    (active?'<p>Loaded: '+escapeText(active.cargo)+'. Board on Pad 01.</p><button value="cancel-job">Unload cargo</button>':
+      list.map(([id,job])=>'<button value="'+id+'"'+(state.contract||C.holdFree(state)<1?' disabled':'')+'>'+escapeText(job.cargo)+' · '+(job.legal?'LEGAL':'ILLICIT')+' · '+job.pay+' CR</button>').join(''))+
+    '<button value="services">Landing services</button><button value="close">Close</button>';
+  document.exitPointerLock?.();
+  document.body.append(choice);
+  choice.addEventListener('click',e=>{
+   const value=e.target.closest('button')?.value;
+   if(!value)return;
+   if(value==='services'){choice.close();terminal?.(arg);return;}
+   if(value==='close'){choice.close();return;}
+   if(value==='cancel-job'?freight.cancel(state):freight.accept(state,value)){
+    save();choice.close();announce(value==='cancel-job'?'Freight unloaded.':'Freight loaded · Board at Pad 01 for Tessaly Belt Anchorage.');
+   }
+  });
+  choice.addEventListener('close',()=>choice.remove(),{once:true});
+  choice.showModal();
+ });
+
+ let lane=null;
+ const laneUpdate=update;
+ update=function(dt){
+  const route=flight.route;
+  const active=mode==='play'&&current?.districtFreight&&route?.origin==='earth'&&!root.VoidFlightSkirmish?.active;
+  if(!active){
+   if(lane&&lane.route===route&&['pause','mission-log','equipment'].includes(mode))lane.panel.hidden=true;
+   else {lane?.panel.remove();lane=null;}
+   return laneUpdate(dt);
+  }
+  if(!lane||lane.route!==route){
+   lane?.panel.remove();
+   const panel=document.createElement('aside');
+   panel.id='district-freight-lane';
+   panel.style.cssText='position:fixed;z-index:29;right:18px;bottom:18vh;max-width:310px;padding:12px;background:#081721ef;border:1px solid #417d86;color:#def3f5;font:14px/1.4 system-ui';
+   document.body.append(panel);
+   lane={route,panel,clock:0,passing:false,html:''};
+   panel.addEventListener('click',e=>{
+    const action=e.target.closest('button')?.value;
+    if(!action)return;
+    if(action==='continue'){lane.passing=true;return;}
+    if(action==='destroy'||action==='repair'){
+     if(freight.relay(state,action)){save();hud();}
+    }else if(freight.decide(state,action)){clearInput();save();}
+   });
+  }
+  if(route.phase!=='align'){lane.panel.hidden=true;return laneUpdate(dt);}
+  lane.panel.hidden=false;
+  if(!lane.released){
+   lane.released=true;document.exitPointerLock?.();clearInput();
+   root.VoidTraffic.districtCouriers(ambientTraffic,flightBasis());
+  }
+  const flags=state.story.flags,offline=flags.districtRelayOffline===true;
+  lane.clock+=dt;
+  const traffic=freight.traffic(lane.clock,offline);
+  const report=traffic.map(ship=>{
+   const source=root.VoidSignals.source(ship.source);
+   return '<div>'+escapeText(source?.name||'Freighter')+' · '+escapeText(ship.phase)+'</div>';
+  }).join('');
+  const relay='<p>WarFlying relay · '+(offline?'OFFLINE':'ONLINE')+'</p>'+
+    (offline?'<button value="repair"'+(state.credits<15?' disabled':'')+'>Repair relay · 15 CR</button>':'<button value="destroy">Destroy relay</button>');
+  const clearance=flags.districtClearance;
+  let prompt='';
+  if(!lane.passing&&!clearance)prompt='<button value="continue">Continue past relay</button>';
+  else if(!clearance)prompt=offline&&!(flags.districtWarrant>0)?
+    '<p>No patrol report on this approach.</p><button value="bypass">Use uncovered approach</button>'+
+    '<button value="escort">Request inspection escort</button>':
+    '<strong>THE FUNCTION · STOP ORDER</strong><p>Follow the patrol to Tessaly Belt Anchorage for station search and questioning.</p>'+
+    '<button value="escort">Accept escort</button><button value="run">Refuse and warp · warrant increases</button>';
+  else prompt='<p>'+(clearance==='escort'?'Escort route cleared · inspection at the Anchorage':clearance==='run'?'Stop refused · align and hold Warp':'Uncovered route · align and hold Warp')+'</p>';
+  const html='<strong>TESSALY BELT FREIGHT LANE</strong>'+report+relay+prompt;
+  if(lane.html!==html){lane.html=html;lane.panel.innerHTML=html;}
+  if(!clearance)route.recharge=Math.max(route.recharge||0,.2);
+  return laneUpdate(dt);
+ };
  // State watcher (three times a second): offers, the V1, the KeyMap, boarding, launch, the jump and docking.
  const fire=name=>after(B.event(state,name,VoidMissions,C));
  setInterval(()=>{

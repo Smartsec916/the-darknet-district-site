@@ -84,5 +84,13 @@
   area.contacts=area.contacts.filter(e=>!e.dead);
  }
  function visible(area){return area.contacts.filter(e=>area.clock>=e.delay);}
- const api={config,definitions,behaviors,create,step,hold,locate,visible};if(typeof module!=='undefined')module.exports=api;else root.VoidTraffic=api;
+ function districtCouriers(area,basis){
+  for(let index=0;index<2;index++){
+   const side=index===0?-1:1;
+   const start=add(add({x:0,y:0,z:0},basis.f,85+index*15),basis.r,side*24);
+   const destination=add(add(start,basis.f,145),basis.r,side*40);
+   area.contacts.push(contact(()=>.5,definitions.courier,'cargo arrival',start,destination,{signalId:'ship:sol-cargo-'+(index+1)}));
+  }
+ }
+ const api={config,definitions,behaviors,create,step,hold,locate,visible,districtCouriers};if(typeof module!=='undefined')module.exports=api;else root.VoidTraffic=api;
 })(globalThis);

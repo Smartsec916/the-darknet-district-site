@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 28 Nov 2026 — District freight and WarFlying route prototype
+
+The owner’s [career and jurisdiction direction](AI_ROADMAP.md#2026-11-28-owner-direction--district-careers-and-jurisdiction) is the current plan for freight and free flight. The first local prototype uses the NeoChinatown Landing Terminal and Tessaly Belt Anchorage. The board opens after hull registration and offers legal and illicit loads. The route introduces two civilian couriers, a Function stop with a station-level manifest outcome, and a relay players can destroy or repair using a flight interaction. The outage interrupts existing WarFlying uploads on this lane. The prototype stores route and warrant state in campaign flags. Shared warrants, NPC and player tracking across sessions, independent bounty work, Admin’s exclusive stock, and faction commitments remain roadmap work. No approved dialogue or Relay broadcast script is changed.
+
 ## 28 Nov 2026 — Kestrel and Cipher flight progression
 
 Factory Kestrel, Kestrel refit, factory Cipher, and Cipher refit are four increasing performance steps. Cipher replaces the older credit hull at the stable `ship2` save ID. It uses the Kestrel’s industrial airframe and cockpit framing, with a distinct ceramic finish, machined exhaust collars, and instrument trim. The Horizon plan doubles Cipher cargo capacity and shares its equipment and flight spec. Horizon commerce is future work. See [Flight progression](FLIGHT_PROGRESSION.md) for tuning, prices, and calculations. Build `2026-11-28-cipher-airframe-2`.
