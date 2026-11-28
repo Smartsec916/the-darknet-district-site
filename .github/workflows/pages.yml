@@ -47,6 +47,16 @@ jobs:
           for f in vr-companion-ava vr-companion-pg vr-companion-bf vr-companion-bm vr-companion-fc1; do
             test "$(head -c 4 "$crowd/$f.vrpak")" = VRPE || { echo "$f.vrpak is missing or not encrypted"; exit 1; }
           done
+          node <<'NODE'
+          const fs = require('node:fs');
+          const library = '_site/void-runner/assets/models/apartment-library';
+          for (const {id} of JSON.parse(fs.readFileSync(library + '/catalog.json', 'utf8'))) {
+            if (!/^[a-f0-9]{32}$/.test(id) || fs.existsSync(library + '/' + id + '.glb') ||
+                fs.readFileSync(library + '/' + id + '.vrpak').toString('ascii', 0, 4) !== 'VRPE') {
+              throw new Error('Apartment library model is missing or unsealed: ' + id);
+            }
+          }
+          NODE
           test ! -e "$crowd/vr-companion-una.vrpak" || { echo "Una must not be published"; exit 1; }
           ! grep -q "__VOID_ASSET_KEY__" _site/void-runner/asset-pipeline.js || { echo "Key not injected"; exit 1; }
           test ! -e _site/.github && test ! -e _site/_licensed && test -e _site/CNAME

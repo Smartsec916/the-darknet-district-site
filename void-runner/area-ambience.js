@@ -25,6 +25,12 @@
   temple:{'temple-wind':.6}
  };
  const beds=area=>BEDS[area]||{};
+ const indoorRainGain=.25;
+ function bedLevel(area,name,location){
+  const level=beds(area)[name]||0;
+  const indoors=location&&(location.apartment||location.area==='interior'||location.quarter==='underground');
+  return name==='rain-street'&&indoors&&area!=='district-terrace'?level*indoorRainGain:level;
+ }
  // the floor underfoot, by area
  const SURFACE={neochinatown:'wet',alley:'wet','district-terrace':'wet','district-entry':'metal',corporate:'metal',temple:'stone'};
  const surface=area=>area?SURFACE[area]||'concrete':null;
@@ -54,7 +60,7 @@
   return {level:k*k,pan:Math.max(-1,Math.min(1,side))*Math.min(1,d/2)};}
  // A lock clunk when you go between the vestibule and what is on either side of it.
  const lockBetween=(from,to)=>!!from&&!!to&&from!==to&&(from==='district-entry'||to==='district-entry')&&[from,to].every(a=>a==='district-entry'||a==='district-hall'||a==='alley'||a==='neochinatown');
- const pure={DIR,BEDS,SURFACE,STEPS,EMITTERS,STEP_COUNT,beds,surface,stepSet,ownStepSound,placeArea,emittersFor,heard,lockBetween};
+ const pure={DIR,BEDS,SURFACE,STEPS,EMITTERS,STEP_COUNT,beds,bedLevel,surface,stepSet,ownStepSound,placeArea,emittersFor,heard,lockBetween};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -77,8 +83,9 @@
  function tick(){
   const bus=root.VoidAudio?.bus?.('ambient');if(!bus)return;if(bus.context!==ctx)reset(bus.context);if(ctx.state!=='running')return;
   const a=where(),area=a?a.area:null,share=a?Math.max(0,Math.min(1,a.city==null?1:a.city)):0,want=area?beds(area):{};
+  const location=typeof walkingLocation==='undefined'?null:walkingLocation;
   // beds: the area's own, scaled by how much of the city is left around you (nothing inside the nightclub)
-  for(const name of new Set([...Object.keys(want),...bedVoices.keys()])){const target=(want[name]||0)*share;let v=bedVoices.get(name);
+  for(const name of new Set([...Object.keys(want),...bedVoices.keys()])){const target=bedLevel(area,name,location)*share;let v=bedVoices.get(name);
    if(!v){if(!(target>0))continue;v=voice(bus,name,false);if(!v)continue;bedVoices.set(name,v);}setLevel(v,target,2.4);}
   // emitters: by distance and side
   const N=root.VoidNeoChinatown,active=area&&N?emittersFor(area):[];

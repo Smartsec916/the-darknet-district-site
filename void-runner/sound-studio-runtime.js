@@ -72,7 +72,7 @@
  function shuffled(p){const rows=[...p.tracks];if(p.shuffle)for(let i=rows.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rows[i],rows[j]]=[rows[j],rows[i]];}return rows;}
  function update(world){
   if(!loaded&&root.VoidNetwork){loaded=true;root.VoidNetwork.request('studio/audio').then(r=>{if(r?.content)apply(r.content);}).catch(()=>{});}
-  const selected=playlist(project,world),now=performance.now()/1000;
+  const selected=world.apartmentMusic?null:playlist(project,world),now=performance.now()/1000;
   let seek;
   if(active!==selected){stopPlaylist();active=selected;if(active){const saved=active.resume&&resume.get(active.id);order=saved?.order||shuffled(active);index=saved?.index||0;seek=saved?.time;}}
   function advance(){index++;if(index>=order.length){if(!active.loop){exhausted=true;return;}index=0;order=shuffled(active);}}

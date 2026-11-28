@@ -61783,7 +61783,7 @@
       "spawn"
     ]
   },
-  "revision": "aa805aa04ae7c46d",
+  "revision": "8fdb056848e8c658",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -76176,38 +76176,26 @@
     },
     {
       "source": "void-runner/iris-ambient-game.js",
-      "line": 6,
-      "text": "(Mission 009 done, Mission 010 not here yet), and everything that makes it busy (a conversation, a call, a banner, the V1 open, a camera feed, another voice line,",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/iris-ambient-game.js",
-      "line": 27,
+      "line": 22,
       "text": "try{if(typeof speech!=='undefined'&&speech)return true;}catch{}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/iris-ambient-game.js",
-      "line": 31,
+      "line": 26,
       "text": "const n=root.VoidVoiceClips?.now;if(n&&!n.ended)return true;if(root.speechSynthesis?.speaking)return true;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/iris-ambient-game.js",
-      "line": 47,
+      "line": 37,
       "text": "function say(line){const text=line.text;try{announce('Iris (Comms): '+text);try{noticeTime=Math.max(noticeTime,Math.min(9,2.5+text.length/16));}catch{}}catch{}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/iris-ambient-game.js",
-      "line": 52,
+      "line": 42,
       "text": "try{const c=ctx(),l=R.decide(st,c,clock);if(l)say(l);}catch(e){console.warn('[iris ambient]',e);}}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/iris-ambient-game.js",
-      "line": 57,
-      "text": "if(p&&!p.querySelector('[data-action=\"iris-chatter\"]'))p.insertAdjacentHTML('beforeend','<h2>Iris</h2><button data-action=\"iris-chatter\" class=\"quiet\" aria-pressed=\"'+playerOn+'\">IRIS CHATTER: '+(playerOn?'ON':'OFF')+'</button><p class=\"fine\">Now and then Iris says a short line over Comms while you work (a long hack, sneaking past a guard, a quiet walk).</p>');}catch{}return r;};}",
       "kind": "source-reference"
     },
     {
@@ -76308,32 +76296,26 @@
     },
     {
       "source": "void-runner/iris-ambient.js",
-      "line": 31,
-      "text": "calmFor:60,             // jokes and the store line: this long with no hack, sneak, combat, call, conversation or other voice first",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/iris-ambient.js",
-      "line": 52,
+      "line": 44,
       "text": "enabled (the player's \"Iris chatter\" setting and the developer switch), contact (Iris is a contact), busy (conversation, call, cutscene, feed, voice, menu, dev play-test),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/iris-ambient.js",
-      "line": 56,
+      "line": 48,
       "text": "Returns null or {id, cat, text, speak} (already recorded: say it now). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/iris-ambient.js",
-      "line": 63,
-      "text": "const out=(l,quiet)=>{commit(st,l,now,quiet);if(st.gap)st.gap.used.add(l.id);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};};",
+      "line": 54,
+      "text": "const out=l=>{commit(st,l,now);if(st.gap)st.gap.used.add(l.id);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/iris-ambient.js",
-      "line": 91,
-      "text": "function force(st,cat,ctx={},now=0,opt={}){if(ctx.busy)return null;const rnd=opt.random||Math.random,l=choose(of(cat),rnd);if(!l)return null;commit(st,l,now,cat==='joke'||cat==='store');return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};}",
+      "line": 69,
+      "text": "function force(st,cat,ctx={},now=0,opt={}){if(ctx.busy)return null;const rnd=opt.random||Math.random,l=choose(of(cat),rnd);if(!l)return null;commit(st,l,now);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};}",
       "kind": "source-reference"
     },
     {
@@ -79585,7 +79567,7 @@
     {
       "source": "void-runner/mission-mechanics-game.js",
       "line": 78,
-      "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
+      "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
       "kind": "source-reference"
     },
     {
@@ -83823,10 +83805,11 @@
     "void-runner/anchorage.js": "d14cb16e54a7d807696eed2f4a1492168e66b62aff9fe46e121283caee54570c",
     "void-runner/anim-library.js": "3c8856db93b375570f00f37993ae04571ae0bdc93dfd66aa609e1b9beedbfa74",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/apartment-build.js": "5e7bd3a76a426f3ac7050ccd5ffbbb1c7e132b994560ec13d1e8a373366194a4",
+    "void-runner/apartment-build.js": "6db42f7a6df1d68df515a96fb79e14d000d9dc18e0c6d0654edba7c04ae8957a",
+    "void-runner/apartment-editor.js": "bea5ec46e5cdb2d8f423aeaf062076abb0bf9e7330f7654a7e907fb32dfe6c70",
     "void-runner/apartment-integration.js": "e85f7b9b7a0fad5bacb2f76c852f081c55d4d6b1f48df8010f592d0fe2ae35da",
     "void-runner/apartments.js": "532be531c83ab3db842e0fd22df6b180b160473e63fba7e4c943af7626153d5a",
-    "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
+    "void-runner/area-ambience.js": "e3bd81c09e2ca25923b52fdb6f5914a8f5ea6e8219712885f2941942848c804a",
     "void-runner/area-map.js": "900ee4fc782a339ccaee6393b3643f214869263c22657ac1cce7d7a64f89125d",
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
@@ -83892,7 +83875,7 @@
     "void-runner/derelict-station.js": "fef89722c796bc18545313d6b37ba76c69ee0abac739fcee15c6da11756b9539",
     "void-runner/dev-studios.js": "d20cb566e6c14a03770e889c2dd908016d263491d75831cf34204c5f3bfc10b0",
     "void-runner/dev-test.js": "87e96cb28cba5e7c2c4bd68b2d6429f601f249f509dde8efb771778150a59bb1",
-    "void-runner/dev-tools.js": "ea5950e7065daac0db6656cc9e97f68d5bffb7ae9b48e6138b5cdd5c239d1009",
+    "void-runner/dev-tools.js": "28dd28cbf7145f381250dbef3a11caf9ca55d4c01be5d429c10519b0498b8b6d",
     "void-runner/device-camera.js": "5e2680987c125b06983fe037095b3c63c773d4d28acc754b26d743779e264019",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "69755eb313451dfdc5b9079e21610d4d6283c3142336aa345edd2733e8f07598",
@@ -83952,8 +83935,8 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input-state.js": "a23678db556ddd72bd96529802ba8b1ac3c26ff3379230287fb2416b97f33f67",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
-    "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
-    "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
+    "void-runner/iris-ambient-game.js": "0d5aebb7a85b51c498d93da76aff709e68b5c0bea0ff5e7ad85c24ede0d7b262",
+    "void-runner/iris-ambient.js": "16511ad99d7048da56193dd1a1e9ebc7c50ab4004ca562e919e406cb60660982",
     "void-runner/item-catalog-editor.js": "e205a69c12971d130d7cfec31e2cb8b413c0f9f3967522b4044431714d830180",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
@@ -83986,7 +83969,7 @@
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "4d6fb498b6ebb3777c5cd5807c6ee293b82a61403ff51206cb261e0658dbc936",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
-    "void-runner/mission-mechanics-game.js": "703b07439b7671f0fe5225738680fdf631af08dda6cbcfd52150a4b97b4e150f",
+    "void-runner/mission-mechanics-game.js": "ebae528a80a53f0ebb204787adc356742f35ee7781010db1c3bf166fdeca7646",
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
     "void-runner/mission-trees.js": "1f2c6370bcc5418674dafaaf3b3b0bf8bafec7ec62ddc327086ace0ca3dc9e26",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
@@ -83998,7 +83981,7 @@
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
     "void-runner/music-engine.js": "3058cb35f65337dfff3bead224182fd1db113b81c6a9459a16b7f22788d4d6e5",
-    "void-runner/music-integration.js": "195d2f8e371286b0036d3d7c1589d8ced67463962d81d0e1637844e48e29e7a5",
+    "void-runner/music-integration.js": "20c200159231f3525974c93c2d077e27a162296318b5a789a5f41edad983d75a",
     "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
     "void-runner/nav-coords.js": "14d7b45fb1e12968ac86eeb968a8d5338eb034bd9b9ef91c573187163ed313ad",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
@@ -84087,7 +84070,7 @@
     "void-runner/skirmish.js": "f8446088784856e81db46395cd22abb3e43174f8dfdcb6a068d4fad2b267f8b8",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/sound-studio-editor.js": "18382f9f26e4641af878e9436a2a668f8129ccca1bd32e2daf72654fbdcb4b04",
-    "void-runner/sound-studio-runtime.js": "10ed6dfd7bfdcd61111a8938f299ce6bc148fdd5bc853c34277af425a455cfbc",
+    "void-runner/sound-studio-runtime.js": "ba33b36960a6d69821ec8895ef9eafe7b0109244894a6ed12dfa4025ed9877d2",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-kit.js": "eb1df0abe38814d48c6488bd45b0895c1a6a84710d386465570ce9d58b7981ac",

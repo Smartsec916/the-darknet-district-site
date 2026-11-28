@@ -1,5 +1,13 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Apartment Editor
+
+Dev Tools opens a private visit to an unreserved apartment from its street door. The room editor includes a VR bedroom-inspired palette, finish and light controls, a categorized GLB Asset Finder, per-room music, and red placement checks for walls, furniture, doors, interaction approaches, and standard resident routes. IndexedDB stores designs and imported files per developer account on this browser. Blender and Meshy use self-contained GLB exports. See [Editing a vacant apartment](APARTMENTS.md#editing-a-vacant-apartment). Build `2026-11-27-apartment-editor-1`.
+
+## 27 Nov 2026 — Iris chatter during hacking waits
+
+Automatic Comms remarks now play during long access-point hacks and the wait for BR-04 after Mission 009. General exploration, sneaking, spotted events, and unrelated mission waits no longer trigger Iris chatter. Approved clips remain available for preview in Dev Tools. Build `2026-11-27-iris-hacking-waits-1`.
+
 ## 27 Nov 2026 — Kade walks up to Lace
 
 In Pleasure Breach, choosing to play as Kade starts a first-person walk from the player’s position in the apartment. Kade uses the indoor route around furniture, then starts the assigned clip at its original mark. The encounter’s cancel control is available during the approach.
