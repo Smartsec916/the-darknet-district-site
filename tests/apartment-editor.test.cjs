@@ -39,3 +39,11 @@ test('rotated prop dimensions protect floor paths and catch other props',()=>{
 test('every game asset in the finder has a tracked source model',()=>{
  for(const model of D.CATALOG)assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/models',model.file)),model.file);
 });
+test('licensed uploads keep local design IDs and resolve only to the packed asset directory',()=>{
+ const id='a'.repeat(32),rows=[{id,name:'Bed',category:'Furniture'},{id:'../x',name:'Bad',category:'Other'}];
+ const [local]=D.localCatalog(rows),[published]=D.localCatalog(rows,true);
+ assert.equal(D.localCatalog(rows,true).length,1);
+ assert.equal(published.id,local.id);
+ assert.equal(published.src,'assets/models/apartment-library/'+id+'.vrpak');
+ assert.equal(published.origin,'Private library');
+});

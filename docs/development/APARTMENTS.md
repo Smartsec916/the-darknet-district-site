@@ -14,6 +14,7 @@ Open **Dev Tools → Apartment Editor**. Pick a neighborhood, an available stree
 - Use **Asset Finder** to search by name, category, or source. Select an asset and choose **Place selected asset**. Move the marker over the floor plan and click to place it. The placed asset controls let you fine-tune its position, height, rotation, scale, and tint.
 - Red areas reserve existing furniture, door clearance, interaction approaches, and routes to the standard resident positions. A red asset marker shows a placement conflict. A teal marker shows a clear placement. Use **Walk room** to check how it feels in first person.
 - To add your own asset, make it in Blender with the Higgsfield panel or make it in Meshy. Export a self-contained GLB with embedded textures. In **Import a Blender or Meshy asset**, choose its source and category, pick the GLB, and select **Add to Asset Finder**. Imported models can be reused across apartments in the same browser.
+- **Private library** lists the shared models that Pages seals from the licensed-asset repository. Local previews use matching IDs so a design keeps its placed models when the catalog is published.
 - In **Apartment music**, choose an audio file exported from Riffusion, set its volume, and preview it. The track loops in that apartment and stops when you leave.
 - **Save apartment** stores the design, placed assets, and track in this browser for the current developer account. To reopen it, select the same street entrance and apartment number. Editor sessions use a temporary campaign, and designs are stored locally.
 

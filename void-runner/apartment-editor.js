@@ -17,10 +17,12 @@
  const PRESET={finishes:{wall:'#a190a5',floor:'#796873',ceil:'#736778',wood:'#a18171',fabric:'#70678b',couch:'#80708d',trim:'#a68e97'},light:'#ffc794',brightness:1.2};
  const categories=['Furniture','Plants','Decor','Lighting','Electronics','Other'];
  const localLibrary='../work/apartment-assets/';
- function localCatalog(rows){
+ const privateLibrary='assets/models/apartment-library/';
+ function localCatalog(rows,licensed=false){
   if(!Array.isArray(rows))return [];
   return rows.filter(r=>r&&/^[a-f0-9]{32}$/.test(r.id)&&typeof r.name==='string'&&r.name.trim()&&categories.includes(r.category))
-   .map(r=>({id:'local-'+r.id,name:r.name,category:r.category,origin:'Local GLB',src:localLibrary+r.id+'.glb'}));
+   .map(r=>({id:'local-'+r.id,name:r.name,category:r.category,origin:licensed?'Private library':'Local GLB',
+    src:licensed?privateLibrary+r.id+'.vrpak':localLibrary+r.id+'.glb'}));
  }
  const roomId=(door,slot)=>'apartment-design/'+door+'/'+slot;
  function available(A,rows){
@@ -147,15 +149,19 @@
   if(!uid||!door||!A().geo(door.style).HALL.slots.some(s=>s.i===slot))throw Error('Choose an available apartment.');
   if(!(await addresses(uid)).some(d=>d.id===door.id&&d.slots.includes(slot)))throw Error('This entrance or apartment is now reserved.');
   const id=roomId(door.id,slot),design=await record('rooms',uid,id)||fresh(),assets=await record('assets',uid,null);
-  let local=[];
+  const library=new Map();
+  try{
+   const response=await fetch('void-runner/'+privateLibrary+'catalog.json');
+   if(response.ok)for(const asset of localCatalog(await response.json(),true))library.set(asset.id,asset);
+  }catch{}
   if(['localhost','127.0.0.1','[::1]'].includes(location.hostname)){
-   try{const response=await fetch('work/apartment-assets/catalog.json');if(response.ok)local=localCatalog(await response.json());}catch{}
+   try{const response=await fetch('work/apartment-assets/catalog.json');if(response.ok)for(const asset of localCatalog(await response.json()))library.set(asset.id,asset);}catch{}
   }
   const target={id,key:id,door:door.id,residenceSlot:slot,number:A().slotNumber(slot,door.style),style:door.style,items:[]};
   const result=await root.VoidDevTest.session({kind:'apartment-editor',banner:'APARTMENT EDITOR · '+door.name+' / '+target.number,leave:'Exit Apartment Editor',
    build(){const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.districtBadge=true;return s;},
    async enter(){
-    session={id,uid,target,design,assets:[...CATALOG,...local,...assets],nodes:new Map(),selected:null,placement:null};
+    session={id,uid,target,design,assets:[...CATALOG,...library.values(),...assets],nodes:new Map(),selected:null,placement:null};
     A().setPreview(target);noticed=false;
     const at=A().editorDoorPoint(door,door.front);
     await enterWalking(door.scene||root.VoidDistrictArea.KEY.street,{quarter:door.quarter,spawn:[at.x,1.7,at.z],yaw:Math.atan2(door.x-door.front[0],door.z-door.front[1])});
@@ -279,7 +285,7 @@
   const map=el('canvas');map.width=320;map.height=225;map.setAttribute('aria-label','Apartment floor plan. Red marks reserved clearance.');
   const search=el('input');search.type='search';search.placeholder='Search assets';
   const category=el('select');category.append(option('All categories',''),...categories.map(c=>option(c,c)));
-  const source=el('select');source.append(option('All sources',''),...['Game library','Blender / Higgsfield','Meshy','Local GLB'].map(x=>option(x,x)));
+  const source=el('select');source.append(option('All sources',''),...['Game library','Private library','Blender / Higgsfield','Meshy','Local GLB'].map(x=>option(x,x)));
   const finder=el('select');finder.size=5;finder.setAttribute('aria-label','Asset Finder results');
   const props=el('select'),controls=el('div');controls.className='apt-editor-fields';
   const apply=()=>{s.room.decorate(s.design);mapDraw(s,map);};
