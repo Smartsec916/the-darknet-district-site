@@ -80208,7 +80208,7 @@
     },
     {
       "source": "void-runner/nav-coords.js",
-      "line": 51,
+      "line": 53,
       "text": "function banner(){try{root.VoidV1?.notify?.({app:'map',key:'nav-coords',text:TEXT,hint:{text:'open',help:true}});}catch{}try{announce(TEXT);}catch{}}",
       "kind": "source-reference"
     },
@@ -83635,7 +83635,7 @@
     {
       "source": "void-runner/world-integration.js",
       "line": 248,
-      "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul><p class=\"fine\">Refit before taking the hotter lanes. Ship Outfitter carries upgraded pulse arrays, thrusters, hull armor and warp drives.</p>');",
+      "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul><p class=\"fine\">Check lane risk before departure. The Ship Outfitter can show the next hull.</p>');",
       "kind": "source-reference"
     },
     {
