@@ -28,7 +28,7 @@ This repository is the owner's website, The Darknet District (https://thedarknet
 
 ## Current handoff and release state (2026-11-12)
 
-**Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 **merged on 11 Nov 2026**. Do not keep it open or treat it as the integration branch. Merge to `main` only when the owner says "push", "pull it", or "go ahead and pull". The game is **desktop and VR headsets only**; phones stay on the normal site (`void-runner/device-gate.js`). Do not modify the Sleeping Pod room or the music player unless he asks or the task cannot be done without them. Licensed models stay in the private repo `Smartsec916/void-runner-licensed-assets` (scrambled `.vrpak`, VRPE-sealed at the Pages build). Never commit them here. The owner permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
+**Before coding, read `docs/development/AI_HANDOFF.md` and `docs/development/AI_ROADMAP.md`**, then this file and `VOID_RUNNER_HANDOFF.md` for technical conventions and historical decisions. The earlier October campaign status is historical; **the current District-first state wins**. Draft PR #212 **merged on 11 Nov 2026**. Do not keep it open or treat it as the integration branch. Merge to `main` only when the owner says "deploy", "push", "pull it", or "go ahead and pull". The game is **desktop and VR headsets only**; phones stay on the normal site (`void-runner/device-gate.js`). Do not modify the Sleeping Pod room or the music player unless he asks or the task cannot be done without them. Licensed models stay in the private repo `Smartsec916/void-runner-licensed-assets` (scrambled `.vrpak`, VRPE-sealed at the Pages build). Never commit them here. The owner permits deleting **unfinished in-game shop items** if required, **not** real storefront inventory, Shopify, or purchased entitlements.
 
 ## Permanent creative authority
 
@@ -65,7 +65,7 @@ Applies to all VOID//RUNNER work and to every brief one agent gives another.
 - The Darknet District book (`The-Darknet-District-Book.html`, PDF) is **mood and visual reference only**, not a game guide. Nothing in it is canon unless approved.
 - Keep the site's costs minimal; prefer free options.
 - Do not put Iris (the site's AI chat character) on game pages. Keep the in-game Iris separate from the website chatbot code (`chatbot.html`, `iris-*.html`, `identity_api.py`).
-- When he says "push", "pull it" or "go ahead and pull" for finished work, he means merge the PR to `main`. Merge only when he asks.
+- When he says "deploy", "push", "pull it" or "go ahead and pull" for finished work, he means merge the PR to `main`. Merge only when he asks.
 - Write to him in plain language. He is not reading code.
 
 ## Repository layout
