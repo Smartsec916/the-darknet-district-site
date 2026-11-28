@@ -40,6 +40,14 @@
  const CORP=id=>((CO&&CO.STREETS)||[]).find(s=>s.id===id)||null,TEMP=id=>((TP&&TP.STREETS)||[]).find(s=>s.id===id)||null;
  const around=(x,z,dx,dz)=>[x-dx,x+dx,z-dz,z+dz];
  const P=(o)=>({level:'place',...o});
+ // Vesper's road (vesper-world.js): named stretches [id, PROPOSED name, from s, to s (metres along the road), approach point s, description]. The ids stay; the names are the owner's to change.
+ const VW=node?require('./vesper-world.js'):root.VoidVesperWorld;
+ const VSI=node?require('./vesper-sites.js'):root.VoidVesperSites,VESPER_SITES=VSI?VSI.sites():[];
+ const VESPER_ROAD=VW?[['vesper-road-flats','The road across the flats',VW.usableYard(),700,520,'From the yard\'s edge east across the flats to the foot of the first range.'],
+  ['vesper-pass','The pass',700,1150,990,'The climb into the first range and the saddle between its two peaks.'],
+  ['vesper-road-plateau','Beyond the pass',1150,2250,1220,'The plateau east of the pass, as far as the first long descent.'],
+  ['vesper-road-valley','The long valley',2250,5200,3000,'The valley road north-east between the ranges.'],
+  ['vesper-road-far','The far road',5200,VW.total()+1,5300,'The last stretch, north-east around the mountains to the road\'s end.']]:[];
  /* id, name, level, parent, scene (walkingLocation.id), rects (world metres), whole, y (optional), enter (where draft play puts a player), target (where the guide arrow
     leads), proposed (a working name, not canon), src (where an existing name comes from), where (a plain description for the owner's review sheet), fallback. */
  const NODES=[
@@ -146,18 +154,33 @@
   //      low-quay-plug-and-play (27 Nov 2026); its rooms follow the NULL pattern (venue id + '-' + room). enter: draft play docks at Low Quay and, with `spawn`, stands the player inside.
   {id:'stale-system',name:'Stale System',level:'system',parent:null,system:'stale',src:'universe.js (system "stale")',where:'The star system of Low Quay.'},
   {id:'low-quay',name:'Low Quay',level:'city',parent:'stale-system',location:'low-quay',scenes:['planet-low-quay'],enter:{location:'low-quay'},src:'universe.js, signs "LOW QUAY"',where:'The quay city and its landing pad on the viaducts.'},
-  ...(LQC?(()=>{const C=LQC.CLUB,in_=[C.x0+LQC.WALL,C.x1-LQC.WALL,C.z0+LQC.WALL,C.z1-LQC.WALL],sp=LQC.SPAWN,en={location:'low-quay',spawn:[sp.x,1.7,sp.z],yaw:sp.yaw},K=LQC.KITCHEN,BK=LQC.BACK,AL=LQC.ALCOVE,S=LQC.STAGE;return [
+  ...(LQC?(()=>{const C=LQC.CLUB,in_=[C.x0+LQC.WALL,C.x1-LQC.WALL,C.z0+LQC.WALL,C.z1-LQC.WALL],sp=LQC.SPAWN,en={location:'low-quay',spawn:[sp.x,1.7,sp.z],yaw:sp.yaw},AP=k=>{const a=LQC.APPROACH[k];return {enter:{location:'low-quay',spawn:[a.x,1.7,a.z],yaw:a.yaw},target:[a.x,1.7,a.z]};},K=LQC.KITCHEN,BK=LQC.BACK,AL=LQC.ALCOVE,S=LQC.STAGE;return [
    {id:'low-quay-plug-and-play',name:'Plug & Play',level:'venue',parent:'low-quay',scene:'planet-low-quay',rects:[[C.x0-1.5,C.x1,C.z0,C.z1]],enter:en,target:[C.x0-1.6,1.7,LQC.DOOR.z],src:'the owner (name and sign "PLUG & PLAY")',where:'The nightclub off the quay alley: dining booths, the glass stage, the alcove, the kitchen and backstage.'},
-   P({id:'low-quay-plug-and-play-floor',name:'Dining floor',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[C.x0-1.5,C.x1,C.z0,C.z1]],fallback:true,enter:en,proposed:true,where:'The booths and tables, the doorway and the floor round the stage.'}),
-   P({id:'low-quay-plug-and-play-stage',name:'Stage',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[S.x-S.apothem-S.steps*S.stepDepth-.6,S.x+S.apothem,S.z-S.apothem-.6,S.z+S.apothem+.6]],enter:en,proposed:true,where:'In front of the glass stage (the stage itself is closed off).'}),
-   P({id:'low-quay-plug-and-play-alcove',name:'Alcove lounge',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[AL.x0,AL.x1,AL.z0,AL.z1]],enter:en,proposed:true,where:'The lounge through the arch in the south-east corner.'}),
-   P({id:'low-quay-plug-and-play-kitchen',name:'Kitchen',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[K.x0,K.x1,K.z0,K.z1]],enter:en,proposed:true,where:'Behind the side wall, where the robot arms cook.'}),
-   P({id:'low-quay-plug-and-play-backstage',name:'Backstage',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[BK.x+BK.t,in_[1],BK.z0,BK.z1],[BK.room.x0,in_[1],BK.z1,in_[3]]],enter:en,proposed:true,where:'The corridor behind the stage and the dressing room.'})];})():[]),
+   P({id:'low-quay-plug-and-play-floor',name:'Dining floor',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[C.x0-1.5,C.x1,C.z0,C.z1]],fallback:true,...AP('floor'),proposed:true,where:'The booths and tables, the doorway and the floor round the stage.'}),
+   P({id:'low-quay-plug-and-play-stage',name:'Stage',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[S.x-S.apothem-S.steps*S.stepDepth-1.4,S.x+S.apothem,S.z-S.apothem-.6,S.z+S.apothem+.6]],...AP('stage'),proposed:true,where:'The glass stage and the floor in front of it (its marker: the audience viewing spot facing the pole).'}),
+   P({id:'low-quay-plug-and-play-alcove',name:'Alcove lounge',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[AL.x0,AL.x1,AL.z0,AL.z1]],...AP('alcove'),proposed:true,where:'The lounge through the arch in the south-east corner.'}),
+   P({id:'low-quay-plug-and-play-kitchen',name:'Kitchen',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[K.x0,K.x1,K.z0,K.z1]],...AP('kitchen'),proposed:true,where:'Behind the side wall, where the robot arms cook.'}),
+   P({id:'low-quay-plug-and-play-backstage',name:'Backstage',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[BK.x+BK.t,in_[1],BK.z0,BK.z1],[BK.room.x0,in_[1],BK.z1,in_[3]]],...AP('backstage'),proposed:true,where:'The corridor behind the stage and the dressing room.'})];})():[]),
   // ---- VR: each simulation is a room (scene) of its own, entered from the District's VR play area ----
   P({id:'vr-suite',name:'Play in a Bedroom',parent:'vr',scene:'vr-suite',whole:true,src:'VR menu title',where:'The bedroom suite simulation.'}),
   P({id:'vr-tropical',name:'Tropical Escape',parent:'vr',scene:'vr-tropical',whole:true,src:'VR menu title',where:'The beach simulation.'}),
   P({id:'vr-forest',name:'Relax in a Forest',parent:'vr',scene:'vr-forest',whole:true,src:'VR menu title',where:'The forest simulation.'}),
-  P({id:'vr-combat',name:'Combat Simulator',parent:'vr',scene:'vr-combat',whole:true,src:'VR title',where:'The combat range (not listed in the VR menu).'})];
+  P({id:'vr-combat',name:'Combat Simulator',parent:'vr',scene:'vr-combat',whole:true,src:'VR title',where:'The combat range (not listed in the VR menu).'}),
+  // ---- Vesper (Erebus System): the Ward Repair yard and the road out through the pass (vesper-world.js; docs/development/VESPER_ROAD.md). Scene 'vesper'.
+  //      enter: draft play lands at the workshop (location 'vesper'); target: a checked point on the road (ground + eye height) the guide arrow leads to. ----
+  {id:'erebus-system',name:'Erebus System',level:'system',parent:null,system:'erebus',src:'universe.js (system "erebus")',where:'The star system.'},
+  {id:'vesper-planet',name:'Vesper',level:'planet',parent:'erebus-system',location:'vesper',src:'universe.js (location "vesper")',where:'The world the Ward Repair workshop is on.'},
+  {id:'vesper-yard',name:'Ward Repair yard',level:'area',parent:'vesper-planet',scene:'vesper',rects:[[-232,232,-80,80]],enter:{location:'vesper'},src:'opening-data.js "VESPER / WARD REPAIR"',where:'The workshop, its yard, the pad and the range, inside the yard\'s walking area.'},
+  P({id:'vesper-workshop',name:'Ward Repair workshop',parent:'vesper-yard',scene:'vesper',rects:[[-13,13,-23,1]],enter:{location:'vesper'},src:'opening-data.js (workshop walls)',where:'Inside the open-front workshop.'}),
+  P({id:'vesper-yard-ground',name:'The yard',parent:'vesper-yard',scene:'vesper',rects:[[-232,232,-80,80]],fallback:true,enter:{location:'vesper'},proposed:true,where:'The rest of the yard: the pad, the range, the parking apron and the road as far as the yard\'s edge.'}),
+  {id:'vesper-road',name:'The Vesper road',level:'area',parent:'vesper-planet',scene:'vesper',rects:VW?VW.corridorRects(VW.usableYard(),VW.total()):[],enter:{location:'vesper'},proposed:true,where:'The road east from the yard, through the pass between the two peaks.'},
+  ...VESPER_ROAD.map(([id,name,s0,s1,at,where])=>P({id,name,parent:'vesper-road',scene:'vesper',rects:VW?VW.corridorRects(s0,s1):[],enter:{location:'vesper'},target:VW?VW.approach(at).point:null,proposed:true,where})),
+  // the road's sites (vesper-sites.js; their rectangles and approach points come with the models): the village and its bar and store
+  ...VESPER_SITES.flatMap(site=>{const own='vesper-'+site.id,hasOwn=site.places.some(q=>q.id===own),stretch=site.id==='village'||site.id==='mine'?'vesper-road-valley':'vesper-road-far',lv=q=>q.level!=null?{y:[site.y+VSI.levelY(q.level)-6,site.y+VSI.levelY(q.level)+8]}:{};
+   return [...(hasOwn?[]:[P({id:own,name:site.id==='village'?'The village':site.id,parent:stretch,scene:'vesper',rects:[site.area],enter:{location:'vesper'},target:[site.origin[0],+(site.y+1.7).toFixed(2),site.origin[1]],proposed:true,where:'The small settlement on the valley road: houses, a bar and a store.'})]),
+    ...site.places.map(q=>P({id:q.id,name:q.name,parent:q.id===own?stretch:own,scene:'vesper',rects:[q.rect],...lv(q),enter:{location:'vesper'},target:[q.approach[0],+((q.level!=null?site.y+VSI.levelY(q.level):VW.groundAt(q.approach[0],q.approach[1]))+1.7).toFixed(2),q.approach[1]],proposed:true,where:q.where})),
+    // a mine's bottom level (vesper-sites.js LEVELS: its depth is the MINE_DEPTH_M placeholder): the shaft station and the drift
+    ...(site.cage?[P({id:own+'-bottom',name:'The bottom level',parent:own,scene:'vesper',rects:VSI.sites().find(x=>x.id===site.id).floors.filter(f=>f.level===1).map(f=>f.rect),y:[site.y+VSI.levelY(1)-6,site.y+VSI.levelY(1)+8],enter:{location:'vesper'},target:[site.cage[0]-3,+(site.y+VSI.levelY(1)+1.7).toFixed(2),site.cage[1]],proposed:true,where:'The foot of the shaft and the drift to the working face ('+(-VSI.levelY(1))+' m down: a placeholder depth).'})]:[])];})];
  /* SHOPFRONTS: the neon shop signs neochinatown.js puts up along Main Street, the Avenue and Far South (their places are decided by the city's fixed random sequence;
     read from the built city, 18 Nov 2026, tests/places-names.test.cjs checks their number and words against shopSigns). [sign words, x, z, street side]:
     the place is the 7 m of pavement in front of the sign. A shopfront is a facade (no interior yet). */

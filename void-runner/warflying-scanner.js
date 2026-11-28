@@ -24,7 +24,8 @@
  let footTick=0;
  function scanOnFoot(dt){footTick-=dt;if(footTick>0)return;footTick=2;if(!installed()||shielded()||!state.location)return;const id='station:'+state.location;if(S.source(id))log(id,'confirmed',1);}
  // Name if it broadcasts one; otherwise what it is (pirates broadcast no name).
- const label=r=>r.n||(r.conf==='confirmed'?'Unnamed ':'Unidentified ')+S.categories[r.c].toLowerCase();
+ const label=r=>r.n==='RELAY T-07'?r.n+' · '+(state.story.flags.districtRelayOffline?'OFFLINE':'ONLINE'):
+  r.n||(r.conf==='confirmed'?'Unnamed ':'Unidentified ')+S.categories[r.c].toLowerCase();
  const kind=r=>r.n?' · '+S.categories[r.c]:'';
  // Which system the ship is in: the origin's until halfway, then the destination's.
  function system(){const r=flight.route;return r?U.system(r.progress<.5?r.origin:r.destination):state.universe?.currentSystem||'erebus';}
@@ -57,7 +58,8 @@
    if(now>lastProgress){for(const p of X.passed(r.origin,r.destination,lastProgress,now))log(p.source.id,'confirmed',1);lastProgress=now;}
   }
   const battle=globalThis.VoidFactionBattleState?.();
-  const contacts=[...(typeof ambientTraffic!=='undefined'?ambientTraffic.contacts:[]),...enemies.filter(e=>VoidStory.hostile(e)),...(battle?battle.ships:[])].filter(c=>c&&!c.dead);
+  const relay=globalThis.VoidDistrictRelayContact?.();
+  const contacts=[...(relay?[relay]:[]),...(typeof ambientTraffic!=='undefined'?ambientTraffic.contacts:[]),...enemies.filter(e=>VoidStory.hostile(e)),...(battle?battle.ships:[])].filter(c=>c&&!c.dead);
   const inUse=new Set(contacts.map(c=>c.signalId).filter(Boolean));
   for(const c of contacts){
    const distance=Math.hypot(c.x,c.y,c.z),signature=c.signature?.total??1.5,heard=X.classify(distance,signature);

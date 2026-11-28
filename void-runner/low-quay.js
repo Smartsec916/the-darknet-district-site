@@ -56,7 +56,30 @@
   ...TERMINAL_AT.map((t,i)=>({id:'quay-terminal-'+i,label:'ACCESS BERTH TERMINAL',position:[t.x-1.3,1.7,t.z],action:'quay-terminal',berth:i,range:2.6})),
   {id:'quay-train-pad',label:'BOARD HIGH-SPEED RAIL',position:[2.4,1.7,-353],action:'quay-train',at:'pad',range:3.2},
   {id:'quay-train-city',label:'BOARD HIGH-SPEED RAIL',position:[2.4,1.7,275],action:'quay-train',at:'city',range:3.2}];
- function layout(){return {id:'planet-'+ID,location:ID,name:'LOW QUAY / STALE',kind:'planet',planet:ID,bounds:BOUNDS.slice(),spawn:SPAWN.slice(),yaw:0,color:'#5fb4c8',ship:'starter',solids:solids(),interactions:interactions(),signs:[]};}
+ function layout(){return {id:'planet-'+ID,location:ID,name:'LOW QUAY / STALE',kind:'planet',planet:ID,mapSpace:ID,bounds:BOUNDS.slice(),spawn:SPAWN.slice(),yaw:0,color:'#5fb4c8',ship:'starter',solids:solids(),interactions:interactions(),signs:[]};}
+ const MAP_BOUNDS=[-BOUNDS[0]-2,BOUNDS[0]+2,Z.padA-12,BOUNDS[1]];   // the offset grid reaches x +-160 and z 598
+ function mapModel(){
+  const [pad,station]=interactions().filter(p=>p.action==='quay-train');
+  const door=club()?.DOOR;
+  const point=(id,name,kind,x,z,note)=>({id,name,kind,area:'street',x,z,note});
+  const pois=[point('low-quay-landing','Low Quay Landing','transit',SPAWN[0],SPAWN[2]),
+   point(pad.id,'Landing Pad Rail Stop','transit',pad.position[0],pad.position[2],'Board here for the city station.'),
+   point(station.id,'High-Speed Rail Station','transit',station.position[0],station.position[2],'The city platform is below the quay. Take the stairs to reach the city.'),
+   point('low-quay-stairs','Quay Stairs','service',-7,STAIRS[1],'Connects the underground station and the city terrace.')];
+  if(door)pois.push(point('low-quay-plug-play','Plug & Play','shop',door.x,door.z,'Enter from the west alley. From the landing pad, take high-speed rail into the city first.'));
+  const [x0,x1,z0,z1]=MAP_BOUNDS;
+  return {bounds:{x0,x1,z0,z1},pois,walls:{street:[]},
+   streets:[{name:'Low Quay Landing',rect:[-40,40,Z.padA,Z.padB]},
+    {name:'Landing platform',rect:[-16,3.5,Z.stA,Z.stB]},
+    {name:'City platform',rect:[-16,3.5,Z.hallA,Z.hallB]},
+    {name:'Quay stairs',rect:[-14,0,...STAIRS]},
+    {name:'West quay',rect:[-64,-40,STAIRS[1],Z.cityB]},
+    {name:'City terrace',rect:[-30,64,STAIRS[1],Z.cityB]},
+    {name:'Footbridge',rect:[-40,-30,336,344]}],
+   buildings:[...BLOCKS.map(b=>({rect:b.slice(0,4),featured:!!club()?.isClubBlock(b)})),...GRID.map(b=>({rect:b.slice(0,4),featured:false})),...GRID_FILL.map(b=>({rect:b.slice(0,4),featured:false}))],
+   rail:TRACKS.map(x=>[[x,pad.position[2]],[x,station.position[2]]])};
+ }
+ const mapSpace={id:ID,name:'Low Quay',bounds:MAP_BOUNDS,publicMap:true,model:mapModel};
  /* The berth terminals ask for the player's ship (the existing board flow, babylon-integration.js 'board' -> leaveWalking, is unchanged). Pure rule: what a terminal does.
     shipAccess 'none' = the new-campaign state, no ship yet (the same flag that hides BOARD YOUR SHIP at NeoChinatown). Messages are PROPOSED wording. */
  const MESSAGES={none:'No ship is registered to you.',here:'Your ship is already at this berth.',calling:'Calling your ship to this berth.',arrived:'Your ship is at this berth. Board it when ready.'};
@@ -65,9 +88,10 @@
   if(!Number.isInteger(target)||target<0||target>=BERTHS.length)return {kind:'none',message:MESSAGES.none};
   if(target===at)return {kind:'here',message:MESSAGES.here};
   return {kind:'move',from:at,to:target,swap:craftAt.includes(target)?target:null,message:MESSAGES.calling};}
- // walk height: the stairs from the station to the quay (by z); on the quay, x too: the food court's walkway and its two flights (low-quay-court.js heightAt)
- const groundHeight=(z,x)=>z<=STAIRS[0]?0:z<STAIRS[1]?CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]):CITY_Y+(x!=null&&court()?court().heightAt(x,z):0);
- const api={GRID,GRID_FILL,groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,live:null};
+ // walk height: the stairs from the station to the quay (by z); on the quay, x too: the food court's walkway and its two flights (low-quay-court.js heightAt), and in
+ // PLUG & PLAY the stage deck and the steps down from its rear doorway (low-quay-club.js heightAt)
+ const groundHeight=(z,x)=>z<=STAIRS[0]?0:z<STAIRS[1]?CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]):CITY_Y+(x!=null&&court()?court().heightAt(x,z):0)+(x!=null&&club()?.inside(x,z)?club().heightAt(x,z):0);
+ const api={GRID,GRID_FILL,groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,mapSpace,live:null};
  api.models=(location,quality)=>location===ID?{[TERMINAL_ID]:{src:TERMINAL_SRC,scale:1},...(club()?.models()||{})}:{};
   // ---- wiring (also in Node, so the tests see the layout) ----
  api.build=build;

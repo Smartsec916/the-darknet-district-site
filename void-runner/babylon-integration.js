@@ -221,6 +221,8 @@ async function enterWalking(id, options = {}) {
   try {
     await boundedPrepare(task => VoidBabylon.prepareRoom(def, task));
     if (token !== preparationGeneration) return;
+    if (options.beforeReveal) await options.beforeReveal(def);
+    if (token !== preparationGeneration) return;
     walker = {
       x: options.spawn ? options.spawn[0] : def.spawn[0],
       y: options.spawn ? options.spawn[1] : def.spawn[1],
@@ -277,8 +279,6 @@ function interactWalking() {
   if (globalThis.VoidTeaDuo?.standPlayer?.()) return;
   if (mode !== 'walking' || !walkTarget) return;
   const item = walkTarget;
-  walkingKeys.clear();
-  document.exitPointerLock?.();
   VoidAudio.event('cycle');
   if (VoidInteractions.handlers.has(item.action)) return VoidInteractions.handlers.get(item.action)({
     item,
@@ -322,7 +322,7 @@ screen.addEventListener('click', e => {
     preparationGeneration++;
     dock();
   }
-  
+
   if (a.startsWith('explore:')) enterWalking(a.slice(8));
   if (a === 'walk-resume' && walkingLocation) resumeWalking();
 
@@ -342,9 +342,14 @@ walkingUI.addEventListener('pointerdown', e => {
 });
 for (const event of ['pointerup', 'pointercancel']) walkingUI.addEventListener(event, e => walkingKeys.delete(e.target.dataset.walk));
 addEventListener('keydown', e => {
-  const policy=VoidInputState.current;
   if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return;
-  if (policy.shortcuts==='none'||(policy.shortcuts==='interface'&&!(policy.movement&&['KeyW','KeyA','KeyS','KeyD'].includes(e.code)))) return;
+  const walkKey=['KeyW','KeyA','KeyS','KeyD'].includes(e.code);
+  let policy=VoidInputState.current;
+  if(walkKey&&policy.name==='conversation'&&policy.camera&&globalThis.VoidTeaDuo?.standPlayer?.()){
+    VoidInputState.scan();
+    policy=VoidInputState.current;
+  }
+  if (policy.shortcuts==='none'||(policy.shortcuts==='interface'&&!(policy.movement&&walkKey))) return;
   if (e.repeat&&!walkingKeys.has(e.code)) return;
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyC', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
     e.preventDefault();
@@ -458,33 +463,11 @@ update = function(dt) {
 };
 const migrationMarker = drawWarpMarker;
 drawWarpMarker = function() {
-  const alpha = VoidNavigationReveal.opacity(navigationReveal);
+  const alpha = warpMarkerOpacity();
   if (alpha <= 0) return;
   ctx.save();
   ctx.globalAlpha = alpha;
   migrationMarker();
-  if (activeRenderer === 'babylon' && flight.route?.phase === 'align') {
-    const p = flightPoint(flight.nav);
-    if (p.z > 0 && p.x > W * .12 && p.x < W * .88 && p.y > H * .16 && p.y < H * .72) {
-      const align = Math.round(FM.clamp((FM.dot(flightBasis().f, flight.route.vector) + 1) / 2, 0, 1) * 100),
-        radius = 29;
-      ctx.strokeStyle = flight.route.aligned > 0 ? '#ffdd8b' : '#78cdbb';
-      ctx.fillStyle = ctx.strokeStyle;
-      ctx.lineWidth = 1;
-      for (const x of [-1, 1])
-        for (const y of [-1, 1]) {
-          ctx.beginPath();
-          ctx.moveTo(p.x + x * (radius - 7), p.y + y * radius);
-          ctx.lineTo(p.x + x * radius, p.y + y * radius);
-          ctx.lineTo(p.x + x * radius, p.y + y * (radius - 7));
-          ctx.stroke();
-        }
-      ctx.font = '10px Consolas';
-      ctx.textAlign = 'center';
-      ctx.fillText(align + '% ALIGNMENT' + (flight.route.aligned > 0 ? ' / VECTOR LOCK' : ''), p.x, p.y + 54);
-      ctx.textAlign = 'left';
-    }
-  }
   ctx.restore();
 };
 
@@ -492,6 +475,7 @@ function migrationSnapshot() {
   return {
     basis: flightBasis(),
     route: flight.route,
+    shipId: VoidFlightCraft.ship().id,
     rocks: flight.rocks,
     ships: [...enemies,...VoidTraffic.visible(ambientTraffic),...(escortShip?[escortShip]:[])],
     departureStation,
@@ -556,11 +540,12 @@ draw = function() {
       ctx.translate(Math.sin(time * 35) * amplitude, Math.cos(time * 27) * amplitude);
     }
     // Painted Kestrel cockpit and its live screens; Babylon's 3D cockpit is the fallback.
-    VoidCockpitOverlay?.draw(ctx, W, H, snapshot.instruments, time);
+    VoidCockpitOverlay?.draw(ctx, W, H, snapshot.instruments, time, snapshot.shipId==='ship2');
     ctx.restore();
     drawContactMarkers();
     drawFlightHud();
     drawWarpMarker();
+    drawWarpSpool();
     drawMissileReticle();
     drawEnemyLockWarning();
     VoidCombatEffects.draw();

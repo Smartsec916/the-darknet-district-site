@@ -8,7 +8,7 @@
  'use strict';
  const data={
   /* The kinds of freight job.
-     label: the name on Rook's board and in the Mission Log. legal: false marks the job "not legal". units: hold spaces it takes (the Kestrel and the Peregrine hold 2).
+     label: the name on Rook's board and in the Mission Log. legal: false marks the job "not legal". units: hold spaces it takes (the Kestrel holds 2 and the Cipher holds 3).
      payAt: 'delivery' (the receiving dock pays when the cargo is unloaded) or 'rook' (the receiver confirms the drop and Rook pays in person at Meridian).
      bonus: credits added to the base pay. danger: extra raiders on the route. far: true = only to places in another system than Meridian's.
      cargo: what is carried (a different one each run, in turn) on the older board; the District board picks its goods from `procedural` below
@@ -27,7 +27,7 @@
   districtBoard:['routine','long-haul','valuable','hazard'],
   /* Places Rook never sends freight to (Vesper, the faction homeworlds, and Meridian itself, where the freight starts). Places in a system the player
      cannot reach yet are never offered either. */
-  never:['vesper','nexus','order-homeworld','meridian','low-quay'],
+  never:['vesper','nexus','order-homeworld','meridian'],
   /* PROCEDURAL BOARD (District campaign, 21 Nov 2026). The owner: "For Rook after this make cargo missions Procedural".
      rook-cargo-gen.js builds each job of the districtBoard kinds above from these lists, seeded per player and per run, so a reload shows the same board
      and every finished run brings a new one. All of this is plain flavour text: change, add or remove entries freely (old saves keep their accepted job's text).

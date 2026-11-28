@@ -58,7 +58,7 @@ test('public District rooms and tunnels allow the cat while protected places and
  assert.deepEqual(E.problems({kind:'they-follow',npc:CAT,to:{x:-2.7,z:-80}},{area:'avenue'}),[]);
  assert.deepEqual(E.problems({kind:'follow-them',npc:REV,to:{x:-2.7,z:-80}},{area:'avenue'}),[],'Reverie may lead down into the tunnels');
  assert.ok(!E.links().some(l=>Object.keys(l.ends).includes('milked')),'no walking link into Milked');
- // the fight pit stays a refused room for a youthful character (npc-escort.js intoProblems, unchanged)
+ // the fight pit still requires adult eligibility (npc-escort.js intoProblems)
  assert.deepEqual(E.ADULT_ROOMS,['fight-pit']);});
 
 test('a taxi during a follow / lead step: she gets in, rides (also through a gate\'s bay), gets out with the player; the cat and far stops: she stays out',()=>{

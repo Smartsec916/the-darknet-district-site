@@ -34,7 +34,8 @@
       button(id,name(body.facility,body.facilityProvisional)+' · landing pad · '+status);
     }
     // places inside a location with an id of their own (places.js: PLUG & PLAY at Low Quay): a button that lands inside
-    const inner=(globalThis.VoidPlaces?.NODES||[]).filter(n=>n.level==='venue'&&n.enter?.location===id&&n.enter.spawn).map(n=>button(id+'/'+n.id,n.name+' · venue at '+(C.stations[id]?.name||id))).join('');
+    // and each of its rooms with an approach point of its own (places.js enter.spawn), so every room marker can be checked on its own
+    const PL=globalThis.VoidPlaces,inner=(PL?.NODES||[]).filter(n=>n.enter?.location===id&&n.enter.spawn&&(n.level==='venue'||PL.node(n.parent)?.level==='venue')).map(n=>button(id+'/'+n.id,n.level==='venue'?n.name+' · venue at '+(C.stations[id]?.name||id):n.name+' · room of '+(PL.node(n.parent)?.name||n.parent))).join('');
     return button(id,name(C.stations[id]?.name||id,l.placeholder)+' · '+l.type+' · '+status)+inner;
    }).join('');
    return '<details><summary>'+escapeText(sys.name)+'</summary><div class="dev-actions">'+entries+'</div></details>';

@@ -9,7 +9,9 @@
     flight:policy('flight',false,true,true,false,'game'),
     feed:policy('feed',true,true,false,false,'activity'),
     seated:policy('seated',true,true,false,false,'seat'),
-    floating:policy('conversation',false,false,true,true,'interface'),
+    floating:policy('conversation',true,true,true,true,'interface'),
+    floatingSeated:policy('conversation',true,true,false,true,'interface'),
+    floatingCursor:policy('conversation',false,false,true,true,'interface'),
     conversation:policy('conversation',false,false,false,true,'interface'),
     activity:policy('activity',false,false,false,true,'interface'),
     store:policy('store',false,false,false,true,'interface'),
@@ -22,7 +24,11 @@
   };
   function resolve(mode,surface,away,manual,seated){
     if(away)return states.background;
-    if(surface==='floating')return mode==='walking'&&!seated?states.floating:states.conversation;
+    if(surface==='floating'){
+      if(mode==='walking'&&!seated)return manual?states.floatingCursor:states.floating;
+      if(!manual&&(mode==='vr-seated'||mode==='walking'&&seated))return states.floatingSeated;
+      return states.conversation;
+    }
     if(surface&&surface!=='feed')return states[surface];
     if(surface==='feed')return manual?states.cursor:states.feed;
     if(/prepar|loading|transition/.test(mode))return states.loading;
@@ -44,9 +50,9 @@
     ['device','#personal-device.open,#pd-callpill,#pod-music-input'],
     ['vr','#vr-menu'],
     ['store','#trade-window,#trade-toast:has(button),.pod-vend,#shop-here:has(button)'],
-    ['activity','.tea-duo-choices:not(.tea-seated),#milked-studio-request-panel,#arcade-play'],
+    ['activity','#milked-studio-request-panel,#arcade-play'],
     ['feed','#cam-feed'],
-    ['floating','#screen.conversation-live,.vr-companion-menu'],
+    ['floating','#screen.conversation-live,.vr-companion-menu,.tea-duo-choices'],
     ['conversation','#screen:has(.dialogue-window)'],
     ['menu','#screen:has(button),[role="dialog"]:not(#personal-device)']
   ];
@@ -55,9 +61,13 @@
   const visible=el=>!el.closest('[hidden],.hidden,[aria-hidden="true"]')&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden';
   let surface=null,panel=null,manual=false,away=document.hidden||document.hasFocus?.()===false,previous=null,tip=null;
   const gameMode=()=>typeof mode==='string'?mode:'menu';
-  const current=()=>resolve(gameMode(),surface,away||document.hidden,manual,root.VoidTeaDuo?.seated);
-  function clear(){
-    if(typeof walkingKeys!=='undefined')walkingKeys.clear();
+  const current=()=>resolve(gameMode(),surface,away||document.hidden,manual,root.VoidTeaDuo?.seated||root.VoidVehicle?.driving);   // driving the utility vehicle (vehicle.js) uses the seated policy
+  function clear(keepWalking=false){
+    if(typeof walkingKeys!=='undefined'){
+      if(keepWalking){
+        for(const key of walkingKeys)if(!['KeyW','KeyA','KeyS','KeyD'].includes(key))walkingKeys.delete(key);
+      }else walkingKeys.clear();
+    }
     for(const player of [typeof walker==='undefined'?null:walker,root.VoidSkirmish?.active?.player]){
       if(player){player.vx=0;player.vz=0;player.jumpRequested=false;}
     }
@@ -68,13 +78,14 @@
   }
   function refresh(){
     const state=current(),lock=document.pointerLockElement;
-    if(previous!==state){if(!state.movement||state.ui)clear();previous=state;}
+    if(previous!==state){if(!state.movement||state.ui)clear(!!previous?.movement&&state.movement);previous=state;}
     // A pending pod request can resolve after the exit to walking. Only the current view may keep capture.
     if(lock&&(!state.pointerLock||(lock.id==='pod-wake'&&gameMode()!=='pod-waking')))document.exitPointerLock?.();
     const game=['walking','skirmish-fps','food-seated','vr-seated'].includes(gameMode());
     if(!tip&&game){tip=document.createElement('div');tip.id='resume-hint';tip.style.cssText='position:fixed;bottom:7%;right:2%;padding:4px 8px;color:#9bded6;background:#08151bcc;font:11px monospace;letter-spacing:.07em;pointer-events:none;z-index:40';document.body.append(tip);}
     if(tip){
-      const label=state===states.background?'CLICK TO RETURN TO THE GAME':state.pointerLock?(lock?'MOUSE LOOK':'CLICK VIEW FOR MOUSE LOOK'):'CURSOR';
+      const cursorKey=root.VoidInput?.label?.(root.VoidInput.bindings.cursor)||'ESC';
+      const label=state===states.background?'CLICK TO RETURN TO THE GAME':state.pointerLock?(lock?(state.ui?cursorKey+' · FREE CURSOR':'MOUSE LOOK'):'CLICK VIEW FOR MOUSE LOOK'):'CURSOR';
       if(tip.textContent!==label)tip.textContent=label;
       tip.hidden=!game||root.VoidControls?.deviceClass==='touch-first';
     }
@@ -103,7 +114,7 @@
   document.addEventListener('visibilitychange',()=>{away=document.hidden||!document.hasFocus();manual=false;if(away)clear();scan();});
   let lastUnlock=-Infinity,hadLock=false;
   document.addEventListener('pointerlockchange',()=>{
-    if(!document.pointerLockElement){if(hadLock)lastUnlock=performance.now();clear();}
+    if(!document.pointerLockElement){if(hadLock)lastUnlock=performance.now();const state=current();clear(state.name==='conversation'&&state.movement);}
     hadLock=!!document.pointerLockElement;
     refresh();
   });
@@ -126,6 +137,7 @@
       panel.querySelector('button')?.click();scan();return;
     }
     if(e.code==='Escape'){
+      if(surface==='floating'&&freeMouse()){e.preventDefault();e.stopImmediatePropagation();return;}
       const dismiss=panel.querySelector('[data-input-dismiss],.conversation-minimize');
       if(dismiss){e.preventDefault();e.stopImmediatePropagation();dismiss.click();}return;
     }

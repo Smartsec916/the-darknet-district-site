@@ -213,7 +213,7 @@
  function decode(v){if(typeof v!=='string')return null;const [key,phase,x,z,w]=v.split('|');if(!key)return null;const out={key,phase:phase||null};if(x!==''&&x!=null&&Number.isFinite(+x)&&z!==''&&z!=null&&Number.isFinite(+z)){out.x=+x;out.z=+z;}if(w)out.w=w;return out;}
  /* For the admin inventory (the server's copy of these rules: void_runner_live_content.py escort_problems). */
  function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}).filter(movable))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,restrictedRooms:!X.adultMotionTarget(id,X.MOVABLE[id].asset),reach:Object.fromEntries(ids.map(a=>[a,[...reach(id,a)].sort()]))};
-  // into a place (the server's into_problems): the area of every street door's front (npc-areas.js), the rooms a youthful character never goes into
+  // into a place (the server's into_problems): the area of every street door's front (npc-areas.js), the room types that require adult eligibility
   const P=APX(),doorAreas={};try{for(const d of (P&&P.doors?P.doors():[]))doorAreas[d.id]=doorArea({front:{x:d.front[0],z:d.front[1]}})||null;}catch{}
   return {kinds:IDS.slice(),fields:FIELDS,limits:{wait:LIMIT.wait,lost:LIMIT.lost,def:LIMIT.def},ifLost:IF_LOST.map(x=>x.id),npcs:out,into:{kinds:[...SPOT],adultRooms:ADULT_ROOMS.slice(),doorAreas}};}
  // ================================================================= INTO A PLACE OF THIS MISSION (20 Nov 2026)

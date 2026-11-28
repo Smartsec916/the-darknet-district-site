@@ -1,3 +1,4 @@
+@import url("chance-encounter.css");
 #dev-balance-open{position:fixed;right:16px;top:90px;z-index:35;font-size:11px}
 #dev-balance{position:fixed;inset:8vh 5vw;z-index:60;overflow:auto;background:#081522f7;border:1px solid #58ffe1;padding:24px;color:#dcece9;box-shadow:0 20px 90px #000}
 #dev-balance[hidden],#dev-balance-open[hidden],#combat-debug[hidden]{display:none}
@@ -124,19 +125,3 @@
 .encounter-node small{color:var(--node-color)}
 .encounter-node[aria-current=true]{outline:2px solid var(--node-color);outline-offset:2px}
 .encounter-node button{text-align:left;white-space:normal}
-
-/* Conversation accents stay on the existing rows. Each nested playlist owns its color. */
-[data-conversation="arrival"]{--playlist-color:#77b6ff}
-[data-conversation="be_kade"]{--playlist-color:#c59aff}
-[data-conversation="free"]{--playlist-color:#7bd8a2}
-[data-conversation="wait"]{--playlist-color:#ffaf68}
-fieldset.encounter-dialogue-action,fieldset.encounter-chance-playlist{
- border-inline-start:3px solid var(--playlist-color);
- background-color:color-mix(in srgb,var(--playlist-color) 7%,#0c1720)
-}
-fieldset.encounter-main-member,fieldset.encounter-chance-playlist{
- border:2px solid var(--playlist-color);
- background-color:color-mix(in srgb,var(--playlist-color) 17%,#0c1720)
-}
-.encounter-dialogue-action>legend,.encounter-chance-playlist>legend,.encounter-chance-playlist>small{color:var(--playlist-color)}
-.encounter-chance-playlist>small{display:block}
