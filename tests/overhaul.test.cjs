@@ -1,14 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/campaign.js'),S=require('../void-runner/ships.js'),F=require('../void-runner/pilot-flight.js'),M=require('../void-runner/cockpit-math.js'),W=require('../void-runner/warp.js'),AI=require('../void-runner/enemy-pilots.js'),Audio=require('../void-runner/ship-audio.js');
 test('ship purchases deduct once, retain old hull and persist active loadouts',()=>{
- const s=C.fresh();assert.deepEqual(s.ownedShips,['starter']);assert.equal(S.ships.ship2.price,1000);assert(!C.buyShip(s,'ship2'));s.credits=3500;
- assert(C.buyShip(s,'ship2'));assert.equal(s.credits,2500);assert(!C.buyShip(s,'ship2'));assert.equal(s.credits,2500);assert.equal(s.activeShip,'starter');assert(!C.switchShip(s,'ship3'));
+ const s=C.fresh();assert.deepEqual(s.ownedShips,['starter']);assert.equal(S.ships.ship2.price,1200);assert(!C.buyShip(s,'ship2'));s.credits=3500;
+ assert(C.buyShip(s,'ship2'));assert.equal(s.credits,2300);assert(!C.buyShip(s,'ship2'));assert.equal(s.credits,2300);assert.equal(s.activeShip,'starter');assert(!C.switchShip(s,'ship3'));
  assert(C.switchShip(s,'ship2'));assert(C.equip(s,'pulse1'));assert.equal(s.loadout.weapon,'pulse1');assert(C.switchShip(s,'starter'));assert(C.switchShip(s,'ship2'));assert.equal(s.loadout.weapon,'pulse1');
- const r=C.restore(JSON.stringify(s));assert.equal(r.activeShip,'ship2');assert.equal(r.loadout.weapon,'pulse1');assert.deepEqual(r.ownedShips,['starter','ship2']);assert(!C.buyShip(r,'ship3'));assert.equal(r.credits,2500);
+ const r=C.restore(JSON.stringify(s));assert.equal(r.activeShip,'ship2');assert.equal(r.loadout.weapon,'pulse1');assert.deepEqual(r.ownedShips,['starter','ship2']);assert(!C.buyShip(r,'ship3'));assert.equal(r.credits,2300);
 });
 test('only explicitly owned or server verified equipment equips',()=>{
- const s=C.fresh();assert(!C.equip(s,'pulse3'));assert(!C.equip(s,'wraith'));s.loadout.weapon='wraith';assert.equal(C.stats(s).damage,1);assert(C.equip(s,'wraith',['wraith']));
- s.loadout.weapon='pulse3';assert.equal(C.stats(s).damage,1);const r=C.restore(JSON.stringify(s));assert(!C.ownsEquipment(r,'pulse3'));assert(!C.equip(r,'launcher'));
+ const s=C.fresh();assert(!C.equip(s,'pulse3'));assert(!C.equip(s,'wraith'));s.loadout.weapon='wraith';assert.equal(C.stats(s).damage,.9);assert(C.equip(s,'wraith',['wraith']));
+ s.loadout.weapon='pulse3';assert.equal(C.stats(s).damage,.9);const r=C.restore(JSON.stringify(s));assert(!C.ownsEquipment(r,'pulse3'));assert(!C.equip(r,'launcher'));
 });
 test('second completed enemy run unlocks one persistent Rook offer, installation is separate',()=>{
  let s=trained(C.fresh());s.missileOfferSeen=false;assert(!s.creditGear.includes('launcher'));assert(!C.buyGear(s,'launcher'));C.beginJourney(s);C.complete(s);C.accept(s);const first=C.complete(s);assert.equal(s.combatRuns,1);assert(!first.missileOffer);assert(!C.buyGear(s,'launcher'));
@@ -30,8 +30,8 @@ test('all pilot tiers initialize, evade lock threats, retreat and return within 
  for(const tier of Object.keys(AI.tiers)){const e={x:0,y:0,z:60,age:0,armor:10,maxArmor:10};AI.init(e,tier);AI.step(e,.1,context);assert.equal(e.pilot.state,'evade');context.missileThreat=false;e.pilot.timer=0;e.pilot.decision=0;e.armor=1;AI.step(e,.1,context);assert.equal(e.pilot.state,'retreat');for(let i=0;i<3600;i++){e.age+=1/60;AI.step(e,1/60,context);for(const a of ['x','y','z'])e[a]+=e.velocity[a]/60;}assert(M.length(e)<300);assert(M.length(e.velocity)<=AI.tiers[tier].speed*1.11);context.missileThreat=true;}
 });
 test('warp requires alignment, interrupts, persists and resumes the same destination',()=>{
- const r=W.create('meridian','kepler','legal-run',true);for(let i=0;i<100;i++)W.step(r,.1,{x:0,y:0,z:-1});assert.equal(r.phase,'align');for(let i=0;i<7;i++)W.step(r,.1,r.vector);assert.equal(r.phase,'warp');for(let i=0;i<Math.ceil(W.config.warpSeconds*W.config.interruption/.1);i++)W.step(r,.1,r.vector);assert.equal(r.phase,'encounter');assert.equal(r.progress,.42);
- const saved=W.restore(JSON.parse(JSON.stringify(r)),'meridian','kepler','legal-run',true);assert.equal(saved.phase,'encounter');W.step(saved,.1,saved.vector,true);assert.equal(saved.phase,'align');assert.equal(saved.destination,'kepler');for(let i=0;i<150;i++)W.step(saved,.1,saved.vector,true);assert.equal(saved.phase,'arrived');assert.equal(saved.progress,1);
+ const r=W.create('meridian','kepler','legal-run',true);for(let i=0;i<100;i++)W.step(r,.1,{x:0,y:0,z:-1});assert.equal(r.phase,'align');for(let i=0;i<12;i++)W.step(r,.25,r.vector,false,{held:true});assert.equal(r.phase,'warp');for(let i=0;i<Math.ceil(W.config.warpSeconds*W.config.interruption/.1);i++)W.step(r,.1,r.vector);assert.equal(r.phase,'encounter');assert.equal(r.progress,.42);
+ const saved=W.restore(JSON.parse(JSON.stringify(r)),'meridian','kepler','legal-run',true);assert.equal(saved.phase,'encounter');W.step(saved,.1,saved.vector,true);assert.equal(saved.phase,'align');assert.equal(saved.destination,'kepler');for(let i=0;i<150;i++)W.step(saved,.1,saved.vector,true,{held:true});assert.equal(saved.phase,'arrived');assert.equal(saved.progress,1);
  const s=C.fresh();s.quest='legal-run';s.travel=saved;C.complete(s);assert.equal(s.travel,null);
 });
 test('free navigation requires Rook unlock and preserves loaded cargo',()=>{const s=C.fresh();assert(!C.chooseDestination(s,'foundry'));trained(s);s.quest='open';require('../void-runner/universe.js').unlock(s);assert(C.chooseDestination(s,'foundry'));assert.equal(C.flight(s).kind,'transit');s.contract='medicine';assert(C.chooseDestination(s,'kepler'));assert.equal(s.contract,'medicine');});

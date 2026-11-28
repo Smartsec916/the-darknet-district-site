@@ -27,7 +27,7 @@
   return {scale,x:width/2-(VIEW.x0+VIEW.x1)/2*scale,y:height-VIEW.bottom*scale};
  }
  const pct=v=>Math.max(0,Math.min(999,Math.round(Number(v)||0)))+'%';
- function readout(ctx,box,title,rows,time){
+ function readout(ctx,box,title,rows,time,cipher){
   const {x,y,w,h}=box,pad=Math.max(4,w*.05),lineH=(h-pad*2)/(rows.length+1.25);
   ctx.save();
   ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
@@ -37,7 +37,7 @@
   ctx.globalAlpha=.08;ctx.fillStyle='#9fe8dc';for(let sy=y+((time*18)%3);sy<y+h;sy+=3)ctx.fillRect(x,sy,w,1);ctx.globalAlpha=1;
   const size=Math.max(8,Math.min(lineH*.72,w*.085));
   ctx.textBaseline='middle';
-  ctx.font='bold '+size+'px Consolas, monospace';ctx.fillStyle='#e8a862';ctx.textAlign='left';
+  ctx.font='bold '+size+'px Consolas, monospace';ctx.fillStyle=cipher?'#a5e0da':'#e8a862';ctx.textAlign='left';
   ctx.fillText(title,x+pad,y+pad+lineH*.5);
   ctx.font=size*.92+'px Consolas, monospace';
   rows.forEach(([label,value,color],i)=>{
@@ -45,17 +45,18 @@
    ctx.fillStyle='#8fa4a6';ctx.textAlign='left';ctx.fillText(label,x+pad,ry);
    ctx.fillStyle=color||'#8fe3d7';ctx.textAlign='right';ctx.fillText(String(value),x+w-pad,ry);
   });
+  if(cipher){ctx.strokeStyle='#416263';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);}
   ctx.restore();
  }
- function draw(ctx,width,height,data={},time=0){
+ function draw(ctx,width,height,data={},time=0,cipher=false){
   if(!api.ready)return false;
   const L=layout(width,height);
   ctx.drawImage(image,L.x,L.y,SOURCE.width*L.scale,SOURCE.height*L.scale);
   const place=b=>({x:L.x+b.x*L.scale,y:L.y+b.y*L.scale,w:b.w*L.scale,h:b.h*L.scale});
   const short=v=>String(v||'').toUpperCase().slice(0,12);
-  readout(ctx,place(screens.ship),'SHIP',[['HULL',pct(data.hull)],['SHIELD',pct(data.shield)],['HEAT',pct(data.heat),(data.heat||0)>75?'#ef7b6e':'#e8a862']],time);
-  readout(ctx,place(screens.nav),'NAV',[['SPD',Math.round(data.speed||0)],['THR',pct((data.throttle||0)*100)]],time);
-  readout(ctx,place(screens.weapons),'WEAPONS',[['POWER',pct(data.power)],['MISSILES',data.missiles??0],['TARGET',short(data.target||'NONE'),'#e8a862']],time);
+  readout(ctx,place(screens.ship),cipher?'CIPHER / SHIP':'SHIP',[['HULL',pct(data.hull)],['SHIELD',pct(data.shield)],['HEAT',pct(data.heat),(data.heat||0)>75?'#ef7b6e':'#e8a862']],time,cipher);
+  readout(ctx,place(screens.nav),'NAV',[['SPD',Math.round(data.speed||0)],['THR',pct((data.throttle||0)*100)]],time,cipher);
+  readout(ctx,place(screens.weapons),'WEAPONS',[['POWER',pct(data.power)],['MISSILES',data.missiles??0],['TARGET',short(data.target||'NONE'),'#e8a862']],time,cipher);
   return true;
  }
  root.VoidCockpitOverlay=api;

@@ -6,7 +6,7 @@ async function pilot(p){for(let chunk=0;chunk<250;chunk++){
  const status=await p.evaluate(()=>{for(let i=0;i<80&&mode==='play';i++){
   const e=enemies.find(VoidStory.hostile),v=e&&flight.route.phase==='encounter'?e:flight.route.vector,lead=e&&flight.route.phase==='encounter'?FM.length(e)/VOID_BALANCE.laserProjectileSpeed:0;
   const x=v.x+(e?.velocity.x||0)*lead-flight.velocity.x*lead,y=v.y+(e?.velocity.y||0)*lead-flight.velocity.y*lead,z=v.z+(e?.velocity.z||0)*lead-flight.velocity.z*lead;
-  const yaw=Math.atan2(x,z),pitch=Math.atan2(y,Math.hypot(x,z));flight.mouseX=FM.clamp(Math.atan2(Math.sin(yaw-flight.yaw),Math.cos(yaw-flight.yaw))*3-flight.yawRate*.5,-1,1);flight.mouseY=FM.clamp((pitch-flight.pitch)*3-flight.pitchRate*.5,-1,1);firing=!!e;update(.04);
+  const yaw=Math.atan2(x,z),pitch=Math.atan2(y,Math.hypot(x,z));flight.mouseX=FM.clamp(Math.atan2(Math.sin(yaw-flight.yaw),Math.cos(yaw-flight.yaw))*3-flight.yawRate*.5,-1,1);flight.mouseY=FM.clamp((pitch-flight.pitch)*3-flight.pitchRate*.5,-1,1);firing=!!e;VoidInput.held[flight.route.phase==='align'?'add':'delete'](VoidInput.bindings.warp);update(.04);
  }draw();return mode;});
  if(status==='preparing-flight'){await p.waitForFunction(()=>mode!=='preparing-flight');continue;}if(status!=='play')return;
 }throw Error('Pilot did not finish');}

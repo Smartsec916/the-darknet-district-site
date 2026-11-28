@@ -781,8 +781,14 @@
       "pulse",
       "shield",
       "engine",
+      "ablative-laminate",
+      "warp-inducer",
       "warflying-module",
-      "warflying-scrambler"
+      "warflying-scrambler",
+      "cipher-pulse",
+      "cipher-thrusters",
+      "cipher-laminate",
+      "cipher-inducer"
     ],
     "locations": [
       "vesper",
@@ -19453,7 +19459,7 @@
         "show": null
       },
       "pulse": {
-        "name": "Focused pulse coils",
+        "name": "Helix Pulse Array",
         "show": null
       },
       "shield": {
@@ -19461,7 +19467,15 @@
         "show": null
       },
       "engine": {
-        "name": "Maneuvering vanes",
+        "name": "Vector-T Mk II Thruster Pack",
+        "show": null
+      },
+      "ablative-laminate": {
+        "name": "Bastion Ablative Laminate",
+        "show": null
+      },
+      "warp-inducer": {
+        "name": "Slipstream Warp Inducer",
         "show": null
       },
       "communion-scanner": {
@@ -19482,6 +19496,22 @@
       },
       "signal-tracker": {
         "name": "Signal Tracker",
+        "show": null
+      },
+      "cipher-pulse": {
+        "name": "Helix-C Pulse Array",
+        "show": null
+      },
+      "cipher-thrusters": {
+        "name": "Vector-C Mk III Thruster Pack",
+        "show": null
+      },
+      "cipher-laminate": {
+        "name": "Bastion-C Ceramic Laminate",
+        "show": null
+      },
+      "cipher-inducer": {
+        "name": "Slipstream-C Warp Inducer",
         "show": null
       },
       "wraith": {
@@ -61783,7 +61813,7 @@
       "spawn"
     ]
   },
-  "revision": "03f4185819569991",
+  "revision": "138700bb4587bb72",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81984,85 +82014,85 @@
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 110,
+      "line": 127,
       "text": "speechTimer, token = 0, voiceLine = null, voicePending = false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 125,
+      "line": 142,
       "text": "let studioMix = {master:1,music:1,effects:1,dialogue:1,ambient:1,cinematic:1,duck:.4};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 131,
+      "line": 148,
       "text": "target(buses.voice.gain, settings.voice * studioMix.dialogue);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 140,
+      "line": 157,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 142,
+      "line": 159,
       "text": "root.speechSynthesis?.cancel();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 374,
+      "line": 440,
       "text": "voices = (root.speechSynthesis?.getVoices() || []).filter(v => /^en(?:-|_)/i.test(v.lang)).sort((a,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 380,
+      "line": 446,
       "text": "root.speechSynthesis?.addEventListener?.('voiceschanged', refreshVoices);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 457,
+      "line": 523,
       "text": "if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return false;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 463,
+      "line": 529,
       "text": "speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, browserOnly, ordinary, key,placement); }, 1000);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 468,
+      "line": 534,
       "text": "const u = new root.SpeechSynthesisUtterance(text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 473,
+      "line": 539,
       "text": "u.volume = settings.master * studioMix.master * settings.voice * studioMix.dialogue * p.volume * (placement?.volume??1);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 480,
+      "line": 546,
       "text": "clearTimeout(speechTimer);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 484,
+      "line": 550,
       "text": "root.speechSynthesis.speak(u);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-audio.js",
-      "line": 485,
+      "line": 551,
       "text": "speechTimer = setTimeout(() => {",
       "kind": "source-reference"
     },
@@ -83605,7 +83635,7 @@
     {
       "source": "void-runner/world-integration.js",
       "line": 248,
-      "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
+      "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul><p class=\"fine\">Refit before taking the hotter lanes. Ship Outfitter carries upgraded pulse arrays, thrusters, hull armor and warp drives.</p>');",
       "kind": "source-reference"
     },
     {
@@ -83813,16 +83843,16 @@
     "void-runner/area-map.js": "900ee4fc782a339ccaee6393b3643f214869263c22657ac1cce7d7a64f89125d",
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "108e571b92048ba40c6feeb81b090f15ce1985c5b5240248faad069db1625d7f",
-    "void-runner/babylon-renderer.js": "c6d48603aaf4d300aa0fda1ae54bdd1fca99fb860caac380daa29609490f5d5a",
+    "void-runner/babylon-integration.js": "70cf5fada523baa2bb138e49b38730d0bc5afc79c5388fdc1283fd1ae8ba3a14",
+    "void-runner/babylon-renderer.js": "70090ee6361c2360124e1090d05fa34cdd5e7bafb071da67776eed682ec83f7e",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
-    "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
+    "void-runner/beginner.js": "b7a0e7b500706d75256d9703a46ea22b701094cf585ae0bc45222cf39dacf3e1",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "8a4ea5acdf6d64790befdcb242b9397f88b04911b68bd5832b2638aba6b5f17e",
-    "void-runner/campaign.js": "66a931be09b92248eb5cc316b849d9636cf0e9a1708fa64b3c6c4e089c8091f7",
+    "void-runner/campaign.js": "eb6742a1d83b3baf255f516a2b11a8bb717fde3ccc417fa7b5ef623024851eb6",
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "9537b3ac79687f7ae96d5a8520ac431fe0ba2c401cb25010763eadb6733bc19b",
     "void-runner/chance-encounter-editor.js": "46d683eae9dbf664a9ee9c76cd0e2afb4e58ada18b93cf54eba8ad1a93b75b8c",
@@ -83839,10 +83869,10 @@
     "void-runner/cinematic-presentation.js": "2dbeba72a9edb91ec379f3e4d5dd8fba8d7cf0170e939d35345cfbed55a7a76d",
     "void-runner/cinematic-project.js": "37f3e0b256ada78fba8f83427d65e2efc616e574b6629649405d203b5d6f5bce",
     "void-runner/cinematic-renderer.js": "ff6dc39e63eec6d2c459928a5ced3965bb2dd3cdf7b460dd22fc314235cf7940",
-    "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
+    "void-runner/cockpit-3d.js": "8c9051386e68dc866dd3e2f22bc1266611f41c00b311270a8e5e175001aad711",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
-    "void-runner/cockpit-overlay.js": "c0668e199fe366d0b7def0cdfd0008526870420d93779317980a8aaa0d8e30bc",
-    "void-runner/cockpit.js": "38e29eb95b9cc9cf00fda515c26c3067bc89f6bc5a4aa037e3ab764a2cf4e406",
+    "void-runner/cockpit-overlay.js": "694bce4b45adb528d561cd0006cd9dc4d49e217a134f96bb1559bd56cc8e8bf9",
+    "void-runner/cockpit.js": "b9a03c1a5c64abeaacc9cd536b412f2ba961ded243c25d4ec628e4d54f39aa96",
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "8a5b96a575cba8c867929a18c96209767a53bdd61e53e21f8af9b0596a96a743",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
@@ -83897,12 +83927,12 @@
     "void-runner/editor-home.js": "07c130f44d0b7650ef1812fba7222c0516d8fad471bf66e71d08464c4cc44523",
     "void-runner/editor-session.js": "2b4ad761afad673cbb3e3f375b4c748a5fa6bfbf23eb7855717c5671674bdcff",
     "void-runner/editor-wizard.js": "625bb24baeb9a101c810edb2cc612f07a7b89faec8c45bebe1136f70ed3de218",
-    "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
+    "void-runner/enemy-pilots.js": "22bc12f06c898322afa52dba77976ecf1be07a2ad62afc098a5398274bf18de6",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/equipment-profiles.js": "750a69177ca9e62a1c8213e47af2ea5ce61214ae14de9b20c688d719028bc7a2",
     "void-runner/equipment-studio.js": "d8e835d4b4bf141a327f649f0d5818d655b3983c2f25d9a4a26bf7191fb8438b",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
-    "void-runner/expansion.js": "e7064d9228b8d9912440e6dd144a723f027ffaef8d08503955a7206751ea3cbd",
+    "void-runner/expansion.js": "7e1b2af1a7bf64ae417ed6a139647020b314a13d5dbab2a56b5aa1a30ca0f5c8",
     "void-runner/exploration-controller.js": "cde77eeedb5d2f25cf7a13da7622c3c272208bad25423d795104871567d0de44",
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
@@ -83911,35 +83941,35 @@
     "void-runner/factions.js": "f7328ffb89f28c2579613d502da7c7572491f3b26d3f1511e1cd0781680c568e",
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-fx.js": "a39f921f115b6e0ec2830ed4a4b4dd150428654b6d5022b4ecadcfcd56bd8b97",
-    "void-runner/flight-hud.js": "aaa74c9d9960fd6267d0c081d247b9cc875a122f40ad553752ad3940ff9f189a",
+    "void-runner/flight-hud.js": "653ade17a4c1d4362e7a8c0661357d88a2b9c15f9c0700eae4121eb82513d060",
     "void-runner/flight-nav.js": "f570e3bfc8a384c70a72d57ba808d54628f12914cee7e4129ac3f8863fca6eaa",
     "void-runner/flight-physics.js": "b996699897bb5197930c37c4e397b701b0b1ee028f9b00d474137b7e4a40a40c",
-    "void-runner/flight-presentation.js": "5c7772fdbf1e4dff9539c8ac30fbb3220f0cc3964751457003a323089d1609d2",
+    "void-runner/flight-presentation.js": "ba550683eb0f4573133a3f7f689e1a333db50c99d85e62034302efdbb3f0cf3c",
     "void-runner/flight-runtime-integration.js": "f2afb02e6cd1c98868de7276202ffe4f7ece0e54ba34e98ad5864abc442d44de",
     "void-runner/flight-runtime.js": "8fa697c7a0be1e670c21009fd995974f4c790802f1328372a44a08589cf39784",
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
-    "void-runner/flight-sfx.js": "6106d3ebb07b01899f2a6893ede74e6b3ae177595063b86c3b360cae8de01110",
-    "void-runner/flight-skirmish.js": "942bdfd16824ad0609daf15ddd6fee69a398087290e2b719805fdddef4f1bc7f",
+    "void-runner/flight-sfx.js": "9a2ab93df696b792a6a68f2f3a24ef88f5378e4bb575b81ec92595609a9f3aa2",
+    "void-runner/flight-skirmish.js": "1c94b08616df52404e81bf975808ee98c45b593a5378fedfafc41254988e9a32",
     "void-runner/footsteps.js": "5caeb3f07017f1a72a1c91633de003f601104c9997862691e6b8b262ce1ff137",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
-    "void-runner/game.js": "600ab5014edde3fc0591d9b6ccdc02c52eb4938d6c8743d2826ed4685ef43738",
+    "void-runner/game.js": "6316fb5be4ee7f512f6179b73d70dfa8e35c8ac23e44337f3cec4b4a71e7f260",
     "void-runner/glb-downsizer.js": "b306d69bdbcb49713e9f6ee4eb2f8ae640c6962a492ac8ddfad23121d33df507",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/guide-route.js": "db25a16dadf6c3ee3d43f311417c6eba988fedf137c6580e6a396c1ef31bdf60",
-    "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
+    "void-runner/hangar.js": "8ceb40058d57a9eca0ae79632472ec0414928a0c5a12d38ad5f506feba31349e",
     "void-runner/homeworld-scenes.js": "5463d4ea8c97fd9db8ce8a47e10d0fd2bcceacf68c64866fd6da2aba960e9312",
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input-state.js": "a23678db556ddd72bd96529802ba8b1ac3c26ff3379230287fb2416b97f33f67",
-    "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
+    "void-runner/input.js": "8ae0e2231d5729f0ad34fa9186f9242e998bd6f5322c147d1f7f18a607721f74",
     "void-runner/iris-ambient-game.js": "0d5aebb7a85b51c498d93da76aff709e68b5c0bea0ff5e7ad85c24ede0d7b262",
     "void-runner/iris-ambient.js": "16511ad99d7048da56193dd1a1e9ebc7c50ab4004ca562e919e406cb60660982",
     "void-runner/item-catalog-editor.js": "e205a69c12971d130d7cfec31e2cb8b413c0f9f3967522b4044431714d830180",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
-    "void-runner/keymap.js": "e4cafb23fff11fc52f92fd19627f02bfcbd7ef93f2fb29e81d50650f51d40ac8",
+    "void-runner/keymap.js": "1b238b52482147a86ef7cc85c09166d4502c07c576699552268d831ee9115d22",
     "void-runner/live-content.js": "55a767e74069e0f19b224d0e87dd7cfbe40a8a41aa800537e18a1279d640e20a",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
@@ -84029,7 +84059,7 @@
     "void-runner/npc-voice-batch.js": "1f66e826803f0f29c350554daa1c6ccf7a26a8f424d7945f229835c823755064",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
     "void-runner/opening-data.js": "8ef1829d16836708014d2dfe5e4c7e04e961d9f0e296d86d81e7615fba298860",
-    "void-runner/opening-scene.js": "90f20c75cfbca0519c8da4370b8453e0e1b24a216118766b559ca79749ab0554",
+    "void-runner/opening-scene.js": "a7154626bc686cab0f619735d9eed493d12a1e3c67ae1e55f32e929c66b8c623",
     "void-runner/ordnance.js": "058611efdb6a6db1ea6a10da24c0362207cc447c29c47642c61c58eac236b8f3",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
     "void-runner/personal-device.js": "22ae17214a0a7951300b71908da1853bc7fd64eae73ac34e2ba40989938f05e1",
@@ -84043,10 +84073,10 @@
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
     "void-runner/pod-playlist.js": "551f33d389b5090865394f22b1607761e72e711cdc5625e822a60b96f0fb77c1",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
-    "void-runner/police-patrols.js": "46cc6fb8c4726e80b117f11d4c197778a0c1523a361c2aa34524f8601252f603",
+    "void-runner/police-patrols.js": "57614ddd295db94f323c7dca1674392443cf43441c1c57d638b9aacc05064e1b",
     "void-runner/preparation.js": "488475633495762419719b2875b689feb9d29cf9db45239de74b34d04787c407",
-    "void-runner/progression.js": "0e22e448e979d5ebc686b0a2f300dd9641a35812504d608c18be36f50061b65a",
-    "void-runner/prologue-integration.js": "49f45893364900d8dfe90ef224670493ab00cfc4199e5c25bdf9a3ba428c398d",
+    "void-runner/progression.js": "0e44e4f6750f19850f410e70101fbb579ef05796093bcf4f9fb33bbe2260aa35",
+    "void-runner/prologue-integration.js": "996cfe64c109d91c2dd6ec4c25989d8c72b81921b0d614145287241de09e7cf7",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
@@ -84056,18 +84086,18 @@
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "4e386484bda8d6b5297320510c2fd1183f88e71a46c904c6fce8251bed38e1b6",
     "void-runner/rook-cargo-gen.js": "b6358f40ce2edc114354779615409ac917dcdd989c57231399029a1f8fdaeea6",
-    "void-runner/rook-cargo-jobs.js": "f30c0cfdc11e88795e202e2a3a27d13f2d3ce525d6cd5482f25813bc7b5d310d",
+    "void-runner/rook-cargo-jobs.js": "6afec0df0fe5ca1e53e5525d931acd19bd17c2e4cd58ed5da648692d663f58cc",
     "void-runner/scenes.js": "efd33ee10d50465473760cf9d6b93e620d36b3d9a892d2945b24f4aba6d83bb7",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/shared-activities.js": "9e55cf50935747ccb18878eb8ee429c6a00e7b0b3f4266a919ba1f847631b33b",
     "void-runner/shared-rig.js": "ed6a486e5c700a37ce9c1ade441724795c0336d9d5815c0425cb9186023285a0",
-    "void-runner/ship-audio.js": "5ef30c299d02e4771755016bc5775e11a1b32c6dfe6d0fb486cd53cb79f78db6",
-    "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",
-    "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
+    "void-runner/ship-audio.js": "721ef38f2d266f72b4e56faf7f4256e152243e055e68bc8415b709ddffcf25df",
+    "void-runner/ship-loadout.js": "105f0b474a6d5d286fde1b1e62a1684ab3e09231fc5b42cb3f94034f7f5a8653",
+    "void-runner/ships.js": "33d74147ff088df45b50ef2b7e204f7a7cb7b68786913a159b843766d1062466",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
-    "void-runner/skirmish.js": "f8446088784856e81db46395cd22abb3e43174f8dfdcb6a068d4fad2b267f8b8",
+    "void-runner/skirmish.js": "8a6df86dabcb5f9aaa5a3f7a1a9e2935eb8bdf6685574478417ec31c2cbc04a4",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/sound-studio-editor.js": "18382f9f26e4641af878e9436a2a668f8129ccca1bd32e2daf72654fbdcb4b04",
     "void-runner/sound-studio-runtime.js": "ba33b36960a6d69821ec8895ef9eafe7b0109244894a6ed12dfa4025ed9877d2",
@@ -84091,9 +84121,9 @@
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/transition-veil.js": "938f6bd0388fae6ae52e6b13f025788848d1bec34b7417ebd5b5e8d02ffcdec0",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
-    "void-runner/unified-controls.js": "142b5efb80a9185206f007bcb18f2e006defa805ed3194e5ee754b72bd660da8",
+    "void-runner/unified-controls.js": "c7265b9dc46a7cb0cc7daa7df532165a5fc60d8ac59dde620be1643696422223",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
-    "void-runner/universe.js": "21853b2a7ca50512d33be6ae16cd835638e3fd1e224e401667a6024c67e2f0d6",
+    "void-runner/universe.js": "a90c436d5eba3b8578d529673ef182e8d3afe218a2f4c9518b099973911b377d",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
     "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",
@@ -84120,14 +84150,14 @@
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
-    "void-runner/warp.js": "9252ef8b98dc7c4f26ee12dac1189301e466ed90a67565d12b12aa6995713232",
-    "void-runner/world-integration.js": "601b6792e79a9685c8684f059924984dbb14f7e794d325c53b70f3b588b570fd",
+    "void-runner/warp.js": "30a496179b35d37bad45564db4f8f2fadd59cc4bb23a18ef1db279f4257b7cfc",
+    "void-runner/world-integration.js": "c3da83bf699ea349efe9d66cfd931623bced929d80544bf927a304929b3e01a1",
     "void-runner/world-map-editor.js": "4b0deda894157c00d8945f40cc901d0a9c2c7710474194c87accd34d734dd613",
     "void-runner/world-markers.js": "65ce71e34220ac5640678aa939c595b5233bd9a353a4ca58e1d758f30955d2c4",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",
-    "void-runner/zone-integration.js": "c80c8d9579134489e1b469ad7d727cca22b17d1e8a91e4af50345043d09c90a8",
+    "void-runner/zone-integration.js": "25f9be857aa4751d97a5a61e44e4921436a99f8dece0799eadd492d8e5c66e1a",
     "void-runner/zones.js": "d5b1201f90f4a4edbcab30e2408061df4ff8b331e7c40ead1e3c79c9bae3ccc5",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
     "tools/admin-inventory.cjs": "4cba225b1c4a56bfa9ed659f9ed0dfc80028442615992ebecb43aa997c6b352a",

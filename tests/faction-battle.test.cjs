@@ -66,5 +66,5 @@ test('after the drop the drive recharges before the jump can resume, whatever th
   const W=require('../void-runner/warp.js'),s=district();C.acceptFaction(s,'communion');const route=W.create('earth','vigil','communion-delivery');
   route.phase='warp';route.progress=.55;B.begin(s,route,'communion');const ahead=route.vector;
   for(let t=0;t<B.config.rechargeSeconds-.3;t+=.25)W.step(route,.25,ahead);assert.equal(route.phase,'align');
-  for(let t=0;t<2;t+=.25)W.step(route,.25,ahead);assert.equal(route.phase,'warp');assert(route.progress>=.5&&route.progress<.6,'resumes from the drop point');
+  for(let t=0;t<3.75;t+=.25)W.step(route,.25,ahead,false,{held:true});assert.equal(route.phase,'warp');assert(route.progress>=.5&&route.progress<.6,'resumes from the drop point');
 });
