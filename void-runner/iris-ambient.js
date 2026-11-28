@@ -2,7 +2,7 @@
    "now and then" over Comms in fitting situations. Each has a recorded clip (assets/audio/voice/extra/iris-bark-*.ogg, speaker 'iris', the exact text below).
    - The words are the owner's, verbatim. Do not edit them: a clip is found by speaker + exact text (voice-clips.js), and tests/iris-ambient.test.cjs checks every one.
    - Never while anything else is going on (a conversation, a call, a cutscene, a camera feed, another voice line, a menu): `busy` skips; nothing is queued.
-   - Never in combat; the quiet lines (wait, jokes, store) never in a hostile zone either. Only once the player has Iris as a contact. Not in draft play-tests.
+   - Automatic remarks only play during an access-point hack or the BR-04 wait. Only once the player has Iris as a contact.
    - THE BR-04 GAP (the owner, 21 Nov 2026: the gap between finishing Mission 009 and BR-04 coming online for Mission 010 "is supposed to be filled by Iris"): about
      25 s after 009 ends the wait line, then a shorter cooldown so she says a few more (jokes, the store line if it has not played this session), no line twice; it stops
      the moment Mission 010 arrives.
@@ -27,68 +27,46 @@
  const TUNING={
   globalCooldown:210,     // between any two ambient lines (3.5 min)
   lineCooldown:1500,      // the same line again (25 min)
-  quietCooldown:420,      // between two quiet lines (jokes, the store line): 7 min
-  calmFor:60,             // jokes and the store line: this long with no hack, sneak, combat, call, conversation or other voice first
   hackMinHold:8,          // hack lines only on hacks this long or longer
   hackFrom:.42,hackTo:.72,// ... once, somewhere between these fractions of the hack (around the middle)
-  sneakNear:8,            // metres: a guard this close who has not seen the player (once per visit to the sneak area)
-  spottedDelay:4,spottedWithin:30, // after SPOTTED: once the player is back outside, this many seconds later; given up after spottedWithin
-  waitDelay:25,           // a mission step waiting on game time: the wait line this long after the wait starts (once per wait)
-  storeAfter:600,         // the store line not in the first 10 min of a session; at most once per session
-  storeChance:.34,        // a quiet slot picks the store line with this chance (while it has not played)
+  storeChance:.34,        // a BR-04 slot picks the store line with this chance (while it has not played)
   gapFirst:25,            // the BR-04 gap: the wait line this long after Mission 009 ends
   gapCooldown:70,         // ... then a line about every 70 s (instead of globalCooldown)
   gapCalm:10              // ... each needing this long of calm
  };
  const BY=Object.fromEntries(LINES.map(l=>[l.id,l]));
  const of=cat=>LINES.filter(l=>l.cat===cat);
- function create(now=0){return {start:now,lastAny:-Infinity,lastQuiet:-Infinity,last:{},storeDone:false,hacks:new Set(),sneaks:new Set(),waits:{},spottedAt:null,calmSince:now,gap:null,log:[]};}
- // the 'spotted' moment (mission-mechanics-game.js seenCheck): the line follows once the player is back outside
- function spotted(st,now){st.spottedAt=now;}
+ function create(now=0){return {start:now,lastAny:-Infinity,last:{},storeDone:false,hacks:new Set(),calmSince:now,gap:null,log:[]};}
  const ready=(st,l,now,T)=>now-(st.last[l.id]??-Infinity)>=T.lineCooldown;
  function choose(list,rnd){return list.length?list[Math.min(list.length-1,Math.floor(rnd()*list.length))]:null;}
- function commit(st,l,now,quiet){st.lastAny=now;st.last[l.id]=now;if(quiet)st.lastQuiet=now;if(l.cat==='store')st.storeDone=true;st.log.push({id:l.id,at:now});if(st.log.length>40)st.log.shift();}
+ function commit(st,l,now){st.lastAny=now;st.last[l.id]=now;if(l.cat==='store')st.storeDone=true;st.log.push({id:l.id,at:now});if(st.log.length>40)st.log.shift();}
  /* One check (about twice a second). now: seconds. ctx:
       enabled (the player's "Iris chatter" setting and the developer switch), contact (Iris is a contact), busy (conversation, call, cutscene, feed, voice, menu, dev play-test),
-      combat (an armed person is after the player), hostile (a hostile zone), mission (a mission is in progress), voice (voice on: the clip plays; off: the words only),
-      hack {key, hold, t} (a hack running), sneak {visit, guardNear, seen} (a sneak step in progress inside its location), wait {key} (a step waiting on game time),
+      combat (an armed person is after the player), hostile (a hostile zone), voice (voice on: the clip plays; off: the words only),
+      hack {key, hold, t} (a hack running),
       gap (the BR-04 gap: Mission 009 done, Mission 010 not yet here).
     Returns null or {id, cat, text, speak} (already recorded: say it now). */
  function decide(st,ctx={},now=0,opt={}){
   const T={...TUNING,...(opt.tuning||{})},rnd=opt.random||Math.random;
-  const tense=!!(ctx.busy||ctx.combat||ctx.hack||(ctx.sneak&&ctx.sneak.guardNear));if(tense)st.calmSince=now;
+  const tense=!!(ctx.busy||ctx.combat||ctx.hack);if(tense)st.calmSince=now;
   if(!ctx.gap)st.gap=null;else if(!st.gap)st.gap={since:now,used:new Set(),waitDone:false};
-  if(st.spottedAt!=null&&now-st.spottedAt>T.spottedWithin)st.spottedAt=null;
   if(!ctx.enabled||!ctx.contact||ctx.busy||ctx.combat)return null;
-  const out=(l,quiet)=>{commit(st,l,now,quiet);if(st.gap)st.gap.used.add(l.id);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};};
+  const out=l=>{commit(st,l,now);if(st.gap)st.gap.used.add(l.id);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};};
   const cool=now-st.lastAny>=T.globalCooldown;
-  // SPOTTED: the player is back outside to try again
-  if(st.spottedAt!=null&&now-st.spottedAt>=T.spottedDelay&&!ctx.hack){st.spottedAt=null;const l=of('spotted').find(x=>ready(st,x,now,T));if(cool&&l)return out(l);}
   // a hack of hackMinHold s or more: one line around the middle
   if(ctx.hack){const h=ctx.hack,f=h.hold>0?h.t/h.hold:0;if(h.hold>=T.hackMinHold&&!st.hacks.has(h.key)&&f>=T.hackFrom&&f<=T.hackTo){st.hacks.add(h.key);const l=choose(of('hack').filter(x=>ready(st,x,now,T)),rnd);if(cool&&l)return out(l);}return null;}
-  // a guard near who has not seen the player: once per visit
-  if(ctx.sneak&&ctx.sneak.guardNear){if(!ctx.sneak.seen&&!st.sneaks.has(ctx.sneak.visit)){st.sneaks.add(ctx.sneak.visit);const l=choose(of('sneak').filter(x=>ready(st,x,now,T)),rnd);if(cool&&l)return out(l);}return null;}
-  if(ctx.sneak||ctx.hostile)return null;   // the quiet lines: never inside a sneak area or a hostile zone
+  if(!st.gap||ctx.hostile)return null;
   const calm=now-st.calmSince;
   // THE BR-04 GAP: Iris fills it
-  if(st.gap){const g=st.gap,wait=of('wait')[0];
-   if(!g.waitDone){if(now-g.since>=T.gapFirst&&calm>=Math.min(T.gapCalm,now-g.since)){g.waitDone=true;return out(wait,true);}return null;}
-   if(now-st.lastAny<T.gapCooldown||calm<T.gapCalm)return null;
-   const pool=LINES.filter(l=>(l.cat==='joke'||(l.cat==='store'&&!st.storeDone))&&!g.used.has(l.id)&&ready(st,l,now,T));
-   const store=pool.filter(l=>l.cat==='store'),jokes=pool.filter(l=>l.cat==='joke');
-   const l=store.length&&(!jokes.length||rnd()<T.storeChance)?choose(store,rnd):choose(jokes,rnd);return l?out(l,true):null;}
-  if(ctx.wait&&ctx.wait.key&&st.waits[ctx.wait.key]==null)st.waits[ctx.wait.key]=now;
-  if(!cool)return null;
-  // a step waiting on game time
-  if(ctx.wait&&ctx.wait.key){const w=st.waits[ctx.wait.key];if(now-w>=T.waitDelay&&w!==-1){st.waits[ctx.wait.key]=-1;const l=of('wait').find(x=>ready(st,x,now,T));if(l)return out(l,true);}return null;}
-  // quiet moments: jokes during a mission, the store line once a session
-  if(calm<T.calmFor||now-st.lastQuiet<T.quietCooldown)return null;
-  const storeOk=!st.storeDone&&now-st.start>=T.storeAfter,stores=storeOk?of('store').filter(x=>ready(st,x,now,T)):[],jokes=ctx.mission?of('joke').filter(x=>ready(st,x,now,T)):[];
-  const l=stores.length&&(!jokes.length||rnd()<T.storeChance)?choose(stores,rnd):choose(jokes,rnd);
-  return l?out(l,true):null;
+  const g=st.gap,wait=of('wait')[0];
+  if(!g.waitDone){if(now-g.since>=T.gapFirst&&calm>=Math.min(T.gapCalm,now-g.since)){g.waitDone=true;return out(wait);}return null;}
+  if(now-st.lastAny<T.gapCooldown||calm<T.gapCalm)return null;
+  const pool=LINES.filter(l=>(l.cat==='joke'||(l.cat==='store'&&!st.storeDone))&&!g.used.has(l.id)&&ready(st,l,now,T));
+  const store=pool.filter(l=>l.cat==='store'),jokes=pool.filter(l=>l.cat==='joke');
+  const l=store.length&&(!jokes.length||rnd()<T.storeChance)?choose(store,rnd):choose(jokes,rnd);return l?out(l):null;
  }
  /* Force one line of a kind (Developer Tools: TRY): only the busy rule still applies. */
- function force(st,cat,ctx={},now=0,opt={}){if(ctx.busy)return null;const rnd=opt.random||Math.random,l=choose(of(cat),rnd);if(!l)return null;commit(st,l,now,cat==='joke'||cat==='store');return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};}
- const api={LINES,TUNING,BY,of,create,decide,spotted,force,SPEAKER:'iris',MISSION_009:'m009-ghost-in-the-network',MISSION_010:'m010-the-price-of-admission'};
+ function force(st,cat,ctx={},now=0,opt={}){if(ctx.busy)return null;const rnd=opt.random||Math.random,l=choose(of(cat),rnd);if(!l)return null;commit(st,l,now);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};}
+ const api={LINES,TUNING,BY,of,create,decide,force,SPEAKER:'iris',MISSION_009:'m009-ghost-in-the-network',MISSION_010:'m010-the-price-of-admission'};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidIrisAmbientRules=api;
 })(globalThis);

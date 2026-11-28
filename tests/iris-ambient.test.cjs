@@ -31,33 +31,15 @@ test('a hack of 8 s or more: one line around the middle, never on a short hack',
 test('the global and per-line cooldowns',()=>{
  const s=R.create(0);const a=R.decide(s,{...base,hack:{key:'a',hold:10,t:5}},1000,{random:first});assert.equal(a.id,'iris-bark-hack-1');
  const b=R.decide(s,{...base,hack:{key:'b',hold:10,t:5}},1000+T.globalCooldown,{random:first});assert.notEqual(b.id,a.id,'the same line does not come back soon');
- // only one sneak line left ready after both are used? per-line cooldown blocks a line, then frees it
- const s2=R.create(0);R.decide(s2,{...base,sneak:{visit:'v1',guardNear:true,seen:false}},500,{random:first});
- R.decide(s2,{...base,sneak:{visit:'v2',guardNear:true,seen:false}},500+T.globalCooldown,{random:first});
- assert.equal(R.decide(s2,{...base,sneak:{visit:'v3',guardNear:true,seen:false}},500+2*T.globalCooldown,{random:first}),null,'both sneak lines on their cooldown');
- assert.ok(R.decide(s2,{...base,sneak:{visit:'v4',guardNear:true,seen:false}},500+T.lineCooldown+1,{random:first}));
+
 });
 
-test('sneak: once per visit, only while the guard has not seen the player',()=>{
- const s=R.create(0);
- assert.equal(R.decide(s,{...base,sneak:{visit:'v',guardNear:true,seen:true}},300),null);
- assert.equal(R.decide(s,{...base,sneak:{visit:'v',guardNear:true,seen:false}},301)?.cat,'sneak');
- assert.equal(R.decide(s,{...base,sneak:{visit:'v',guardNear:true,seen:false}},301+T.globalCooldown),null,'the same visit');
- assert.equal(R.decide(s,{...base,sneak:{visit:'v',guardNear:false}},301+T.globalCooldown+T.calmFor+T.quietCooldown),null,'no quiet lines inside a sneak area');
-});
 
-test('spotted: a few seconds after SPOTTED, once',()=>{
- const base={...BASE,mission:false};const s=R.create(0);R.spotted(s,500);
- assert.equal(R.decide(s,base,501),null);
- assert.equal(R.decide(s,base,500+T.spottedDelay)?.id,'iris-bark-spotted-1');
- assert.equal(R.decide(s,base,500+T.spottedDelay+1),null);
- const s2=R.create(0);R.spotted(s2,500);assert.equal(R.decide(s2,base,500+T.spottedWithin+1),null,'too late: given up');
-});
 
 test('never while busy, in combat, without Iris as a contact, or switched off; nothing is queued',()=>{
- for(const k of [{busy:true},{combat:true},{contact:false},{enabled:false}]){const s=R.create(0);R.spotted(s,0);
+ for(const k of [{busy:true},{combat:true},{contact:false},{enabled:false}]){const s=R.create(0);
   assert.equal(R.decide(s,{...base,...k,hack:{key:'h',hold:10,t:5}},300),null,JSON.stringify(k));
-  assert.equal(R.decide(s,{...base,...k},300+T.spottedDelay),null);}
+  assert.equal(R.decide(s,{...base,...k},600),null);}
  const s=R.create(0);assert.equal(R.decide(s,{...base,busy:true,hack:{key:'h',hold:10,t:5}},300),null);
  assert.equal(R.decide(s,{...base,hack:{key:'h',hold:10,t:9}},301),null,'past the middle: skipped, not queued');
  assert.equal(R.force(R.create(0),'joke',{busy:true}),null,'a preview waits for nothing either');
@@ -68,24 +50,16 @@ test('voice off: the line still shows (speak false)',()=>{
  assert.equal(R.decide(R.create(0),{...base,hack:{key:'h',hold:10,t:5}},300).speak,true);
 });
 
-test('quiet lines: jokes need a mission and 60 s of calm; the store line at most once per session',()=>{
- const s=R.create(0);
- assert.equal(R.decide(s,{...base,mission:false},T.calmFor+1),null,'no mission, the store line not yet due');
- assert.equal(R.decide(s,{...base,hostile:true},T.calmFor+1),null,'a hostile zone');
- assert.equal(R.decide(s,base,T.calmFor+1)?.cat,'joke');
- // tense moments reset the calm
- const s2=R.create(0);R.decide(s2,{...base,busy:true},50);assert.equal(R.decide(s2,base,100),null);assert.equal(R.decide(s2,base,50+T.calmFor)?.cat,'joke');
- // the store line: after storeAfter, once
- const s3=R.create(0),pick=()=>0;let stores=0;
- for(let t=T.storeAfter;t<T.storeAfter+20000;t+=5){const l=R.decide(s3,{...base,mission:false},t,{random:pick});if(l&&l.cat==='store')stores++;}
- assert.equal(stores,1);assert.equal(s3.storeDone,true);
-});
 
-test('a wait on game time: the wait line once, waitDelay after it starts',()=>{
+
+test('automatic chatter stays quiet outside hacking and BR-04',()=>{
  const s=R.create(0);
- assert.equal(R.decide(s,{...base,wait:{key:'m/w'}},1000),null);
- assert.equal(R.decide(s,{...base,wait:{key:'m/w'}},1000+T.waitDelay)?.id,'iris-bark-wait-1');
- assert.equal(R.decide(s,{...base,wait:{key:'m/w'}},1000+T.waitDelay+T.globalCooldown),null,'once per wait');
+ for(let t=0;t<7200;t+=.5){
+  assert.equal(R.decide(s,{...base,sneak:{visit:'guard',guardNear:true},wait:{key:'other-mission'}},t),null);
+  assert.equal(R.decide(s,{...base,mission:t<3600},t),null);
+ }
+ assert.deepEqual(s.log,[]);
+ assert.equal(R.force(s,'sneak',base,7200)?.cat,'sneak','approved recordings remain available in Dev Tools');
 });
 
 test('the BR-04 gap: the wait line about 25 s after Mission 009, then a line about every 70 s, no repeats, stops when Mission 010 arrives',()=>{
@@ -109,11 +83,10 @@ test('the BR-04 gap: the wait line about 25 s after Mission 009, then a line abo
  const s5=R.create(0);s5.storeDone=true;const ids=[];for(let x=0;x<600;x+=.5){const y=R.decide(s5,{...base,gap:true},x);if(y)ids.push(y.cat);}assert.ok(!ids.includes('store'));
 });
 
-test('the game wiring: loaded in order, the SPOTTED hook, the switches, the build',()=>{
+test('the game wiring: loaded in order, the switches, the build',()=>{
  const html=read('void-runner.html');assert.equal(html,read('static/void-runner.html'));
  const a=html.indexOf('void-runner/iris-ambient.js'),b=html.indexOf('void-runner/iris-ambient-game.js'),d=html.indexOf('void-runner/dev-test.js'),m=html.indexOf('void-runner/mission-mechanics-game.js');
  assert.ok(m>0&&d>m&&a>d&&b>a&&html.indexOf('void-runner/bootstrap.js')>b);
- assert.match(read('void-runner/mission-mechanics-game.js'),/SPOTTED · Security saw you[^\n]*VoidIrisAmbient\?\.spotted\?\.\(\)/);
  const g=read('void-runner/iris-ambient-game.js');assert.match(g,/IRIS CHATTER/);assert.match(g,/data-iris-dev/);assert.match(g,/VoidDevTest\?\.active/);assert.match(g,/VoidApartments\?\.hacking/);
  assert.match(read('void-runner-sw.js').split('\n')[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';\r?$/);
  assert.doesNotMatch(g,/localStorage\.setItem\([^)]*state/,'nothing saved with the campaign');
