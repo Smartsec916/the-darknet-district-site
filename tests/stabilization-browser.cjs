@@ -320,7 +320,8 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  await page.evaluate(()=>{globalThis.doorwayFixtureUser=VoidAccount.user;VoidAccount.user={uid:'offline-doorway-fixture',isAnonymous:true,getIdToken:async()=> 'offline-fixture'};});
  try{
   const route=await page.evaluate(()=>{
-   const A=VoidNPCAreas,area='oldtown',opts={made:true,adult:true};
+   // Match the proven public-pavement passing-only regression fixture.
+   const A=VoidNPCAreas,area='oldtown',opts={made:true,adult:false};
    const legal=(p,passing=false)=>{const c=A.check(p,area,passing?A.CLEAR-.1:undefined,{...opts,passing});return c.ok&&c.area===area;};
    for(let i=517;i<=524;i++){
     const x=i/10,from={x,z:-63},home={x,z:-54};
@@ -334,7 +335,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
   await settled();
   const accepted=await page.evaluate(({id,home})=>{
    const content={format:'darknet-district-mission-content',version:1,
-    characters:{[id]:{name:'Doorway return test walker',model:'npc-casual-m',adult:true}},
+    characters:{[id]:{name:'Doorway return test walker',model:'npc-casual-m',adult:false}},
     npcs:{[id]:{mode:'stay',...home,yaw:0,actions:['idle'],tier:1}}};
    const ok=VoidLiveContent.use(content,'published',1);VoidLiveContent.replan();
    return {ok,refused:VoidLiveContent.current.refused};
@@ -346,7 +347,7 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
    const legal=(p,passing=false)=>{const c=A.check(p,area,passing?A.CLEAR-.1:undefined,{...opts,passing});return c.ok&&c.area===area;};
    const pos=()=>({x:actor.s.x,z:actor.s.z}),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
    made.tick(.05);
-   if(actor.plan?.area!==area||dist(actor.plan,home)>.03||!legal(from))throw Error('invalid mounted doorway routine');
+   if(opts.adult||actor.plan?.area!==area||dist(actor.plan,home)>.03||!legal(from))throw Error('invalid mounted doorway routine or fixture eligibility');
    Object.assign(actor.s,from);actor.node.position.x=from.x;actor.node.position.z=from.z;
    actor.returnJourney={area,driver:VoidNPCReturn.createMountedReturn()};
    let maxStep=0,blocked=0;
