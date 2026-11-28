@@ -89,8 +89,14 @@
   if(!start||!target||origin===destination)return null;
   if(start.system===target.system)return {origin:start,target,exit:null,entry:null};
   const from=chart.systems[start.system],to=chart.systems[target.system];
+  // Parallel approaches to the same corridor keep its bearing reciprocal from
+  // anywhere in the system. The exit is where that approach meets the boundary.
   const axis=to.center.map((v,i)=>v-from.center[i]),distance=Math.hypot(...axis);
-  const exit={system:start.system,position:axis.map(v=>v*from.radius/distance)};
+  const heading=axis.map(v=>v/distance);
+  const projection=start.position.reduce((sum,v,i)=>sum+v*heading[i],0);
+  const across=start.position.reduce((sum,v)=>sum+v*v,0)-projection*projection;
+  const length=Math.sqrt(from.radius*from.radius-across)-projection;
+  const exit={system:start.system,position:start.position.map((v,i)=>v+heading[i]*length)};
   const entry=chartPoint(systems[target.system].arrival);
   return {origin:start,target:exit,exit,entry};
  }

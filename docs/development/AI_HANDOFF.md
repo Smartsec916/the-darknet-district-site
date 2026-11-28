@@ -2,7 +2,7 @@
 
 ## 28 Nov 2026 — Fixed universe navigation model
 
-The owner’s sketch was an example of system volumes and connecting routes. The current draft puts each system in a fixed chart and each port, pad, arrival beacon and Relay T-07 at a stable local position. Interstellar markers point toward the exit on the origin system’s boundary and arrive at the destination’s established beacon. The cockpit and V1 Map use the same bearing calculation. The V1 displays bearing and elevation. Surface launches retain the minimum sky clearance. Chart placements and scales are tuning values. Existing access, travel times and save IDs still apply.
+The owner’s sketch was an example of system volumes and connecting routes. The chart gives each system, port, pad, arrival beacon and Relay T-07 a stable position. Each interstellar corridor uses the axis between system centers, with opposite headings in each direction. The departure ray meets the origin system’s boundary and the route arrives at the destination’s established beacon. The cockpit and V1 Map share the bearing and elevation calculation. Surface departures retain an 18° minimum climb, so their displayed elevation can differ from the geometric reverse. Chart placements and scales are tuning values. Existing access, travel times and save IDs still apply.
 
 ## 28 Nov 2026 — Relay T-07 on the Tessaly freight lane
 

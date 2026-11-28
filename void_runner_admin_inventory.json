@@ -61813,7 +61813,7 @@
       "spawn"
     ]
   },
-  "revision": "d30cb24c017ecbf5",
+  "revision": "db67d7e1394f7271",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -84123,7 +84123,7 @@
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
     "void-runner/unified-controls.js": "c7265b9dc46a7cb0cc7daa7df532165a5fc60d8ac59dde620be1643696422223",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
-    "void-runner/universe.js": "9ba15a370340371081a7087830e58b9b0e91906ce870196585d8e9c80d4df4db",
+    "void-runner/universe.js": "68ac4798101aecd966082aee49089ef0c9566c9f1b3c6ad8ee5f1b5ace0bf9b7",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vantor.js": "6034b0513aac9856a8e8ad433a78f623ba8e4692c41c0104961c360bed907c0d",
     "void-runner/vehicle-rules.js": "c101b9c7869b167adf7ee9f0ceb35144d13bdff6929b485b0ead4a52bcfeea72",

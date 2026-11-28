@@ -22,8 +22,14 @@ test('interstellar legs have a fixed outbound gate and a destination arrival anc
  assert.equal(leg.entry.system,'erebus');
  assert.deepEqual(leg.entry,Universe.chartPoint('erebus-arrival'));
  assert(Math.abs(Math.hypot(...leg.exit.position)-Universe.chart.systems.sol.radius)<1e-9);
- assert.deepEqual(leg.exit,Universe.routeCoordinates('sol-belt','meridian').exit);
- assert.notDeepEqual(Universe.direction('earth','erebus-arrival'),Universe.direction('sol-belt','erebus-arrival'));
+ assert.notDeepEqual(leg.exit,Universe.routeCoordinates('sol-belt','meridian').exit);
+ const outward=Universe.direction('earth','erebus-arrival');
+ const fromAnchorage=Universe.direction('sol-belt','erebus-arrival');
+ const reverse=Universe.direction('erebus-arrival','sol-arrival');
+ for(const axis of ['x','y','z']){
+  assert(Math.abs(outward[axis]-fromAnchorage[axis])<1e-12);
+  assert(Math.abs(outward[axis]+reverse[axis])<1e-12);
+ }
 });
 
 test('map display and restored warp route use the same launch heading',()=>{
