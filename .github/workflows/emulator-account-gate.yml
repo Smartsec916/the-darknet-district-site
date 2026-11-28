@@ -6,6 +6,11 @@ on:
       - '.github/workflows/emulator-account-gate.yml'
       - 'tests/test_character_emulator.py'
       - 'tests/district-hub-ws.cjs'
+      - 'tests/emulator-browser-account.cjs'
+      - 'void-runner/account.js'
+      - 'void-runner/network.js'
+      - 'district-identity.js'
+      - 'firebase-auth.js'
       - 'tools/district-hub/emulator-providers.cjs'
 
 permissions:
@@ -15,7 +20,7 @@ jobs:
   local-account-hub:
     name: Real local Auth, API and hub prerequisite
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,13 +37,15 @@ jobs:
           java-version: '21'
       - run: npm ci --ignore-scripts
       - run: pip install -r requirements-void-runner.txt
+      - run: npx playwright install --with-deps chromium
+      - run: node --check tests/emulator-browser-account.cjs
       - name: Start disposable emulators and require non-skipped suites
         shell: bash
         run: |
           set -euo pipefail
           test -z "${GOOGLE_APPLICATION_CREDENTIALS:-}"
           mkdir -p "$RUNNER_TEMP/void-firebase"
-          npm install --prefix "$RUNNER_TEMP/void-firebase" firebase-tools@13 --no-audit --no-fund
+          npm install --prefix "$RUNNER_TEMP/void-firebase" firebase-tools@13 firebase@11.10.0 esbuild@0.25.12 --no-audit --no-fund
           cat > "$RUNNER_TEMP/void-firebase/firebase.json" <<'JSON'
           {"emulators":{"auth":{"host":"127.0.0.1","port":9099},"firestore":{"host":"127.0.0.1","port":8080},"ui":{"enabled":false}}}
           JSON
@@ -48,11 +55,14 @@ jobs:
           export FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
           export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
           export PYTHONPATH="$PWD"
+          export VOID_EMULATOR_NODE_MODULES="$RUNNER_TEMP/void-firebase/node_modules"
           python -m unittest tests.test_character_emulator -v 2>&1 | tee "$RUNNER_TEMP/void-firebase/api.log"
           grep -Eq '^Ran [1-9][0-9]* tests? ' "$RUNNER_TEMP/void-firebase/api.log"
           grep -qx 'OK' "$RUNNER_TEMP/void-firebase/api.log"
           node --test tests/district-hub-ws.cjs | tee "$RUNNER_TEMP/void-firebase/hub.log"
           grep -Eq '^# pass [1-9][0-9]*$' "$RUNNER_TEMP/void-firebase/hub.log"
           grep -qx '# skipped 0' "$RUNNER_TEMP/void-firebase/hub.log"
+          node tests/emulator-browser-account.cjs | tee "$RUNNER_TEMP/void-firebase/browser.log"
+          grep -qx 'BROWSER_ACCOUNT_GATE_OK' "$RUNNER_TEMP/void-firebase/browser.log"
           SH
           "$RUNNER_TEMP/void-firebase/node_modules/.bin/firebase" emulators:exec --only auth,firestore --project demo-darknet-local --config "$RUNNER_TEMP/void-firebase/firebase.json" 'bash "$RUNNER_TEMP/void-firebase/check.sh"'
