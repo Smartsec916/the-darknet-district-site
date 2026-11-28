@@ -61775,7 +61775,7 @@
       "spawn"
     ]
   },
-  "revision": "fcb8c672cd27497b",
+  "revision": "5c6a8290f3fa2136",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75028,25 +75028,25 @@
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 179,
+      "line": 181,
       "text": ".catch(error=>{if(!waitController.signal.aborted)console.warn('Encounter waiting dialogue:',error);});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 211,
+      "line": 213,
       "text": "[3,'Somewhere a little checkbox says pedestrian detected.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 760,
+      "line": 770,
       "text": "const rows=api.dialogueSections(graph)[preview.section];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 762,
+      "line": 772,
       "text": "errors.push(...api.previewSoundProblems(graph,preview.section,rows,new Map(graph.dialogue.map(row=>[row.id,row])),preview.target));",
       "kind": "source-reference"
     },
@@ -75070,103 +75070,103 @@
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 160,
+      "line": 178,
       "text": "function dialogueProblems(graph){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 161,
+      "line": 179,
       "text": "const errors=[],rows=graph.dialogue??[],seen=new Set();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 162,
+      "line": 180,
       "text": "if(!Array.isArray(rows)||rows.length>100||rows.some(row=>typeof row?.id!=='string'||typeof row.text!=='string'))return ['Use up to 100 valid dialogue actions.'];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 164,
+      "line": 182,
       "text": "if(ids.size!==rows.length)errors.push('Each dialogue action needs a distinct ID.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 171,
+      "line": 189,
       "text": "const sections=Object.values(dialogueSections(graph));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 180,
+      "line": 198,
       "text": "errors.push('Keep playlist members in one conversation section with matching passes.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 189,
+      "line": 207,
       "text": "if((row.playlistStart||row.playlistEnd)&&!isRepeat(row))errors.push('Select speech or animation to repeat on '+row.id+'.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 192,
+      "line": 210,
       "text": "errors.push('Branches must start from conversation actions.');continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 229,
+      "line": 247,
       "text": "const rows=Array.isArray(graph?.dialogue)?graph.dialogue:[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 241,
+      "line": 259,
       "text": "const speech=text?(row.recording?.duration||Math.max(1.5,text.length*.055)):0;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 243,
+      "line": 261,
       "text": "return {seconds:(text||animation||row.soundCues?.length?row.delay||0:0)+Math.max(speech,(clip||0)/(validAnimationSpeed(row.animationSpeed)?row.animationSpeed:1)),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 277,
+      "line": 295,
       "text": "const rows=[...(Array.isArray(graph.dialogue)?graph.dialogue:[]),...(Array.isArray(graph.savedActions)?graph.savedActions.flat():[])];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 397,
+      "line": 415,
       "text": "if(Array.isArray(graph.dialogue))for(const row of graph.dialogue){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 420,
+      "line": 438,
       "text": "const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter),...castProblems(encounter),...(sounds?soundProblems(encounter):[])],nodes=encounter?.nodes;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 492,
+      "line": 510,
       "text": "if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 493,
+      "line": 511,
       "text": "return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter.js",
-      "line": 495,
+      "line": 513,
       "text": "const api={kinds,startTriggers,isVisitTrigger,validate,spokenText,lineSeconds,timing,soundLists,soundProblems,previewSoundProblems,importedSoundHash,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};",
       "kind": "source-reference"
     },
@@ -83763,8 +83763,8 @@
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "9537b3ac79687f7ae96d5a8520ac431fe0ba2c401cb25010763eadb6733bc19b",
     "void-runner/chance-encounter-editor.js": "b46f319579082aa62cd9a97c942c4495c6eb6fd1444dd6ee1cb685faeaed5317",
-    "void-runner/chance-encounter-game.js": "b1a66938fd13dbc17935e2025cb0cab134738c2f90a54b748794bee728b5927a",
-    "void-runner/chance-encounter.js": "3bd4f3b1f0759d50ead449e1d8ddf36c3792d908b1d22384b17e4ca602f135c9",
+    "void-runner/chance-encounter-game.js": "fa2f637a007d05216ae6b686af7a8c4e976a3b8d2836db31746924fec9060560",
+    "void-runner/chance-encounter.js": "8b2cbaf5080b881c92e5c1c8b8bf67f75546c2202f645b4c61cd1749a1ab335a",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",

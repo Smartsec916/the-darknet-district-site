@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Continue in-game playtests after the selected start point
+
+Starting from a dialogue section or playlist plays forward through the encounter’s remaining actions and choices. Selecting a chance playlist enters it directly and then follows its configured return behavior. The separate editor execution preview can still isolate a playlist. Build `2026-11-27-encounter-start-continuation-1`.
+
 ## 27 Nov 2026 — Consumable visual preview controls
 
 Consumable Effects places playback and comparison controls above the 3D view. Preview track, category, or all tracks enables Live effects and returns from Before effects. If preview accessibility hides a selected effect, the studio names the setting to enable and opens the preview-only controls. Build `2026-11-27-consumable-visual-preview-1`.

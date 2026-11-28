@@ -50,26 +50,43 @@
   return segments;
  }
 
- async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},scope=(_kind,_item,_signal,work)=>work(),repeat=(parent,_,run)=>run(parent),previewTarget}){
+ async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},scope=(_kind,_item,_signal,work)=>work(),repeat=(parent,_,run)=>run(parent),previewTarget,startTarget}){
   const restart=Symbol('legacy main restart');
-  const segments=previewTarget?.segment?[previewTarget.segment]:playlistSegments(rows);
+  let segments=previewTarget?.segment?[previewTarget.segment]:playlistSegments(rows);
+  function pathToBranch(items,branch){
+   for(const row of items)for(const child of row.branches||[]){
+    const entry={row,branch:child};
+    if(child===branch)return [entry];
+    const tail=pathToBranch(child.actions.map(id=>byId.get(id)),branch);
+    if(tail)return [entry,...tail];
+   }
+  }
+  if(startTarget?.segment){
+   const index=segments.findIndex(segment=>segment.key===startTarget.segment.key);
+   if(index<0)throw Error('The selected main playlist is no longer in this section.');
+   segments=segments.slice(index);
+  }
+  const entry=startTarget?.branch?pathToBranch(segments.flatMap(segment=>segment.rows),startTarget.branch):[];
+  if(!entry)throw Error('The selected chance playlist is no longer in this section.');
   let legacyActive=segments.some(segment=>segment.legacy);
   async function actions(items,signal,main,legacyReturn,marked=null){
    const next=index=>{
     while(index<items.length&&marked&&!marked.has(items[index]))index++;
     return index;
    };
-   for(let index=next(0);index<items.length;){
+   const first=entry.length?items.indexOf(entry[0].row):next(0);
+   if(first<0)return;
+   for(let index=first;index<items.length;){
     signal.throwIfAborted();
     const row=items[index];
-    observe({type:'action',row});
-    await scope('line',row,signal,()=>play(row,signal,marked?.has(row)===true));
+    let forced=entry[0]?.row===row?entry.shift().branch:null;
+    if(!forced){observe({type:'action',row});await scope('line',row,signal,()=>play(row,signal,marked?.has(row)===true));}
     let target=next(index+1);
     for(;;){
      signal.throwIfAborted();
      if(!row.branches?.length)break;
-     const roll=random(),branch=chooseBranch(row,roll);
-     observe({type:'roll',row,roll,branch});
+     const roll=forced?null:random(),branch=forced||chooseBranch(row,roll);
+     forced=null;if(roll!==null)observe({type:'roll',row,roll,branch});
      if(!branch)break;
      const child=branchPlaylist(branch,byId);
      const complete=await scope('chance',branch,signal,()=>sequence(child,branch.passes??1,signal,true,false,legacyReturn));
@@ -96,7 +113,7 @@
   }
   async function sequence({before,cycle,after},passes,signal,child,legacy=false,legacyReturn=legacy,chance){
    await actions(before,signal,!child,legacyReturn);
-   if(cycle.length){
+   if(cycle.length&&(!entry.length||cycle.includes(entry[0].row))){
     const result=await repeat(signal,{child,show:passes!==1||!child},async local=>{
      const marked=new Set(cycle.filter(isRepeat));
      for(let pass=0;passes===0||pass<passes;pass++){
@@ -127,6 +144,7 @@
   }
   let jumpToLegacy=false;
   for(const segment of segments){
+   if(entry.length&&!segment.rows.includes(entry[0].row))continue;
    if(jumpToLegacy&&!segment.legacy)continue;
    jumpToLegacy=false;
    if(segment.key){

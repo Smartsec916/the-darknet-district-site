@@ -4,6 +4,17 @@ const engine=require('../void-runner/chance-encounter.js');
 const seed=require('../void-runner/chance-encounter-seed.json');
 const crossing=require('../void-runner/chance-crossing.js');
 
+test('in-game playlist starts continue to the later actions',async()=>{
+ const child={id:'child'},branch={chance:0,actions:['child'],completion:'next'};
+ const first={id:'first'},parent={id:'parent',mainPlaylist:'main',mainPasses:1,branches:[branch]},last={id:'last'};
+ const rows=[first,parent,last],byId=new Map([...rows,child].map(row=>[row.id,row]));
+ for(const [target,expected] of [[{segment:{key:'main'}},['parent','last']],[{branch},['child','last']]]){
+  const played=[];
+  await engine.runPlaylist(rows,byId,{signal:new AbortController().signal,startTarget:target,play:row=>played.push(row.id),pause:()=>{},random:()=>.99});
+  assert.deepEqual(played,expected);
+ }
+});
+
 test('sound validation names an imported cue with a volume above full',()=>{
  const cue={src:'imported:'+'a'.repeat(64),name:'taxi.mp3',when:'start',offset:1,volume:2,loop:true,stop:'scope'};
  assert.deepEqual(engine.soundProblems({soundCues:[cue]}),['Sound effect 1 (taxi.mp3). Set Volume to 0–1 (1 is full volume).']);
