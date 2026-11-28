@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 27 Nov 2026 — Kade walks up to Lace
+
+In Pleasure Breach, choosing to play as Kade starts a first-person walk from the player’s position in the apartment. Kade uses the indoor route around furniture, then starts the assigned clip at its original mark. The encounter’s cancel control is available during the approach.
+
 ## 27 Nov 2026 — Explicit sound sources for encounter cues
 
 Imported sound cues display their active filename without a required library selection. Only choosing a valid built-in sound replaces the import. Editor sound auditions stop before a scene playtest starts. Build `2026-11-27-encounter-sound-source-1`.
@@ -43,6 +47,14 @@ Encounter, node, section, main-playlist, chance-playlist and action cues use the
 New drafts can choose a location and trigger and add a cast from registered NPC models or browser-local GLBs. Each cast member has a stable NPC ID, display name, placement and idle clip. Cast dialogue assigns speakers and their embedded animations, and a Cast conversation node waits for the player to approach before presenting Talk. The new location selector covers NeoChinatown street quarters, the District interior and Low Quay. Existing bespoke encounters retain their graphs and staging.
 
 Imported GLBs are stored in browser IndexedDB. Publishing requires a registered game model from the regular asset pipeline. The Python API enforces that distinction and checks the selected location when rolling opportunities. Build `2026-11-27-encounter-cast-1`.
+
+## 27 Nov 2026 — Plug & Play local rehearsal
+
+Ike and Eza take turns at the pole using a rehearsal-only rear opening and ramp. One reaches the backstage waiting spot before the next crosses the ramp. The approach slows near the pole and the walking and dancing poses blend while the rig eases between their different origins and headings. The first routines use KickPole and No-FeetSPin from the owner's RigModels archive. The bone-only source files use different axes and proportions. The local conversion matches joint directions and preserves motion relative to an estimated pole position. Pole grip and foot contact may need per-clip adjustment.
+
+Lyra and Raze use separate paths between the kitchen hatch and the booths. They stop to greet guests and carry trays with food and drinks to the tables. Their existing GLBs supply walking. The rehearsal builder adds simple greeting, tray-carry and serving poses. Lyra and Raze are hosts. Nia is the separate mission giver, standing just inside the entrance with a Talk prompt and a Mission Editor roster entry. No mission or dialogue is assigned. The local rehearsal page has a Nia view.
+
+Build with `tools/animation-pipeline/build_plugplay_rehearsal.py POLE_ZIP IKE_GLB EZA_GLB --hosts LYRA_GLB RAZE_GLB --nia NIA_GLB`. The generated files are ignored under `work/pole-preview/`. On a localhost game URL, enable `?plugplay-rehearsal=1` and visit Low Quay's Plug & Play. This workstation also has an ignored preview page at `/work/pole-preview/index.html` with stage and hosts views. Browser verification exercised the dancer handoff, tray delivery at two booths, and scene disposal. RigModels usage terms are pending. Build `2026-11-27-plugplay-nia-1`.
 
 ## 27 Nov 2026 - Cardkey pickup glow
 

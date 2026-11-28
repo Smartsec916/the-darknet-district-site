@@ -279,8 +279,6 @@ function interactWalking() {
   if (globalThis.VoidTeaDuo?.standPlayer?.()) return;
   if (mode !== 'walking' || !walkTarget) return;
   const item = walkTarget;
-  walkingKeys.clear();
-  document.exitPointerLock?.();
   VoidAudio.event('cycle');
   if (VoidInteractions.handlers.has(item.action)) return VoidInteractions.handlers.get(item.action)({
     item,
@@ -344,9 +342,14 @@ walkingUI.addEventListener('pointerdown', e => {
 });
 for (const event of ['pointerup', 'pointercancel']) walkingUI.addEventListener(event, e => walkingKeys.delete(e.target.dataset.walk));
 addEventListener('keydown', e => {
-  const policy=VoidInputState.current;
   if (!['walking', 'transit3d'].includes(mode) || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return;
-  if (policy.shortcuts==='none'||(policy.shortcuts==='interface'&&!(policy.movement&&['KeyW','KeyA','KeyS','KeyD'].includes(e.code)))) return;
+  const walkKey=['KeyW','KeyA','KeyS','KeyD'].includes(e.code);
+  let policy=VoidInputState.current;
+  if(walkKey&&policy.name==='conversation'&&policy.camera&&globalThis.VoidTeaDuo?.standPlayer?.()){
+    VoidInputState.scan();
+    policy=VoidInputState.current;
+  }
+  if (policy.shortcuts==='none'||(policy.shortcuts==='interface'&&!(policy.movement&&walkKey))) return;
   if (e.repeat&&!walkingKeys.has(e.code)) return;
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'KeyC', 'ControlLeft', 'ControlRight', 'KeyQ', 'KeyR', 'KeyX'].includes(e.code)) {
     e.preventDefault();

@@ -471,6 +471,13 @@
         "draft": true,
         "group": "earlier"
       },
+      "nia": {
+        "name": "Nia",
+        "canTalk": true,
+        "players": true,
+        "draft": true,
+        "group": "earlier"
+      },
       "nyx": {
         "name": "Nyx",
         "canTalk": true,
@@ -58090,6 +58097,7 @@
       "mercer",
       "milked-eva",
       "milked-fish",
+      "nia",
       "nyx",
       "nyx-district",
       "rin-takeda",
@@ -61775,7 +61783,7 @@
       "spawn"
     ]
   },
-  "revision": "23f73e8546334602",
+  "revision": "aa805aa04ae7c46d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74338,8 +74346,14 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 298,
+      "line": 296,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/babylon-integration.js",
+      "line": 348,
+      "text": "if(walkKey&&policy.name==='conversation'&&policy.camera&&globalThis.VoidTeaDuo?.standPlayer?.()){",
       "kind": "source-reference"
     },
     {
@@ -75010,43 +75024,43 @@
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 68,
+      "line": 71,
       "text": "const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 69,
+      "line": 72,
       "text": "const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 88,
+      "line": 91,
       "text": "try{await root.VoidVoiceClips.speak({characterId:line.speaker,text:line.text,bus:bus.node,recording});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 181,
+      "line": 184,
       "text": ".catch(error=>{if(!waitController.signal.aborted)console.warn('Encounter waiting dialogue:',error);});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 213,
+      "line": 216,
       "text": "[3,'Somewhere a little checkbox says pedestrian detected.'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 770,
+      "line": 803,
       "text": "const rows=api.dialogueSections(graph)[preview.section];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/chance-encounter-game.js",
-      "line": 772,
+      "line": 805,
       "text": "errors.push(...api.previewSoundProblems(graph,preview.section,rows,new Map(graph.dialogue.map(row=>[row.id,row])),preview.target));",
       "kind": "source-reference"
     },
@@ -75251,7 +75265,7 @@
     {
       "source": "void-runner/conversation-ui.js",
       "line": 9,
-      "text": "function show(){if(!floating())return;mode=activeMode;screen.classList.add('conversation-live');screen.classList.toggle('hidden',minimized);restore.hidden=!minimized;if(!minimized&&document.pointerLockElement)document.exitPointerLock?.();canvas.focus({preventScroll:true});}",
+      "text": "function show(){if(!floating())return;mode=activeMode;screen.classList.add('conversation-live');screen.classList.toggle('hidden',minimized);restore.hidden=!minimized;}",
       "kind": "source-reference"
     },
     {
@@ -76079,60 +76093,78 @@
     {
       "source": "void-runner/input-state.js",
       "line": 12,
-      "text": "floating:policy('conversation',false,false,true,true,'interface'),",
+      "text": "floating:policy('conversation',true,true,true,true,'interface'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
       "line": 13,
+      "text": "floatingSeated:policy('conversation',true,true,false,true,'interface'),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/input-state.js",
+      "line": 14,
+      "text": "floatingCursor:policy('conversation',false,false,true,true,'interface'),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/input-state.js",
+      "line": 15,
       "text": "conversation:policy('conversation',false,false,false,true,'interface'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 25,
-      "text": "if(surface==='floating')return mode==='walking'&&!seated?states.floating:states.conversation;",
+      "line": 30,
+      "text": "return states.conversation;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 33,
+      "line": 39,
       "text": "if(mode==='dialogue')return states.conversation;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 49,
-      "text": "['floating','#screen.conversation-live,.vr-companion-menu'],",
+      "line": 55,
+      "text": "['floating','#screen.conversation-live,.vr-companion-menu,.tea-duo-choices'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 50,
+      "line": 56,
       "text": "['conversation','#screen:has(.dialogue-window)'],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 89,
+      "line": 100,
       "text": "if(panel&&panel!==priorPanel&&!panel.contains(document.activeElement)&&['store','activity','conversation','floating'].includes(surface)){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 129,
+      "line": 117,
+      "text": "if(!document.pointerLockElement){if(hadLock)lastUnlock=performance.now();const state=current();clear(state.name==='conversation'&&state.movement);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/input-state.js",
+      "line": 141,
       "text": "const dismiss=panel.querySelector('[data-input-dismiss],.conversation-minimize');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 135,
+      "line": 147,
       "text": "if(!['conversation','activity'].includes(current().name))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/input-state.js",
-      "line": 136,
+      "line": 148,
       "text": "const choices=[...panel.querySelectorAll('.speech-controls #speech-next,.speech-controls [data-talk-choice],.tea-duo-choices button,.choice-menu button[data-action]')].filter(visible);",
       "kind": "source-reference"
     },
@@ -76662,6 +76694,24 @@
       "source": "void-runner/low-quay-club.js",
       "line": 6,
       "text": "dialogue, no new behaviours); an octagonal stage set back from the back wall, closed in on every side and over the top by thick bulletproof glass in a bolted steel",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/low-quay-club.js",
+      "line": 78,
+      "text": "[[36.15,377.1,'Serving',0],[35.0,375.0],[30.52,374.95],[30.52,366.2,'Greeting',-Math.PI/2],[30.16,362.2,'Serving',-Math.PI/2,0],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/low-quay-club.js",
+      "line": 80,
+      "text": "[[37.15,377.1,'Serving',0],[34.1,377.15],[30.53,377.15],[30.53,379.8,'Greeting',-Math.PI/2],[30.16,375.8,'Serving',-Math.PI/2,2],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/low-quay-club.js",
+      "line": 163,
+      "text": "loadPair(['lyra','raze'],hosts,['Walking','CarryWalk','Waiting','Greeting','Serving'],(actor,i)=>{",
       "kind": "source-reference"
     },
     {
@@ -79169,258 +79219,264 @@
     {
       "source": "void-runner/mission-givers.js",
       "line": 22,
-      "text": "attendant:{name:'Arcade attendant',group:D,say:'Arcade attendant',where:'The Darknet District VR booths. Today the ACCESS VR EXPERIENCES prompt opens the VR menu (vr-core.js); the attendant only speaks if that menu is missing (prologue-integration.js).',targets:[],players:false,draft:false,",
+      "text": "nia:{name:'Nia',group:E,say:'nia',where:'At the entrance to Plug & Play on Low Quay.',targets:[{action:'plugplay-nia',character:'nia'}],layout:'plugplay-nia',enter:AREA.station('low-quay'),players:true,draft:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 23,
-      "text": "why:'The VR prompt opens the VR menu, not a conversation (needs a code change to talk to the attendant).'},",
+      "text": "attendant:{name:'Arcade attendant',group:D,say:'Arcade attendant',where:'The Darknet District VR booths. Today the ACCESS VR EXPERIENCES prompt opens the VR menu (vr-core.js); the attendant only speaks if that menu is missing (prologue-integration.js).',targets:[],players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 24,
+      "text": "why:'The VR prompt opens the VR menu, not a conversation (needs a code change to talk to the attendant).'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 25,
       "text": "'landing-terminal':{name:'Landing terminal',group:D,kind:'machine',say:'Landing terminal',where:'The Landing Terminal on the street by Pad 01, The Port (neochinatown.js: terminal).',targets:[{action:'terminal'}],layout:'terminal',enter:AREA.street('port'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 26,
+      "line": 27,
       "text": "'milked-eva':{name:'Eva',group:D,say:'milked-eva',where:'Milked reception, Far South (milked-integration.js: Eva). Main Street south through the South Gate.',targets:[{action:'milked-eva'}],layout:'milked-eva',enter:AREA.milked,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 28,
+      "line": 29,
       "text": "'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],layout:'milked-fish',enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 29,
+      "line": 30,
       "text": "'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 33,
+      "line": 34,
       "text": "'v1-translator':{name:'V1 translation',group:D,kind:'device',say:'v1-translator',where:'The player\\u2019s V1 device: translates what is said in another language, in the speaker\\u2019s own voice.',targets:[],players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 36,
+      "line": 37,
       "text": "'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, at the bar talking with Halden Reyes, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 39,
+      "line": 40,
       "text": "'halden-reyes':{name:'Halden Reyes',group:D,say:'Halden Reyes',where:'NULL, at the bar talking with Juno Vex (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 43,
+      "line": 44,
       "text": "'tea-associate-1':{name:'Associate 1',group:D,say:'Associate 1',where:'The underground tea house (under-tea-room), placed by Mission 004 (mission cast).',targets:[],photo:true,place:'under-tea-room',players:false,draft:false,why:'No TALK prompt: overheard in Mission 004.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 44,
+      "line": 45,
       "text": "'tea-associate-2':{name:'Associate 2',group:D,say:'Associate 2',where:'The underground tea house (under-tea-room), placed by Mission 004 (mission cast).',targets:[],photo:true,place:'under-tea-room',players:false,draft:false,why:'No TALK prompt: overheard in Mission 004.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 45,
+      "line": 46,
       "text": "'blackrock-associate':{name:'Blackrock associate',group:D,say:'Blackrock associate',where:'The underground fight pit (under-fight-pit), then Far South, placed by Mission 007 (mission cast).',targets:[],photo:true,place:'under-fight-pit',players:false,draft:false,why:'No TALK prompt: watched, photographed and followed in Mission 007.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 46,
+      "line": 47,
       "text": "'blackrock-entrance':{name:'Commercial back entrance',group:D,kind:'thing',say:'Commercial back entrance',where:'No. 166, Main Street (Far South): the back entrance the Blackrock associate goes into (Mission 007; a marker the V1 camera identifies).',targets:[],photo:true,place:'far-south',players:false,draft:false,why:'A doorway, not a person: something to photograph.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 48,
+      "line": 49,
       "text": "'robed-1':{name:'Blackrock Member 1',group:D,say:'robed-1',where:'The Blackrock Cult Room (cult-room.js): robed figure 1, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 1 (Jacob L.), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 49,
+      "line": 50,
       "text": "'robed-2':{name:'Blackrock Member 2',group:D,say:'robed-2',where:'The Blackrock Cult Room (cult-room.js): robed figure 2, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 2 (Edward Sterling), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 50,
+      "line": 51,
       "text": "'robed-3':{name:'Blackrock Member 3',group:D,say:'robed-3',where:'The Blackrock Cult Room (cult-room.js): robed figure 3, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 3 (Cole), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 51,
+      "line": 52,
       "text": "'robed-4':{name:'Blackrock Member 4',group:D,say:'robed-4',where:'The Blackrock Cult Room (cult-room.js): robed figure 4, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 4 (Alex), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 52,
+      "line": 53,
       "text": "'robed-5':{name:'Blackrock Member 5',group:D,say:'robed-5',where:'The Blackrock Cult Room (cult-room.js): robed figure 5, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 5 (Dean), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 53,
+      "line": 54,
       "text": "'robed-6':{name:'Blackrock Member 6',group:D,say:'robed-6',where:'The Blackrock Cult Room (cult-room.js): robed figure 6, seen only through the hacked camera feed (Mission 010). Voice: Blackrock Member 6 (Gareth), chosen by the owner 20 Nov 2026.',targets:[],players:false,draft:false,why:'Seen only on a camera feed: no TALK prompt.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 56,
+      "line": 57,
       "text": "'street-cat':{name:'Street cat',group:D,say:'street-cat',where:'The Avenue (or wherever Developer Tools > NPCs places it), the north pavement by the LAUNDRY door (ncz-street-pair.js: PET THE CAT).',targets:[{action:'street-cat',character:'street-cat'}],layout:'street-cat',enter:AREA.street('avenue'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 61,
+      "line": 62,
       "text": "'tea-host':{name:'Tea Room Host',group:D,say:'tea-host',where:'The Underground: the tea room, behind the tea station (or wherever Developer Tools > NPCs places him) (npc-made.js: TALK TO TEA ROOM HOST).',targets:[{action:'made-npc',character:'tea-host'}],layout:null,enter:AREA.street('underground'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 64,
+      "line": 65,
       "text": "rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 65,
+      "line": 66,
       "text": "reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 66,
+      "line": 67,
       "text": "nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 68,
+      "line": 69,
       "text": "mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 69,
+      "line": 70,
       "text": "reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship (once a mission grants one) can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 70,
+      "line": 71,
       "text": "elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 71,
+      "line": 72,
       "text": "elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 73,
+      "line": 74,
       "text": "marcus:{name:'Marcus Vale',group:E,say:'Marcus Vale',where:'Holdfast, Garrow System (station-layouts.js: TALK / MARCUS VALE).',targets:[{action:'talk',character:'marcus'}],layout:'marcus',enter:AREA.station('holdfast'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 75,
+      "line": 76,
       "text": "kess:{name:'Dr. Adrian Kess',group:E,say:'Dr. Adrian Kess',where:'The Nexus, the Communion homeworld (planets.js: TALK / DR. ADRIAN KESS).',targets:[{action:'homeworld-talk',character:'kess'}],layout:'kess',enter:AREA.station('nexus'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 77,
+      "line": 78,
       "text": "mercer:{name:'Daniel Mercer',group:E,say:'Daniel Mercer',where:'The Natural Order homeworld, Garrow (planets.js: TALK / DANIEL MERCER).',targets:[{action:'homeworld-talk',character:'mercer'}],layout:'mercer',enter:AREA.station('order-homeworld'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 79,
+      "line": 80,
       "text": "iona:{name:'Iona Vale',group:E,say:'iona',where:'Rusthaven Port (station-layouts.js: TALK / IONA).',targets:[{action:'talk',character:'iona'}],layout:'iona',enter:AREA.station('rusthaven'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 81,
+      "line": 82,
       "text": "sol:{name:'Dr. Sol',group:E,say:'sol',where:'Kepler, the clinic network’s station (station-layouts.js: TALK / DR. SOL).',targets:[{action:'talk',character:'sol'}],layout:'sol',enter:AREA.station('kepler'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 101,
+      "line": 102,
       "text": "/* What a step can ask for. supported: the game can run it today (draft play and publish). The others are listed so the owner can plan them; they say \"needs a code change\". */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 109,
+      "line": 110,
       "text": "{id:'enter',name:'Enter a place',supported:true,needs:'region',note:'Done while the player is inside the place (places.js; a player already inside when the step starts counts). Use “say it as a Comms call” for a call that arrives as they walk in.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 112,
+      "line": 113,
       "text": "{id:'send-photo',name:'Send a photo to someone',supported:true,needs:'recipient',note:'In Messages: the player opens the recipient’s conversation, ATTACH, picks the photo, SEND. Only a photo of the chosen person taken during this mission counts. “What is said” is the reply to the right photo; the second set of lines is the reply to any other photo (unlimited tries, no fail). Photos stay on the player’s computer; only what was checked when the photo was taken is used.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 115,
+      "line": 116,
       "text": "{id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 122,
+      "line": 123,
       "text": "{id:'anim',name:'Someone plays an animation',supported:true,needs:'anim',note:'The person you choose does the animation (a shrug, a laugh, looking about …) where they stand, as soon as the step before is done and the conversation is closed; the mission then waits the seconds you set (0 to 30) and goes on to the next step. Only animations that person really has.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 131,
+      "line": 132,
       "text": "{id:'overhear',name:'Overhear a conversation (eavesdrop)',supported:true,needs:'observe',note:'While the player stays within the distance (and not too close) the lines play as overheard subtitles, one by one. Walking away pauses it; too close: “they noticed you”, it starts again once the player backs off. Done when the last line is heard. Unlimited tries.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 147,
+      "line": 148,
       "text": "{id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 172,
+      "line": 173,
       "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many feet of the person chosen (4 to 98 ft; 16 ft if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 173,
+      "line": 174,
       "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 205,
+      "line": 206,
       "text": "out.push({id,name,say:/^[a-zA-Z][\\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,",
       "kind": "source-reference"
     },
@@ -82623,6 +82679,24 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/unified-controls.js",
+      "line": 68,
+      "text": "const conversation=policy.name==='conversation'&&(policy.movement||policy.camera);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/unified-controls.js",
+      "line": 69,
+      "text": "if(!conversation&&policy.shortcuts!=='game'&&!(mode==='menu'&&VoidMenu.returnTo&&policy.name!=='background')){previousButtons=raw;previousAxes=[lx,ly,rx,ry];return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/unified-controls.js",
+      "line": 75,
+      "text": "if(conversation){previousButtons=raw;previousAxes=axes;return;}",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/update-ready.js",
       "line": 6,
       "text": "main menu, never in a conversation, a flight (even paused behind the menu), a test or draft session, or while saving is impossible. Otherwise a small V1-style notice says",
@@ -83229,6 +83303,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/vr-core.js",
+      "line": 233,
+      "text": "if(policy.name==='conversation'&&policy.camera&&walkKey){stand();return;}",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/vr-forest.js",
       "line": 88,
       "text": "if(id==='bench')api.sit({x:-30,z:18.6,yaw:0,eye:1.2,text:'You sit on the bench. The forest goes on around you.'});",
@@ -83750,7 +83830,7 @@
     "void-runner/area-map.js": "900ee4fc782a339ccaee6393b3643f214869263c22657ac1cce7d7a64f89125d",
     "void-runner/asset-pipeline.js": "617af55e65b40c217183e56a5e8c6814fbef35d07dbaf1c5cb6534e40d54a4a4",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "df6ed81f17669782eadac4920bfabedd083f2b724b5db50c4ea03f42f5ca1284",
+    "void-runner/babylon-integration.js": "108e571b92048ba40c6feeb81b090f15ce1985c5b5240248faad069db1625d7f",
     "void-runner/babylon-renderer.js": "c6d48603aaf4d300aa0fda1ae54bdd1fca99fb860caac380daa29609490f5d5a",
     "void-runner/balance-data.js": "78e49f9fdb352f7d3ede4c3992299eb1ab841af5264ae9b1d2fe596aaa4a14d7",
     "void-runner/balance.js": "5242a74a3d861c5b434054a5256c566edee636f8b12782e931c1ed661b8c5b3c",
@@ -83763,7 +83843,7 @@
     "void-runner/catalog-shop.js": "515cec09499bea9b9d9aaffb9b6f03ff8684bcea24d825d85cf70d711c118077",
     "void-runner/chance-crossing.js": "9537b3ac79687f7ae96d5a8520ac431fe0ba2c401cb25010763eadb6733bc19b",
     "void-runner/chance-encounter-editor.js": "46d683eae9dbf664a9ee9c76cd0e2afb4e58ada18b93cf54eba8ad1a93b75b8c",
-    "void-runner/chance-encounter-game.js": "fa2f637a007d05216ae6b686af7a8c4e976a3b8d2836db31746924fec9060560",
+    "void-runner/chance-encounter-game.js": "7e4a04093c133ae4360bfa1c4eeedc6c4381f150368f5a595388284e309b0614",
     "void-runner/chance-encounter.js": "8b2cbaf5080b881c92e5c1c8b8bf67f75546c2202f645b4c61cd1749a1ab335a",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -83795,7 +83875,7 @@
     "void-runner/consumables.js": "0eb3d639a0d43543c8686571c582783a2ea3497e7228d1d24aef904ea2f0d98c",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
-    "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
+    "void-runner/conversation-ui.js": "24768521dd4388327e201ef446fd27eb4d91af22b13b4f97d3e94c05dd9dcd1f",
     "void-runner/corporate-actors.js": "4ded2564263ea8f5ed16a535864a00385925c81bdfb4aa877b69944f55ffd588",
     "void-runner/corporate-build.js": "5b6d8dd110a387046eeaac26c240e5e9b8bc70499f7283f82734b5e296945ef5",
     "void-runner/corporate-integration.js": "8f3bfa9d2b5c710a0df5eba90b45e231cb1ea49517a1e50aac38aaa6756226e3",
@@ -83870,7 +83950,7 @@
     "void-runner/hotel-scores.js": "3ef8f9b4ebf0eb58093a52caf931d4f419943eb76c41d93aa5e0303301390dbc",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
-    "void-runner/input-state.js": "f3cbcdf2d9d8c98349480763ef7923766423813db72c76670c51d0835cd9a574",
+    "void-runner/input-state.js": "a23678db556ddd72bd96529802ba8b1ac3c26ff3379230287fb2416b97f33f67",
     "void-runner/input.js": "e36737f34c63a8030d393045dc766f9c8551050e506e70869134c7fe7c40bfe0",
     "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
@@ -83881,7 +83961,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/low-quay-city.js": "2b75023c1f625a73652d5934e5edbebef0e13ea9d82099f12a6b120a0984d27f",
-    "void-runner/low-quay-club.js": "4b92168ca59abd1357a163a70c500511b177145addac9cbe9ca21253df9d567f",
+    "void-runner/low-quay-club.js": "a4a56eb49236d57a599d94d288f9a6f70c92244ded4d53f47491808381ca6c6b",
     "void-runner/low-quay.js": "d897f4fd7f8803508825bda17f63212396b6ce52339ebcd2e589da2f9a979c66",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
     "void-runner/main-story.js": "43c23d30e6351665208bcc411a8ec0aea8cbb3d0a7f75abd53edd5eb0b545c49",
@@ -83902,7 +83982,7 @@
     "void-runner/mission-content.js": "13aeeebfa27f465f4eea086c953a74f750cd7065b3b0b77aefa9acfbc0a7e921",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "24a14003f4211c3977ab524107ebaa74897e70ce0c69a3eb2b62cc11908a9c2a",
-    "void-runner/mission-givers.js": "f5c2634c14ea8677ba6558187d4b050564e1db1a364174553173244edc2ccae6",
+    "void-runner/mission-givers.js": "4eb623008b4a95f5fb638483ab22d6300ccc8411fb3a6afc9f524725c402892d",
     "void-runner/mission-guide.js": "b6812937671a2f1584662dbb9169f71cb37cb46e6356217552a4e89f1480c4d5",
     "void-runner/mission-log.js": "4d6fb498b6ebb3777c5cd5807c6ee293b82a61403ff51206cb261e0658dbc936",
     "void-runner/mission-mechanics-editor.js": "ca872c075a00aec311a79f23c56d78966bee0c9e7c3a8b9a2d0e0b45cc7eb458",
@@ -83983,7 +84063,7 @@
     "void-runner/police-patrols.js": "46cc6fb8c4726e80b117f11d4c197778a0c1523a361c2aa34524f8601252f603",
     "void-runner/preparation.js": "488475633495762419719b2875b689feb9d29cf9db45239de74b34d04787c407",
     "void-runner/progression.js": "0e22e448e979d5ebc686b0a2f300dd9641a35812504d608c18be36f50061b65a",
-    "void-runner/prologue-integration.js": "944897b4d9df7a518b41582bb0f84112b93a73b3313c5f378039cd70de2efa66",
+    "void-runner/prologue-integration.js": "49f45893364900d8dfe90ef224670493ab00cfc4199e5c25bdf9a3ba428c398d",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
@@ -84028,7 +84108,7 @@
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/transition-veil.js": "938f6bd0388fae6ae52e6b13f025788848d1bec34b7417ebd5b5e8d02ffcdec0",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
-    "void-runner/unified-controls.js": "0a4513e89596f4dc68e4b7dab4a30d62599afee859a1e6eb0393fcdbc12a6f3c",
+    "void-runner/unified-controls.js": "142b5efb80a9185206f007bcb18f2e006defa805ed3194e5ee754b72bd660da8",
     "void-runner/units.js": "d1f902e6b09495fc26e346855158055e00bb5199d9c1169d708ff6adb643ac13",
     "void-runner/universe.js": "21853b2a7ca50512d33be6ae16cd835638e3fd1e224e401667a6024c67e2f0d6",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
@@ -84047,11 +84127,11 @@
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
     "void-runner/vr-companion-studio.js": "209d6ed92a40c777516837a7b323ff87d6b68f1e3017ffd904534361b209ac60",
     "void-runner/vr-companions.js": "406f9b8480b4405823d894fd91df65624ea690f1c3557214b27f2df4b5618b96",
-    "void-runner/vr-core.js": "a6fd4e02a7aa728a49790dfdd47483d56ba38e3e35fe1dcde8f3f9ce4d0534ab",
+    "void-runner/vr-core.js": "3369b37385f9ad5357c38d4d21d4a96a03c05c21e581d21cbe5c1727e466519f",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "90da4f894d8a4e32bfceed70974fd899aee6bd237e401dc2bd72fed99425af22",
-    "void-runner/vr-suite.js": "b99f92ce5a6d9188405954274875ea69778767353efb43a4ffcf52494a266324",
+    "void-runner/vr-suite.js": "5a2350b7698599fa385345ef40dedb4039743dfcb8aadc2329544c6f43d57900",
     "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
