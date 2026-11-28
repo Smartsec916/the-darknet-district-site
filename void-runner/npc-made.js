@@ -246,23 +246,36 @@
     const at=hp.add(fwd.scale(.06)).add(new B.Vector3(0,-.02,0));onBone(d,h,at,yaw);onBone(s,h,at,yaw);out.push(d,s);}}catch(e){try{console.warn('[VOID//RUNNER made givers] prop',e&&e.message||e);}catch{}}}
   return out;}
  // ---- one scene's figures (every street quarter and the District interior)
+ let returnSuspensions=null;
  function start({B=root.BABYLON,scene,parent,quality='medium',where={scene:'street',quarter:'avenue'}}={}){
   const A=root.VoidAssets,SP=root.VoidStreetPair,Ar=AR(),HERE=new Set(Ar?Ar.here(where.scene||'street',where.quarter||null):[]),cfg=SP&&SP.config;if(!A||!SP||!cfg||!scene)return null;
   const shift=Ar?.SCENE_SHIFT?.[where.scene]||null,scenePlan=P=>{if(!shift||!P)return P;const u=q=>q&&Number.isFinite(q.x)?{...q,x:q.x-shift.x,z:q.z-shift.z}:q;if(P.mode==='stay')return u(P);if(P.mode==='path')return {...P,points:(P.points||[]).map(u)};if(P.mode==='escort')return {...P,to:u(P.to),from:u(P.from),resume:u(P.resume),final:u(P.final)};return P;};
   const people=new Map(),asked=new Map(),items=new Map(),away=new Set(),rnd=Math.random;let clock=0,scan=0,disposed=false;
+  const sessionNow=()=>typeof state!=='undefined'?state:null,userNow=()=>root.VoidAccount?.user||null;
+  const mountedSession=sessionNow(),mountedUser=userNow();
+  const cache=()=>returnSuspensions||(returnSuspensions=root.VoidNPCReturn?.createReturnSuspensions?.());
+  const routineForReturn=P=>P&&['stay','path','home','schedule'].includes(P.why)&&!P.crossings&&!P.outing&&!P.indoors&&(P.mode==='stay'||P.mode==='path')&&HERE.has(P.area);
+  const returnCanonical=q=>({x:q.x+(shift?.x||0),z:q.z+(shift?.z||0)}),returnLocal=q=>({x:q.x-(shift?.x||0),z:q.z-(shift?.z||0)});
+  function suspendReturn(p){
+   if(!disposed||!p.returnJourney||p.going||p.esc?.st?.ride||!routineForReturn(p.plan)||p.returnJourney.area!==p.plan.area||mountedSession!==sessionNow()||mountedUser!==userNow())return;
+   cache()?.save({session:mountedSession,user:mountedUser,id:p.id,character:p.c,area:p.plan.area,key:p.plan.key,position:returnCanonical(p.s),yaw:p.s.yaw,options:{adult:!!p.c.adult,made:true}});
+  }
+  function resumeReturn(id,c,P){
+   return cache()?.take({session:sessionNow(),user:userNow(),id,character:c,area:P?.area,key:P?.key,eligible:!!routineForReturn(P)&&!P.entry,options:{adult:!!c.adult,made:true}})||null;
+  }
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null,me=()=>typeof walker!=='undefined'?walker:null;
   const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};   // on the stairs to the tunnels: the steps' height
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
   const has=m=>!!A.container?.('crowd:'+m);
   function ask(m){const t=asked.get(m);if(t!=null&&clock<t)return;asked.set(m,clock+20);Promise.resolve(A.load('crowd:'+m,{src:fileOf(m),background:true},scene)).catch(e=>{try{console.info('[VOID//RUNNER made givers] '+m+' is not on this machine ('+(e&&e.message||e)+').');}catch{}});}
   function itemFor(id,c){let it=items.get(id);if(!it){it={id:'made-'+id,action:ACTION,character:id,label:'TALK TO '+String(c.name||id).toUpperCase(),position:[0,1.6,0],range:2.2,talk:true};items.set(id,it);}it.label='TALK TO '+String(c.name||id).toUpperCase();return it;}
-  function leave(id){const p=people.get(id);if(!p)return;people.delete(id);const L=wl(),it=items.get(id);if(L&&Array.isArray(L.interactions)&&it){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}try{p.anim?.dispose?.();}catch{}for(const x of p.props)try{x.dispose();}catch{}try{p.node.dispose();}catch{}}
+  function leave(id){const p=people.get(id);if(!p)return;suspendReturn(p);people.delete(id);const L=wl(),it=items.get(id);if(L&&Array.isArray(L.interactions)&&it){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}try{p.anim?.dispose?.();}catch{}for(const x of p.props)try{x.dispose();}catch{}try{p.node.dispose();}catch{}}
   function arrive(id,c,P){P=scenePlan(P);const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
    for(const m of n.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
-   const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(ok(P.entry)||(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null))||{x:0,z:0};
-   const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};
-   const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
+   const resumed=resumeReturn(id,c,P),ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=resumed?returnLocal(resumed):P&&(ok(P.entry)||(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null))||{x:0,z:0};
+   const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:resumed?resumed.yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};
+   const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};if(resumed){p.plan=P;p.returnJourney={area:P.area,driver:root.VoidNPCReturn.createMountedReturn()};s.mode='return';}people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
    if(id==='tacta'||id==='patch')root.VoidTeaDuo?.attachGaze(n,()=>{
     const camera=scene.activeCamera?.globalPosition;
     if(!camera||Math.hypot(camera.x-n.position.x,camera.z-n.position.z)>(id==='patch'?1.22:12))return null;
@@ -320,12 +333,30 @@
    }const target=p.nearTarget||plan;if(b.activity!=='seat'&&(traits.attention??.5)>=.5)return {...target,yaw:Math.atan2(w.x-target.x,w.z-target.z)};return target;
   }
   function step(p,dt,cam){const n=p.node,R=p.going?p.plan:scenePlan(planOf(p.id,HERE)),talk=chatting()===p.id,w=me();
-   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&!R.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
+   // Mounted same-area returns walk instead of spawning at a routine spot.
+   // Mission, service, cab and cross-area controllers retain precedence.
+   const routine=R&&['stay','path','home','schedule'].includes(R.why)&&!R.crossings&&!R.outing&&(R.mode==='stay'||R.mode==='path')&&HERE.has(R.area);
+   if(p.returnJourney&&(!routine||p.going||p.returnJourney.area!==R.area))p.returnJourney=null;
+   if(!p.returnJourney&&!p.going&&routine&&p.plan?.social&&p.plan.area===R.area&&p.esc?.key===p.plan.key&&!p.esc.st.ride&&root.VoidNPCReturn){
+    p.returnJourney={area:R.area,driver:root.VoidNPCReturn.createMountedReturn()};p.esc=null;p.seat=null;
+   }
+   const returning=!!p.returnJourney;
+   if(returning){p.hold=false;p.key=R.key;}
+   else if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&!R.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&!P.crossings&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
    let clip;
-   if(P?.outing){
+   if(returning){
+    const dest=P.mode==='path'?P.points?.[0]:P,canonical=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?{x:q.x+(shift?.x||0),z:q.z+(shift?.z||0)}:null;
+    const position=canonical(p.s),target=canonical(dest);
+    const result=p.returnJourney.driver.tick({position,area:P.area,destination:target?{...target,key:P.key,area:P.area}:null,dt,speed:p.c.companionProfile?.personality?.walkSpeed||cfg.speed,paused:talk||!!root.VoidLiveContent?.socialPose?.(p.id),options:{adult:!!p.c.adult,made:true}});
+    if(result.position){p.s.x=result.position.x-(shift?.x||0);p.s.z=result.position.z-(shift?.z||0);}
+    if(Number.isFinite(result.yaw))p.s.yaw=result.yaw;
+    p.s.mode='return';p.s.clip=clip=result.clip;p.s.once=false;p.s.device=null;p.s.face=null;
+    if(result.status==='arrived'){p.returnJourney=null;p.s.mode='plan-go';p.s.planKey=null;}
+   }
+   else if(P?.outing){
     const target=P.outing,walking=target.phase==='walk';
     p.s.x=target.x;p.s.z=target.z;p.s.mode=walking?'walk':'stay';
     const near=p.id==='patch'&&target.phase==='sell'&&w&&Math.hypot(w.x-target.x,w.z-target.z)<=1.22;
@@ -363,7 +394,7 @@
    {const sp=root.VoidLiveContent?.socialPose?.(p.id);if(sp&&p.s.mode!=='esc'){const clips=NPX()?.crowdClips?.(p.c.model)||[];clip=sp==='talk'&&clips.includes('talk')?'talk':clips.includes('idle')?'idle':clip;if(sp==='talk'&&w)p.s.yaw=Math.atan2(w.x-p.s.x,w.z-p.s.z);}}
    if(p.anim&&clip!==p.clip){p.clip=clip;if(p.s.once&&p.s.after&&p.anim.playOnce)p.anim.playOnce(clip,p.s.after);else p.anim.play(clip);}   // a floor seat's sit-down / stand-up clip plays once, then its pose (ncz-street-pair.js FLOOR_MOVE)
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
-  function sync(){const L=wl(),cs=chars();
+  function sync(){cache()?.select(sessionNow(),userNow());const L=wl(),cs=chars();
    const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)||atHome(cs[id])){if(cs[id]&&inView(p.node,cam)&&!atHome(cs[id]))p.going=true;else leave(id);}else p.going=false;
    for(const [id,c] of Object.entries(cs)){
    if(root.VoidApartments?.districtPair?.[id]){

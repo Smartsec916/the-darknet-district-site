@@ -1,23 +1,14 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {readFileSync}=require('node:fs');
-const vm=require('node:vm');
-const stateSource=readFileSync(require.resolve('../tools/npc-return-state.cjs'),'utf8');
-const routeSource=readFileSync(require.resolve('../tools/npc-return-route.cjs'),'utf8');
+const {createReturnTools}=require('../void-runner/npc-return.js');
 const start={x:0,z:0},door={x:1,z:0},goal={x:2,z:0,key:'routine',area:'avenue'};
 function tracker(){
  const A={CLEAR:.3,get:id=>id==='avenue'?{}:null,
   check:(p,area,margin,opts)=>({ok:!(p.x>.9&&p.x<1.1)||!!opts?.passing,area}),
   leg:(a,b,opts)=>opts?.closed?['closed']:[]};
  const E={walkRoute:()=>[]};
- function load(source){const module={exports:{}};vm.runInNewContext(source,{module,require:id=>{
-  if(id.endsWith('/npc-areas.js'))return A;
-  if(id.endsWith('/npc-escort.js'))return E;
-  if(id.endsWith('/npc-return-route.cjs')||id==='./npc-return-route.cjs')return load(routeSource);
-  throw Error(id);
- }});return module.exports;}
- return load(stateSource).createReturnTracker();
+ return createReturnTools(A,E).createReturnTracker();
 }
 const input=(position=start,destination=goal,extra={})=>({position,area:'avenue',destination,...extra});
 test('continue only the already verified transit leg through a non-stopping doorway',()=>{

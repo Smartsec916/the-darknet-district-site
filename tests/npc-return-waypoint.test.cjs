@@ -1,9 +1,7 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {readFileSync}=require('node:fs');
-const vm=require('node:vm');
-const source=readFileSync(require.resolve('../tools/npc-return-route.cjs'),'utf8');
+const {createReturnTools}=require('../void-runner/npc-return.js');
 const start={x:0,z:0},goal={x:2,z:2},door={x:2,z:0},safe={x:0,z:2};
 const same=(a,b)=>a.x===b.x&&a.z===b.z;
 // Reproduce the real area API distinction: leg() uses passing:true and
@@ -13,9 +11,7 @@ function planner({otherArea=false,allowSafe=true}={}){
   check:(p,area,margin,opts)=>same(p,door)?{ok:otherArea||!!opts?.passing,area:otherArea?'oldtown':area}:{ok:true,area},
   leg:(a,b)=>same(a,start)&&same(b,goal)||!allowSafe&&(same(a,safe)||same(b,safe))?['blocked']:[]};
  const E={walkRoute:()=>[door,goal]};
- const module={exports:{}};
- vm.runInNewContext(source,{module,require:id=>{if(id.endsWith('/npc-areas.js'))return A;if(id.endsWith('/npc-escort.js'))return E;throw Error(id);}});
- return module.exports;
+ return createReturnTools(A,E);
 }
 test('return planner rejects a passing-only doorway waypoint and selects a safe alternative',()=>{
  const p=planner();
