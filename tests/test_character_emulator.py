@@ -81,6 +81,24 @@ class CharacterEmulatorTests(unittest.TestCase):
         self.assertIn(saved['model'], ('district-resident', 'district-smuggler'))
         self.assertEqual(self.get(a['token']).json()['character'], saved)
 
+    def test_concurrent_creation_preserves_existing_campaign(self):
+        a = self.register()
+        from tests.test_story_save import StorySaveTests
+        campaign = StorySaveTests().state()
+        account = self.requests.get(self.base + '/account', headers=self.H(a['token']), timeout=20).json()
+        response = self.requests.post(self.base + '/save', headers=self.H(a['token']),
+                                      json={'revision': account['revision'], 'save': campaign}, timeout=20)
+        self.assertEqual(response.status_code, 200)
+        ref = self.vr.player_ref(self.vr.services()[0], a['uid'])
+        before = ref.get().to_dict()
+        bodies = [self.FEMALE, self.MALE] * 6
+        with ThreadPoolExecutor(12) as pool: codes = list(pool.map(lambda body: self.post(a['token'], body).status_code, bodies))
+        self.assertEqual(codes.count(201), 1, codes)
+        self.assertEqual(set(codes) - {201, 409, 503}, set(), codes)
+        after = ref.get().to_dict()
+        self.assertIn(after.pop('character')['model'], ('district-resident', 'district-smuggler'))
+        self.assertEqual(after, before)
+
     def test_guests_cannot_claim_character_identities(self):
         g, reg = self.guest(), self.register()
         self.assertEqual(self.post(g['token'], self.FEMALE).status_code, 403)            # a guest with no District handle: refused (a handle account is accepted)

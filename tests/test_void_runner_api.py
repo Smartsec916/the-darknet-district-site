@@ -14,16 +14,33 @@ import void_runner_api as vr
 
 
 class Snapshot:
-    def __init__(self, ref): self.reference = ref
-    def to_dict(self): return copy.deepcopy(self.reference.db.data.get(self.reference.key))
+    def __init__(self, ref):
+        self.reference = ref
+        self.data = copy.deepcopy(ref.db.data.get(ref.key))
+        self.exists = ref.key in ref.db.data
+        self.update_time = ref.db.versions.get(ref.key, 0)
+    def to_dict(self): return copy.deepcopy(self.data)
 
 
 class Ref:
     def __init__(self, db, key): self.db, self.key = db, key
     def get(self, **kwargs): return Snapshot(self)
-    def set(self, data, merge=False): self.db.data[self.key] = {**(self.db.data.get(self.key, {}) if merge else {}), **copy.deepcopy(data)}
-    def update(self, data): self.set(data, True)
-    def delete(self): self.db.data.pop(self.key, None)
+    def set(self, data, merge=False):
+        self.db.data[self.key] = {**(self.db.data.get(self.key, {}) if merge else {}), **copy.deepcopy(data)}
+        self.db.versions[self.key] = self.db.versions.get(self.key, 0) + 1
+    def create(self, data):
+        from google.api_core.exceptions import Conflict
+        if self.key in self.db.data: raise Conflict('already exists')
+        self.set(data)
+    def update(self, data, option=None):
+        from google.api_core.exceptions import FailedPrecondition, NotFound
+        if option is not None:
+            if self.key not in self.db.data: raise NotFound('missing')
+            if self.db.versions.get(self.key, 0) != option: raise FailedPrecondition('stale snapshot')
+        self.set(data, True)
+    def delete(self):
+        self.db.data.pop(self.key, None)
+        self.db.versions[self.key] = self.db.versions.get(self.key, 0) + 1
     def collection(self, name): return Collection(self.db, self.key+'/'+name)
 
 
@@ -35,7 +52,8 @@ class Collection:
 
 
 class DB:
-    def __init__(self): self.data = {}
+    def __init__(self): self.data = {}; self.versions = {}
+    def write_option(self, *, last_update_time): return last_update_time
     def collection(self, key): return Collection(self, key)
     def transaction(self): return SimpleNamespace(set=lambda ref,data,**kw:ref.set(data,**kw))
 
@@ -109,11 +127,41 @@ class ApiTests(unittest.TestCase):
             self.assertIsNone(vr.player_ref(self.db,'other').get().to_dict())
     def test_character_contention_never_returns_a_server_error(self):
         route='/api/void-runner/character'
-        def gave_up(ref,data,**kw): raise ValueError('Failed to commit transaction in 5 attempts.')
-        self.db.transaction=lambda: SimpleNamespace(set=gave_up)
-        self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'}).status_code,503)   # nothing stored yet: retry later
+        from google.api_core.exceptions import Conflict
+        with patch.object(Ref, 'create', side_effect=Conflict('contention')) as create:
+            self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'}).status_code,503)
+            self.assertEqual(create.call_count, 5)
         vr.player_ref(self.db,'pilot').set({'character':{'gender':'female','model':'district-resident'}},merge=True)
         self.assertEqual(self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'}).status_code,409)   # another request won
+    def test_character_claim_retries_after_concurrent_save(self):
+        route='/api/void-runner/character'
+        ref=vr.player_ref(self.db,'pilot')
+        ref.set({'save':{'sentinel':'old'},'revision':7,'credits':23})
+        original=Ref.update
+        calls=[]
+        def concurrent_save(target, data, option=None):
+            calls.append(option)
+            if len(calls)==1:
+                target.set({'save':{'sentinel':'new'},'revision':8}, merge=True)
+            return original(target, data, option=option)
+        with patch.object(Ref,'update',concurrent_save):
+            result=self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'})
+        self.assertEqual(result.status_code,201)
+        self.assertEqual(len(calls),2)
+        self.assertEqual(ref.get().to_dict(),{'save':{'sentinel':'new'},'revision':8,'credits':23,'character':result.json['character']})
+
+    def test_character_claim_never_overwrites_race_winner(self):
+        route='/api/void-runner/character'
+        winner={'gender':'female','model':'district-resident','createdAt':123}
+        original=Ref.create
+        def concurrent_create(target, data):
+            target.set({'character':winner,'revision':7})
+            return original(target, data)
+        with patch.object(Ref,'create',concurrent_create):
+            response=self.client.post(route,headers=self.header,json={'gender':'male','model':'district-smuggler'})
+        self.assertEqual(response.status_code,409)
+        self.assertEqual(vr.player_ref(self.db,'pilot').get().to_dict(),{'character':winner,'revision':7})
+
     def test_admin_character_uses_same_single_slot(self):
         with patch.dict(os.environ, {'VOID_ADMIN_UIDS':'pilot'}):
             route='/api/void-runner/character'
