@@ -311,6 +311,92 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  }finally{await page.evaluate(()=>{VoidAccount.user=globalThis.npcReturnFixtureUser;delete globalThis.npcReturnFixtureUser;delete globalThis.npcReturnFixtureOldNode;});}
  await page.evaluate(()=>{VoidLiveContent.resetRun();VoidLiveContent.use(null,'shipped',0);VoidLiveContent.replan();});
 
+
+ // Rendered passing-only transit regression: seed a disposable actor at a legal
+ // route endpoint, then use the actual mounted driver and scene lifecycle.
+ // This isolates the return/remount adapter; the preceding tests cover the
+ // real invitation and STOP FOLLOWING path without injecting actor state.
+ const doorwayId='test-doorway-return';
+ await page.evaluate(()=>{globalThis.doorwayFixtureUser=VoidAccount.user;VoidAccount.user={uid:'offline-doorway-fixture',isAnonymous:true,getIdToken:async()=> 'offline-fixture'};});
+ try{
+  const route=await page.evaluate(()=>{
+   // Match the proven public-pavement passing-only regression fixture.
+   const A=VoidNPCAreas,area='oldtown',opts={made:true,adult:false};
+   const legal=(p,passing=false)=>{const c=A.check(p,area,passing?A.CLEAR-.1:undefined,{...opts,passing});return c.ok&&c.area===area;};
+   for(let i=517;i<=524;i++){
+    const x=i/10,from={x,z:-63},home={x,z:-54};
+    if(!legal(from)||!legal(home)||A.leg(from,home,opts).length)continue;
+    const samples=Array.from({length:46},(_,j)=>({x,z:-63+j*.2}));
+    if(samples.every(p=>legal(p,true))&&samples.some(p=>!legal(p)))return {from,home,area};
+   }
+   throw Error('no real Old Town passing-only transit fixture');
+  });
+  await page.evaluate(({from})=>enterWalking('sacramento',{quarter:'oldtown',silent:true,spawn:[from.x,1.7,from.z],yaw:0}),route);
+  await settled();
+  const accepted=await page.evaluate(({id,home})=>{
+   const content={format:'darknet-district-mission-content',version:1,
+    // The persisted character schema uses omission, not false, for the default flag.
+    characters:{[id]:{name:'Doorway return test walker',model:'npc-casual-m'}},
+    npcs:{[id]:{mode:'stay',...home,yaw:0,actions:['idle'],tier:1}}};
+   const ok=VoidLiveContent.use(content,'published',1);VoidLiveContent.replan();
+   return {ok,refused:VoidLiveContent.current.refused};
+  },{id:doorwayId,...route});
+  assert(accepted.ok,JSON.stringify(accepted.refused));
+  await page.waitForFunction(id=>VoidBabylon.district?.streetPair?.made?.people.get(id)?.node.isEnabled(),doorwayId,{timeout:120000});
+  const suspended=await page.evaluate(({id,from,home,area})=>{
+   const A=VoidNPCAreas,made=VoidBabylon.district.streetPair.made,actor=made.people.get(id),opts={adult:!!actor.c.adult,made:true};
+   const legal=(p,passing=false)=>{const c=A.check(p,area,passing?A.CLEAR-.1:undefined,{...opts,passing});return c.ok&&c.area===area;};
+   const pos=()=>({x:actor.s.x,z:actor.s.z}),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+   made.tick(.05);
+   if(opts.adult||actor.plan?.area!==area||dist(actor.plan,home)>.03||!legal(from))throw Error('invalid mounted doorway routine or fixture eligibility');
+   Object.assign(actor.s,from);actor.node.position.x=from.x;actor.node.position.z=from.z;
+   actor.returnJourney={area,driver:VoidNPCReturn.createMountedReturn()};
+   let maxStep=0,blocked=0;
+   for(let i=0;i<600;i++){
+    const last=pos();made.tick(.05);const next=pos(),step=dist(last,next);
+    maxStep=Math.max(maxStep,step);if(step>1e-8&&A.leg(last,next,opts).length)blocked++;
+    if(step>1e-8&&!legal(next)&&legal(next,true)&&actor.returnJourney){
+     // Prevent background ticks on the OLD instance between sampling and disposal.
+     // The new scene starts normally; its first stride is not stubbed.
+     globalThis.doorwayFixtureOld={node:actor.node,driver:actor.returnJourney.driver,made,tick:made.tick};
+     made.tick=()=>{};
+     return {observed:next,distance:dist(next,home),maxStep,blocked,renderError:dist(next,actor.node.position)};
+    }
+   }
+   throw Error('mounted actor never reached a passing-only position');
+  },{id:doorwayId,...route});
+  assert(suspended.distance>1&&suspended.maxStep<=.31&&suspended.blocked===0&&suspended.renderError<.03,'verified rendered transit before unload');
+  await page.evaluate(({from})=>enterWalking('sacramento',{quarter:'oldtown',silent:true,spawn:[from.x,1.7,from.z],yaw:0}),route);
+  await page.waitForFunction(id=>VoidBabylon.district?.streetPair?.made?.people.get(id)?.node.isEnabled(),doorwayId,{timeout:120000});
+  const remounted=await page.evaluate(({id,home,area,suspended})=>{
+   const A=VoidNPCAreas,made=VoidBabylon.district.streetPair.made,actor=made.people.get(id),opts={adult:!!actor.c.adult,made:true};
+   const old=globalThis.doorwayFixtureOld,pos=()=>({x:actor.s.x,z:actor.s.z}),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+   const recreated=actor.node!==old.node&&old.node.isDisposed(),sameDriver=actor.returnJourney?.driver===old.driver;
+   const start=pos(),discontinuity=dist(start,suspended.observed),remainingAtMount=dist(start,home);
+   let maxStep=0,blocked=0,renderError=0,arrived=false;
+   for(let i=0;i<600;i++){
+    const last=pos();made.tick(.05);const next=pos(),step=dist(last,next);
+    maxStep=Math.max(maxStep,step);if(step>1e-8&&A.leg(last,next,opts).length)blocked++;
+    renderError=Math.max(renderError,dist(next,actor.node.position));
+    if(!actor.returnJourney&&dist(next,home)<=.03){arrived=true;break;}
+   }
+   return {recreated,sameDriver,discontinuity,remainingAtMount,maxStep,blocked,renderError,arrived,remaining:dist(pos(),home)};
+  },{id:doorwayId,...route,suspended});
+  console.log('NPC PASSING-ONLY SCENE RELOAD',JSON.stringify({suspended,remounted}));result.npcDoorwayReload={suspended,remounted};
+  assert(remounted.recreated&&remounted.sameDriver,'actual model disposal and exact issued driver retained');
+  assert(remounted.discontinuity<1&&remounted.remainingAtMount>1,'resume near observed transit, not the routine endpoint');
+  assert(remounted.arrived&&remounted.maxStep<=.31&&remounted.blocked===0&&remounted.renderError<.03,'resumed model walks to routine without relocation or collision');
+  await page.screenshot({path:path.join(out,'npc-doorway-reload.png')});
+ }finally{
+  await page.evaluate(()=>{
+   const old=globalThis.doorwayFixtureOld;if(old)old.made.tick=old.tick;
+   delete globalThis.doorwayFixtureOld;VoidAccount.user=globalThis.doorwayFixtureUser;delete globalThis.doorwayFixtureUser;
+   VoidLiveContent.resetRun();VoidLiveContent.use(null,'shipped',0);VoidLiveContent.replan();
+  });
+ }
+ await page.evaluate(({home})=>enterWalking('sacramento',{quarter:'avenue',silent:true,spawn:[home.x,1.7,home.z],yaw:0}),returnFixture);
+ await settled();
+
  // Full campaign data lives in the original object; VR gets only a detached simulation state.
  const options=smoke?[['forest',{}]]:[['forest',{}],['tropical',{}],['suite',{companion:'seren'}],['suite',{companion:'kai'}],['suite',{companion:'nadia'}]];
  for(const [id,opts]of options){

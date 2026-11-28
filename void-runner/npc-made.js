@@ -256,12 +256,13 @@
   const cache=()=>returnSuspensions||(returnSuspensions=root.VoidNPCReturn?.createReturnSuspensions?.());
   const routineForReturn=P=>P&&['stay','path','home','schedule'].includes(P.why)&&!P.crossings&&!P.outing&&!P.indoors&&(P.mode==='stay'||P.mode==='path')&&HERE.has(P.area);
   const returnCanonical=q=>({x:q.x+(shift?.x||0),z:q.z+(shift?.z||0)}),returnLocal=q=>({x:q.x-(shift?.x||0),z:q.z-(shift?.z||0)});
+  const returnTarget=P=>{const q=P?.mode==='path'?P.points?.[0]:P;return q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?{...returnCanonical(q),key:P.key,area:P.area}:null;};
   function suspendReturn(p){
    if(!disposed||!p.returnJourney||p.going||p.esc?.st?.ride||!routineForReturn(p.plan)||p.returnJourney.area!==p.plan.area||mountedSession!==sessionNow()||mountedUser!==userNow())return;
-   cache()?.save({session:mountedSession,user:mountedUser,id:p.id,character:p.c,area:p.plan.area,key:p.plan.key,position:returnCanonical(p.s),yaw:p.s.yaw,options:{adult:!!p.c.adult,made:true}});
+   cache()?.save({session:mountedSession,user:mountedUser,id:p.id,character:p.c,area:p.plan.area,key:p.plan.key,position:returnCanonical(p.s),yaw:p.s.yaw,driver:p.returnJourney.driver,destination:returnTarget(p.plan),options:{adult:!!p.c.adult,made:true}});
   }
   function resumeReturn(id,c,P){
-   return cache()?.take({session:sessionNow(),user:userNow(),id,character:c,area:P?.area,key:P?.key,eligible:!!routineForReturn(P)&&!P.entry,options:{adult:!!c.adult,made:true}})||null;
+   return cache()?.take({session:sessionNow(),user:userNow(),id,character:c,area:P?.area,key:P?.key,eligible:!!routineForReturn(P)&&!P.entry,destination:returnTarget(P),options:{adult:!!c.adult,made:true}})||null;
   }
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null,me=()=>typeof walker!=='undefined'?walker:null;
   const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};   // on the stairs to the tunnels: the steps' height
@@ -275,7 +276,7 @@
    // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
    const resumed=resumeReturn(id,c,P),ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=resumed?returnLocal(resumed):P&&(ok(P.entry)||(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null))||{x:0,z:0};
    const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:resumed?resumed.yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};
-   const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};if(resumed){p.plan=P;p.returnJourney={area:P.area,driver:root.VoidNPCReturn.createMountedReturn()};s.mode='return';}people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
+   const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};if(resumed){p.plan=P;p.returnJourney={area:P.area,driver:resumed.driver||root.VoidNPCReturn.createMountedReturn()};s.mode='return';}people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
    if(id==='tacta'||id==='patch')root.VoidTeaDuo?.attachGaze(n,()=>{
     const camera=scene.activeCamera?.globalPosition;
     if(!camera||Math.hypot(camera.x-n.position.x,camera.z-n.position.z)>(id==='patch'?1.22:12))return null;
