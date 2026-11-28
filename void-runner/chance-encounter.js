@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const kinds=Object.freeze({
-  trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',
+  trigger:'Event',move:'NPC movement',item:'Item',choice:'Dialogue and choices',cast:'Cast conversation',
   animation:'Animation',location:'Location and access',end:'Cleanup'
  });
 
@@ -20,7 +20,7 @@
  const startTriggers={interval:'Nearby percentage roll',near:'Walking near an NPC',place:'Entering a place',leave:'Leaving a place','pod-exit':'Exiting a Sleeping Pod',
   'after-mission':'After a mission is completed','game-time':'After in-game time following a mission',flag:'A story flag is set'};
  const isVisitTrigger=kind=>['near','place','leave','pod-exit'].includes(kind);
- const isRepeat=row=>!!((row.repeatSpeech&&row.text?.trim())||(row.repeatAnimation&&row.animation));
+ const isRepeat=row=>!!((row?.repeatSpeech&&row.text?.trim())||(row?.repeatAnimation&&row.animation));
  function playlist(rows,repeatAll=false){
   const selected=rows.filter(isRepeat);
   if(!selected.length)return repeatAll?{before:[],cycle:rows,after:[]}:{before:rows,cycle:[],after:[]};
@@ -50,29 +50,46 @@
   return segments;
  }
 
- async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},repeat=(parent,_,run)=>run(parent)}){
+ async function runPlaylist(rows,byId,{signal,play,pause,random=Math.random,observe=()=>{},scope=(_kind,_item,_signal,work)=>work(),repeat=(parent,_,run)=>run(parent),previewTarget,startTarget}){
   const restart=Symbol('legacy main restart');
-  const segments=playlistSegments(rows);
+  let segments=previewTarget?.segment?[previewTarget.segment]:playlistSegments(rows);
+  function pathToBranch(items,branch){
+   for(const row of items)for(const child of row.branches||[]){
+    const entry={row,branch:child};
+    if(child===branch)return [entry];
+    const tail=pathToBranch(child.actions.map(id=>byId.get(id)),branch);
+    if(tail)return [entry,...tail];
+   }
+  }
+  if(startTarget?.segment){
+   const index=segments.findIndex(segment=>segment.key===startTarget.segment.key);
+   if(index<0)throw Error('The selected main playlist is no longer in this section.');
+   segments=segments.slice(index);
+  }
+  const entry=startTarget?.branch?pathToBranch(segments.flatMap(segment=>segment.rows),startTarget.branch):[];
+  if(!entry)throw Error('The selected chance playlist is no longer in this section.');
   let legacyActive=segments.some(segment=>segment.legacy);
   async function actions(items,signal,main,legacyReturn,marked=null){
    const next=index=>{
     while(index<items.length&&marked&&!marked.has(items[index]))index++;
     return index;
    };
-   for(let index=next(0);index<items.length;){
+   const first=entry.length?items.indexOf(entry[0].row):next(0);
+   if(first<0)return;
+   for(let index=first;index<items.length;){
     signal.throwIfAborted();
     const row=items[index];
-    observe({type:'action',row});
-    await play(row,signal,marked?.has(row)===true);
+    let forced=entry[0]?.row===row?entry.shift().branch:null;
+    if(!forced){observe({type:'action',row});await scope('line',row,signal,()=>play(row,signal,marked?.has(row)===true));}
     let target=next(index+1);
     for(;;){
      signal.throwIfAborted();
      if(!row.branches?.length)break;
-     const roll=random(),branch=chooseBranch(row,roll);
-     observe({type:'roll',row,roll,branch});
+     const roll=forced?null:random(),branch=forced||chooseBranch(row,roll);
+     forced=null;if(roll!==null)observe({type:'roll',row,roll,branch});
      if(!branch)break;
      const child=branchPlaylist(branch,byId);
-     const complete=await sequence(child,branch.passes??1,signal,true,false,legacyReturn);
+     const complete=await scope('chance',branch,signal,()=>sequence(child,branch.passes??1,signal,true,false,legacyReturn));
      if(!complete)break;
      const mode=branch.completion;
      if(mode===undefined&&legacyReturn)throw restart;
@@ -96,7 +113,7 @@
   }
   async function sequence({before,cycle,after},passes,signal,child,legacy=false,legacyReturn=legacy,chance){
    await actions(before,signal,!child,legacyReturn);
-   if(cycle.length){
+   if(cycle.length&&(!entry.length||cycle.includes(entry[0].row))){
     const result=await repeat(signal,{child,show:passes!==1||!child},async local=>{
      const marked=new Set(cycle.filter(isRepeat));
      for(let pass=0;passes===0||pass<passes;pass++){
@@ -121,12 +138,17 @@
    await actions(after,signal,!child,legacyReturn);
    return true;
   }
+  if(previewTarget?.branch){
+   const branch=previewTarget.branch;
+   return scope('chance',branch,signal,()=>sequence(branchPlaylist(branch,byId),branch.passes??1,signal,true));
+  }
   let jumpToLegacy=false;
   for(const segment of segments){
+   if(entry.length&&!segment.rows.includes(entry[0].row))continue;
    if(jumpToLegacy&&!segment.legacy)continue;
    jumpToLegacy=false;
    if(segment.key){
-    await sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy,segment.legacy,segment.chance);
+    await scope('main',segment,signal,()=>sequence({before:[],cycle:segment.rows,after:[]},segment.passes,signal,false,segment.legacy,segment.legacy,segment.chance));
     if(segment.legacy)legacyActive=false;
    }else{
     try{await actions(segment.rows,signal,false,legacyActive);}
@@ -227,8 +249,193 @@
   return [...rows,...saved].filter(row=>row?.animationSpeed!==undefined&&!validAnimationSpeed(row.animationSpeed))
    .map(row=>'Enter a playback speed greater than 0 for '+row.id+'.');
  }
- function validate(encounter){
-  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter)],nodes=encounter?.nodes;
+ function spokenText(text){
+  const voices=root.VoidNPCVoices||(typeof module==='object'&&module.exports?require('./npc-voices.js'):null);
+  return (voices?.strip(text)??text??'').trim();
+ }
+ function lineSeconds(row,clipSeconds=()=>undefined,replay=false){
+  const text=(!replay||row.repeatSpeech)&&spokenText(row.text);
+  const animation=(!replay||row.repeatAnimation)&&row.animation;
+  const speech=text?(row.recording?.duration||Math.max(1.5,text.length*.055)):0;
+  const clip=animation?(row.animationSeconds??clipSeconds(row)):0;
+  return {seconds:(text||animation||row.soundCues?.length?row.delay||0:0)+Math.max(speech,(clip||0)/(validAnimationSpeed(row.animationSpeed)?row.animationSpeed:1)),
+   unknown:!!animation&&!Number.isFinite(clip),variable:!!row.branches?.some(branch=>branch.chance>0)};
+ }
+ function timing(sequence,passes=1,clipSeconds,partial=false,chance){
+  const total={seconds:0,unknown:false,variable:false,loop:passes===0&&sequence.cycle.length>0&&!chance};
+  const repeatOnly=partial&&sequence.cycle.some(isRepeat);
+  function add(rows,replay,multiplier){
+   for(const row of rows){
+    if(!row||(replay&&repeatOnly&&!isRepeat(row)))continue;
+    const t=lineSeconds(row,clipSeconds,replay&&repeatOnly);
+    total.seconds+=t.seconds*multiplier;total.unknown||=t.unknown;total.variable||=t.variable;
+   }
+  }
+  add(sequence.before,false,1);add(sequence.cycle,false,1);
+  if(passes!==1&&sequence.cycle.length&&chance>0&&chance<100)total.variable=true;
+  if(passes>1&&sequence.cycle.length){
+   if(!chance){add(sequence.cycle,true,passes-1);total.seconds+=(passes-1)*.25;}
+  }
+  add(sequence.after,false,1);return total;
+ }
+ const soundPath=/^assets\/audio\/[A-Za-z0-9_/-]+\.(ogg|mp3|wav|m4a|webm)$/;
+ const importedSoundHash=src=>typeof src==='string'?/^imported:([a-f0-9]{64})$/.exec(src)?.[1]:undefined;
+ function soundCueProblem(cue){
+  if(typeof cue?.src!=='string'||(!soundPath.test(cue.src)&&!importedSoundHash(cue.src)))return 'Choose a packaged sound or import a local file.';
+  if(!['start','end'].includes(cue.when))return 'Choose Start or End for the cue moment.';
+  if(!Number.isFinite(cue.offset)||cue.offset<0||cue.offset>3600)return 'Set the offset to 0–3600 seconds.';
+  if(!Number.isFinite(cue.volume)||cue.volume<0||cue.volume>1)return 'Set Volume to 0–1 (1 is full volume).';
+  if(typeof cue.loop!=='boolean')return 'Choose whether to loop the sound.';
+  if(cue.loop&&(!['scope','encounter','seconds'].includes(cue.stop)||(cue.when==='end'&&cue.stop!=='seconds')))return 'Choose when the loop stops. End cues require a set duration.';
+  if(cue.loop&&cue.stop==='seconds'&&(!Number.isFinite(cue.seconds)||cue.seconds<=0||cue.seconds>3600))return 'Set a loop duration greater than 0 and at most 3600 seconds.';
+  return '';
+ }
+ const validSound=cue=>!soundCueProblem(cue);
+ function soundLists(graph){
+  const rows=[...(Array.isArray(graph.dialogue)?graph.dialogue:[]),...(Array.isArray(graph.savedActions)?graph.savedActions.flat():[])];
+  return [graph.soundCues,...Object.values(graph.sectionSounds||{}),...Object.values(graph.playlistSounds||{}),
+   ...(Array.isArray(graph.nodes)?graph.nodes:[]).map(node=>node?.soundCues),
+   ...rows.flatMap(row=>[row?.soundCues,...(Array.isArray(row?.branches)?row.branches:[]).map(branch=>branch?.soundCues)])].filter(list=>list!==undefined);
+ }
+ function soundListProblems(list){
+  return Array.isArray(list)?list.flatMap((cue,index)=>{
+   const problem=soundCueProblem(cue);
+   const name=cue?.name||(typeof cue?.src==='string'?cue.src.split('/').at(-1):'');
+   return problem?['Sound effect '+(index+1)+(name?' ('+name+')':'')+'. '+problem]:[];
+  }):['Choose a list of sound effects.'];
+ }
+ const soundProblems=graph=>soundLists(graph||{}).flatMap(soundListProblems);
+ function previewSoundProblems(graph,key,rows,byId,target){
+  const lists=[],seen=new Set();
+  const add=cues=>{if(cues!==undefined)lists.push(cues);};
+  function visit(actions){
+   for(const row of actions){
+    if(!row||seen.has(row))continue;
+    seen.add(row);add(row.soundCues);
+    for(const branch of row.branches||[])if(branch.chance>0)visitBranch(branch);
+   }
+  }
+  function visitBranch(branch){
+   add(branch.soundCues);
+   const {before,cycle,after}=branchPlaylist(branch,byId);visit([...before,...cycle,...after]);
+  }
+  if(target?.branch)visitBranch(target.branch);
+  else{
+   if(!target)add(graph.sectionSounds?.[key]);
+   for(const segment of target?.segment?[target.segment]:playlistSegments(rows)){
+    if(segment.key)add(graph.playlistSounds?.[key+':'+segment.key]);
+    visit(segment.rows);
+   }
+  }
+  return lists.flatMap(soundListProblems);
+ }
+ function playSound(cue,done,draft=true){
+  const studio=root.VoidSoundStudio;
+  if(!studio)return null;
+  const hash=importedSoundHash(cue.src),imports=root.VoidVoiceImports;
+  if(hash&&!imports)return null;
+  const options={loop:cue.loop,done};
+  if(hash){
+   if(draft)options.blob=()=>imports.getData(hash).then(data=>new Blob([data],{type:cue.type||'application/octet-stream'}));
+   else options.url=imports.url(hash);
+  }
+  return studio.player(studio.asset('',cue.src,'','Mission effects'),'effects',cue.volume,options);
+ }
+ function soundTimeline(play=playSound,timers=root){
+  const pending=new Set(),active=new Map();
+  let closed=false,finished=false;
+  function schedule(seconds,work){
+   if(closed)return null;
+   if(!seconds){work();return null;}
+   const id=timers.setTimeout(()=>{pending.delete(id);if(!closed)work();},seconds*1000);
+   pending.add(id);return id;
+  }
+  function clear(id){if(id!==null){timers.clearTimeout(id);pending.delete(id);}}
+  function stop(player){const item=active.get(player);clear(item?.timer??null);
+   if(item?.arm)player.media?.removeEventListener('playing',item.arm);active.delete(player);player.dispose();}
+  function fire(cue,owner){
+   if((owner.ended&&cue.loop&&cue.stop==='scope')||(finished&&cue.loop&&cue.stop==='encounter'))return;
+   for(const source of active.keys())if(source.ended)stop(source);
+   let player;
+   try{player=play(cue,()=>{clear(active.get(player)?.timer??null);active.delete(player);});}catch{ return; }
+   if(!player)return;
+   const item={owner,cue,timer:null};active.set(player,item);
+   if(cue.loop&&cue.stop==='seconds'){
+    item.arm=()=>{if(active.has(player))item.timer=schedule(cue.seconds,()=>stop(player));};
+    if(player.media?.paused)player.media.addEventListener('playing',item.arm,{once:true});else item.arm();
+   }
+  }
+  function open(cues){
+   const list=(cues||[]).filter(validSound),owner={ended:false};
+   const starts=list.filter(cue=>cue.when==='start').map(cue=>schedule(cue.offset,()=>fire(cue,owner)));
+   return (complete=true)=>{
+    if(owner.ended)return;
+    owner.ended=true;starts.forEach(clear);
+    for(const [player,item] of active)if(item.owner===owner&&item.cue.loop&&item.cue.stop==='scope')stop(player);
+    if(complete)for(const cue of list.filter(cue=>cue.when==='end'))schedule(cue.offset,()=>fire(cue,owner));
+   };
+  }
+  return {open,finish(){finished=true;for(const [player,item] of active)if(item.cue.loop&&item.cue.stop==='encounter')stop(player);},
+   dispose(){closed=true;for(const id of pending)clear(id);for(const player of active.keys())stop(player);}};
+ }
+ async function withSounds(timeline,cues,signal,work){
+  if(!timeline||!cues?.length)return work();
+  signal.throwIfAborted();
+  const end=timeline.open(cues);
+  try{const result=await work();end(!signal.aborted);return result;}
+  finally{end(false);}
+ }
+ function soundsFor(graph,section,kind,item){
+  return kind==='main'?graph.playlistSounds?.[section+':'+item.key]:item.soundCues;
+ }
+ const castLocations={sacramento:'NeoChinatown street','darknet-district':'The Darknet District','planet-low-quay':'Low Quay'};
+ function matchesScene(at,location){
+  if((at.scene||'sacramento')==='sacramento')return location?.area==='street'&&location.quarter===at.quarter;
+  if(at.scene==='darknet-district')return location?.id==='neochinatown'&&location.area==='interior';
+  return at.scene==='planet-low-quay'&&location?.id===at.scene;
+ }
+ const npcId=value=>typeof value==='string'&&/^[a-z][a-z0-9-]{0,63}$/.test(value);
+ function castProblems(graph,publishing=false){
+  if(graph?.cast===undefined)return [];
+  if(!Array.isArray(graph.cast))return ['Choose a valid cast.'];
+  const errors=[],ids=new Set();
+  if(!Object.hasOwn(castLocations,graph.playtest?.scene))errors.push('Choose an encounter location.');
+  for(const actor of graph.cast){
+   if(!npcId(actor?.id)||ids.has(actor.id)){errors.push('Give each cast member a unique NPC ID using lowercase letters, numbers or hyphens.');continue;}
+   ids.add(actor.id);
+   if(typeof actor.name!=='string'||!actor.name.trim()||actor.name.length>60)errors.push('Enter a name for '+actor.id+'.');
+   if(actor.localAsset?!/^enc-glb-[a-f0-9-]{36}$/.test(actor.localAsset)||!!actor.model:!npcId(actor.model))
+    errors.push('Choose a game model or import a GLB for '+actor.id+'.');
+   if(actor.idle!==undefined&&(typeof actor.idle!=='string'||actor.idle.length>100))errors.push('Check the idle animation for '+actor.id+'.');
+   if(publishing&&actor.localAsset)errors.push('Choose a game model for '+actor.id+' before publishing. Imported GLBs are stored in this browser.');
+   if(!['x','y','z','yaw','scale'].every(key=>Number.isFinite(actor[key]))||actor.scale<.1||actor.scale>5||
+    Math.max(Math.abs(actor.x),Math.abs(actor.y),Math.abs(actor.z))>100000||Math.abs(actor.yaw)>100)
+    errors.push('Check placement and scale for '+actor.id+'.');
+  }
+  if(Array.isArray(graph.dialogue))for(const row of graph.dialogue){
+   if(row?.animation&&!ids.has(row.speaker))errors.push('Choose a cast member for animation '+row.id+'.');
+  }
+  if(Array.isArray(graph.nodes))for(const node of graph.nodes){
+   if(node?.kind==='cast'&&node.speaker&&!ids.has(node.speaker))errors.push('Choose a cast member for '+node.id+'.');
+  }
+  return errors;
+ }
+ async function castAsset(key,file){
+  const db=await new Promise((resolve,reject)=>{
+   const request=root.indexedDB.open('void-chance-cast',1);
+   request.onupgradeneeded=()=>request.result.createObjectStore('models');
+   request.onsuccess=()=>resolve(request.result);
+   request.onerror=()=>reject(request.error);
+  });
+  try{return await new Promise((resolve,reject)=>{
+   const tx=db.transaction('models',file?'readwrite':'readonly'),store=tx.objectStore('models');
+   const request=file?store.put(file,key):store.get(key);
+   tx.oncomplete=()=>resolve(request.result);
+   tx.onerror=tx.onabort=()=>reject(tx.error||Error('Could not access the imported GLB.'));
+  });}finally{db.close();}
+ }
+ function validate(encounter,{sounds=true}={}){
+  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter),...castProblems(encounter),...(sounds?soundProblems(encounter):[])],nodes=encounter?.nodes;
   const limit=encounter?.conditions?.dailyLimit;
   if(limit!==undefined&&limit!==0.5&&(!Number.isInteger(limit)||limit<0||limit>1000))
    errors.push('Use 0.5 for every other game day or a whole number from 0 to 1000.');
@@ -245,6 +452,7 @@
    if(!node||!Object.hasOwn(kinds,node.kind)||typeof node.id!=='string'||!/^[a-z][a-z0-9-]{0,63}$/.test(node.id)){
     errors.push('Each node needs a valid type and ID.');continue;
    }
+   if(node.kind==='cast'&&!encounter.cast?.length)errors.push('Add a cast member for '+node.id+'.');
    if(byId.has(node.id))errors.push('Repeated node '+node.id+'.');
    byId.set(node.id,node);
   }
@@ -302,7 +510,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,spokenText,lineSeconds,timing,soundLists,soundProblems,previewSoundProblems,importedSoundHash,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);

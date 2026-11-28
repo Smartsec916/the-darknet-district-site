@@ -14,7 +14,7 @@
   const index=before?graph.dialogue.indexOf(before):last?graph.dialogue.indexOf(last)+1:graph.dialogue.length;
   graph.dialogue.splice(index,0,line);
  }
- const colors={trigger:'#e3be52',move:'#71aaff',item:'#6cd598',choice:'#c29af7',animation:'#f4a563',location:'#65d5ce',end:'#f17d84'};
+ const colors={trigger:'#e3be52',move:'#71aaff',item:'#6cd598',choice:'#c29af7',animation:'#f4a563',cast:'#6cd598',location:'#65d5ce',end:'#f17d84'};
  function element(tag,text){
   const e=document.createElement(tag);
   if(text!==undefined)e.textContent=text;
@@ -40,15 +40,18 @@
  async function mount(host,tools){
   const uid=tools.uid,api=root.VoidChanceEncounter;
   const current=()=>host.isConnected&&tools.authorized&&uid===tools.uid;
-  const [catalog,seed]=await Promise.all([tools.request('developer/chance-encounters'),fetch(tools.seedUrl||'void-runner/chance-encounter-seed.json').then(r=>{if(!r.ok)throw Error('Could not load Pleasure Breach.');return r.json();})]);
+  const [catalog,seed,soundLibrary]=await Promise.all([tools.request('developer/chance-encounters'),fetch(tools.seedUrl||'void-runner/chance-encounter-seed.json').then(r=>{if(!r.ok)throw Error('Could not load Pleasure Breach.');return r.json();}),
+   fetch(tools.soundLibraryUrl||'void-runner/sound-library.json').then(r=>r.ok?r.json():[]).then(list=>Array.isArray(list)?list:[]).catch(()=>[])]);
   if(!current())return;
   const records=new Map(catalog.encounters.map(r=>[r.id,r]));
   if(!records.has(seed.id))records.set(seed.id,{id:seed.id,revision:0,draft:seed});
   let id,selected,dirty=false,busy=false,status='';
-  let working,addBranch='arrival',dialogueOpen=!tools.mobile,preview;
+  let working,addBranch='arrival',dialogueOpen=!tools.mobile,preview,previewSounds,audition;
+  function stopEditorAudio(){preview?.abort();previewSounds?.dispose();audition?.dispose();preview=previewSounds=audition=null;}
+  const durationLabels=[];
   const checked=new Set(),closed=new Set();
   const record=()=>records.get(id),graph=()=>working;
-  const mark=()=>{dirty=true;tools.onDirtyChange?.(true);message.textContent='Unsaved draft';};
+  const mark=()=>{dirty=true;tools.onDirtyChange?.(true);message.textContent='Unsaved draft';for(const refresh of durationLabels)refresh();};
   const message=element('p');message.setAttribute('role','status');
   function choose(key){checked.clear();closed.clear();id=key;working=api.withWaitingDialogue(structuredClone(record()?.draft));selected=graph()?.start;dirty=false;tools.onDirtyChange?.(false);status='';draw();}
   function newGraph(duplicate){
@@ -56,12 +59,20 @@
    const key='enc-'+crypto.randomUUID().slice(0,12);
    const draft=structuredClone(duplicate?graph():seed);
    if(!duplicate){
-    draft.nodes=[{id:'start',kind:'trigger',name:'Encounter begins',edges:[{to:'end'}]},{id:'end',kind:'end',name:'End encounter',edges:[]}];
-    draft.start='start';draft.dialogue=[];delete draft.item;delete draft.residence;
+    draft.nodes=[{id:'start',kind:'trigger',name:'Encounter begins',edges:[{to:'meet'}]},
+     {id:'meet',kind:'cast',name:'Talk to the cast',edges:[{to:'end'}]},{id:'end',kind:'end',name:'End encounter',edges:[]}];
+    draft.start='start';draft.dialogue=[];draft.cast=[];
+    draft.conditions={chance:100,intervalSeconds:15,radius:20,quarter:seed.playtest.quarter};
+    draft.playtest={scene:'sacramento',quarter:seed.playtest.quarter,x:seed.playtest.x,z:seed.playtest.z,yaw:seed.playtest.yaw,pitch:0,delaySeconds:0};
+    for(const key of ['item','residence','placement','roleplayClip','dropPosition','decisionAfter'])delete draft[key];
    }
    draft.id=key;draft.name=duplicate?draft.name+' (copy)':'New encounter';draft.enabled=false;
    records.set(key,{id:key,revision:0,draft});choose(key);mark();
   }
+  const importedSounds=g=>api.soundLists(g).flatMap(cues=>Array.isArray(cues)?cues:[]).flatMap(cue=>{
+   const hash=api.importedSoundHash(cue?.src);
+   return hash?[{hash,type:cue.type,text:cue.name||'sound effect'}]:[];
+  });
   async function send(action){
    if(!current()||busy)return;
    const g=graph(),r=record();
@@ -70,8 +81,9 @@
     if(errors.length){message.textContent=errors.join(' ');return;}
    }
    if(action==='publish'){
-    const errors=api.validate(g);
-    if(errors.length){message.textContent=errors.join(' ');return;}
+    const invalidSound=api.soundLists(g).some(cues=>Array.isArray(cues)&&cues.some(cue=>!soundLibrary.includes(cue?.src)&&!api.importedSoundHash(cue?.src)));
+    const errors=[...api.validate(g),...api.castProblems(g,true),...(invalidSound?['Choose a packaged sound or import an audio file.']:[])];
+    if(errors.length){message.textContent=[...new Set(errors)].join(' ');return;}
     if(!confirm('Publish '+g.name+' for all players?'))return;
    }
    if(action==='unpublish'&&!confirm('Unpublish '+g.name+' and keep it as a draft?'))return;
@@ -80,7 +92,12 @@
    try{
     if(action==='save'||action==='publish'){
      const recordings=[...(g.dialogue||[]),...(g.savedActions||[]).flat()].flatMap(line=>line.recording?[line.recording]:[]);
-     if(recordings.length)await root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),recordings);
+     const upload=clips=>root.VoidVoiceImports.upload((path,body)=>tools.request(path,body),clips);
+     if(recordings.length)await upload(recordings);
+     if(action==='publish'){
+      const sounds=importedSounds(g);
+      for(let i=0;i<sounds.length;i+=200)await upload(sounds.slice(i,i+200));
+     }
     }
     const payload={action,id,revision:r.revision};
     if(action==='save'||action==='publish')payload.graph=g;
@@ -97,7 +114,7 @@
    }catch(e){message.textContent=e.message;}finally{busy=false;host.inert=false;}
   }
   function draw(){
-   preview?.abort();
+   stopEditorAudio();durationLabels.length=0;
    host.replaceChildren();
    const bar=element('div');bar.className='dev-actions';host.append(bar);
    const entries=[...records.values()].filter(r=>!r.deleted);
@@ -111,21 +128,28 @@
    const g=graph();if(!g){message.textContent=status;host.append(message);return;}
    bar.append(button('Duplicate',()=>newGraph(true)),button('Save draft',()=>send('save')));
    if(!tools.mobile)bar.append(button('Publish',()=>send('publish')),button('Delete',()=>send('delete')));
-   const launch=async(start)=>{
+   const launch=async(start,previewPoint)=>{
     const errors=api.animationSpeedProblems(g);
     if(errors.length){message.textContent=errors.join(' ');return;}
     try{
+     stopEditorAudio();
      sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
-     await root.VoidEncounterGame.playtest(structuredClone(g),start);
+     const snapshot=structuredClone({graph:g,previewPoint});
+     await root.VoidEncounterGame.playtest(snapshot.graph,start,snapshot.previewPoint);
     }
     catch(e){message.textContent=e.message;}
    };
    if(!tools.mobile)bar.append(button('▶ Play This Chance Encounter',()=>launch(g.start)),button('Play From Selected Node',()=>launch(selected||g.start)));
+   const startHere=(label,action)=>{
+    const control=button('Start from this point',action);
+    control.setAttribute('aria-label','Start from this point: '+label);return control;
+   };
    if(!tools.mobile&&record().live){
     const live=record().live;
     bar.append(button('Unpublish',()=>send('unpublish')));
     bar.append(button('Play published version',async()=>{
      try{
+      stopEditorAudio();
       sessionStorage.setItem('chance-playtest-draft',JSON.stringify({uid,graph:g,revision:record().revision,dirty,selected}));
       await root.VoidEncounterGame.playtest(structuredClone(live),live.start);
      }catch(e){message.textContent=e.message;}
@@ -136,6 +160,25 @@
    field(props,'Name',input(g.name,v=>{g.name=v;mark();}));
    const on=element('input');on.type='checkbox';on.checked=g.enabled;on.onchange=()=>{g.enabled=on.checked;mark();};field(props,'Enabled',on);
    const trigger=g.conditions.startTrigger||{kind:'interval'};
+   if(g.cast){
+    field(props,'Encounter location',select(Object.entries(api.castLocations),g.playtest.scene,value=>{
+     const previous={x:g.playtest.x,z:g.playtest.z};
+     g.playtest.scene=value;
+     const spawn=value==='planet-low-quay'?[27.4,371]:value==='darknet-district'?root.VoidNeoChinatown?.layout('interior')?.spawn?.filter((_,i)=>i!==1):null;
+     const [x,z]=spawn||[seed.playtest.x,seed.playtest.z];
+     g.playtest.x=x;g.playtest.z=z;
+     for(const [i,actor] of g.cast.entries())if(actor.x===previous.x+1+i*.75&&actor.z===previous.z+1){actor.x=x+1+i*.75;actor.z=z+1;}
+     mark();draw();
+    }));
+    if(g.playtest.scene==='sacramento'){
+     const quarters=Object.values(root.VoidQuarters?.QUARTERS||{}).filter(q=>q.id!=='underground');
+     if(quarters.length)field(props,'Street quarter',select(quarters.map(q=>[q.id,q.name]),g.playtest.quarter,id=>{
+      const q=quarters.find(item=>item.id===id);
+      g.conditions.quarter=g.playtest.quarter=id;
+      updateStart({x:q.spawn[0],z:q.spawn[2],yaw:q.yaw});draw();
+     }));
+    }
+   }
    field(props,'Start trigger',select(Object.entries(api.startTriggers),trigger.kind,kind=>{
     if(kind==='interval')delete g.conditions.startTrigger;
     else g.conditions.startTrigger={kind,...(kind==='game-time'?{minutes:60}:kind==='near'?{distance:5}:{})};
@@ -152,6 +195,7 @@
    if(trigger.kind==='near'){
     const npcs=tools.npcs?.slice()||(root.VoidLiveContent?.env?.givers||[]).filter(g=>g.targets?.length).map(g=>[g.id,g.name||g.id]);
     if(trigger.target&&!npcs.some(([key])=>key===trigger.target))npcs.push([trigger.target,trigger.target]);
+    if(g.cast)props.append(element('small','A nearby NPC trigger checks a character already present in the game. Cast members appear after activation.'));
     field(props,'Trigger NPC',select([['','Choose…'],...npcs],trigger.target||'',v=>{trigger.target=v;mark();}));
     field(props,'Approach distance (metres)',input(trigger.distance,v=>{trigger.distance=v;mark();},'number'));
    }
@@ -184,18 +228,97 @@
     coords[key]=field(setup,label,input(g.playtest[key],v=>updateStart({[key]:v}),'number'));
    }
    if(!tools.mobile)setup.append(button('Set From Current Player Position',()=>{
-    if(typeof walker==='undefined'||!walker||walkingLocation?.area!=='street'){message.textContent='Stand on the street at the desired starting point.';return;}
-    updateStart({x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch,quarter:walkingLocation.quarter});
+    const loc=typeof walkingLocation!=='undefined'?walkingLocation:null;
+    if(typeof walker==='undefined'||!walker||!loc||(g.cast?!api.matchesScene(g.playtest,loc):loc.area!=='street')){message.textContent='Stand in the selected encounter location first.';return;}
+    updateStart({x:walker.x,z:walker.z,yaw:walker.yaw,pitch:walker.pitch,...(loc.quarter?{quarter:loc.quarter}:{})});
+    if(g.cast&&loc.quarter)g.conditions.quarter=loc.quarter;
    }));
    setup.addEventListener('toggle',()=>{
-    if(!setup.open||map||!root.VoidNPCMap)return;
+    if(!setup.open||map||!root.VoidNPCMap||(g.cast&&g.playtest.scene!=='sacramento'))return;
     map=root.VoidNPCMap.create({npc:null,area:g.playtest.quarter,markers:[marker()],selected:'player',
-     onArea:quarter=>{g.playtest.quarter=quarter;mark();},onPick:(x,z)=>updateStart({x,z}),
+     onArea:quarter=>{g.playtest.quarter=quarter;if(g.cast)g.conditions.quarter=quarter;mark();},onPick:(x,z)=>updateStart({x,z}),
      onDrag:(_,x,z)=>updateStart({x,z}),onFacing:(_,yaw)=>updateStart({yaw})});
     setup.append(map.el);
    });
+   if(g.cast){
+    const cast=element('section');cast.className='dev-fields';cast.append(element('h3','Cast'));host.insertBefore(cast,conditions);
+    const looks=(root.VoidMadeNPCs?.models()||[]).map(model=>model.asset).sort();
+    const roster=(root.VoidLiveContent?.env?.givers||[]).flatMap(npc=>{
+     const configured=root.VoidLiveContent?.current?.content?.characters?.[npc.id];
+     const model=configured?.model||root.VoidDistrictPeople?.npc?.(npc.id)?.model;
+     return looks.includes(model)?[[npc.id,npc.name,model]]:[];
+    });
+    function renameActor(actor,id){
+     for(const row of [...g.dialogue,...g.nodes,...(g.savedActions||[]).flat()])if(row.speaker===actor.id){
+      row.speaker=id;delete row.recording;
+     }
+     actor.id=id;
+    }
+    const pick=element('datalist');pick.id='chance-cast-models';
+    for(const look of looks)pick.append(new Option(look,look));
+    cast.append(pick,button('Add cast member',()=>{
+     let n=1;while(g.cast.some(actor=>actor.id==='npc-'+n))n++;
+     g.cast.push({id:'npc-'+n,name:'NPC '+n,model:'',x:g.playtest.x+1+(n-1)*.75,y:0,z:g.playtest.z+1,yaw:0,scale:1,idle:''});
+     mark();draw();
+    }));
+    for(const actor of g.cast){
+     const form=element('fieldset');form.append(element('legend',actor.name||actor.id));cast.append(form);
+     if(roster.length)field(form,'Use existing NPC',select([['','Choose from the roster'],...roster.map(([id,name])=>[id,name])],'',id=>{
+      const chosen=roster.find(npc=>npc[0]===id);if(!chosen)return;
+      if(g.cast.some(member=>member!==actor&&member.id===id)){message.textContent='That NPC ID is already in this cast.';return;}
+      renameActor(actor,id);actor.name=chosen[1];actor.model=chosen[2];actor.idle='';
+      delete actor.localAsset;delete actor.fileName;delete actor.clips;delete actor.clipSeconds;mark();draw();
+     }));
+     field(form,'NPC ID',input(actor.id,value=>{renameActor(actor,value);mark();}));
+     field(form,'NPC name',input(actor.name,value=>{actor.name=value;mark();}));
+     const model=field(form,'Game model',input(actor.model,value=>{actor.model=value.trim();actor.idle='';delete actor.localAsset;delete actor.fileName;delete actor.clips;delete actor.clipSeconds;mark();}));
+     model.setAttribute('list',pick.id);
+     if(!tools.mobile){
+      const upload=element('input');upload.type='file';upload.accept='.glb,model/gltf-binary';
+      const note=element('output',actor.fileName?'Local model: '+actor.fileName:'Imported models can be used in browser playtests. Select a game model to publish.');note.setAttribute('role','status');
+      field(form,'Import .glb',upload);form.append(note);
+      upload.onchange=async()=>{
+       const file=upload.files[0];if(!file)return;
+       upload.disabled=true;
+       try{
+        if(!/\.glb$/i.test(file.name))throw Error('Choose a .glb file.');
+        const doc=root.VoidAssets.validate(await file.arrayBuffer());
+        if(!doc.meshes?.length)throw Error('Choose a GLB containing a mesh.');
+        const key='enc-glb-'+crypto.randomUUID();await api.castAsset(key,file);
+        if(!current()||!form.isConnected)return;
+        actor.localAsset=key;actor.fileName=file.name;actor.idle='';delete actor.model;
+        actor.clips=(doc.animations||[]).map(clip=>clip.name).filter(name=>typeof name==='string'&&name.length<=100);
+        actor.clipSeconds=Object.fromEntries((doc.animations||[]).filter(clip=>actor.clips.includes(clip.name)).map(clip=>{
+         const spans=(clip.samplers||[]).map(s=>doc.accessors?.[s.input]);
+         return [clip.name,Math.max(...spans.map(a=>a?.max?.[0]))-Math.min(...spans.map(a=>a?.min?.[0]))];
+        }).filter(([,seconds])=>Number.isFinite(seconds)&&seconds>=0));
+        if(!actor.id||/^npc-\d+$/.test(actor.id)){
+         const label=file.name.replace(/_meshy.*|\.glb$/i,''),slug=label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+         if(label&&/^NPC \d+$/.test(actor.name))actor.name=label.slice(0,60);
+         const id=slug.slice(0,64);
+         if(/^[a-z]/.test(id)&&!g.cast.some(item=>item!==actor&&item.id===id)){
+          renameActor(actor,id);
+         }
+        }
+        note.textContent='Local model: '+file.name;mark();draw();
+       }catch(error){note.textContent=error.message;}finally{upload.disabled=false;upload.value='';}
+      };
+      form.append(button('Place NPC at my position',()=>{
+       const loc=typeof walkingLocation!=='undefined'?walkingLocation:null;
+       if(typeof walker==='undefined'||!walker||!api.matchesScene(g.playtest,loc)){message.textContent='Stand in the selected encounter location first.';return;}
+       Object.assign(actor,{x:walker.x,z:walker.z,yaw:walker.yaw});mark();draw();
+      }));
+     }
+     for(const [key,label] of [['x','NPC east / west'],['y','NPC floor offset'],['z','NPC north / south'],['yaw','NPC facing (radians)'],['scale','NPC scale']])
+      field(form,label,input(actor[key],value=>{actor[key]=value;mark();},'number')).step='any';
+     const clips=actor.clips||root.VoidCrowd?.clips?.[actor.model]||[];
+     field(form,'Idle animation',clips.length?select([['','Automatic'],...clips.map(name=>[name,name])],actor.idle||'',value=>{actor.idle=value;mark();}):input(actor.idle,value=>{actor.idle=value.trim();mark();}));
+     form.append(button('Remove cast member',()=>{g.cast=g.cast.filter(value=>value!==actor);mark();draw();}));
+    }
+   }
    const motions=element('datalist');motions.id='encounter-lace-motions';host.append(motions);
    const clipNames=new Set([...(tools.clips||[]),...(root.VoidCrowd?.clips?.['npc-lib-eb1d6cc8']||[]),
+    ...(g.cast||[]).flatMap(actor=>actor.clips||root.VoidCrowd?.clips?.[actor.model]||[]),
     g.placement?.clip,...(g.dialogue||[]).map(line=>line.animation),
     'sz-tiedbf','sz-tiedbf-look-back','sz-tiedbf-look-back-return']);
    for(const id of clipNames){if(id){const option=element('option');option.value=id;option.label=root.VoidAnimLibrary?.clip?.(id)?.title||id;motions.append(option);}}
@@ -217,9 +340,103 @@
      field(prop,label,input(g.dropPosition[key],v=>{g.dropPosition[key]=v;mark();},'number'));
     const drop=g.nodes.find(n=>n.kind==='item');if(drop)prop.append(button('Preview keycard drop',()=>launch(drop.id)));
    }
+   const soundFiles=element('datalist');soundFiles.id='chance-encounter-sounds';
+   for(const path of soundLibrary)soundFiles.append(new Option(path.split('/').at(-1),path));
+   host.append(soundFiles);
+   function drawSounds(parent,label,get,set){
+    const details=element('details');details.className='encounter-sound-cues';parent.append(details);
+    const summary=element('summary'),controls=element('div');details.append(summary,controls);
+    const update=()=>{
+     const cues=get()||[];
+     summary.textContent=label+' ('+cues.length+')';controls.replaceChildren();
+     for(const [index,cue] of cues.entries()){
+      const form=element('fieldset');form.className='encounter-action-fields';controls.append(form);
+      form.append(element('legend','Sound effect '+(index+1)));
+      const number=(label,value,min,max,change)=>{
+       const hint=element('small');hint.setAttribute('aria-live','polite');
+       const check=()=>{const bad=!Number.isFinite(control.valueAsNumber)||!control.validity.valid;control.setAttribute('aria-invalid',String(bad));hint.textContent=bad?'Enter a value from '+min+' to '+max+'.':'';hint.hidden=!bad;};
+       const control=field(form,label,input(value,v=>{change(v);mark();check();},'number'));control.min=min;control.max=max;control.step='any';
+       control.parentElement.append(hint);check();
+      };
+      const imported=api.importedSoundHash(cue.src);
+      const source=element('small',imported?'Using imported file: '+(cue.name||'Local sound'):'Choose a built-in sound or import a local file.');
+      source.setAttribute('role','status');form.append(source);
+      const file=element('input');file.value=imported?'':cue.src;file.placeholder='Choose a built-in sound';file.setAttribute('list',soundFiles.id);
+      field(form,'Built-in sound',file);
+      const libraryField=file.parentElement;
+      libraryField.hidden=!!imported;
+      const showLibrary=imported?button('Choose a built-in sound instead',()=>{libraryField.hidden=false;file.focus();}):null;
+      if(showLibrary)form.append(showLibrary);
+      file.onchange=()=>{
+       const value=file.value.trim();
+       if(!soundLibrary.includes(value)){
+        file.value=imported?'':cue.src;
+        source.textContent=imported?'Still using imported file: '+(cue.name||'Local sound')+'. Select a built-in sound to replace it.':'Select a sound from the built-in list or import a local file.';
+        return;
+       }
+       audition?.dispose();cue.src=value;delete cue.name;delete cue.type;mark();
+       if(imported)update();else source.textContent='Using built-in sound: '+value.split('/').at(-1);
+      };
+      const imports=root.VoidVoiceImports;
+      if(imports){
+       const local=element('input');local.type='file';local.accept='audio/*,.ogg,.mp3,.wav,.m4a,.webm,.flac';
+       field(form,'Import local sound file',local);
+       const feedback=source;
+       local.onchange=async()=>{
+        const chosen=local.files[0];if(!chosen)return;
+        local.disabled=file.disabled=true;
+        try{
+         const prepared=await imports.prepare(chosen,v=>{feedback.textContent=v;});
+         if(!prepared.ok)throw Error(prepared.why);
+         await imports.store(prepared.hash,prepared.type,prepared.data,prepared.duration);
+         if(!current()||graph()!==g||!get()?.includes(cue))return;
+         audition?.dispose();cue.src='imported:'+prepared.hash;cue.name=prepared.name.replace(/<[^>]*>|[\u0000-\u001f]/g,'').trim()||'Sound effect';cue.type=prepared.type;mark();
+         if(form.isConnected)update();else draw();
+        }catch(error){feedback.textContent=error.message;}
+        finally{local.value='';local.disabled=file.disabled=false;}
+       };
+      }
+      field(form,'Cue moment',select([['start','Start'],['end','End']],cue.when,when=>{
+       cue.when=when;if(when==='end'&&cue.loop)cue.stop='seconds';mark();update();
+      }));
+      number('Offset after cue moment (seconds)',cue.offset,0,3600,v=>{cue.offset=v;});
+      number('Volume (0–1)',cue.volume,0,1,v=>{cue.volume=v;});
+      const loop=element('input');loop.type='checkbox';loop.checked=cue.loop;
+      loop.onchange=()=>{cue.loop=loop.checked;cue.stop=cue.when==='start'?'scope':'seconds';cue.seconds??=1;mark();update();};
+      field(form,'Loop sound effect',loop);
+      if(cue.loop){
+       const choices=[['seconds','After a set duration']];
+       if(cue.when==='start')choices.unshift(['scope','At the end of this section, playlist, or action'],['encounter','When the encounter stops']);
+       field(form,'Stop loop',select(choices,cue.stop,stop=>{cue.stop=stop;mark();update();}));
+       if(cue.stop==='seconds')number('Loop duration (seconds)',cue.seconds,.01,3600,v=>{cue.seconds=v;});
+      }
+      if(root.VoidSoundStudio)form.append(button('Preview sound',()=>{
+       stopEditorAudio();if(soundLibrary.includes(cue.src)||api.importedSoundHash(cue.src))audition=api.playSound({...cue,loop:false});
+      }),button('Stop preview',()=>audition?.dispose()));
+      form.append(button('Remove sound effect',()=>{set(cues.filter(value=>value!==cue));mark();update();}));
+     }
+     controls.append(button('Add sound effect',()=>{
+      set([...cues,{src:'',when:'start',offset:0,volume:1,loop:false}]);mark();update();
+     }));
+    };
+    update();return details;
+   }
+   const soundMap=(key,id,value)=>{(g[key]||={})[id]=value;};
+   host.insertBefore(drawSounds(host,'Encounter start and stop sounds',()=>g.soundCues,value=>{g.soundCues=value;}),props);
+   const clipSeconds=row=>g.cast?.find(actor=>actor.id===row.speaker)?.clipSeconds?.[row.animation]??root.VoidAnimLibrary?.clip?.(row.animation)?.seconds;
+   function duration(host,calculate){
+    const line=element('p');line.className='encounter-duration';host.append(line);
+    const refresh=()=>{
+     const value=calculate(),seconds=Math.round(value.seconds*10)/10;
+     line.textContent=(value.loop?'Until canceled · '+seconds+' s first pass':(value.variable?'Base estimate ':'Estimated duration ')+'≈ '+seconds+' s')
+      +(value.unknown?' plus unmeasured animation':'')+(value.variable?' · chance or repeats can add time':'');
+    };
+    durationLabels.push(refresh);refresh();
+   }
+   const segmentTiming=part=>api.timing({before:[],cycle:part.rows,after:[]},part.passes,clipSeconds,part.legacy,part.chance);
    if(Array.isArray(g.dialogue)){
     const dialogue=element('details');dialogue.className='encounter-playlist-editor';dialogue.append(element('summary','Dialogue ('+g.dialogue.length+' slots)'));dialogue.open=dialogueOpen;dialogue.ontoggle=()=>{if(dialogue.isConnected)dialogueOpen=dialogue.open;};host.insertBefore(dialogue,props);
-    const editable=g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line));
+    const editable=!g.cast&&(g.id==='dropped-cardkey'||g.dialogue.some(line=>branchOf(line)));
     if(editable){
      const position=element('select');position.setAttribute('aria-label','Insert new line');
      const fillPositions=()=>{
@@ -240,7 +457,7 @@
       }));
      field(dialogue,'Conversation',branch);field(dialogue,'Insert new line',position);
      const add=button('Add Lace line',()=>{
-      const line={id:nextLineId(g,addBranch),speaker:'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};
+      const line={id:nextLineId(g,addBranch),speaker:g.cast?.[0]?.id||'lace',text:'',tags:'',delay:addBranch==='wait'?12:0,animation:''};
       insertLine(g,line,addBranch,g.dialogue.find(l=>l.id===position.value));mark();draw();
       host.querySelector('[data-line-id="'+line.id+'"] textarea')?.focus();
      });
@@ -265,7 +482,7 @@
     const branchId=()=> 'branch_'+crypto.randomUUID().replaceAll('-','').slice(0,12);
     function newAction(){
      const id=branchId();
-     g.dialogue.push({id,speaker:'lace',text:'',animation:'',delay:0,tags:''});return id;
+     g.dialogue.push({id,speaker:g.cast?.[0]?.id||'lace',text:'',animation:'',delay:0,tags:''});return id;
     }
     function removeActions(ids){
      const removed=new Set(ids);
@@ -275,7 +492,7 @@
      }
      g.dialogue=g.dialogue.filter(row=>!removed.has(row.id));
     }
-    const sections=api.dialogueSections(g),selectionControls=[];
+    const sections=api.dialogueSections(g),selectionControls=[],sectionPreviews=new Map();
     const byId=new Map(g.dialogue.map(line=>[line.id,line])),actionOptions=new Map();
     const actionLabel=(line,n)=>n+' · '+(line.text||line.animation||line.id).slice(0,70);
     const saved=g.savedActions||[];
@@ -467,6 +684,13 @@
     }
     const newKey=()=> 'main_'+crypto.randomUUID().replaceAll('-','');
     function setMembers(rows,key,passes,legacyRows=[],chance){
+     if(legacyRows.length&&g.playlistSounds){
+      const owner=Object.entries(api.dialogueSections(g)).find(([,items])=>items.includes(legacyRows[0]))?.[0];
+      const prior=owner+':legacy';
+      if(owner&&g.playlistSounds[prior]){
+       g.playlistSounds[owner+':'+key]=g.playlistSounds[prior];delete g.playlistSounds[prior];
+      }
+     }
      for(const row of rows){
       row.mainPlaylist=key;row.mainPasses=passes;
       if(chance===undefined)delete row.mainContinueChance;else row.mainContinueChance=chance;
@@ -510,7 +734,7 @@
      }else{
       const conversation=line?branchOf(line):section==='opening'||section==='remaining'?'arrival':section;
       id=nextLineId(g,conversation);
-      const added={id,speaker:'lace',text:'',animation:'',delay:conversation==='wait'?12:0,tags:''};
+      const added={id,speaker:g.cast?.[0]?.id||'lace',text:'',animation:'',delay:conversation==='wait'?12:0,tags:''};
       if(line){
        g.dialogue.splice(g.dialogue.indexOf(line)+(after?1:0),0,added);
        if(after&&g.decisionAfter===line.id)g.decisionAfter=id;
@@ -628,16 +852,24 @@
      field(row,'Spoken line',spoken).parentElement.classList.add('encounter-spoken-line');
      const parameters=element('div');parameters.className='encounter-action-fields';row.append(parameters);
      for(const [key,label] of [['speaker','Speaker'],['tags','Delivery tags'],['delay',line.id.startsWith('lace_wait_')?'Wait before this line (seconds)':'Delay (seconds)'],['animation','Animation']]){
-      const control=field(parameters,label,input(line[key],v=>{
+      const change=v=>{
        if(key==='speaker'){delete line.recording;audio.textContent='No recording';}
        line[key]=v;mark();updateLabels();
        if(key==='animation'){
         speed.parentElement.hidden=!v;
         if(!v&&!api.validAnimationSpeed(line.animationSpeed)){delete line.animationSpeed;speed.value=1;}
        }
-      },key==='delay'?'number':'text'));
+      };
+      const speakers=g.cast?.map(actor=>[actor.id,actor.name])||[];
+      if(key==='speaker'&&g.cast&&!speakers.some(([id])=>id===line.speaker))speakers.push([line.speaker,line.speaker]);
+      const control=field(parameters,label,key==='speaker'&&g.cast?select(speakers,line.speaker,change):input(line[key],change,key==='delay'?'number':'text'));
       if(key==='animation')control.setAttribute('list',motions.id);
      }
+     const estimate=field(parameters,'Animation length estimate (seconds)',input(line.animationSeconds,v=>{
+      if(Number.isFinite(v)&&v>=0)line.animationSeconds=v;else delete line.animationSeconds;mark();
+     },'number'));estimate.min=0;estimate.step='any';
+     duration(row,()=>api.lineSeconds(line,clipSeconds));
+     drawSounds(row,'Action sounds',()=>line.soundCues,value=>{line.soundCues=value;});
      const speed=field(parameters,'Animation speed (×)',input(line.animationSpeed??1,v=>{
       if((speed.value===''&&!speed.validity.badInput)||v===1)delete line.animationSpeed;
       else line.animationSpeed=Number.isFinite(v)?v:0;
@@ -672,9 +904,17 @@
        const heading=element('summary','Chance playlist '+(index+1)+' · '+branch.chance+'%');
        lane.append(heading);row.append(lane);keepOpen(lane,branch.actions[0]);
        const chanceFields=element('div');chanceFields.className='encounter-action-fields';lane.append(chanceFields);
+       const run=sectionPreviews.get(sourceOf(line)?.section);
+       if(run&&branch.actions.length){
+        const label='Chance playlist '+(index+1),target={branch},section=sourceOf(line).section;
+        if(!tools.mobile)chanceFields.append(startHere(label,()=>launch(g.start,{section,target})));
+        chanceFields.append(button('Preview execution: '+label,()=>run(target)));
+       }
        const bounds=element('details');bounds.append(element('summary','Advanced chance settings'));lane.append(bounds);
        const boundFields=element('div');boundFields.className='encounter-action-fields';bounds.append(boundFields);
        lane.className='encounter-chance-playlist';
+       duration(lane,()=>api.timing(api.branchPlaylist(branch,byId),branch.passes??1,clipSeconds,true));
+       drawSounds(lane,'Chance playlist sounds',()=>branch.soundCues,value=>{branch.soundCues=value;});
        lane.style.setProperty('--playlist-color',['#f3c55b','#f896cc','#aaafff'][depth%3]);
 
        const probability=field(chanceFields,'Chance (%)',input(branch.chance,v=>{branch.chance=v;heading.textContent='Chance playlist '+(index+1)+' · '+v+'%';mark();},'number'));
@@ -805,13 +1045,19 @@
      }));
      if(owner||branchOf(line))actionFooter(row,'Add action',()=>insertAction(line,owner,segment,true));
     }
-    const names={opening:'Arrival',remaining:'Arrival after choices',free:'Free Lace',be_kade:'Be Kade',wait:'Waiting for choice'};
+    const names={opening:g.cast?'Encounter dialogue':'Arrival',remaining:'Arrival after choices',free:'Free Lace',be_kade:'Be Kade',wait:'Waiting for choice'};
     for(const [key,group] of Object.entries(sections)){
+     if(g.cast&&key!=='opening'&&!group.length)continue;
      const section=element('section');section.className='encounter-conversation';
      section.dataset.conversation=key==='opening'||key==='remaining'?'arrival':key;
      section.dataset.section=key;
      section.append(element('h3',names[key]));dialogue.append(section);
+     duration(section,()=>api.playlistSegments(group).map(segmentTiming).reduce((total,part)=>({
+      seconds:total.seconds+part.seconds,unknown:total.unknown||part.unknown,variable:total.variable||part.variable,loop:total.loop||part.loop
+     }),{seconds:0}));
+     drawSounds(section,'Section sounds',()=>g.sectionSounds?.[key],value=>soundMap('sectionSounds',key,value));
      const toolsRow=element('div');toolsRow.className='encounter-action-tools';section.append(toolsRow);
+     if(group.length)sectionPreviews.set(key,drawPreview(section,toolsRow,group,key,names[key]));
      const segments=api.playlistSegments(group);
      segments.flatMap(part=>part.rows).forEach((line,i)=>executionNumbers.set(line.id,i+1));
      const eligible=segments.filter(part=>!part.key).flatMap(part=>part.rows);
@@ -823,7 +1069,6 @@
       selectionControls.push([control,eligible]);return control;
      }
      toolsRow.append(selectedAction('Create playlist from selected',rows=>setMembers(rows,newKey(),0)));
-     if(group.length)drawPreview(section,toolsRow,group);
      let number=0,playlistNumber=0;
      for(const segment of segments){
       let lane=section;
@@ -831,6 +1076,12 @@
        lane=element('details');lane.className='encounter-main-playlist';section.append(lane);
        lane.append(element('summary','Main playlist '+(++playlistNumber)+' · '+segment.rows.length+' actions'));
        keepOpen(lane,key+':'+segment.key);
+       const label='Main playlist '+playlistNumber,target={segment};
+       if(!tools.mobile)lane.append(startHere(label,()=>launch(g.start,{section:key,target})));
+       lane.append(button('Preview execution: '+label,()=>sectionPreviews.get(key)(target)));
+       duration(lane,()=>segmentTiming(segment));
+       const soundKey=key+':'+segment.key;
+       drawSounds(lane,'Main playlist sounds',()=>g.playlistSounds?.[soundKey],value=>soundMap('playlistSounds',soundKey,value));
        const controls=element('div');controls.className='encounter-action-fields';lane.append(controls);
        const membership=()=>segment.legacy?newKey():segment.key;
        field(controls,'Repeat',select([['0','Until canceled'],['count','Number of passes'],['chance','Chance to continue (%)']],segment.chance!==undefined?'chance':segment.passes?'count':'0',value=>{
@@ -855,7 +1106,7 @@
        selectionControls.push([remove,segment.rows]);controls.append(remove);
        const add=button('Add playlist action',()=>{
         const last=segment.rows.at(-1),id=nextLineId(g,branchOf(last));
-        const line={id,speaker:'lace',text:'',animation:'',delay:0,tags:''};
+        const line={id,speaker:g.cast?.[0]?.id||'lace',text:'',animation:'',delay:0,tags:''};
         g.dialogue.splice(g.dialogue.indexOf(last)+1,0,line);
         if(g.decisionAfter===last.id)g.decisionAfter=id;
         setMembers([...segment.rows,line],membership(),segment.passes,segment.legacy?segment.rows:[],segment.chance);redraw();
@@ -875,15 +1126,18 @@
     }
     for(const line of ordered)if(!drawn.has(line.id))drawRow(line,dialogue,null);
     refresh();
-    function drawPreview(section,toolsRow,group){
+    function drawPreview(section,toolsRow,group,key,name){
      const panel=element('div');panel.className='encounter-execution-preview';panel.hidden=true;
      const status=element('output'),trace=element('ol');status.setAttribute('aria-live','polite');
      let active,controller;
      const stop=button('Stop execution preview',()=>controller?.abort());
-     const start=button('Preview execution',async()=>{
-      preview?.abort();controller=new AbortController();preview=controller;
-      const {signal}=controller;
+     const start=button('Preview execution: '+name,()=>run());
+     async function run(target){
+      stopEditorAudio();const runController=new AbortController();controller=preview=runController;
+      const timeline=api.soundTimeline();previewSounds=timeline;
+      const {signal}=runController;
       panel.hidden=false;trace.replaceChildren();start.disabled=true;stop.disabled=false;
+      if(target)panel.scrollIntoView?.({block:'nearest'});
       const pause=ms=>new Promise((resolve,reject)=>{
        signal.throwIfAborted();
        const abort=()=>{clearTimeout(timer);reject(signal.reason);};
@@ -893,10 +1147,17 @@
       const node=line=>section.querySelector('[data-line-id="'+line.id+'"]');
       const describe=line=>line?actionLabel(line,node(line)?.dataset.executionNumber||line.id):'end of playlist';
       try{
-       const problems=api.validate(g);
+       const problems=api.validate(g,{sounds:false});
+       if(!problems.length)problems.push(...api.previewSoundProblems(g,key,group,byId,target));
        if(problems.length)throw Error(problems[0]);
-       await api.runPlaylist(group,byId,{signal,pause,play:()=>pause(550),observe:event=>{
-        if(!section.isConnected){controller.abort();signal.throwIfAborted();}
+       const execute=()=>api.runPlaylist(group,byId,{
+        signal,pause,previewTarget:target,play:(row,_,replay)=>{
+         const t=api.lineSeconds(row,clipSeconds,replay);
+         return pause(Math.max(550,t.seconds*1000));
+        },
+        scope:(kind,item,local,work)=>api.withSounds(timeline,api.soundsFor(g,key,kind,item),local,work),
+        observe:event=>{
+        if(!section.isConnected){runController.abort();signal.throwIfAborted();}
         if(event.type==='action'){
          active?.removeAttribute('aria-current');active=node(event.row);
          active?.setAttribute('aria-current','step');
@@ -910,15 +1171,17 @@
          : (event.mode==='reroll'?'Reroll after ':'Return to ')+describe(event.target);
         trace.prepend(element('li',text));if(trace.children.length>12)trace.lastElementChild.remove();
        }});
-       status.textContent='Preview complete';
-      }catch(error){status.textContent=signal.aborted?'Preview stopped':error.message;}
+       await (target?execute():api.withSounds(timeline,g.sectionSounds?.[key],signal,execute));
+       timeline.finish();status.textContent='Preview complete';
+      }catch(error){timeline.dispose();if(controller===runController)status.textContent=signal.aborted?'Preview stopped':error.message;}
       finally{
-       active?.removeAttribute('aria-current');active=null;
-       if(preview===controller)preview=null;
-       start.disabled=false;stop.disabled=true;
+       if(controller===runController){active?.removeAttribute('aria-current');active=null;start.disabled=false;stop.disabled=true;}
+       if(preview===runController)preview=null;
       }
-     });
+     }
+     if(!tools.mobile)toolsRow.append(startHere(name,()=>launch(g.start,{section:key})));
      toolsRow.append(start);panel.append(status,stop,trace);section.append(panel);
+     return run;
     }
    }
    const board=element('div');board.className='encounter-board';board.setAttribute('aria-label','Encounter connections');host.append(board);
@@ -931,7 +1194,7 @@
     }
     if(n.id===selected)cell.setAttribute('aria-current','true');board.append(cell);
    }
-   const types=select(Object.entries(api.kinds),'move',()=>{});
+   const types=select(Object.entries(api.kinds).filter(([kind])=>g.cast?['trigger','cast','choice','end'].includes(kind):kind!=='cast'),g.cast?'cast':'move',()=>{});
    host.append(types,button('Add node',()=>{
     const key='node-'+crypto.randomUUID().slice(0,8);g.nodes.push({id:key,kind:types.value,name:api.kinds[types.value],edges:[]});selected=key;mark();draw();
    }));
@@ -939,12 +1202,19 @@
    if(!n)return;
    const detail=element('fieldset');detail.append(element('legend',api.kinds[n.kind]));host.append(detail);
    field(detail,'Node name',input(n.name,v=>{n.name=v;mark();}));
+   drawSounds(detail,'Node start and end sounds',()=>n.soundCues,value=>{n.soundCues=value;});
+   if(n.kind==='cast')field(detail,'Talk to',select([['','First cast member'],...(g.cast||[]).map(actor=>[actor.id,actor.name])],n.speaker||'',value=>{n.speaker=value;mark();}));
    if(n.kind==='animation'){
     field(detail,'Action',select([['','Choose an action'],['stumble','Fall at the crossing'],['release','Release and leave the apartment'],['roleplay','Optional Kade roleplay']],n.action||'',v=>{n.action=v;mark();}));
    }
    n.edges.forEach((edge,index)=>{
     const row=element('div');
-    if(n.kind==='choice')field(row,'Choice',input(edge.label,v=>{edge.label=v;mark();}));
+    if(n.kind==='choice'){
+     const fallback='Choice '+(index+1);
+     const control=!tools.mobile&&startHere(edge.label||fallback,()=>launch(edge.to));
+     field(row,'Choice',input(edge.label,v=>{edge.label=v;control&&control.setAttribute('aria-label','Start from this point: '+(v||fallback));mark();}));
+     if(control)row.append(control);
+    }
     field(row,'Connect to',select(names,edge.to,v=>{edge.to=v;mark();draw();}));
     row.append(button('Disconnect',()=>{n.edges.splice(index,1);mark();draw();}));detail.append(row);
    });

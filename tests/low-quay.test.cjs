@@ -43,3 +43,16 @@ test('the train stops and the stairwell are on open floor; the quay edge beside 
  // everything lies inside the bounds
  for(const s of L.solids)assert.ok(Math.abs(s.position[2])<=L.bounds[1]+40);
 });
+test('the Low Quay Map App uses the rail prompts and the actual club doorway',()=>{
+ const quay=require('../void-runner/low-quay.js');
+ const {DOOR}=require('../void-runner/low-quay-club.js');
+ const space=require('../void-runner/area-map.js').register(quay.mapSpace);
+ const map=space.model();
+ assert.equal(quay.layout().mapSpace,space.id);
+ assert.equal(space.publicMap,true);
+ const at=id=>{const p=map.pois.find(p=>p.id===id);return [p.x,p.z];};
+ for(const stop of quay.interactions().filter(p=>p.action==='quay-train'))assert.deepEqual(at(stop.id),[stop.position[0],stop.position[2]]);
+ assert.deepEqual(at('low-quay-plug-play'),[DOOR.x,DOOR.z]);
+ assert.equal(map.buildings.filter(b=>b.featured).length,1);
+ assert.deepEqual(map.rail.map(([a,b])=>[a[1],b[1]]),quay.TRACKS.map(()=>[at('quay-train-pad')[1],at('quay-train-city')[1]]));
+});
