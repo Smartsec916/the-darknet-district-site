@@ -12,7 +12,7 @@
  // ---- the layout (metres; +z runs from the pad to the city; the water is at WY, the tarmac at 0) ----
  const WY=-9,SEG=24,CX=9,TRACKS=[6,12],CITY_Y=8.6,STAIRS=[300,318];   // the quay city stands on a terrace CITY_Y above the viaduct; the subway station is under it
  const Z={padA:-452,padB:-376,stA:-376,stB:-330,vestA:152,vestB:166,tunB:247,hallA:248,hallB:300,cityB:456};
- const BOUNDS=[64,456],SPAWN=[0,1.7,-423];
+ const BOUNDS=[160,600],SPAWN=[0,1.7,-423];   // x: the quay city's offset grid reaches x +-160; z: to 600 (the water and the pad's edges are closed by solids)
  // Six berths: two rows of three. The player's ship stands where the pad's existing landing spot is (the first berth of the front row, centre column).
  const BERTHS=[[-26,-437],[-4,-437],[18,-437],[-26,-409],[-4,-409],[18,-409]],HOME_BERTH=1,PARKED=[0,4,5];
  const TERMINAL_AT=BERTHS.map(([x,z])=>({x:x+9.7,z:z-6}));
@@ -25,10 +25,19 @@
   [-62,-44,304,334,24],[-62,-44,346,376,36],[-62,-44,380,412,28],[-62,-44,416,456,42]];
  const CONTAINERS=[[-35,-383],[-28,-383],[-35,-389],[28,-383],[34,-383],[34,-388],[-36,-444],[-36,-450]];
  const TOWERS=[[33,-398],[-36,-440]];
+ /* THE OFFSET GRID (the owner, 27 Nov 2026): beyond the first blocks, the food court and its walkway, the city continues as narrow alleys between blocks laid in brick bond:
+    rows 20 m deep with 4 m alleys between them, blocks 18 m wide with 4 m alleys, each row shifted half a block from the next, mirrored about x = 0, so every alley
+    ends in a T (the next row's block closes it). Scenery and walkable filler; the same window-block kit as the city. GRID_FILL: the solid ground-floor blocks between
+    the quay's edge and the grid's first row (z 166..334, |x| > 64). */
+ const GRID=(()=>{const out=[],GW=18,GA=4,GD=20,P=GW+GA;for(let r=0;;r++){const z0=336+r*(GD+GA),z1=z0+GD;if(z1>598)break;const off=r%2?0:P/2;
+   for(let k=-8;k<=8;k++){const cx=off+k*P,x0=cx-GW/2,x1=cx+GW/2;if(Math.abs(x0)>158||Math.abs(x1)>158)continue;const outside=x0>=66||x1<=-66;if(!(z0>=456||outside))continue;
+    const h=18+((Math.abs(Math.round(cx))*7+r*13)%5)*9;out.push([x0,x1,z0,z1,h]);}}return out;})();
+ const GRID_FILL=[[-160,-64.5,166,334,30],[64.5,160,166,334,30]];
  const solids=()=>{const S=[],W=(id,x0,x1,z0,z1,h=6)=>S.push({id,position:[(x0+x1)/2,h/2,(z0+z1)/2],size:[x1-x0,h,z1-z0]});
   // the pad's sides, the station and the line (the player never reaches the water or the tracks)
   W('pad-w',-64,-40,Z.padA,Z.padB);W('pad-e',40,64,Z.padA,Z.padB);W('st-w',-64,-16,Z.padB,Z.stB);W('st-tracks',3.5,64,Z.padB,Z.stB);
-  W('station',-16,-6,-372,-338,7);W('causeway',-64,64,Z.stB,Z.hallA);
+  W('station',-16,-6,-372,-338,7);W('causeway',-64,64,Z.stB,Z.hallA);W('sea-w',-200,-64,-620,Z.vestB);W('sea-e',64,200,-620,Z.vestB);W('sea-s',-64,64,-620,Z.padA);   // the water around the pad and the line
+  [...GRID,...GRID_FILL].forEach((b,i)=>W('grid-'+i,b[0],b[1],b[2],b[3],b[4]));W('canal-end',-40,-30,456,458);
   // berth terminals, containers and the floodlight towers
   TERMINAL_AT.forEach((t,i)=>W('terminal-'+i,t.x-.5,t.x+.5,t.z-.5,t.z+.5,1.2));
   CONTAINERS.forEach(([x,z],i)=>W('container-'+i,x-3,x+3,z-1.2,z+1.2,2.6));TOWERS.forEach(([x,z],i)=>W('tower-'+i,x-.8,x+.8,z-.8,z+.8,20));
@@ -48,7 +57,7 @@
   {id:'quay-train-pad',label:'BOARD HIGH-SPEED RAIL',position:[2.4,1.7,-353],action:'quay-train',at:'pad',range:3.2},
   {id:'quay-train-city',label:'BOARD HIGH-SPEED RAIL',position:[2.4,1.7,275],action:'quay-train',at:'city',range:3.2}];
  function layout(){return {id:'planet-'+ID,location:ID,name:'LOW QUAY / STALE',kind:'planet',planet:ID,mapSpace:ID,bounds:BOUNDS.slice(),spawn:SPAWN.slice(),yaw:0,color:'#5fb4c8',ship:'starter',solids:solids(),interactions:interactions(),signs:[]};}
- const MAP_BOUNDS=[-82,95,Z.padA-12,Z.cityB+12];
+ const MAP_BOUNDS=[-BOUNDS[0]-2,BOUNDS[0]+2,Z.padA-12,BOUNDS[1]];   // the offset grid reaches x +-160 and z 598
  function mapModel(){
   const [pad,station]=interactions().filter(p=>p.action==='quay-train');
   const door=club()?.DOOR;
@@ -67,7 +76,7 @@
     {name:'West quay',rect:[-64,-40,STAIRS[1],Z.cityB]},
     {name:'City terrace',rect:[-30,64,STAIRS[1],Z.cityB]},
     {name:'Footbridge',rect:[-40,-30,336,344]}],
-   buildings:BLOCKS.map(b=>({rect:b.slice(0,4),featured:!!club()?.isClubBlock(b)})),
+   buildings:[...BLOCKS.map(b=>({rect:b.slice(0,4),featured:!!club()?.isClubBlock(b)})),...GRID.map(b=>({rect:b.slice(0,4),featured:false})),...GRID_FILL.map(b=>({rect:b.slice(0,4),featured:false}))],
    rail:TRACKS.map(x=>[[x,pad.position[2]],[x,station.position[2]]])};
  }
  const mapSpace={id:ID,name:'Low Quay',bounds:MAP_BOUNDS,publicMap:true,model:mapModel};
@@ -82,7 +91,7 @@
  // walk height: the stairs from the station to the quay (by z); on the quay, x too: the food court's walkway and its two flights (low-quay-court.js heightAt), and in
  // PLUG & PLAY the stage deck and the steps down from its rear doorway (low-quay-club.js heightAt)
  const groundHeight=(z,x)=>z<=STAIRS[0]?0:z<STAIRS[1]?CITY_Y*(z-STAIRS[0])/(STAIRS[1]-STAIRS[0]):CITY_Y+(x!=null&&court()?court().heightAt(x,z):0)+(x!=null&&club()?.inside(x,z)?club().heightAt(x,z):0);
- const api={groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,mapSpace,live:null};
+ const api={GRID,GRID_FILL,groundHeight,CITY_Y,STAIRS,ID,WY,SEG,CX,TRACKS,Z,BOUNDS,SPAWN,BERTHS,HOME_BERTH,PARKED,TERMINAL_AT,BLOCKS,MESSAGES,TERMINAL_ID,TERMINAL_SRC,solids,interactions,layout,plan,mapSpace,live:null};
  api.models=(location,quality)=>location===ID?{[TERMINAL_ID]:{src:TERMINAL_SRC,scale:1},...(club()?.models()||{})}:{};
   // ---- wiring (also in Node, so the tests see the layout) ----
  api.build=build;
@@ -295,12 +304,14 @@
    city:[[[-8,CITY_Y+3,322],'#ff8a30',1,24],[[-20,CITY_Y+5,345],'#ffa640',1,32],[[15,CITY_Y+5,370],'#ff3fa6',.8,32],[[-35,CITY_Y+3,392],'#25c9c2',.8,32],[[25,CITY_Y+5,410],'#ff7a22',.9,32],[[-5,CITY_Y+5,440],'#ffa640',.9,32]]};
   if(!low)for(let k=0;k<6;k++){const l=new B.PointLight('lq-light',B.Vector3.Zero(),scene);l.parent=parent;lights.push(l);}
   const quayBlend=()=>(scene.meshes.filter(m=>{let p=m.parent;while(p&&p!==world)p=p.parent;if(p!==world||/lq-(skyline|reflect|moon|sky)/.test(m.name)||!(m.position.z>150||/court-steam/.test(m.name)))return false;   /* the skyline, its reflection and the moon stay */if(m.sourceMesh)return true;const mt=m.material;return !!mt&&(mt.alphaMode===B.Engine.ALPHA_ADD||mt.alpha<1||!!mt.opacityTexture||!!mt.useAlphaFromDiffuseTexture);}));
-  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':court()?.inCourt(x,z)?'court':'city',setZone=zn=>{if(zn===zone)return;const was=zone;zone=zn;if(was==null||(was==='pad')!==(zn==='pad'))for(const m of quayBlend())m.setEnabled(zn!=='pad');   // from the pad (800 m off) the quay's small placed pieces and glows (shopfronts, units, lamps, washes, steam) are specks: off; its buildings stay
+  // distance fog on the quay (the grid reads as going on), clear over the water and inside the club
+  const FOG_AT={pad:.0011,hall:.004,club:.002,court:.011,city:.013};
+  let zone=null;const zoneOf=(z,x=0)=>z<150?'pad':z<312?'hall':club()?.inside(x,z)?'club':court()?.inCourt(x,z)?'court':'city',setZone=zn=>{if(zn===zone)return;const was=zone;zone=zn;scene.fogDensity=FOG_AT[zn]??.0011;if(was==null||(was==='pad')!==(zn==='pad'))for(const m of quayBlend())m.setEnabled(zn!=='pad');   // from the pad (800 m off) the quay's small placed pieces and glows (shopfronts, units, lamps, washes, steam) are specks: off; its buildings stay
    const inClub=zn==='club';if(ambient){ambient.diffuse=C(inClub?'#5a2a5c':'#55638c');ambient.groundColor=C(inClub?'#2a0c22':'#2a2018');ambient.intensity=inClub?.9:1;}if(sun)sun.intensity=inClub?.1:.7;   // indoors at the club: no moonlight, a plum fill
    ZL[zn].forEach(([p,hex,i,range],k)=>{const l=lights[k];if(!l)return;l.position.set(...p);l.diffuse=C(hex);l.specular=C(hex).scale(.5);l.intensity=i;l.range=range;});};setZone('pad');
   for(const [x,z] of [...TOWERS,[-10.5,stz+6]]){const p=B.MeshBuilder.CreateGround('lq-pool',{width:44,height:44},scene);p.material=poolMat;p.position.set(x,.03,z);p.parent=parent;p.isPickable=false;}
   // ---- security vestibule, tunnel (the rail ride), then the city ----
-  const city=root.VoidLowQuayCity?.build?root.VoidLowQuayCity.build({B,scene,parent,quality,K,place,mat,glow,tex,sprite,owned,textures,hide,C,S,lampKit,pole,rail,deck,pier,pierGlow,edge,streak,banner,conc,concD,dark,steel,amber,warm,cool,blue,red,green,yel,hazard,glass,Z,TRACKS,CX,SEG,WY,BLOCKS,r,CITY_Y,waterMat,STAIRS}):null;
+  const city=root.VoidLowQuayCity?.build?root.VoidLowQuayCity.build({B,scene,parent,quality,K,place,mat,glow,tex,sprite,owned,textures,hide,C,S,lampKit,pole,rail,deck,pier,pierGlow,edge,streak,banner,conc,concD,dark,steel,amber,warm,cool,blue,red,green,yel,hazard,glass,Z,TRACKS,CX,SEG,WY,BLOCKS,r,CITY_Y,waterMat,STAIRS,GRID,GRID_FILL}):null;
   // ---- finish: merge the static parts ----
   S.done('static').forEach(m=>{m.isVisible=true;});
   zone=null;setZone('pad');   // again now that the quay is built (its small pieces start off: the player arrives on the pad)   // kits are hidden sources for instancing; the static merge is drawn itself

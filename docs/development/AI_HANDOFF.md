@@ -250,6 +250,18 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 27 Nov 2026 (newest): LOW QUAY: THE OFFSET GRID OF ALLEYS (branch `claude/low-quay-grid`, build `2026-11-28-lowquay-grid-5`, stacked on PR #627)
+
+The owner: beyond the first blocks, the food court and its walkway, the city continues as a symmetrical offset grid of narrow alleys, blocks in brick bond (each row shifted half a block, mirrored about the main axis) so alleys end in T-junctions; dim, coloured light, no cars; cheap; fog so it reads as going on.
+- `VoidLowQuay.GRID` (`low-quay.js`): rows 20 m deep with 4 m alleys, blocks 18 m wide with 4 m alleys, alternate rows shifted 11 m, mirrored about x = 0; it fills x -160..160 from z 336 to 596 outside the existing city (|x| > 64) and the whole width north of the food court (z 456 on). 117 blocks with collision; `GRID_FILL` closes the quay's edge between the sea wall and the first row (|x| > 64, z 166..334). The scene's walk bounds grew to x +-160, z +-600; new solids close the water around the pad and the line.
+- Built from the city's own pieces: the three window-facade materials (all blocks merged into three meshes), pipes and wall units, and a quay lamp at every other T-junction (without a floor pool, and the grid has no shopfronts, to keep blended draws down). The LOW QUAY sign moved onto the grid block facing the food court's north walkway; the food court's north band now ends at a railing (z 456.4).
+- Fog: Low Quay sets the fog by zone: thin over the water and the pad, thicker on the quay (court 0.011, city 0.013) so the grid fades into the night.
+- **Map:** Low Quay's area map (`mapSpace`, from main) now covers the grid (bounds x -162..162 to z 600) and draws the grid blocks as buildings.
+- Nothing already placed moved (club, subway exit, stairs, alley, food court, pad).
+- Tests (`tests/low-quay-court.test.cjs`): mirrored; every alley between two blocks of a row ends against a block of the next row (a T); the far corners of the grid are reachable on foot from the main alley.
+- **PROPOSED text:** none. **Known gaps:** the grid is scenery and walkable filler (no interiors, people or signs); real-GPU frame rate unverified (software GL figures in the tracker).
+- Performance (software GL, Medium): grid alleys draw about 50 to 170 calls; from the pad about 720 (the quay's small pieces and glows are switched off while the player is on the pad or the line).
+
 ### 27 Nov 2026 (newest): LOW QUAY FIXES: ROOK FREIGHT REACHABILITY, PLUG & PLAY ROOM MARKERS, THE DANCERS' REAR EXIT, WINDOW ANCHORS (branch `claude/low-quay-next`, PR #627, build `2026-11-27-lowquay-3b`; includes #629)
 
 The owner's instruction (27 Nov 2026): his design for Plug & Play is two dancers taking turns onstage, the outgoing one leaving through the rear door into backstage; he adds the dancers himself. Plus his standing instruction: creative choices are reversible defaults, not permanent rules; no restriction without a named owner instruction, technical dependency or safeguard.

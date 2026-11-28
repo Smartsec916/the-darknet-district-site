@@ -28,6 +28,20 @@ test('each window has a usable dancer anchor: inside its booth with room for a d
  // one side only: the alley's west side has no windows
  assert.ok(CO.WINDOWS.every(w=>w.z>CO.ALLEY.z0&&w.z<CO.ALLEY.z1));
 });
+test('the offset grid: brick bond, mirrored, every alley ends in a T, all of it reachable',()=>{
+ const G=LQ.GRID,key=b=>b.slice(0,4).join(',');assert.ok(G.length>80);
+ const set=new Set(G.map(key));for(const b of G)assert.ok(set.has([-b[1],-b[0],b[2],b[3]].join(',')),'mirror of '+key(b));
+ const rows=[...new Set(G.map(b=>b[2]))].sort((a,b)=>a-b);
+ for(let i=0;i+1<rows.length;i++){const a=G.filter(b=>b[2]===rows[i]),b=G.filter(b=>b[2]===rows[i+1]);
+  for(const g of a){const alleyX=g[1]+2;if(!a.some(o=>o[0]===g[1]+4))continue;if(!b.some(o=>o[0]<alleyX-1&&o[1]>alleyX+1&&b.length))continue;
+   assert.ok(b.some(o=>o[0]<alleyX&&o[1]>alleyX),'alley at x '+alleyX+' z '+rows[i]+' ends in a T');}}
+ // reachable from the main alley: a far corner of the grid and both sides
+ const R2=.38,blk=(x,z)=>Math.abs(x)>L.bounds[0]-R2||Math.abs(z)>L.bounds[1]-R2||L.solids.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+R2&&Math.abs(z-s.position[2])<s.size[2]/2+R2);
+ const St=1,x0=-160,z0=320,nx=320,nz=280,seen=new Uint8Array(nx*nz),id=(i,j)=>j*nx+i,q=[[Math.round(-12.5-x0),Math.round(330-z0)]];seen[id(...q[0])]=1;
+ while(q.length){const [i,j]=q.pop();for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=i+di,b=j+dj;if(a<0||b<0||a>=nx||b>=nz||seen[id(a,b)])continue;if(blk(x0+a*St,z0+b*St))continue;seen[id(a,b)]=1;q.push([a,b]);}}
+ const can=(x,z)=>!!seen[id(Math.round(x-x0),Math.round(z-z0))];
+ for(const [x,z] of [[0,590],[-150,502],[150,502],[-150,358],[150,358],[-100,598]])assert.ok(can(x,z),'grid reachable at '+x+','+z);
+});
 // The owner (28 Nov 2026): the window booths are lit red. One setting for the set (BOOTH_LIGHT.color), overridable per window; a default, not a rule.
 test('the alley window booths are lit red by default, from one setting that can be changed per set or per window',()=>{
  const red=h=>{const [r,g,b]=[1,3,5].map(k=>parseInt(h.slice(k,k+2),16));return r>=100&&r>2*g&&r>2*b;};
