@@ -36,6 +36,22 @@ Coding agents must not independently impose creative, cultural, editorial or gam
 
 Preserve legitimate security, privacy, age protections, player consent, legal requirements and technical safeguards. Do not silently reinstate an obsolete restriction through validators, tests, defaults, documentation or another implementation. Inspect current scene, rig and data capabilities before carrying forward a historical rule. Record new owner decisions and link the evidence.
 
+### Defaults are not rules (owner's standing instruction, 27 Nov 2026)
+
+Applies to all VOID//RUNNER work and to every brief one agent gives another.
+
+- Reversible defaults chosen to build a scene must not become permanent rules. "Use these models for the first build" does not mean "reject every other model". "Don't add dancers in this pass" does not mean "the stage must stay empty". When the owner changes a design decision, update every test, comment, handoff and validator that still enforces the old one.
+- Before adding a restriction, name the exact owner instruction, technical dependency or safeguard that requires it. A prior agent's brief, an old handoff, a test expectation or an initial configuration is evidence of what was built, not owner approval. Mark unverifiable sources "unknown". A creative choice stays configurable (through existing Dev Tools where practical); ask the owner before enforcing it globally.
+- Check every place a restriction could reappear: agent briefs, tests, defaults, UI, runtime, draft validation, publishing and docs. Write regressions around what should work and the specific failure a safeguard prevents.
+- Worked examples:
+  - **Character compatibility** (e.g. Plug & Play diners): never reject a character by name, id prefix, companion label or private asset storage. Check that it loads through its authorized pipeline and that its rig supports the requested clip. Keep the sealed asset pipeline and actual licence terms intact.
+  - **NPCs and routes:** keep Tier 1/2/3, factual metadata such as age, and legitimate eligibility protections, but do not use a tier, name or category as a shortcut for blocking placement, movement, schedules or escorts. Check the actual route, collision, scene transfer, rig and animation capabilities.
+  - **Rook freight:** never add a destination to a denylist to make a test pass or because discovery isn't built yet. Check discovery and reachability across the legacy board, the District board and saved jobs. If a destination must be unavailable, cite the existing rule or ask the owner.
+  - **Plug & Play stage:** the two dancers must be able to leave through the rear stage door into backstage; the front glass stays solid. The owner adds and chooses the dancers. Don't seal the rear route or decide general player access to the stage, backstage or alley booths; explain the options and let the owner decide.
+  - **Editor markers and anchors:** every editor option must lead to a usable point; check each room's own approach point in the browser (a shared preview spawn is not proof). A performer's facing is a configurable default: test the anchor works without pinning one angle. Keep the owner's coloured-light direction within the scope he gave it.
+- Every PR summary lists each restriction added, widened, removed or kept under review, with its source, what it blocks, and the test proving the intended behaviour.
+- Keep PRs open until the owner explicitly authorizes a merge or deployment.
+
 ## The owner and how to work with him
 
 - The owner (GitHub `Smartsec916`) is the final creative authority on story, world, characters and missions.

@@ -9,6 +9,7 @@
     rollRight: ['Roll right', 'KeyR'],
     throttleUp: ['Increase thrust', 'ShiftLeft'],
     throttleDown: ['Decrease thrust / brake', 'KeyX'],
+    warp: ['Spool warp drive (hold)', 'KeyJ'],
     boost: ['Equipment drive', 'KeyE'],
     fire: ['Primary fire', 'Space'],
     missile: ['Fire missile (guided when locked)', 'KeyF'],
@@ -29,7 +30,7 @@
   let bindings = {
     ...defaults
   };
-  const controllerDefaults = {fire:7,aim:6,jump:0,interact:2,reload:3,draw:4,crouch:1,sprint:10,pause:9,personalHud:8,missile:5,nearest:12,next:15,previous:14,lock:13,throttleUp:6,throttleDown:4};
+  const controllerDefaults = {fire:7,aim:6,jump:0,interact:2,reload:3,draw:4,crouch:1,sprint:10,pause:9,personalHud:8,missile:5,nearest:12,next:15,previous:14,lock:13,warp:10,throttleUp:6,throttleDown:4};
   const controller = {bindings:{...controllerDefaults},sensitivity:1,leftDeadZone:.16,rightDeadZone:.18,invertY:false};
   try {
     const raw = JSON.parse(root.localStorage?.getItem(key) || 'null');
@@ -58,6 +59,9 @@
     }
     if(raw && typeof raw.cursor !== 'string') {
       raw.cursor=['AltLeft','AltRight','KeyU','KeyY','BracketRight','BracketLeft','Period','Comma',...Array.from({length:26},(_,i)=>'Key'+String.fromCharCode(65+i))].find(code=>!Object.values(raw).includes(code));
+    }
+    if(raw && typeof raw.warp !== 'string'){
+      raw.warp=['KeyJ','KeyU','KeyY','KeyV','KeyH','KeyI','KeyO','KeyN','KeyM','BracketRight',...Array.from({length:10},(_,i)=>'Digit'+i)].find(code=>!Object.values(raw).includes(code));
     }
     if (raw && Object.keys(defaults).every(id => typeof raw[id] === 'string') && new Set(Object.keys(defaults).map(id=>raw[id]))
       .size === Object.keys(defaults).length) bindings = Object.fromEntries(Object.keys(defaults).map(
@@ -119,7 +123,7 @@
     held.clear();
     return persist();
   }
-  function bindController(id,index){if(!Object.hasOwn(controllerDefaults,id)||!Number.isInteger(index)||index<0||index>16)return {error:'Unsupported controller button.'};const flight=new Set(['fire','missile','nearest','next','previous','lock','throttleUp','throttleDown','pause']),fps=new Set(['fire','aim','jump','interact','reload','draw','crouch','sprint','pause']);const duplicate=Object.keys(controller.bindings).find(other=>other!==id&&controller.bindings[other]===index&&((flight.has(id)&&flight.has(other))||(fps.has(id)&&fps.has(other))));if(duplicate)return {error:duplicate+' already uses this button in the same mode.'};controller.bindings[id]=index;return {saved:persist()};}
+  function bindController(id,index){if(!Object.hasOwn(controllerDefaults,id)||!Number.isInteger(index)||index<0||index>16)return {error:'Unsupported controller button.'};const flight=new Set(['fire','missile','nearest','next','previous','lock','warp','throttleUp','throttleDown','pause']),fps=new Set(['fire','aim','jump','interact','reload','draw','crouch','sprint','pause']);const duplicate=Object.keys(controller.bindings).find(other=>other!==id&&controller.bindings[other]===index&&((flight.has(id)&&flight.has(other))||(fps.has(id)&&fps.has(other))));if(duplicate)return {error:duplicate+' already uses this button in the same mode.'};controller.bindings[id]=index;return {saved:persist()};}
   function resetController(){controller.bindings={...controllerDefaults};controller.sensitivity=1;controller.leftDeadZone=.16;controller.rightDeadZone=.18;controller.invertY=false;return persist();}
   const api = {
     actions,

@@ -35,7 +35,7 @@ function encounters(panel){
  window.VoidNetwork={base:new URL(API).origin};
  window.VoidEncounterEditor.mount(editor,{
   mobile:true,get uid(){return user?.uid;},get authorized(){return !!user&&!!bundle;},
-  request:api,seedUrl:'../void-runner/chance-encounter-seed.json',
+  request:api,seedUrl:'../void-runner/chance-encounter-seed.json',soundLibraryUrl:'../void-runner/sound-library.json',
   onDirtyChange:value=>{if(editor.isConnected)encounterDirty=value;},
   places:(catalog.places||[]).map(id=>[id,id.replace(/-/g,' ')]),missions:[...missionNames],
   npcs:Object.entries(catalog.givers||{}).map(([id,n])=>[id,n.name||id]),

@@ -4,7 +4,7 @@ import json
 FLAGS = 'move look sprint jump interact pickup draw aim fire reload holster groundCombat inventory sightOwned sightEquipped sightAim board throttle steer roll navigation jumpTravel dock shipInventory hangar moduleInstalled vendor modulePurchased purchasedInstalled laserCombat missileSelected targetSelected missileLocked missileFired shootingTutorialComplete maraShipHandoff'.split()
 FLIGHT_FLAGS = FLAGS[16:35]
 WEAPONS = ['base-pistol']  # on-foot weapons bought from a vendor (void-runner/zones.js PISTOL, progression.js WEAPONS); the opening's Ward pistol is derived below
-MODULES = {'capacitor':'power','cooling':'cooling','pulse':'weapon','shield':'shield','engine':'engine','communion-scanner':'sensor','order-thrusters':'thrusters','warflying-module':'signal','warflying-scrambler':'signal'}  # the Signal Tracker can't be owned yet
+MODULES = {'capacitor':'power','cooling':'cooling','pulse':'weapon','shield':'shield','engine':'engine','ablative-laminate':'armor','warp-inducer':'warp','cipher-pulse':'weapon','cipher-thrusters':'engine','cipher-laminate':'armor','cipher-inducer':'warp','communion-scanner':'sensor','order-thrusters':'thrusters','warflying-module':'signal','warflying-scrambler':'signal'}  # the Signal Tracker can't be owned yet
 
 def clean_progression(raw, locations):
     if not isinstance(raw, dict) or len(json.dumps(raw)) > 16000:
@@ -31,6 +31,7 @@ def clean_progression(raw, locations):
         installed[ship]={}
         for slot,item in slots.items():
             if slot not in MODULES.values() or item is not None and (item not in owned or MODULES[item]!=slot): raise ValueError('Incompatible module.')
+            if isinstance(item, str) and item.startswith('cipher-') and ship != 'ship2': raise ValueError('Incompatible Cipher module.')
             installed[ship][slot]=item
     attachments=entries(p.get('attachments',[]),['red-dot'])
     optic=p.get('optic')

@@ -1,8 +1,130 @@
 # The Darknet District — current AI handoff
 
+## 28 Nov 2026 — Fixed universe navigation model
+
+The owner’s sketch was an example of system volumes and connecting routes. The chart gives each system, port, pad, arrival beacon and Relay T-07 a stable position. Each interstellar corridor uses the axis between system centers, with opposite headings in each direction. The departure ray meets the origin system’s boundary and the route arrives at the destination’s established beacon. The cockpit and V1 Map share the bearing and elevation calculation. Surface departures retain an 18° minimum climb, so their displayed elevation can differ from the geometric reverse. Chart placements and scales are tuning values. Existing access, travel times and save IDs still apply.
+
+## 28 Nov 2026 — Relay T-07 on the Tessaly freight lane
+
+On an active Servo-to-Anchorage freight run, Relay T-07 is a local WarFlying contact and a selectable warp waypoint. Target it in the lane panel, align with the diamond, and hold Warp to make the short approach jump. The port leg and Function clearance stay separate. The relay uses two Blender-authored GLBs. Destroying it plays the damaged model’s looping Service Panel Sparks clip and changes the marker and scan status to OFFLINE. Repair restores the functional model and the route uplink. The rebuild script is `tools/assets/build_relay_t07.py`.
+
+## 28 Nov 2026 — District freight and WarFlying route prototype
+
+The owner’s [career and jurisdiction direction](AI_ROADMAP.md#2026-11-28-owner-direction--district-careers-and-jurisdiction) is the current plan for freight and free flight. The first local prototype uses the NeoChinatown Landing Terminal and Tessaly Belt Anchorage. The board opens after hull registration and offers legal and illicit loads. The route introduces two civilian couriers, a Function stop with a station-level manifest outcome, and a relay players can destroy or repair using a flight interaction. The outage interrupts existing WarFlying uploads on this lane. The prototype stores route and warrant state in campaign flags. Shared warrants, NPC and player tracking across sessions, independent bounty work, Admin’s exclusive stock, and faction commitments remain roadmap work. No approved dialogue or Relay broadcast script is changed.
+
+## 28 Nov 2026 — Kestrel and Cipher flight progression
+
+Factory Kestrel, Kestrel refit, factory Cipher, and Cipher refit are four increasing performance steps. Cipher replaces the older credit hull at the stable `ship2` save ID. It uses the Kestrel’s industrial airframe and cockpit framing, with a distinct ceramic finish, machined exhaust collars, and instrument trim. The Horizon plan doubles Cipher cargo capacity and shares its equipment and flight spec. Horizon commerce is future work. See [Flight progression](FLIGHT_PROGRESSION.md) for tuning, prices, and calculations. Build `2026-11-28-cipher-airframe-2`.
+
+## 28 Nov 2026 — Hold to spool campaign warp
+
+Line up the ship with the warp marker and hold the rebindable Warp control for three seconds. The default is J on keyboard and L3 on controller. The marker stays visible during interdictions and its ring fills while spooling. Releasing the control or losing alignment resets progress. A hull or shield hit aborts the spool and requires a release before retrying. Pilots can leave ordinary interdictions with enemies present. Escort, salvage, and hazard routes still check their mission objectives. Escaping records a resolved route checkpoint without awarding credit for clearing the encounter. Build `2026-11-28-warp-spool-1`.
+
+## 27 Nov 2026 — Ward pistol, Skirmish cast and combat audio
+
+Campaign and FPS Skirmish share a PBR first-person Ward model. FPS and Three-Zone Skirmish load the existing skinned security, enforcer, mercenary and civilian looks, with separate hitboxes and a procedural fallback when a model is unavailable. The cast uses existing idle and walk clips, with aim and fire clips on models that have them. Campaign flight and Flight Skirmish use shared instanced asteroid shapes with fractured surfaces and tonal bands. Visual changes preserve sector rules and flight collision settings.
+
+Four ElevenLabs effects under `void-runner/assets/audio/combat/` cover the Ward, reload, pulse fire and hull impact. The existing Effects mixer handles playback and directional NPC reports. Ship and on-foot modes use the same audio context. Build `2026-11-27-combat-art-audio-1`.
+
+## 27 Nov 2026 — Edit assigned NPC homes
+
+Apartment Editor has an **NPC homes** mode with a resident picker that fills the address and apartment number. The private test session opens the selected residence with its assigned residents and reserves their standard approaches in the placement guide. Edits save in the existing local apartment design store. Build `2026-11-27-npc-apartment-editor-1`.
+
+## 27 Nov 2026 — Apartment Editor
+
+Dev Tools opens a private visit to an unreserved apartment from its street door. The room editor includes a VR bedroom-inspired palette, finish and light controls, a categorized GLB Asset Finder, per-room music, and red placement checks for walls, furniture, doors, interaction approaches, and standard resident routes. IndexedDB stores designs and imported files per developer account on this browser. Blender and Meshy use self-contained GLB exports. See [Editing a vacant apartment](APARTMENTS.md#editing-a-vacant-apartment). Build `2026-11-27-apartment-editor-1`.
+
+## 27 Nov 2026 — Iris chatter during hacking waits
+
+Automatic Comms remarks now play during long access-point hacks and the wait for BR-04 after Mission 009. General exploration, sneaking, spotted events, and unrelated mission waits no longer trigger Iris chatter. Approved clips remain available for preview in Dev Tools. Build `2026-11-27-iris-hacking-waits-1`.
+
+## 27 Nov 2026 — Kade walks up to Lace
+
+In Pleasure Breach, choosing to play as Kade starts a first-person walk from the player’s position in the apartment. Kade uses the indoor route around furniture, then starts the assigned clip at its original mark. The encounter’s cancel control is available during the approach.
+
+## 27 Nov 2026 — Explicit sound sources for encounter cues
+
+Imported sound cues display their active filename without a required library selection. Only choosing a valid built-in sound replaces the import. Editor sound auditions stop before a scene playtest starts. Build `2026-11-27-encounter-sound-source-1`.
+
+## 27 Nov 2026 — Continue in-game playtests after the selected start point
+
+Starting from a dialogue section or playlist plays forward through the encounter’s remaining actions and choices. Selecting a chance playlist enters it directly and then follows its configured return behavior. The separate editor execution preview can still isolate a playlist. Build `2026-11-27-encounter-start-continuation-1`.
+
+## 27 Nov 2026 — Consumable visual preview controls
+
+Consumable Effects places playback and comparison controls above the 3D view. Preview track, category, or all tracks enables Live effects and returns from Before effects. If preview accessibility hides a selected effect, the studio names the setting to enable and opens the preview-only controls. Build `2026-11-27-consumable-visual-preview-1`.
+
+## 27 Nov 2026 — In-game encounter section start points
+
+On desktop, Start from this point opens a private in-game playtest at the selected dialogue section, main playlist, or chance playlist. It uses the encounter location and stages the cast or Lace, then plays the selected timeline with the game’s dialogue, animations and sound cues. Preview execution keeps the editor’s timing and branch trace available separately. Build `2026-11-27-encounter-in-game-start-points-1`.
+
+## 27 Nov 2026 — Local files for encounter sound effects
+
+Each sound cue can import a local audio file or use the packaged library. Draft audio is stored in the authoring browser. Publishing uploads the audio through the existing content-addressed audio service, and live playback uses the Effects channel and the existing cue timing and loop controls. Build `2026-11-27-encounter-sound-import-1`.
+
+## 27 Nov 2026 — Low Quay map and taxi encounter polish
+
+The V1 Map App shows Low Quay, the landing pad and city rail stops, the stairs, and Plug & Play. Delivery tags stay in the voice inputs and are hidden from encounter captions. A quiet tire squeal leads into the collision, the keycard model prepares during the approach, and the physical drop starts while issuance is pending. The taxi-rating witness line is retired. Build `2026-11-27-taxi-squeal-keycard-drop-2`.
+
+## 27 Nov 2026 — Clear V1 camera viewfinder and Lace arrival
+
+The shared panel theme was painting its dark panel fill over the live camera image. The viewfinder now draws its own transparent frame and corner marks. The apartment doorway transition waits for Lace's model and starting pose before revealing the room. Dialogue starts after entry. Build `2026-11-27-camera-lace-arrival-1`.
+
+## 27 Nov 2026 — Chance Encounter start points
+
+In the desktop encounter editor, select a Choice node to launch a private in-game playtest at any connected destination. Dialogue sections and expanded main and chance playlists have the same start button for the editor’s execution preview. Playlist previews start directly at the selected playlist, use its repeat rules and sound cues, and stop at its end. Previewing a chance playlist skips its parent probability roll. Build `2026-11-27-encounter-start-point-1`.
+
+## 27 Nov 2026 — Chance Encounter timing and sound cues
+
+The editor estimates line, section, main-playlist and chance-playlist durations using delays, recording lengths, known animation lengths, playback speed and repeat settings. Chance paths and unmeasured clips are labelled. A line can carry sound without dialogue or animation.
+
+Encounter, node, section, main-playlist, chance-playlist and action cues use the packaged sound library and the game's Effects channel. Each cue has a start or end anchor, offset, volume and optional loop. Loop stops can follow the active scope, encounter completion or a set duration. Use a timed loop for an end cue. Effects can play concurrently and do not extend dialogue or playlist execution. The desktop execution preview uses the same scheduler. Build `2026-11-27-encounter-sound-cues-1`.
+
+## 27 Nov 2026 — Cast for new Chance Encounters
+
+New drafts can choose a location and trigger and add a cast from registered NPC models or browser-local GLBs. Each cast member has a stable NPC ID, display name, placement and idle clip. Cast dialogue assigns speakers and their embedded animations, and a Cast conversation node waits for the player to approach before presenting Talk. The new location selector covers NeoChinatown street quarters, the District interior and Low Quay. Existing bespoke encounters retain their graphs and staging.
+
+Imported GLBs are stored in browser IndexedDB. Publishing requires a registered game model from the regular asset pipeline. The Python API enforces that distinction and checks the selected location when rolling opportunities. Build `2026-11-27-encounter-cast-1`.
+
+## 27 Nov 2026 — Plug & Play local rehearsal
+
+Ike and Eza take turns at the pole using a rehearsal-only rear opening and ramp. One reaches the backstage waiting spot before the next crosses the ramp. The approach slows near the pole and the walking and dancing poses blend while the rig eases between their different origins and headings. The first routines use KickPole and No-FeetSPin from the owner's RigModels archive. The bone-only source files use different axes and proportions. The local conversion matches joint directions and preserves motion relative to an estimated pole position. Pole grip and foot contact may need per-clip adjustment.
+
+Lyra and Raze use separate paths between the kitchen hatch and the booths. They stop to greet guests and carry trays with food and drinks to the tables. Their existing GLBs supply walking. The rehearsal builder adds simple greeting, tray-carry and serving poses. Lyra and Raze are hosts. Nia is the separate mission giver, standing just inside the entrance with a Talk prompt and a Mission Editor roster entry. No mission or dialogue is assigned. The local rehearsal page has a Nia view.
+
+Build with `tools/animation-pipeline/build_plugplay_rehearsal.py POLE_ZIP IKE_GLB EZA_GLB --hosts LYRA_GLB RAZE_GLB --nia NIA_GLB`. The generated files are ignored under `work/pole-preview/`. On a localhost game URL, enable `?plugplay-rehearsal=1` and visit Low Quay's Plug & Play. This workstation also has an ignored preview page at `/work/pole-preview/index.html` with stage and hosts views. Browser verification exercised the dancer handoff, tray delivery at two booths, and scene disposal. RigModels usage terms are pending. Build `2026-11-27-plugplay-nia-1`.
+
+## 27 Nov 2026 - Cardkey pickup glow
+
+The Pleasure Breach cardkey has a brighter cyan rim, a cyan status light and a soft cyan pool on the pavement where it lands. The spill is a local additive mesh that is disposed with the pickup. Build `2026-11-27-cardkey-ground-glow-1`.
+
+## 27 Nov 2026 — Chance Encounters playlist editor
+
+The editor groups checked dialogue and animation actions into explicit main playlists, with drag reordering and finite or until-canceled passes. New chance playlists reroll at their insertion point by default. Existing graphs retain their saved repeat bounds, per-action repeat flags, and return behavior. Updating playlist membership applies the new full-action repeat rule. The editor preview, private playtest, and public runtime use the same execution rules. Main playlists are local to a conversation section, so player choices can be placed before or after a playlist. No production encounter content is authored by this change. Build `2026-11-27-chance-playlists-1`.
+
 ## Current NPC travel and editor policy
 
 See [NPC restrictions audit](NPC_RESTRICTIONS_AUDIT.md) and the permanent creative authority instruction in CLAUDE.md. The NPC tiers govern supported awareness settings. NPC schedules and opted-in escort travel use the registered route and scene capabilities at any tier. The Characters list uses one roster with capabilities shown on the individual character. Historical tier, category and cat-travel entries below describe older versions. The label cleanup removed leftover editor state and unused animation filters. Explicit adult eligibility still governs the existing protected content.
+
+## 28 Nov 2026 - Loading screens hidden (phase 6)
+
+`void-runner/transition-veil.js`: when a place the player is in loads another, the last picture stays up (no card) and crossfades into the new place; a slow load (over 6 s) still shows the card with its cancel. It never covers a transition with its own presentation (doors, the District vestibule, Milked, gates, landing, taxi). The full audit, per transition, is [LOADING_TRANSITIONS.md](LOADING_TRANSITIONS.md). Build `2026-11-28-loading-veil-6`.
+
+## 28 Nov 2026 - Vesper: the road's end (phase 5)
+
+The road now ends 9.76 km out at a facility made to look like a warehouse: the guard shack (enterable, nobody on duty) and an open barrier come first, then a fenced compound with the warehouse (three big roller doors on its west side, shut; antenna mast, chillers, sensors) and a two-storey shared housing unit (shut). The inside of the warehouse is the owner's decision. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-facility-5`.
+
+## 28 Nov 2026 - Vesper: the mine (phase 4)
+
+A mine 4.7 km out: a portal in a cut in the mountainside, the adit level modelled inside the mountain (no scene change), and a cage down a shaft to the bottom level. **The depth is a placeholder: `MINE_DEPTH_M` (120 m) in `vesper-sites.js`; `LEVELS` is data.** The cage ride hides the bottom level's load (it waits in the shaft if it must). Mine levels: floors, collision and prompts per level (`setLevel`). Nothing saved. Details: [VESPER_ROAD.md](VESPER_ROAD.md). Build `2026-11-28-vesper-mine-4`.
+
+## 28 Nov 2026 - Vesper: the long road and the village (phases 2-3)
+
+The road continues 8 km past the pass (9.6 km in all, no loading screen: one scene, streamed land). A village stands 2.4 km out: nine houses, an enterable bar and store (no people, no shop, blank signs: owner decisions), streamed in from 3 km away and compiled before it shows (`vesper-sites.js`, data generated with the model by `tools/assets/vesper/build_vesper_village.py`). Details: [VESPER_ROAD.md](VESPER_ROAD.md). Builds `2026-11-28-vesper-road-2`, `2026-11-28-vesper-village-3`.
+
+## 28 Nov 2026 - Vesper: the road through the pass (phase 1 of the owner's road request)
+
+The Vesper road now climbs from the Ward Repair yard through a saddle between the first range's two high points and on to the plateau beyond (1.42 km, max grade 9 %), walkable and drivable all the way. The land is drawn as streamed chunks (`vesper-terrain.js`, a quadtree generated inside a per-frame budget: no loading pause), shaped by `vesper-world.js` (pure, tested). `exploration-controller.js` accepts an optional `location.walkable(x, z, r)` area beyond a location's rectangle (only Vesper uses it: the road corridor). Read [VESPER_ROAD.md](VESPER_ROAD.md) for the phases still to come (many miles, village, mine, facility, hidden loading screens), the restrictions and the owner's open questions. Build `2026-11-28-vesper-pass-1`.
 
 ## 26 Nov 2026 - Universe travel verification
 
@@ -137,6 +259,7 @@ The owner's instruction (27 Nov 2026): his design for Plug & Play is two dancers
 - **The dancers' route:** the stage's single oversized box is replaced by collision that follows the glass and frame (thin boxes on the four flats, chains of small boxes on the four diagonals, the front steps as before). The rear glass flat has a doorway (1.2 m wide, 2.3 m high, steel frame, glass either side and a transom); behind it two risers step the deck (0.6 m) down to the corridor floor, and the back door (widened 1.1 to 1.2 m, its chrome bar removed, the door leaf now open flat against the corridor wall) leads into the corridor. `heightAt` (club) feeds `VoidLowQuay.groundHeight`. Waypoints `STAGE_WAYPOINTS` (pole, deckRear, rearGlass, stepUpper, stepLower, backDoor, corridor, corridorNorth, dressing, and `wait` by the mirror) and `DANCER_ROUTE`; every leg is checked clear at the player's radius with at most one riser per step. The front, side and diagonal glass stay solid (test: with the back door shut nothing on the floor reaches the deck). No dancer, model or clip was added.
 - **OWNER DECISION NEEDED (player access to the stage):** the collision cannot tell a player from an NPC (`exploration-controller.js blocked` uses every solid; NPC walkers use the same solids), and the backstage door was already public, so a player in the corridor can now walk the same route onto the stage. Options: (a) leave it open; (b) a player-only block at the back door that NPC routes ignore (needs a new solid flag in `exploration-controller.js`); (c) a locked or staff-only backstage door; (d) open it only while no dancer is on.
 - **Alley window anchors (`low-quay-court.js`):** the facing is a default (`WINDOW_YAW`, out to the alley); `windowAnchors(yaw)` builds them with any facing (one value or per window). The exact-angle test is gone; tests check each anchor is finite, inside its booth with room for a dancer, coloured (never white), and still valid for other facings. Booths remain not walkable in this build (current state, owner decision open).
+- **Merged with main (28 Nov 2026, build `2026-11-28-lowquay-4`; main's changes win where both cannot be kept):** main's local Plug & Play rehearsal (`low-quay-club.js rehearsal()`, localhost with `?plugplay-rehearsal=1`, the owner's Ike/Eza dancers, Lyra/Raze hosts and Nia from `work/pole-preview/`) is kept exactly: with the rehearsal on, the stage draws main's rehearsal opening (1.06 m), ramp and half-open back door, and the dancers walk main's route. Without the rehearsal (every normal build), the permanent doorway, risers and open-flat back door above are drawn. The collision and `heightAt` are this branch's in both modes (the rehearsal's dancers are scripted and do not use them). Main's Low Quay map (`mapSpace`), `NIA`, and its District freight and threat changes in `campaign.js` are unchanged; `rookReachable` sits beside them.
 - **#629 included:** the diners' check is a registered crowd model plus its configured clip (no name filter).
 - **Verified in a browser** (bundled Chromium, software GL, Medium): each room entered through the Mission Editor draft-play path (`VoidMissionEditor.enterTree` with the room's own `enter`): the player stood exactly on each marker, in the right room, free of collision, and walked off it; a generic street figure (`npc-casual-m`, test only, not shipped) placed along the route at the right heights, and the route walked in 4 cm steps against the live scene collision with no hit. Screenshots `docs/development/universe-graphics/lowquay-fix-*.jpg`. **Not verified:** real GPU, VR, a live dancer walker (none exists yet; a generic test figure was placed along the route in the browser check only).
 
@@ -151,6 +274,27 @@ The owner's instruction (27 Nov 2026): his design for Plug & Play is two dancers
 - Blocks changed to open the alley and the court: the three blocks west of the alley were trimmed to x -15; the three east of it start at x -10; the row z 420..456 west of x 28 was removed (now the court); rows ending at z 416 now end at z 410.
 - **PROPOSED text:** none new (stall signs are abstract glyphs); the five room names above are PROPOSED.
 - **Known gaps:** no NPCs (dancers, cooks, diners) in the alley or court yet; no ambience; real-GPU frame rate unverified (software GL; the alley and the overlook view draw 750 to 800 calls on Medium, the court about 250). Performance step: while the player is on the pad or the line (zone 'pad'), the quay's small placed pieces and glows (shopfronts, units, lamps, washes, steam; nothing within 150 m of the pad) are switched off and come back as the train reaches the station.
+### 27 Nov 2026 (newest): VESPER graphics batch A and the road (branch `claude/vesper-gfx-1`, build `2026-11-27-vesper-1`)
+
+The owner: "Update Vesper graphics next" (universe graphics brief: mechanical workshops, practical engineering equipment, spare components, remote planetary terrain) and "Create a drivable road from there going off into the distance".
+- **Canon kept:** the Ward Repair workshop (`opening-scene.js`, `vesper-visuals.js`, layout `opening-data.js`) is unchanged in layout, collision, interactions, Mara, the range and the village. Its dusk desert identity stays.
+- **Workshop exterior (Medium and above):** `void-runner/vesper.js` (`VoidVesper`) adds `assets/models/vesper/vesper-workshop.glb` (Blender, `tools/assets/universe/build_vesper.py`, textures `vesper_textures.py`): corrugated cladding over the walls, a pitched roof, roof plant, door barrel and flood lamps, generator, spare panels, thruster nozzle, parts rack, salvage gantry with an engine block, tyres, a fuel tank on a skid (replaces the plain cylinder; the fuel-tank solid stays), a power cart, an engine hoist, tarp crates. Low keeps the code-built exterior. A failed load hides nothing.
+- **Road (every tier):** a regolith track out of the yard, past the range, through an open gate at x ~50, east across the flats toward the far ranges (about 770 m; 221 m walkable). Parking apron at (38, 17.5), 8 x 5 m, kept clear for a vehicle. Blank route signs (no text). The layout's x bound is now 232 (was 72) so the road is walkable; z is unchanged. API for the vehicle agent (`VoidVesper.road`: centre line, width, usable length, `groundAt`): `docs/development/VESPER_ROAD.md`. Tests: `tests/vesper-road.test.cjs`.
+- **Hooks:** `opening-scene.js` calls `VoidVesper.prune` before its merge (clears scatter off the road; removes the meshes the model replaces) and `VoidVesper.dress` after its shadow setup; `babylon-renderer.js` adds `VoidVesper.models(quality)` to the workshop and space-view model lists. `vesper-visuals.js` exposes the terrain height (`terrainHeight`, `meshHeight`); the mountain mesh is identical.
+- **Found, not fixed (other batches):** every earlier `vcore.py` GLB (Vantor, Anchorage, Erebus/Cantor/Garrow surroundings, Vantor Relay) ships its baked light as `COLOR_1` with a white `COLOR_0`, which Babylon ignores, so the baked lighting never shows. `build_vesper.py` sets the active colour attribute (fix is two lines in `vcore.write`). The WARD REPAIR sign reads mirrored from outside (existing).
+- **Batch B (branch `claude/vesper-gfx-2`, stacked on batch A, build `2026-11-27-vesper-2`):** the interior, in the same `vesper-workshop.glb` (objects `wi_*`): overhead bridge crane on wall brackets, pendant lamps at the existing point lights plus one over the back wall (its light is added by `vesper.js` on Medium and above: 7 lights in the scene), pegboard with tools, parts shelving, compressor, air line and hose reels, distribution board, parts bins over the bench, three lockers. All above head height, flat on walls or inside existing solids; no collision change.
+- **Not verified:** real-GPU frame rate (software GL); High/Ultra; the descent view. The diagnostic screen text over the bench also reads mirrored (existing).
+
+### 27 Nov 2026 (newest): A DRIVABLE UTILITY VEHICLE AT THE VESPER WORKSHOP (branch `claude/vesper-vehicle`, build `2026-11-27-vesper-vehicle-1`)
+
+The owner's request: "Create a [basic] utility vehicle there the player can enter and drive using both keyboard and mouse, as well as common gamepad controls for driving" ("there" = Vesper's surface workshop, where a separate branch is upgrading the graphics and building a road off into the distance).
+- **What:** one small work truck (enclosed two-seat cab, cargo bed with a spare wheel, crates and jerry cans, a roll bar with amber work lamps, a roof lamp bar and beacon, steel bumpers with hazard stripes, a snorkel; worn ochre paint with dust and scratches). Modelled in Blender by Claude: `tools/assets/vehicles/build_utility_vehicle.py` -> `void-runner/assets/models/vehicles/utility-vehicle.glb` (about 8,400 triangles, 600 KB, separate `steer_FL/FR` pivots and `wheel_*` nodes so the wheels steer and turn). If the file cannot load, a labelled box placeholder stands in.
+- **Where:** parked east of the workshop's right wall at x 19.5, z -8, facing +z (`VoidVehicleRules.SPOTS.vesper`): clear of the garage mouth, the landing pad, the shooting lane, Mara, the doors, the interactions and the spawn (`tests/vehicle-rules.test.cjs`). It is parked there again on every load of Vesper; **nothing is saved** (no save fields, no flags).
+- **Controls:** walk to the driver door (left side): **[E] DRIVE UTILITY VEHICLE**; the same interact key exits (the prompt reads EXIT VEHICLE) and stops the vehicle where it is; you step out by the driver door, else the passenger door, the back or the front, whichever is clear. Keyboard: W / Up drive, S / Down brake then reverse, A / D or Left / Right steer, Space handbrake (slides), Shift boost, C switches the chase camera / bonnet camera; the mouse looks around (the chase camera orbits and eases back behind the vehicle after a moment). Gamepad (standard mapping): RT drive, LT brake / reverse, left stick (or D-pad) steer, right stick camera, the game's jump button (A / Cross by default) handbrake, RB boost, R3 camera, the game's interact button (X / Square by default) exits, Menu pauses; dead zones from Settings > Controls / Gamepad (triggers 0.06).
+- **How it is wired (no new game mode):** `void-runner/vehicle-rules.js` (pure: input mapping, the step function, collision as three circles along the body against the location's box solids and bounds, ground following with pitch and roll, exit points, cameras; Node-tested) and `void-runner/vehicle.js` (browser: model, prompt, input, HUD). While driving the game stays in `walking`; `input-state.js` resolves the existing **seated** policy (the tea-room seat's), so on-foot movement, jumping, weapons and game shortcuts are off and every menu, conversation and device pauses the vehicle; the walker sits in the driver's seat (zones, music and multiplayer see him there) and only `VoidBabylon.renderRoom` is given the chase camera. `VoidExplorer.step` / `select` are wrapped only for the driver.
+- **For the Vesper road:** `VoidVehicle.configure('vesper',{spot,groundHeight,inBounds,solids})` takes the road's parking spot, height function (the body follows it with pitch and roll) and drivable area (otherwise the location bounds, |x| < 72, |z| < 80). Nothing in the road branch's files was touched.
+- **PROPOSED (owner decision):** the look and colour, the name UTILITY VEHICLE and the prompts DRIVE UTILITY VEHICLE / EXIT VEHICLE, the driving HUD text, the parking spot, the speeds (54 km/h, 72 km/h with boost, 20 km/h reverse); whether other places get vehicles; whether its position should be remembered.
+- **Not verified:** a real gamepad (a synthetic standard pad drove it in the browser test), real-GPU frame rate (software GL here), the sound (it uses the existing door sound; no engine sound yet). No headlights that light the ground (the lamps glow; real lights would exceed the scene's light budget).
 
 ### 27 Nov 2026 (newest): PLUG & PLAY, a nightclub at Low Quay (branch `claude/low-quay-club`, build `2026-11-27-lowquay-2`)
 

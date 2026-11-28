@@ -8,7 +8,7 @@
  'use strict';
  const data={
   /* The kinds of freight job.
-     label: the name on Rook's board and in the Mission Log. legal: false marks the job "not legal". units: hold spaces it takes (the Kestrel and the Peregrine hold 2).
+     label: the name on Rook's board and in the Mission Log. legal: false marks the job "not legal". units: hold spaces it takes (the Kestrel holds 2 and the Cipher holds 3).
      payAt: 'delivery' (the receiving dock pays when the cargo is unloaded) or 'rook' (the receiver confirms the drop and Rook pays in person at Meridian).
      bonus: credits added to the base pay. danger: extra raiders on the route. far: true = only to places in another system than Meridian's.
      cargo: what is carried (a different one each run, in turn) on the older board; the District board picks its goods from `procedural` below

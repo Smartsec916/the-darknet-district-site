@@ -12,7 +12,7 @@ try{
      const e=enemies.find(VoidStory.hostile),vector=e&&flight.route.phase==='encounter'?e:flight.route.vector,lead=e&&flight.route.phase==='encounter'?FM.length(e)/VOID_BALANCE.laserProjectileSpeed:0;
      const x=vector.x+(e?.velocity.x||0)*lead-flight.velocity.x*lead,y=vector.y+(e?.velocity.y||0)*lead-flight.velocity.y*lead,z=vector.z+(e?.velocity.z||0)*lead-flight.velocity.z*lead;
      const yaw=Math.atan2(x,z),pitch=Math.atan2(y,Math.hypot(x,z)),error=Math.atan2(Math.sin(yaw-flight.yaw),Math.cos(yaw-flight.yaw));
-     flight.mouseX=FM.clamp(error*3-flight.yawRate*.5,-1,1);flight.mouseY=FM.clamp((pitch-flight.pitch)*3-flight.pitchRate*.5,-1,1);firing=!!e;update(.04);
+     flight.mouseX=FM.clamp(error*3-flight.yawRate*.5,-1,1);flight.mouseY=FM.clamp((pitch-flight.pitch)*3-flight.pitchRate*.5,-1,1);firing=!!e;VoidInput.held[flight.route.phase==='align'?'add':'delete'](VoidInput.bindings.warp);update(.04);
     }
     draw();return {mode,hp,quest:state.quest,resolved,required:current.enemies,phase:flight.route.phase,location:VoidBabylon.diagnostics.location};
    });

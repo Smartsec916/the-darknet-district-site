@@ -70,12 +70,17 @@
   // The horizon terrain: a polar heightfield (dense near Vesper, coarser far away) whose
   // heights come from domain-warped ridged noise. Mesa country is blended in by region,
   // with soft sandstone terraces, and everything fades into blue-violet haze with distance.
-  function mountainRing(B,scene,parent,material,quality='medium'){
-    const low=quality==='low',segments=low?160:320,ringCount=low?26:44,inner=245,outer=1350,N=noise(4417);
-    const radii=Array.from({length:ringCount},(_,i)=>inner*Math.pow(outer/inner,i/(ringCount-1)));
-    const positions=[],indices=[],uvs=[],heights=[];
-    for(let ring=0;ring<ringCount;ring++)for(let i=0;i<=segments;i++){
-      const angle=i/segments*Math.PI*2,r=radii[ring],x=Math.sin(angle)*r,z=Math.cos(angle)*r;
+  // The terrain's height at (x, z), shared by the mesh below and by anything that has to sit on it (the road in vesper.js, a vehicle).
+  // Pure: no Babylon, so Node tests can call it. terrainGrid() is the mesh layout per quality; meshHeight() is the height of the drawn
+  // (triangulated) surface, which is what a road or wheel must follow; inside the inner radius the ground is flat (y 0).
+  let terrainNoise=null;
+  function terrainGrid(quality='medium'){const low=quality==='low',segments=low?160:320,ringCount=low?26:44,inner=245,outer=1350;return {segments,ringCount,inner,outer,radii:Array.from({length:ringCount},(_,i)=>inner*Math.pow(outer/inner,i/(ringCount-1)))};}
+  // baseHeight: the natural horizon terrain (unchanged since the yard road). terrainHeight: the land as built, with the pass and the road's valley carved
+  // into it (vesper-world.js height); it falls back to baseHeight where vesper-world.js is not loaded.
+  let world=null;
+  function terrainHeight(x,z){if(!world)world=root.VoidVesperWorld||(typeof module!=='undefined'?require('./vesper-world.js'):null);return world?world.height(x,z):baseHeight(x,z);}
+  function baseHeight(x,z){
+      const N=terrainNoise||(terrainNoise=noise(4417)),r=Math.hypot(x,z);
       // Domain warp bends ridgelines so they wander instead of radiating from the village.
       const wx=x+160*(N.fbm(x*.0016,z*.0016,3)-.5),wz=z+160*(N.fbm(x*.0016+40,z*.0016-25,3)-.5);
       const start=600+260*N.fbm(x*.0011+3,z*.0011+8,3);const mask=smooth(start,start+420,r);
@@ -87,7 +92,23 @@
       if(mesa>0&&h>8){const step=24+8*N.n2(wx*.004,wz*.004),k=h/step,f=k-Math.floor(k),tiers=(Math.floor(k)+smooth(.72,.98,f))*step;const table=Math.min(tiers,40+70*massif);h=h+(table-h)*mesa*.9;}
       // Low sand swells across the open desert between the village and the ranges.
       h+=(N.fbm(x*.006,z*.006,3)-.45)*7*smooth(260,420,r)+(N.fbm(x*.03,z*.03,2)-.5)*1.6;
-      const y=ring===0?-.035:Math.max(-.035,h);
+      return Math.max(-.035,h);
+  }
+  function meshHeight(x,z,quality='medium'){
+    const G=terrainGrid(quality),r=Math.hypot(x,z);if(r<=G.inner)return 0;if(r>=G.outer)return terrainHeight(x,z);
+    const fr=(G.ringCount-1)*Math.log(r/G.inner)/Math.log(G.outer/G.inner),ring=Math.min(G.ringCount-2,Math.floor(fr));
+    let a=Math.atan2(x,z);if(a<0)a+=Math.PI*2;const fs=a/(Math.PI*2)*G.segments,seg=Math.min(G.segments-1,Math.floor(fs));
+    const vh=(k,i)=>{if(k===0)return -.035;const an=i/G.segments*Math.PI*2,rr=G.radii[k];return terrainHeight(Math.sin(an)*rr,Math.cos(an)*rr);};
+    // Same split as the index buffer: (a, b, a+1) and (a+1, b, b+1), a = this ring, b = the next ring out.
+    const v0=(r-G.radii[ring])/(G.radii[ring+1]-G.radii[ring]),u=fs-seg,h00=vh(ring,seg),h01=vh(ring+1,seg),h10=vh(ring,seg+1),h11=vh(ring+1,seg+1),v=Math.max(0,Math.min(1,v0));
+    return u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);
+  }
+  function mountainRing(B,scene,parent,material,quality='medium'){
+    const G=terrainGrid(quality),segments=G.segments,ringCount=G.ringCount,N=noise(4417),radii=G.radii;
+    const positions=[],indices=[],uvs=[],heights=[];
+    for(let ring=0;ring<ringCount;ring++)for(let i=0;i<=segments;i++){
+      const angle=i/segments*Math.PI*2,r=radii[ring],x=Math.sin(angle)*r,z=Math.cos(angle)*r;
+      const y=ring===0?-.035:terrainHeight(x,z);
       positions.push(x,y,z);heights.push(y);uvs.push(i/segments*24,ring*.8);
     }
     for(let ring=0;ring<ringCount-1;ring++)for(let i=0;i<segments;i++){const a=ring*(segments+1)+i,b=a+segments+1;indices.push(a,b,a+1,a+1,b,b+1);}
@@ -162,5 +183,6 @@
       p[k]=x*d*size;p[k+1]=Math.max(-.15,y*d*blocky)*size*.62;p[k+2]=z*d*size*(.8+.3*N.n2(seed,1));}
     mesh.updateVerticesData(B.VertexBuffer.PositionKind,p);const normals=[];B.VertexData.ComputeNormals(p,mesh.getIndices(),normals);mesh.updateVerticesData(B.VertexBuffer.NormalKind,normals);mesh.convertToFlatShadedMesh?.();return mesh;
   }
-  root.VoidVesperVisuals={surfaceTexture,mountainRing,buttes,boulder};
+  root.VoidVesperVisuals={surfaceTexture,mountainRing,buttes,boulder,terrainGrid,terrainHeight,baseHeight,meshHeight};
+  if(typeof module!=='undefined')module.exports=root.VoidVesperVisuals;
 })(globalThis);

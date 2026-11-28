@@ -34,6 +34,8 @@
   const route=ctx.route;
   if(!allows(s?.location,ctx.onFoot,'uploads'))return {state:'unavailable',reason:'premises',system:U.system(s.location)};
   if(route&&U.locations[route.origin]&&U.locations[route.destination]){
+   if(s?.story?.flags?.districtRelayOffline===true&&((route.origin==='earth'&&route.destination==='sol-belt')||(route.origin==='sol-belt'&&route.destination==='earth')))
+    return {state:'disconnected',reason:'region',system:'sol'};
    const a=U.system(route.origin),b=U.system(route.destination);
    if(route.phase==='warp'&&a!==b)return {state:'disconnected',reason:'warp',system:null};
   }

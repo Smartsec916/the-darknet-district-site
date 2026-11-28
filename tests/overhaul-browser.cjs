@@ -18,7 +18,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
    let interrupted=false,resumed=false;
    for(let i=0;i<5000&&['play','pause'].includes(mode);i++){
     mode='play';VoidInput.held.clear();flight.mouseX=flight.mouseY=0;
-    if(flight.route.phase==='align'){flight.yaw=Math.atan2(flight.route.vector.x,flight.route.vector.z);flight.pitch=0;flight.yawRate=flight.pitchRate=0;}
+    if(flight.route.phase==='align'){VoidInput.held.add(VoidInput.bindings.warp);flight.yaw=Math.atan2(flight.route.vector.x,flight.route.vector.z);flight.pitch=Math.asin(flight.route.vector.y);flight.yawRate=flight.pitchRate=0;}
     if(flight.route.phase==='encounter'){interrupted=true;while(spawned<current.enemies)spawnEnemy();for(const e of enemies)hitEnemy(e,100000);enemies=enemies.filter(e=>!e.dead);objectiveCount=3;}
     const old=flight.route.phase;update(.04);if(old==='encounter'&&flight.route?.phase==='align')resumed=true;
    }

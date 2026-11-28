@@ -40,6 +40,14 @@
  const CORP=id=>((CO&&CO.STREETS)||[]).find(s=>s.id===id)||null,TEMP=id=>((TP&&TP.STREETS)||[]).find(s=>s.id===id)||null;
  const around=(x,z,dx,dz)=>[x-dx,x+dx,z-dz,z+dz];
  const P=(o)=>({level:'place',...o});
+ // Vesper's road (vesper-world.js): named stretches [id, PROPOSED name, from s, to s (metres along the road), approach point s, description]. The ids stay; the names are the owner's to change.
+ const VW=node?require('./vesper-world.js'):root.VoidVesperWorld;
+ const VSI=node?require('./vesper-sites.js'):root.VoidVesperSites,VESPER_SITES=VSI?VSI.sites():[];
+ const VESPER_ROAD=VW?[['vesper-road-flats','The road across the flats',VW.usableYard(),700,520,'From the yard\'s edge east across the flats to the foot of the first range.'],
+  ['vesper-pass','The pass',700,1150,990,'The climb into the first range and the saddle between its two peaks.'],
+  ['vesper-road-plateau','Beyond the pass',1150,2250,1220,'The plateau east of the pass, as far as the first long descent.'],
+  ['vesper-road-valley','The long valley',2250,5200,3000,'The valley road north-east between the ranges.'],
+  ['vesper-road-far','The far road',5200,VW.total()+1,5300,'The last stretch, north-east around the mountains to the road\'s end.']]:[];
  /* id, name, level, parent, scene (walkingLocation.id), rects (world metres), whole, y (optional), enter (where draft play puts a player), target (where the guide arrow
     leads), proposed (a working name, not canon), src (where an existing name comes from), where (a plain description for the owner's review sheet), fallback. */
  const NODES=[
@@ -157,7 +165,22 @@
   P({id:'vr-suite',name:'Play in a Bedroom',parent:'vr',scene:'vr-suite',whole:true,src:'VR menu title',where:'The bedroom suite simulation.'}),
   P({id:'vr-tropical',name:'Tropical Escape',parent:'vr',scene:'vr-tropical',whole:true,src:'VR menu title',where:'The beach simulation.'}),
   P({id:'vr-forest',name:'Relax in a Forest',parent:'vr',scene:'vr-forest',whole:true,src:'VR menu title',where:'The forest simulation.'}),
-  P({id:'vr-combat',name:'Combat Simulator',parent:'vr',scene:'vr-combat',whole:true,src:'VR title',where:'The combat range (not listed in the VR menu).'})];
+  P({id:'vr-combat',name:'Combat Simulator',parent:'vr',scene:'vr-combat',whole:true,src:'VR title',where:'The combat range (not listed in the VR menu).'}),
+  // ---- Vesper (Erebus System): the Ward Repair yard and the road out through the pass (vesper-world.js; docs/development/VESPER_ROAD.md). Scene 'vesper'.
+  //      enter: draft play lands at the workshop (location 'vesper'); target: a checked point on the road (ground + eye height) the guide arrow leads to. ----
+  {id:'erebus-system',name:'Erebus System',level:'system',parent:null,system:'erebus',src:'universe.js (system "erebus")',where:'The star system.'},
+  {id:'vesper-planet',name:'Vesper',level:'planet',parent:'erebus-system',location:'vesper',src:'universe.js (location "vesper")',where:'The world the Ward Repair workshop is on.'},
+  {id:'vesper-yard',name:'Ward Repair yard',level:'area',parent:'vesper-planet',scene:'vesper',rects:[[-232,232,-80,80]],enter:{location:'vesper'},src:'opening-data.js "VESPER / WARD REPAIR"',where:'The workshop, its yard, the pad and the range, inside the yard\'s walking area.'},
+  P({id:'vesper-workshop',name:'Ward Repair workshop',parent:'vesper-yard',scene:'vesper',rects:[[-13,13,-23,1]],enter:{location:'vesper'},src:'opening-data.js (workshop walls)',where:'Inside the open-front workshop.'}),
+  P({id:'vesper-yard-ground',name:'The yard',parent:'vesper-yard',scene:'vesper',rects:[[-232,232,-80,80]],fallback:true,enter:{location:'vesper'},proposed:true,where:'The rest of the yard: the pad, the range, the parking apron and the road as far as the yard\'s edge.'}),
+  {id:'vesper-road',name:'The Vesper road',level:'area',parent:'vesper-planet',scene:'vesper',rects:VW?VW.corridorRects(VW.usableYard(),VW.total()):[],enter:{location:'vesper'},proposed:true,where:'The road east from the yard, through the pass between the two peaks.'},
+  ...VESPER_ROAD.map(([id,name,s0,s1,at,where])=>P({id,name,parent:'vesper-road',scene:'vesper',rects:VW?VW.corridorRects(s0,s1):[],enter:{location:'vesper'},target:VW?VW.approach(at).point:null,proposed:true,where})),
+  // the road's sites (vesper-sites.js; their rectangles and approach points come with the models): the village and its bar and store
+  ...VESPER_SITES.flatMap(site=>{const own='vesper-'+site.id,hasOwn=site.places.some(q=>q.id===own),stretch=site.id==='village'||site.id==='mine'?'vesper-road-valley':'vesper-road-far',lv=q=>q.level!=null?{y:[site.y+VSI.levelY(q.level)-6,site.y+VSI.levelY(q.level)+8]}:{};
+   return [...(hasOwn?[]:[P({id:own,name:site.id==='village'?'The village':site.id,parent:stretch,scene:'vesper',rects:[site.area],enter:{location:'vesper'},target:[site.origin[0],+(site.y+1.7).toFixed(2),site.origin[1]],proposed:true,where:'The small settlement on the valley road: houses, a bar and a store.'})]),
+    ...site.places.map(q=>P({id:q.id,name:q.name,parent:q.id===own?stretch:own,scene:'vesper',rects:[q.rect],...lv(q),enter:{location:'vesper'},target:[q.approach[0],+((q.level!=null?site.y+VSI.levelY(q.level):VW.groundAt(q.approach[0],q.approach[1]))+1.7).toFixed(2),q.approach[1]],proposed:true,where:q.where})),
+    // a mine's bottom level (vesper-sites.js LEVELS: its depth is the MINE_DEPTH_M placeholder): the shaft station and the drift
+    ...(site.cage?[P({id:own+'-bottom',name:'The bottom level',parent:own,scene:'vesper',rects:VSI.sites().find(x=>x.id===site.id).floors.filter(f=>f.level===1).map(f=>f.rect),y:[site.y+VSI.levelY(1)-6,site.y+VSI.levelY(1)+8],enter:{location:'vesper'},target:[site.cage[0]-3,+(site.y+VSI.levelY(1)+1.7).toFixed(2),site.cage[1]],proposed:true,where:'The foot of the shaft and the drift to the working face ('+(-VSI.levelY(1))+' m down: a placeholder depth).'})]:[])];})];
  /* SHOPFRONTS: the neon shop signs neochinatown.js puts up along Main Street, the Avenue and Far South (their places are decided by the city's fixed random sequence;
     read from the built city, 18 Nov 2026, tests/places-names.test.cjs checks their number and words against shopSigns). [sign words, x, z, street side]:
     the place is the 7 m of pavement in front of the sign. A shopfront is a facade (no interior yet). */

@@ -12,7 +12,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
     const x=vector.x+(e?.velocity.x||0)*lead-flight.velocity.x*lead,y=vector.y+(e?.velocity.y||0)*lead-flight.velocity.y*lead,z=vector.z+(e?.velocity.z||0)*lead-flight.velocity.z*lead;
     const targetYaw=Math.atan2(x,z),targetPitch=Math.atan2(y,Math.hypot(x,z)),yawError=Math.atan2(Math.sin(targetYaw-flight.yaw),Math.cos(targetYaw-flight.yaw));
     flight.mouseX=FM.clamp(yawError*3-flight.yawRate*.5,-1,1);flight.mouseY=FM.clamp((targetPitch-flight.pitch)*3-flight.pitchRate*.5,-1,1);
-    firing=!!e;update(.04);
+    firing=!!e;VoidInput.held[flight.route.phase==='align'?'add':'delete'](VoidInput.bindings.warp);update(.04);
    }
    results.push({run,frames,mode,hp,quest:state.quest,combatRuns:state.combatRuns,phases:[...phases],resolved,required:current.enemies});
    if(mode==='over'||frames===18000)break;

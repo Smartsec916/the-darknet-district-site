@@ -3,10 +3,21 @@
  const M=typeof module!=='undefined'?require('./cockpit-math.js'):root.VoidCockpitMath;
  const missiles=typeof module!=='undefined'?require('./missiles.js'):root.VoidMissiles;
  const tiers={
-  rookie:{reaction:.8,accuracy:.55,lead:.15,turn:.55,speed:21,evasion:.3,range:65,reposition:3.2,defensive:2,missileAvoidance:.3,fireCone:.82,lockTime:3.5},
-  trained:{reaction:.4,accuracy:.78,lead:.6,turn:.95,speed:26,evasion:.65,range:55,reposition:2.5,defensive:2.5,missileAvoidance:.7,fireCone:.88,lockTime:2.8},
-  elite:{reaction:.18,accuracy:.94,lead:.95,turn:1.4,speed:31,evasion:1,range:48,reposition:1.8,defensive:3,missileAvoidance:1,fireCone:.92,lockTime:2.1}
+  rookie:{reaction:.8,accuracy:.55,lead:.15,turn:.65,speed:21,acceleration:8,armor:10,damage:.65,fireInterval:2.3,evasion:.3,range:65,reposition:3.2,defensive:2,missileAvoidance:.3,fireCone:.82,lockTime:3.5},
+  trained:{reaction:.4,accuracy:.78,lead:.6,turn:1.0,speed:26,acceleration:12,armor:16,damage:.9,fireInterval:1.65,evasion:.65,range:55,reposition:2.5,defensive:2.5,missileAvoidance:.7,fireCone:.88,lockTime:2.8},
+  elite:{reaction:.18,accuracy:.94,lead:.95,turn:1.38,speed:31,acceleration:17,armor:24,damage:1.15,fireInterval:1.15,evasion:1,range:48,reposition:1.8,defensive:3,missileAvoidance:1,fireCone:.92,lockTime:2.1}
  };
+ function interceptTime(relative,targetVelocity,projectileSpeed){
+  const a=M.dot(targetVelocity,targetVelocity)-projectileSpeed**2;
+  const b=2*M.dot(relative,targetVelocity),c=M.dot(relative,relative);
+  const fallback=Math.sqrt(c)/Math.max(1,projectileSpeed);
+  if(Math.abs(a)<1e-8)return b<0?-c/b:fallback;
+  const discriminant=b*b-4*a*c;
+  if(discriminant<0)return fallback;
+  const root=Math.sqrt(discriminant),first=(-b-root)/(2*a),second=(-b+root)/(2*a);
+  const hit=Math.min(first>0?first:Infinity,second>0?second:Infinity);
+  return Number.isFinite(hit)?hit:fallback;
+ }
  function init(e,tier='rookie',index=0){e.pilot={tier:tiers[tier]?tier:'rookie',state:'attack',timer:0,decision:0,side:index%2?1:-1,variant:index%3,heading:M.unit(e.velocity&&M.length(e.velocity)>.1?e.velocity:{x:-e.x,y:-e.y,z:-e.z}),speed:20,lock:0,missileCooldown:5};return e.pilot;}
  function step(e,dt,context){
   const p=e.pilot||init(e),t=tiers[p.tier],distance=M.length(e),toward=M.unit({x:-e.x,y:-e.y,z:-e.z});
@@ -34,7 +45,7 @@
   else if(p.state==='evade')aim=M.unit({x:-toward.z*p.side,y:.5*Math.sin(e.age*2),z:toward.x*p.side});
   else aim=M.unit({x:-e.x-context.forward.x*35,y:-e.y,z:-e.z-context.forward.z*35});
   if(distance>260)aim=toward;
-  p.heading=missiles.turn(p.heading,aim,t.turn*dt);p.speed+=(wanted-p.speed)*(1-Math.exp(-dt*2));
+  p.heading=missiles.turn(p.heading,aim,t.turn*dt);p.speed+=M.clamp(wanted-p.speed,-t.acceleration*dt,t.acceleration*dt);
   if(e.generator)p.speed=0;
   e.velocity={x:p.heading.x*p.speed,y:p.heading.y*p.speed,z:p.heading.z*p.speed};
   const facing=M.dot(p.heading,toward),offensive=p.state==='attack'||p.state==='reposition';
@@ -43,5 +54,5 @@
   p.lock=e.heavy&&p.canFire&&distance<130&&p.missileCooldown<=0?Math.min(1,p.lock+dt/t.lockTime):Math.max(0,p.lock-dt*2);
   return p;
  }
- const api={tiers,init,step};if(typeof module!=='undefined')module.exports=api;else root.VoidEnemyPilots=api;
+ const api={tiers,init,step,interceptTime};if(typeof module!=='undefined')module.exports=api;else root.VoidEnemyPilots=api;
 })(globalThis);

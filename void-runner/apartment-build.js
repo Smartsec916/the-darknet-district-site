@@ -127,7 +127,7 @@
    const sc=P('ap-screen',{em:'#1f6f8a',unlit:true});if(ax){box2(sc,x-.065,x+.065,y+.03,y+.11,z+f*.05,z+f*.055);}else box2(sc,x+f*.05,x+f*.055,y+.03,y+.11,z-.065,z+.065);
    const mk=(m)=>ax?box2(m,x-.015,x+.015,y-.1,y-.07,z+f*.05,z+f*.06,true):box2(m,x+f*.05,x+f*.06,y-.1,y-.07,z-.015,z+.015,true);const r=mk(red),g=mk(green);r.isVisible=!ok;g.isVisible=!!ok;if(id)apLeds[id]={r,g};}
   const C=G.CEIL;
-  let lightsOn=true;const realLights=[],fixtureMats=[S.lamp];let flicker=null;
+  let lightsOn=true;const realLights=[],fixtureMats=[S.lamp];let flicker=null,designBrightness=1;
   function pointLight(name,[x,y,z],hex,intensity,range){if(realLights.length>=(low?1:2))return null;const l=new B.PointLight('apt-light-'+name,new B.Vector3(A.ORIGIN[0]+x,y,A.ORIGIN[1]+z),scene);l.diffuse=B.Color3.FromHexString(hex);l.specular=l.diffuse.scale(.4);l.intensity=intensity;l.range=range;l.metadata={on:intensity};own.push(l);realLights.push(l);return l;}
   const interactive={};
   const props=[];
@@ -161,7 +161,20 @@
   if(!hall&&def.lightsOff===true)setLights(false);   // the mission's "lights start: off"
   // ---- lights on / off ----
   function setLights(on){lightsOn=!!on;for(const l of realLights)l.intensity=on?l.metadata.on:0;for(const m of fixtureMats){if(!m.metadata.base)m.metadata.base=m.emissiveColor.clone();m.emissiveColor=on?m.metadata.base.clone():m.metadata.base.scale(.05);}
-   if(amb)amb.intensity=on?MOOD.ai:MOOD.ai*.38;}
+   if(amb)amb.intensity=MOOD.ai*designBrightness*(on?1:.38);}
+  let originalFinishes,originalLights;
+  function decorate(design){
+   originalFinishes??=new Map([...mats].filter(([,m])=>m.albedoColor).map(([id,m])=>[id,m.albedoColor.clone()]));
+   originalLights??=realLights.map(l=>({color:l.diffuse.clone(),strength:l.metadata.on}));
+   const color=design.light?B.Color3.FromHexString(design.light):null;
+   designBrightness=design.brightness;
+   for(const [id,base] of originalFinishes){const hex=design.finishes[id];mats.get(id).albedoColor=hex?B.Color3.FromHexString(hex):base.clone();}
+   for(const [i,l] of realLights.entries()){
+    const base=originalLights[i];
+    l.diffuse=(color||base.color).clone();l.specular=l.diffuse.scale(.4);l.metadata.on=base.strength*designBrightness;
+   }
+   setLights(lightsOn);
+  }
   const residents=(hall?def.street&&['tacta','patch'].some(id=>root.VoidLiveContent?.env?.characters?.[id]?.residence?.door===def.street):def.residents?.length)?root.VoidMadeNPCs?.startResidents?.({scene,parent:node,def}):null;
   let clock=0;
   function tick(time,player){const dt=Math.min(.1,Math.max(0,clock?time-clock:0));clock=time;
@@ -174,7 +187,7 @@
    if(sun&&lp.sun!=null)sun.intensity=lp.sun;if(amb){if(lp.amb!=null)amb.intensity=lp.amb;if(lp.dif)amb.diffuse=lp.dif;if(lp.gnd&&amb.groundColor)amb.groundColor=lp.gnd;}}
   // interactions: toggle an object (fridge, closet, panel): returns the new state
   function toggle(obj){const k=interactive[obj];if(!k)return null;return k.toggle();}
-  return {area:hall?'apartment-hall':'apartment',style,part:def.part,tick,dispose:disposeAll,lights:setLights,get lightsOn(){return lightsOn;},toggle,interactive,doors,accessPoint(id,st){const l=apLeds[id];if(l){l.r.isVisible=st!=='open';l.g.isVisible=st==='open';}},
+  return {area:hall?'apartment-hall':'apartment',style,part:def.part,tick,dispose:disposeAll,lights:setLights,decorate,finishColor:key=>mats.get(key)?.albedoColor?.toHexString(),get lightsOn(){return lightsOn;},toggle,interactive,doors,accessPoint(id,st){const l=apLeds[id];if(l){l.r.isVisible=st!=='open';l.g.isVisible=st==='open';}},
    prepare:()=>Promise.race([Promise.allSettled(late),new Promise(r=>setTimeout(r,6000))]),stats:()=>({merged,doors:doors.length,lights:realLights.length,meshes:node.getChildMeshes().length,props:props.length})};
 
   // ================================================================ THE APARTMENT

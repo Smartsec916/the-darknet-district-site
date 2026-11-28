@@ -32,7 +32,16 @@ function updateWarpHud(){const r=flight.route;if(!r)return;
  const alignment=FM.dot(flightBasis().f,r.vector),percent=Math.round(FM.clamp((alignment+1)/2,0,1)*100);
  const width=(r.progress*100).toFixed(1)+'%';if($('progress').style.width!==width)$('progress').style.width=width;
  hudText('route-status',Math.floor(r.progress*100)+'% / '+r.phase.toUpperCase());
- hudText('flight-objective',r.phase==='departure'?'DEPARTING / '+C.stations[r.origin].name:r.phase==='align'?(r.aligned>0?'WARP VECTOR LOCKED':'ALIGN WITH DESTINATION')+' · '+percent+'%':r.phase==='warp'?(r.policy?.kind==='interstellar'?'INTERSTELLAR JUMP / ':'IN-SYSTEM JUMP / ')+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Clear hostiles to resume':'INTERDICTION · HOSTILE ACTIVITY');
+ const key=VoidInput.label(VoidInput.bindings.warp);
+ const hold=globalThis.VoidControls?.label('warp')||key;
+ const ready=alignment>=VoidWarp.config.alignmentCos;
+ const canSpool=r.phase==='align'||r.phase==='encounter'&&canEscapeInterdiction();
+ let spool=ready?'HOLD '+hold+' TO SPOOL WARP':'ALIGN WITH DESTINATION · '+percent+'%';
+ if(r.recharge>0)spool='WARP DRIVE RECHARGING · '+Math.ceil(r.recharge)+' s';
+ else if(r.spoolInterrupted)spool='RELEASE '+hold+' TO RETRY WARP';
+ else if(r.aligned>0)spool='SPOOLING WARP · '+Math.floor(r.aligned/warpSpoolSeconds()*100)+'%';
+ if(r.phase==='encounter'&&canSpool)spool+=' · HOSTILES ACTIVE';
+ hudText('flight-objective',r.phase==='departure'?'DEPARTING / '+C.stations[r.origin].name:canSpool?spool:r.phase==='warp'?(r.policy?.kind==='interstellar'?'INTERSTELLAR JUMP / ':'IN-SYSTEM JUMP / ')+C.stations[r.destination].name:r.phase==='arrived'?'ARRIVAL / docking guidance':current.kind==='salvage'?'RECOVER SIGNALS '+objectiveCount+' / 3 · Clear hostiles to resume':current.kind==='escort'?'SHUTTLE '+escortHP+'% · Protect it to resume warp':'INTERDICTION · Clear the hazard to resume warp');
 }
 const navigationEdge={name:null,angle:0,last:0};
 function drawNavigationEdge(vector,name,color='#ffe58b'){
@@ -43,12 +52,30 @@ function drawNavigationEdge(vector,name,color='#ffe58b'){
  ctx.save();ctx.translate(edge.x,edge.y);ctx.rotate(edge.angle);ctx.fillStyle='#07131c';ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(17,0);ctx.lineTo(-9,-9);ctx.lineTo(-5,0);ctx.lineTo(-9,9);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
  ctx.save();ctx.font='bold 12px Consolas';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#07131c';ctx.fillStyle=color;const label=(edge.behind?'BEHIND / ':'')+name;ctx.strokeText(label,edge.x,edge.y+25);ctx.fillText(label,edge.x,edge.y+25);ctx.restore();
 }
-function drawWarpMarker(){const r=flight.route;if(!r||r.phase!=='align')return;const p=flightPoint(flight.nav);
+function warpMarkerOpacity(){
+ return flight.route?.phase==='encounter'||typeof navigationReveal==='undefined'?1:VoidNavigationReveal.opacity(navigationReveal);
+}
+function drawWarpMarker(){const r=flight.route;if(!VoidWarp.canSpool(r))return;const p=flightPoint(flight.nav);
  const name=C.stations[r.destination].name.toUpperCase(),color='#ffe58b';
  if(p.z<1||p.x<W*.12||p.x>W*.88||p.y<H*.16||p.y>H*.72){drawNavigationEdge(flight.nav,name,color);return;}
  ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor='#07131c';ctx.shadowBlur=12;ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,-24);ctx.lineTo(24,0);ctx.lineTo(0,24);ctx.lineTo(-24,0);ctx.closePath();ctx.stroke();ctx.fillStyle=color;ctx.fillRect(-3,-3,6,6);ctx.font='bold 12px Consolas';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#07131c';ctx.strokeText(name,0,43);ctx.fillText(name,0,43);ctx.restore();
 }
-function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
+function drawWarpSpool(){
+ const r=flight.route;
+ if(!VoidWarp.canSpool(r)||r.phase==='encounter'&&!canEscapeInterdiction())return;
+ if(warpMarkerOpacity()<=0)return;
+ const p=flightPoint(flight.nav);
+ if(p.z<=0||!VoidWarp.aligned(r,flightBasis().f))return;
+ const progress=FM.clamp(r.aligned/warpSpoolSeconds(),0,1);
+ ctx.save();ctx.lineWidth=3;ctx.strokeStyle='rgba(73,171,163,.55)';
+ ctx.beginPath();ctx.arc(p.x,p.y,35,0,Math.PI*2);ctx.stroke();
+ if(progress){
+  ctx.strokeStyle='#55e0cc';ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(p.x,p.y,35,-Math.PI/2,-Math.PI/2+Math.PI*2*progress);ctx.stroke();
+ }
+ ctx.restore();
+}
+function drawWarpEffect(r=flight.route){if(!r||r.phase!=='warp')return;
  const slow=warpSpeed(r);drawWarpObjects(r,slow);
  ctx.save();ctx.globalAlpha=(reducedMotion?.12:.65)*slow;ctx.lineWidth=1.5;
  const cx=W*.5,cy=H*.44;
@@ -58,4 +85,3 @@ function drawWarpEffect(){const r=flight.route;if(!r||r.phase!=='warp')return;
 addEventListener('pointerdown',()=>VoidAudio.unlock(),{passive:true});addEventListener('keydown',()=>VoidAudio.unlock());
 addEventListener('pagehide',()=>VoidAudio.suspend());
 document.addEventListener('visibilitychange',()=>{if(document.hidden)VoidAudio.suspend();});
-const audioHurt=hurt;hurt=function(amount){const beforeHull=hp,beforeShield=shieldHP;audioHurt(amount);if(hp<beforeHull||shieldHP<beforeShield)VoidAudio.event(hp<beforeHull?'hull':'shield',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));};

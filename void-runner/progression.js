@@ -1,13 +1,15 @@
 /* Persisted prologue, equipment and safe checkpoints. No renderer or account authority. */
 (function(root){
  const Ships=typeof module!=='undefined'?require('./ships.js'):root.VoidShips;
- const tuning={jump:{local:14,interstellar:28},ground:{magazine:10,reserve:48,damage:12,reload:1.1,cooldown:.25,hostileHull:36,hostileDamage:5},ships:{starter:{capacity:72,recharge:12,cooling:18,heatLimit:100,cargo:2},ship2:{capacity:96,recharge:16,cooling:22,heatLimit:110,cargo:2},ship3:{capacity:125,recharge:18,cooling:20,heatLimit:120,cargo:3}},laser:{cost:6,heat:13,recover:.35}};
+ const tuning={jump:{local:14,interstellar:28},ground:{magazine:10,reserve:48,damage:12,reload:1.1,cooldown:.25,hostileHull:36,hostileDamage:5},ships:{starter:{capacity:72,recharge:12,cooling:18,heatLimit:100,cargo:2},ship2:{capacity:96,recharge:16,cooling:22,heatLimit:110,cargo:3},ship3:{capacity:125,recharge:18,cooling:20,heatLimit:120,cargo:3}},laser:{cost:6,heat:13,recover:.35}};
  const modules={
   capacitor:{name:'Reserve capacitor',slot:'power',price:150,icon:'power',stats:{capacity:24,recharge:3},compatible:['starter','ship2','ship3']},
   cooling:{name:'Ward cooling loop',slot:'cooling',price:120,icon:'cooling',stats:{cooling:8,heatLimit:15},compatible:['starter','ship2','ship3']},
-  pulse:{name:'Focused pulse coils',slot:'weapon',price:240,icon:'weapon',stats:{damage:1.15,cost:1.1,heat:1.1},compatible:['starter','ship2','ship3']},
+  pulse:{name:'Helix Pulse Array',slot:'weapon',price:240,icon:'weapon',stats:{damage:1.25,cooldown:.94,cost:1.1,heat:1.1},compatible:['starter','ship2','ship3']},
   shield:{name:'Compact shield generator',slot:'shield',price:220,icon:'shield',stats:{shield:20,shieldRegen:2},compatible:['starter','ship2','ship3']},
-  engine:{name:'Maneuvering vanes',slot:'engine',price:200,icon:'engine',stats:{turn:1.12,acceleration:1.08},compatible:['starter','ship2','ship3']},
+  engine:{name:'Vector-T Mk II Thruster Pack',slot:'engine',price:200,icon:'engine',stats:{turn:1.24,acceleration:1.24,topSpeed:1.08,angularAcceleration:1.18},compatible:['starter','ship2','ship3']},
+  'ablative-laminate':{name:'Bastion Ablative Laminate',slot:'armor',price:170,icon:'armor',stats:{hull:24},compatible:['starter','ship2','ship3']},
+  'warp-inducer':{name:'Slipstream Warp Inducer',slot:'warp',price:155,icon:'warp',stats:{spool:.85},compatible:['starter','ship2','ship3']},
   // Faction rewards (doc 10): earned through homeworld work, never sold. Own slots so both can be fitted.
   'communion-scanner':{name:'Communion Targeting Scanner',slot:'sensor',price:0,reward:true,icon:'sensor',stats:{lockTime:.7},compatible:['starter','ship2','ship3'],faction:'communion',technology:'ai-assisted'},
   'order-thrusters':{name:'Natural Order Maneuvering Thrusters',slot:'thrusters',price:0,reward:true,icon:'thrusters',stats:{turn:1.12,angularAcceleration:1.4,angularDamping:1.25},compatible:['starter','ship2','ship3'],faction:'natural-order',technology:'mechanical'},
@@ -18,6 +20,20 @@
   'warflying-scrambler':{name:'WarFlying Scrambler',slot:'signal',price:900,icon:'sensor',stats:{},vendor:'admin',compatible:['starter','ship2','ship3']},
   'signal-tracker':{name:'Signal Tracker',slot:'signal',price:0,icon:'sensor',stats:{},vendor:null,available:false,compatible:['starter','ship2','ship3']}
  };
+ // Cipher refits use different parts. Owned legacy fittings stay valid in restored saves.
+ const cipherRefits={
+  'cipher-pulse':['pulse','Helix-C Pulse Array',360],
+  'cipher-thrusters':['engine','Vector-C Mk III Thruster Pack',300],
+  'cipher-laminate':['ablative-laminate','Bastion-C Ceramic Laminate',270],
+  'cipher-inducer':['warp-inducer','Slipstream-C Warp Inducer',240]
+ };
+ for(const [id,[base,name,price]] of Object.entries(cipherRefits)){
+  const standard=modules[base];
+  modules[id]={...standard,name,price,compatible:['ship2'],refit:'cipher',listed:false};
+  standard.refit='kestrel';
+  standard.listed=false;
+  standard.compatible=['starter','ship3'];
+ }
  // Things a player carries (progression.personal.items). 'hacking-device' is RESERVED (19 Nov 2026) for the Mission Editor's "Hack the access point" step
  // ("Player needs: a hacking device"): it is not sold anywhere yet (no price, no shop listing); the owner decides with Admin how it is sold.
  const WEAPONS=['base-pistol'];   // on-foot weapons a player can own besides the opening's Ward pistol (void_runner_progression.py WEAPONS)
@@ -45,7 +61,7 @@
   p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
   const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>Object.prototype.hasOwnProperty.call(personalItems,x));p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;p.personal.weapons=[...new Set((Array.isArray(a.weapons)?a.weapons:[]).filter(x=>WEAPONS.includes(x)))];if(!p.personal.weapon&&p.personal.weapons.includes('base-pistol'))p.personal.weapon='base-pistol';
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)&&modules[id].available!==false))];
-  for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
+  for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot&&(modules[id].refit!=='cipher'||ship==='ship2'))p.equipment.installed[ship][slot]=id;}
   p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.m2=Math.floor(number(raw.m2,0,30));p.missileType=raw.missileType==='m2'?'m2':'m1';   /* M2 rounds and the selected missile type (ordnance.js) */p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
   for(const [id,v]of Object.entries(raw.reputation||{}))if(/^[a-z][a-z-]{0,39}$/.test(id)&&Number.isFinite(v))p.reputation[id]=Math.max(-100,Math.min(100,v));
   p.cargo=(raw.cargo||[]).filter(x=>x&&typeof x.id==='string'&&Number.isInteger(x.units)&&x.units>0&&x.units<=3).slice(0,3);p.data=(raw.data||[]).filter(x=>typeof x==='string'&&x.length<80).slice(0,16);
@@ -81,10 +97,10 @@
  function next(s){sync(s);return (groundDone(s)?flight:s.progression.opening?.version===2?openingGround:ground).find(id=>!s.progression.flags[id])||null;}
  // On-foot weapons bought from a vendor (zones.js PISTOL: Admin's base pistol, 19 Nov 2026): bought once, kept in personal.weapons; the drawn gun is personal.weapon.
  function buyWeapon(s,id,price){const p=s.progression;if(!WEAPONS.includes(id)||!Number.isFinite(price)||price<0||(p.personal.weapons||[]).includes(id)||s.credits<price)return false;s.credits-=price;p.personal.weapons=[...(p.personal.weapons||[]),id];if(!p.personal.weapon)p.personal.weapon=id;return true;}
- function buy(s,id,vendor='outfitter'){const m=modules[id],p=s.progression;if(!m||m.reward||m.available===false||(m.vendor||'outfitter')!==vendor||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
- function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||m.available===false||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine','sensor','thrusters','signal'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
- function systems(s){const ship=Ships.get(s).id,t={...tuning.ships[ship],cost:tuning.laser.cost,heat:tuning.laser.heat};for(const id of Object.values(s.progression?.equipment.installed[ship]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;const profiles=(typeof module!=='undefined'?require('./balance.js'):root.VoidBalance)?.profiles;const overrides=id==='capacitor'?profiles?.capacitor:id==='pulse'?profiles?.pulseCoils:null;if(id==='pulse'&&overrides?.energyCurve)t.energyCurve=overrides.energyCurve;for(const [k,v]of Object.entries({...m.stats,...overrides}))if(['capacity','recharge','cooling','heatLimit'].includes(k))t[k]+=v;else if(k==='cost'||k==='heat')t[k]*=v;}return t;}
- function stats(s,value){const out={...value,flight:{...value.flight}};for(const id of Object.values(s.progression?.equipment.installed[s.activeShip]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats)){if(k==='damage')out.damage*=v;if(k==='shield'||k==='shieldRegen')out[k]+=v;if(k==='turn')for(const a of ['yawRate','pitchRate','rollRate'])out.flight[a]*=v;if(k==='acceleration')out.flight.acceleration*=v;if(k==='angularAcceleration')out.flight.angularAcceleration*=v;if(k==='angularDamping')out.flight.angularDamping*=v;if(k==='lockTime')out.lockTime=(out.lockTime||1)*v;}}return out;}
+ function buy(s,id,vendor='outfitter'){const m=modules[id],p=s.progression;if(!m||m.reward||m.available===false||m.listed===false||(m.vendor||'outfitter')!==vendor||m.refit&&!m.compatible.includes(s.activeShip)||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
+ function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||m.available===false||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine','sensor','thrusters','signal','armor','warp'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
+ function systems(s){const ship=Ships.get(s).id,t={...tuning.ships[ship],cost:tuning.laser.cost,heat:tuning.laser.heat};for(const id of Object.values(s.progression?.equipment.installed[ship]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;const profiles=(typeof module!=='undefined'?require('./balance.js'):root.VoidBalance)?.profiles;const overrides=id==='capacitor'?profiles?.capacitor:['pulse','cipher-pulse'].includes(id)?profiles?.pulseCoils:null;if(['pulse','cipher-pulse'].includes(id)&&overrides?.energyCurve)t.energyCurve=overrides.energyCurve;for(const [k,v]of Object.entries({...m.stats,...overrides}))if(['capacity','recharge','cooling','heatLimit'].includes(k))t[k]+=v;else if(k==='cost'||k==='heat')t[k]*=v;}return t;}
+ function stats(s,value){const out={...value,flight:{...value.flight}};for(const id of Object.values(s.progression?.equipment.installed[s.activeShip]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats)){if(k==='damage')out.damage*=v;if(k==='cooldown'||k==='spool')out[k]*=v;if(k==='hull')out.hull+=v;if(k==='topSpeed')out.flight.maxSpeed*=v;if(k==='shield'||k==='shieldRegen')out[k]+=v;if(k==='turn')for(const a of ['yawRate','pitchRate','rollRate'])out.flight[a]*=v;if(k==='acceleration')out.flight.acceleration*=v;if(k==='angularAcceleration')out.flight.angularAcceleration*=v;if(k==='angularDamping')out.flight.angularDamping*=v;if(k==='lockTime')out.lockTime=(out.lockTime||1)*v;}}return out;}
  function powerStep(bank,s,dt,t=systems(s),rechargeMultiplier=1){bank.energy=Math.min(t.capacity,bank.energy+dt*t.recharge*rechargeMultiplier);bank.heat=Math.max(0,bank.heat-dt*t.cooling);if(bank.heat<t.heatLimit*tuning.laser.recover)bank.overheated=false;}
  function consume(bank,s,t=systems(s)){const cost=t.energyCurve?t.cost*(typeof module!=='undefined'?require('./equipment-profiles.js'):root.VoidEquipmentProfiles).sample(t.energyCurve,bank.energy/t.capacity):t.cost;if(bank.overheated||bank.energy<cost)return false;bank.energy-=cost;bank.heat=Math.min(t.heatLimit,bank.heat+t.heat);if(bank.heat>=t.heatLimit)bank.overheated=true;return true;}
  function checkpoint(s,location){s.progression.checkpoint={location};s.travel=null;}

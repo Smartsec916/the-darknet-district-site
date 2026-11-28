@@ -7,7 +7,7 @@
   let active='keyboard',padIndex=-1,previousButtons=[],previousAxes=[0,0,0,0],capture=null,movePointer=null,lookPointer=null,lastMode='',lastPrompt='';
   const touchHeld=new Set(),padHeld=new Set(),move={x:0,z:0};
   const names=['A / Cross','B / Circle','X / Square','Y / Triangle','LB / L1','RB / R1','LT / L2','RT / R2','View / Share','Menu / Options','Left stick click (L3)','Right stick click (R3)','D-pad Up','D-pad Down','D-pad Left','D-pad Right','Home'];
-  const fpsActions=['fire','aim','jump','interact','reload','draw','crouch','sprint','pause'],flightActions=['fire','missile','nearest','next','previous','lock','throttleUp','throttleDown','pause'];
+  const fpsActions=['fire','aim','jump','interact','reload','draw','crouch','sprint','pause'],flightActions=['fire','missile','nearest','next','previous','lock','warp','throttleUp','throttleDown','pause'];
   const axisKeys=Object.keys(input.axes);
   const layer=document.createElement('div');layer.id='device-controls';layer.innerHTML='<div id="device-move" aria-label="Movement joystick"><span class="device-stick"></span></div><div id="device-look" aria-label="Drag to look"></div><div id="device-actions"></div><div id="device-rotate" role="status">ROTATE DEVICE<br><small>The Darknet District is designed for landscape gameplay.</small></div>';document.body.append(layer);
   const moveEl=layer.querySelector('#device-move'),knob=moveEl.firstElementChild,lookEl=layer.querySelector('#device-look'),buttons=layer.querySelector('#device-actions');
@@ -37,7 +37,7 @@
   function startTouch(id){touchHeld.add(id);input.virtual.add(id);dispatch(id,true);setActive('touch');}
   function stopTouch(id){touchHeld.delete(id);input.virtual.delete(id);dispatch(id,false);}
   function clearTouch(){for(const id of [...touchHeld])stopTouch(id);movePointer=lookPointer=null;move.x=move.z=0;knob.style.transform='translate(-50%,-50%)';}
-  function refreshButtons(){const flight=mode==='play';const spec=flight?[['fire','FIRE'],['missile','MISSILE'],['throttleUp','THRUST +'],['throttleDown','BRAKE'],['nearest','TARGET'],['lock','LOCK']]:[['fire','FIRE'],['aim','AIM'],['jump','JUMP'],['interact','INTERACT'],['reload','RELOAD'],['draw','DRAW'],['sprint','RUN']];
+  function refreshButtons(){const flight=mode==='play';const spec=flight?[['fire','FIRE'],['missile','MISSILE'],['warp','WARP'],['throttleUp','THRUST +'],['throttleDown','BRAKE'],['nearest','TARGET'],['lock','LOCK']]:[['fire','FIRE'],['aim','AIM'],['jump','JUMP'],['interact','INTERACT'],['reload','RELOAD'],['draw','DRAW'],['sprint','RUN']];
     const signature=mode;if(buttons.dataset.signature===signature)return;buttons.dataset.signature=signature;buttons.innerHTML=spec.filter(([id])=>id!=='interact'||mode==='walking').map(([id,text])=>'<button type="button" data-device-action="'+id+'" aria-label="'+text+'">'+text+'</button>').join('');
   }
   function resetMove(){move.x=move.z=0;movePointer=null;knob.style.transform='translate(-50%,-50%)';}
@@ -64,12 +64,15 @@
     const c=input.controller,digital=mode==='play'?flightActions:fpsActions;
     const raw=pad.buttons.map(b=>!!b&&(b.pressed||b.value>.55));const lx=dead(pad.axes[0]||0,c.leftDeadZone),ly=dead(pad.axes[1]||0,c.leftDeadZone),rx=dead(pad.axes[2]||0,c.rightDeadZone),ry=dead(pad.axes[3]||0,c.rightDeadZone);
     if(capture){const index=raw.findIndex((pressed,i)=>pressed&&!previousButtons[i]);if(index>=0){const result=input.bindController(capture,index),status=document.getElementById('device-binding-status');if(result.error){if(status)status.textContent=result.error;}else{capture=null;mainAction('device-bindings');if(document.getElementById('device-binding-status'))document.getElementById('device-binding-status').textContent=result.saved?'Binding saved.':'Binding active for this session.';}}previousButtons=raw;return;}
-    if(VoidInputState.current.shortcuts!=='game'&&!(mode==='menu'&&VoidMenu.returnTo&&VoidInputState.current.name!=='background')){previousButtons=raw;previousAxes=[lx,ly,rx,ry];return;}
+    const policy=VoidInputState.current;
+    const conversation=policy.name==='conversation'&&(policy.movement||policy.camera);
+    if(!conversation&&policy.shortcuts!=='game'&&!(mode==='menu'&&VoidMenu.returnTo&&policy.name!=='background')){previousButtons=raw;previousAxes=[lx,ly,rx,ry];return;}
     const axes=[lx,ly,rx,ry];if((Math.hypot(...axes)>.24&&axes.some((value,i)=>Math.abs(value-previousAxes[i])>.08))||raw.some((pressed,i)=>pressed&&!previousButtons[i]))setActive('gamepad');
     if(active==='gamepad'){input.axes.moveX=lx;input.axes.moveZ=-ly;input.axes.flightX=lx;input.axes.flightY=ly;input.axes.roll=rx;input.axes.lookX=rx;input.axes.lookY=ry*(c.invertY?-1:1);
-      if(mode==='walking'&&walker){walker.yaw+=rx*c.sensitivity*dt*2.5;walker.pitch=FM.clamp(walker.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.35,1.35);}
+      if(policy.camera&&['walking','vr-seated'].includes(mode)&&walker){walker.yaw+=rx*c.sensitivity*dt*2.5;walker.pitch=FM.clamp(walker.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.35,1.35);}
       else if(mode==='skirmish-fps'&&root.VoidSkirmish?.active){const p=root.VoidSkirmish.active.player;p.yaw+=rx*c.sensitivity*dt*2.5;p.pitch=FM.clamp(p.pitch+input.axes.lookY*c.sensitivity*dt*2.5,-1.25,1.25);}
     }
+    if(conversation){previousButtons=raw;previousAxes=axes;return;}
     for(const id of digital){const index=c.bindings[id],pressed=!!raw[index]&&active==='gamepad'&&(activeModes.has(mode)||(id==='pause'&&mode==='menu'&&VoidMenu.returnTo));if(pressed){input.virtual.add(id);padHeld.add(id);}else{input.virtual.delete(id);padHeld.delete(id);}if(pressed&&!previousButtons[index])dispatch(id,true);else if(!pressed&&previousButtons[index])dispatch(id,false);}
     if(active==='gamepad'&&mode==='walking'&&raw[c.bindings.fire])dispatch('fire',true);
     if(active==='gamepad'&&mode==='skirmish-fps'&&raw[c.bindings.fire])dispatch('fire',true);
@@ -91,7 +94,7 @@
   function applyPrompts(){if(active==='keyboard')return;const tutorial=document.getElementById('tutorial-prompt');if(tutorial&&!tutorial.hidden){let value=tutorial.textContent;for(const [pattern,replacement] of [[/WASD \/ touch arrows/g,'LEFT STICK'],[/Space \/ Jump/g,label('jump')+' / Jump'],[/E \/ Interact/g,label('interact')+' / Interact'],[/Hold Shift/g,'Hold '+label('sprint')],[/right mouse \/ Aim/g,label('aim')+' / Aim'],[/Left mouse \/ Fire/g,label('fire')+' / Fire'],[/R \/ Reload/g,label('reload')+' / Reload'],[/1 \/ Draw/g,label('draw')+' / Draw']])value=value.replace(pattern,replacement);if(value!==tutorial.textContent)tutorial.textContent=value;}const hint=document.querySelector('#skirmish-hud .skirmish-controls');if(hint){const value=active==='gamepad'?'LEFT STICK MOVE · RIGHT STICK LOOK · '+label('fire')+' FIRE · '+label('aim')+' AIM · '+label('reload')+' RELOAD · '+label('pause')+' MENU':'JOYSTICK MOVE · DRAG LOOK · TOUCH ACTION BUTTONS';if(hint.textContent!==value)hint.textContent=value;}}
   const beforeUpdate=update;update=function(dt){poll(dt);beforeUpdate(dt);applyPrompts();};
   function gamepadLayout(){
-    const labels={sprint:'Sprint (hold while moving)',interact:'Interact / use',jump:'Jump',crouch:'Crouch (hold)',aim:'Aim (hold)',fire:'Fire',reload:'Reload',draw:'Draw weapon',personalHud:'Personal HUD',pause:'Pause / resume',missile:'Launch missile',nearest:'Target nearest',previous:'Previous target',next:'Next target',lock:'Lock target',throttleUp:'Increase throttle',throttleDown:'Decrease throttle'};
+    const labels={sprint:'Sprint (hold while moving)',interact:'Interact / use',jump:'Jump',crouch:'Crouch (hold)',aim:'Aim (hold)',fire:'Fire',reload:'Reload',draw:'Draw weapon',personalHud:'Personal HUD',pause:'Pause / resume',missile:'Launch missile',nearest:'Target nearest',previous:'Previous target',next:'Next target',lock:'Lock target',warp:'Spool warp drive (hold)',throttleUp:'Increase throttle',throttleDown:'Decrease throttle'};
     const rows=ids=>ids.map(id=>'<div class="binding-row"><span>'+labels[id]+'</span>'+button(names[input.controller.bindings[id]],'device-bind:'+id,true)+'</div>').join('');
     return '<h1>Gamepad layout</h1><p>Select a button binding to change it.</p><h2>On foot</h2>'+
       '<div class="binding-row"><span>Walk forward, backward and strafe</span><strong>Left stick</strong></div>'+

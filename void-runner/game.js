@@ -51,18 +51,18 @@ function launch() {
 function routeClear() { return !!current && spawned >= current.enemies && resolved >= current.enemies && enemies.every(e => !VoidStory.hostile(e)); }
 function destinationVisible() { return typeof flight!=='undefined'&&flight.route?flight.route.phase==='arrived':routeClear() && elapsed / current.duration > .72; }
 function arrive() {
-  if (mode !== 'play' || !routeClear() || elapsed < current.duration || (current.enemies && approachTime < VoidWarp.config.approachSeconds)) return;
+  if (mode !== 'play' || (!routeClear() && !(flight.route?.phase==='arrived'&&flight.route.encounter.evaded)) || elapsed < current.duration || (current.enemies && approachTime < VoidWarp.config.approachSeconds)) return;
   const reward = C.complete(state); if (!reward) return;current.repairCharged=reward.repairCharged;
   VoidAudio.event('dock');mode = 'arrival'; clearInput(); save(); flightUI(false); hud();
   const station = C.stations[state.location];
   if (reward.training) { panel('PRACTICE CIRCUIT COMPLETE / VESPER', 'Clean<br><em>landing.</em>', '<p>Mara’s voice crackles over the comm: “Not bad. That’s the basics; the rest you learn out there. Come see me, then take her to Meridian. Rook will be waiting.”</p>', button('EXIT TO THE WORKSHOP →', 'dock'), shipCard()); tone(620, .3); return; }
-  let story = reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
+  let story = reward.freightResult ? escapeText(reward.freightResult)+(reward.reward?' · '+reward.reward+' CR.':'.') : reward.reward ? `The cargo checks out. ${reward.reward} credits transfer to your account.` : 'Magnetic clamps catch the Kestrel. Engines down. For a moment, the ship is quiet.';
   if(reward.repairCharged)story+=` Dock servicing costs ${reward.repairCharged} credits.`;
   if (reward.gunReward) story += ' Iona Vale meets you at the loading ramp. “You came through when nobody else would. Take these pulse cannons. Next time, come back alive.” Her crew installs your MK 2 guns.';
   else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';
   panel('ARRIVAL CONFIRMED / ' + station.name.toUpperCase(), reward.reward ? 'Cargo <em>delivered.</em>' : 'Welcome<br><em>aboard.</em>', `<p>${story}</p>${reward.reward ? `<div class="manifest">${row('Payment received', '+' + reward.reward + ' CR')}${reward.gunReward ? row('Customer reward', 'MK 2 pulse cannons installed') : ''}</div>` : ''}`, button('EXIT TO SPACE STATION →', 'dock'), shipCard()); tone(620, .3);
 }
-function hurt(amount) { if (mode !== 'play' || damageTime > 0) return; hp = Math.max(0, hp - amount); damageTime = .45; hud(); tone(65, .25, 'sawtooth'); if (!hp) { mode = 'over'; clearInput(); flightUI(false); panel('DISTRESS BEACON / RECOVERY CREW DISPATCHED', 'One more<br><em>chance.</em>', '<p>The recovery crew pulls your ship out of the lane. Your cargo and upgrades are safe. Retry this route with a repaired hull. No credits are lost.</p>', button('RETRY ROUTE →', 'launch') + (state.quest === 'open' ? button('RETURN TO DOCK', 'dock', true) : ''), shipCard()); } }
+function hurt(amount, cue='hull') { if (mode !== 'play' || damageTime > 0) return; hp = Math.max(0, hp - amount); damageTime = .45; hud(); VoidAudio.event(cue); if (!hp) { mode = 'over'; clearInput(); flightUI(false); panel('DISTRESS BEACON / RECOVERY CREW DISPATCHED', 'One more<br><em>chance.</em>', '<p>The recovery crew pulls your ship out of the lane. Your cargo and upgrades are safe. Retry this route with a repaired hull. No credits are lost.</p>', button('RETRY ROUTE →', 'launch') + (state.quest === 'open' ? button('RETURN TO DOCK', 'dock', true) : ''), shipCard()); } }
 function pause() { openGameMenu(); }
 
 screen.addEventListener('click', event => {

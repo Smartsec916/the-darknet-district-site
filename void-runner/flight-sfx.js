@@ -1,4 +1,4 @@
-/* Flight sound (the owner, 19 Nov 2026: "Add sound effects to flying"). Everything is synthesized here with WebAudio: no recorded or bought files.
+/* Flight sound (the owner, 19 Nov 2026: "Add sound effects to flying"). Sampled combat cues use the shared mixer; the remaining layers are synthesized with WebAudio.
    It plays through ship-audio.js's EFFECTS channel, so the game's master / effects volume and mute apply; sounds from a place in space are panned and
    fade with distance (VoidAudio.spatial). Layers: the engine (a rumble and a turbine whine that follow the throttle, louder on the drive / boost),
    lasers, missile launch and motor, the lock tones (a seeking beep that speeds up, then a solid tone while locked), hits on shields and hulls,
@@ -53,7 +53,7 @@
  const FLIGHT_ONLY=new Set(['laser','enemyFire','missile','hit','shieldHit','incoming','warning','boost','warp','exit','charge','shield','hull']);
  const event=A.event;
  A.event=function(name,ship,position,basis){
-  if(SFX[name]&&(flying()||FLIGHT_ONLY.has(name)&&name!=='hull'&&name!=='shield')){note(name);if(ready()){try{SFX[name]({ship,position,basis});}catch{}}return;}
+  if(SFX[name]&&(flying()||FLIGHT_ONLY.has(name)&&name!=='hull'&&name!=='shield')){note(name);if(ready()){try{if(!A.playCombatCue(name,position,basis))SFX[name]({ship,position,basis});}catch{}}return;}
   return event.apply(this,arguments);
  };
  // Engine: rumble (noise through a low-pass) and a turbine whine, both following the throttle; the drive (boost) opens them up. Built once per audio context.
