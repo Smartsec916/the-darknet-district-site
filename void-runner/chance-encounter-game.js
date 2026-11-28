@@ -64,7 +64,7 @@
   }
   signal?.throwIfAborted();return play(figure,name,loop,speed);
  }
- async function lines(run,prefix,section,signal=run.signal,caption=announce,previewTarget){
+ async function lines(run,prefix,section,signal=run.signal,caption=announce){
   const api=root.VoidChanceEncounter,sections=api.dialogueSections(run.graph);
   const byId=new Map(run.graph.dialogue.map(row=>[row.id,row])),controls=[];
 
@@ -116,8 +116,10 @@
    return !signal.aborted;
   }
   const key=section||prefix;
-  await api.withSounds(run.sounds,previewTarget?undefined:run.graph.sectionSounds?.[key],signal,()=>api.runPlaylist(sections[key]||[],byId,{
-   signal,play:action,pause:delay,repeat,previewTarget,
+  const startTarget=run.startPoint?.section===key?run.startPoint.target:undefined;
+  if(run.startPoint?.section===key)run.startPoint=null;
+  await api.withSounds(run.sounds,startTarget?undefined:run.graph.sectionSounds?.[key],signal,()=>api.runPlaylist(sections[key]||[],byId,{
+   signal,play:action,pause:delay,repeat,startTarget,
    scope:(kind,item,local,work)=>api.withSounds(run.sounds,api.soundsFor(run.graph,key,kind,item),local,work)
   }));
  }
@@ -583,6 +585,7 @@
    rope.dispose();run.rope=null;
   }
   const sceneController=new AbortController(),phase={...run,controller:sceneController,signal:sceneController.signal,owned:new Set()};
+  if(preview)run.startPoint=null;
   const cancel=()=>sceneController.abort(new DOMException('Roleplay ended','AbortError'));
   run.signal.addEventListener('abort',cancel,{once:true});
   try{
@@ -601,8 +604,7 @@
     run.pov={w,head,inst:walkingLocation.inst,from:{x:w.x,y:w.y,z:w.z,yaw:w.yaw,pitch:w.pitch}};
     head.computeWorldMatrix(true);const eye=head.getAbsolutePosition();
     w.yaw=Math.atan2(p.x-eye.x,p.z-eye.z);w.pitch=0;
-    await lines(phase,'be_kade',null,phase.signal,announce,preview?.target);
-    if(preview){announce('Playtest section complete.');run.sounds.finish();}
+    await lines(phase,'be_kade');
     await until(()=>walkingLocation?.inst!==run.pov?.inst,phase.signal);
    };
    await Promise.race([prompt(phase,'Playing as Kade Mercer',['Cancel and leave apartment']),animate()]);
@@ -649,8 +651,8 @@
   const actor=(node.speaker&&run.cast.get(node.speaker))||run.cast.values().next().value;
   if(!actor)throw Error('Add a cast member in the editor.');
   const nearby=()=>typeof walker!=='undefined'&&walker&&Math.hypot(actor.parent.position.x-walker.x,actor.parent.position.z-walker.z)<=2.75;
-  await until(nearby,run.signal);
-  const answer=await prompt(run,node.name==='Talk to the cast'?'Talk to '+actor.name:node.name,['Talk','Cancel encounter']);
+  if(!run.startPoint)await until(nearby,run.signal);
+  const answer=run.startPoint?'Talk':await prompt(run,node.name==='Talk to the cast'?'Talk to '+actor.name:node.name,['Talk','Cancel encounter']);
   if(answer!=='Talk'){
    if(!run.private){
     const ending=run.graph.nodes.find(n=>n.kind==='end');
@@ -658,7 +660,8 @@
    }
    stop(true);return;
   }
-  for(const section of ['opening','remaining','wait','free','be_kade'])await lines(run,section,section);
+  const sections=['opening','remaining','wait','free','be_kade'];
+  for(const section of run.startPoint?sections.slice(sections.indexOf(run.startPoint.section)):sections)await lines(run,section,section);
  }
  async function runGraph(run,start){
   const sequence=root.VoidChanceEncounter.createRun(run.graph,start);
@@ -676,11 +679,12 @@
     if(!run.lace&&node.speaker==='lace'&&run.graph.residence){run.holds=true;await flat(run,true);}
     const exit=run.lace&&node.edges.find(e=>run.graph.nodes.some(n=>n.id===e.to&&n.kind==='end'&&n.id==='leave'));
     choice=await prompt(run,node.name,node.edges.map(e=>e.label),exit?.label,!!run.lace&&node.speaker==='lace');
-    if(run.lace&&node.speaker==='lace'&&choice!==exit?.label)await lines(run,'arrival','remaining');
+    if(run.lace&&node.speaker==='lace'&&choice!==exit?.label&&!run.alreadyPlayedRemaining)await lines(run,'arrival','remaining');
+    run.alreadyPlayedRemaining=false;
    }
    if(node.kind==='animation'){
     if(node.action==='release')await releaseLace(run);
-    else if(node.action==='roleplay')await roleplay(run);
+    else if(node.action==='roleplay')await roleplay(run,run.startPoint?.section==='be_kade');
     else if(node.action==='stumble'){
      if(!run.actor)await walk(run);
      impactPose(run.actor);taxiImpact(run);
@@ -723,16 +727,22 @@
   }
  }
  async function runTimeline(run,preview){
-  const {section,target}=preview;
+  const {section}=preview,nodes=run.graph.nodes;
+  run.startPoint=preview;
+  let node;
   if(run.graph.residence&&!run.graph.cast){
-   run.holds=true;await flat(run,true,false);
-   if(section==='be_kade')return roleplay(run,preview);
-   if(section==='free'){run.rope?.dispose();run.rope=null;}
+   if(section==='opening')node=nodes.find(n=>n.kind==='location');
+   else{
+    run.holds=true;await flat(run,true,false);
+    if(section==='remaining'){await lines(run,'arrival','remaining');run.alreadyPlayedRemaining=true;}
+    node=section==='free'||section==='be_kade'
+     ?nodes.find(n=>n.kind==='animation'&&n.action===(section==='free'?'release':'roleplay'))
+     :nodes.find(n=>n.kind==='choice'&&n.speaker==='lace');
+   }
   }
-  await lines(run,section,section,run.signal,announce,target);
-  announce('Playtest section complete.');
-  run.sounds.finish();
-  await until(()=>false,run.signal);
+  else if(run.graph.cast)node=nodes.find(n=>n.kind==='cast');
+  if(!node)throw Error('Connect this section to an encounter node before starting the playtest.');
+  await runGraph(run,node.id);
  }
  async function begin(graph,start,privateTest,token,preview){
   stop();soundTail?.dispose();soundTail=null;const controller=new AbortController();
