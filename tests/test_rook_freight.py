@@ -27,6 +27,15 @@ class FreightTests(unittest.TestCase):
                     dict(config, minReward=True), dict(config, excluded=config['destinations'])]:
             self.assertTrue(F.config_errors(bad, ['m012']))
 
+    def test_low_quay_follows_the_shared_reachability_rule(self):
+        s = campaign()
+        s['universe']['discoveredLocations'].remove('low-quay')
+        self.assertNotIn('low-quay', F.eligible(s, F.DEFAULT))
+        s['universe']['discoveredLocations'].append('low-quay')
+        self.assertNotIn('low-quay', F.eligible(s, F.DEFAULT))
+        s['universe']['discoveredSystems'].append('stale')
+        self.assertIn('low-quay', F.eligible(s, F.DEFAULT))
+
     def test_repeat_reload_deliver_return_pay_once(self):
         s, ledger = campaign(), {}
         prior = None

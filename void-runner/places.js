@@ -25,6 +25,7 @@
  const UGN=node?require('./ncz-underground.js'):root.VoidUnderground;   // the tunnel network under the city (20 Nov 2026)
  const CT=node?require('./ncz-containers.js'):root.VoidContainers,CO=node?require('./corporate.js'):root.VoidCorporate,TP=node?require('./temple.js'):root.VoidTemple;
  // neochinatown.js DOOR: the District door in world metres; local (x,z) -> world (DOOR.x-x, DOOR.z+20-z), a half turn (its own inverse).
+ const LQC=node?require('./low-quay-club.js'):root.VoidLowQuayClub;   // PLUG & PLAY at Low Quay (27 Nov 2026)
  const DISTRICT_DOOR={x:126.9,z:-61.9};
  const local=([x0,x1,z0,z1])=>[DISTRICT_DOOR.x-x1,DISTRICT_DOOR.x-x0,DISTRICT_DOOR.z+20-z1,DISTRICT_DOOR.z+20-z0];
  const localPoint=(x,z)=>[DISTRICT_DOOR.x-x,DISTRICT_DOOR.z+20-z];
@@ -149,6 +150,17 @@
   P({id:'temple-gate',name:'Courtyard gate',parent:'temple-path',scene:'temple',rects:[[-3,3,-31,-29]],enter:S('avenue'),src:'temple.js map "Courtyard gate"',where:'The gate between the terrace and the courtyard.'}),
   P({id:'temple-dais',name:'Zen Zephyr’s dais',parent:'temple-chamber',scene:'temple',rects:[[-4,4,15.5,19.5]],enter:S('avenue'),src:'temple.js map',where:'In front of the monk\'s dais.'}),
   ...[[-7,12],[7,12],[-7,28],[7,28]].map(([x,z],i)=>P({id:'temple-altar-'+(i+1),name:'Data altar '+(i+1),parent:'temple-chamber',scene:'temple',rects:[z<20?[x-1.5,x+1.5,z-3,z-.6]:[x-1.5,x+1.5,z+.6,z+3]],enter:S('avenue'),src:'altar text "DATA ALTAR '+(i+1)+'"',where:'Beside data altar '+(i+1)+'.'})),
+  // ---- the Stale System: Low Quay and its nightclub PLUG & PLAY (low-quay.js, low-quay-club.js; scene 'planet-low-quay', Low Quay's own metres). Owner-approved id
+  //      low-quay-plug-and-play (27 Nov 2026); its rooms follow the NULL pattern (venue id + '-' + room). enter: draft play docks at Low Quay and, with `spawn`, stands the player inside.
+  {id:'stale-system',name:'Stale System',level:'system',parent:null,system:'stale',src:'universe.js (system "stale")',where:'The star system of Low Quay.'},
+  {id:'low-quay',name:'Low Quay',level:'city',parent:'stale-system',location:'low-quay',scenes:['planet-low-quay'],enter:{location:'low-quay'},src:'universe.js, signs "LOW QUAY"',where:'The quay city and its landing pad on the viaducts.'},
+  ...(LQC?(()=>{const C=LQC.CLUB,in_=[C.x0+LQC.WALL,C.x1-LQC.WALL,C.z0+LQC.WALL,C.z1-LQC.WALL],sp=LQC.SPAWN,en={location:'low-quay',spawn:[sp.x,1.7,sp.z],yaw:sp.yaw},AP=k=>{const a=LQC.APPROACH[k];return {enter:{location:'low-quay',spawn:[a.x,1.7,a.z],yaw:a.yaw},target:[a.x,1.7,a.z]};},K=LQC.KITCHEN,BK=LQC.BACK,AL=LQC.ALCOVE,S=LQC.STAGE;return [
+   {id:'low-quay-plug-and-play',name:'Plug & Play',level:'venue',parent:'low-quay',scene:'planet-low-quay',rects:[[C.x0-1.5,C.x1,C.z0,C.z1]],enter:en,target:[C.x0-1.6,1.7,LQC.DOOR.z],src:'the owner (name and sign "PLUG & PLAY")',where:'The nightclub off the quay alley: dining booths, the glass stage, the alcove, the kitchen and backstage.'},
+   P({id:'low-quay-plug-and-play-floor',name:'Dining floor',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[C.x0-1.5,C.x1,C.z0,C.z1]],fallback:true,...AP('floor'),proposed:true,where:'The booths and tables, the doorway and the floor round the stage.'}),
+   P({id:'low-quay-plug-and-play-stage',name:'Stage',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[S.x-S.apothem-S.steps*S.stepDepth-1.4,S.x+S.apothem,S.z-S.apothem-.6,S.z+S.apothem+.6]],...AP('stage'),proposed:true,where:'The glass stage and the floor in front of it (its marker: the audience viewing spot facing the pole).'}),
+   P({id:'low-quay-plug-and-play-alcove',name:'Alcove lounge',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[AL.x0,AL.x1,AL.z0,AL.z1]],...AP('alcove'),proposed:true,where:'The lounge through the arch in the south-east corner.'}),
+   P({id:'low-quay-plug-and-play-kitchen',name:'Kitchen',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[K.x0,K.x1,K.z0,K.z1]],...AP('kitchen'),proposed:true,where:'Behind the side wall, where the robot arms cook.'}),
+   P({id:'low-quay-plug-and-play-backstage',name:'Backstage',parent:'low-quay-plug-and-play',scene:'planet-low-quay',rects:[[BK.x+BK.t,in_[1],BK.z0,BK.z1],[BK.room.x0,in_[1],BK.z1,in_[3]]],...AP('backstage'),proposed:true,where:'The corridor behind the stage and the dressing room.'})];})():[]),
   // ---- VR: each simulation is a room (scene) of its own, entered from the District's VR play area ----
   P({id:'vr-suite',name:'Play in a Bedroom',parent:'vr',scene:'vr-suite',whole:true,src:'VR menu title',where:'The bedroom suite simulation.'}),
   P({id:'vr-tropical',name:'Tropical Escape',parent:'vr',scene:'vr-tropical',whole:true,src:'VR menu title',where:'The beach simulation.'}),

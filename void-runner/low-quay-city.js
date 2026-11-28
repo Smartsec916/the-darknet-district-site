@@ -89,9 +89,9 @@
   const faceMats=[['facA',['#ffb04a','#ff8a2a','#25c9c2']],['facB',['#25c9c2','#4aa8ff','#ffab3d']],['facC',['#ff3fa6','#ffab3d','#8f5cff']]].map(([k,t])=>{const m=new B.StandardMaterial('lq-'+k,scene);m.diffuseColor=new B.Color3(.05,.05,.06);m.emissiveTexture=winTex(k,t);m.specularColor=B.Color3.Black();m.maxSimultaneousLights=8;owned.push(m);m.emissiveTexture.wrapU=m.emissiveTexture.wrapV=1;return m;});
   const bparts=faceMats.map(()=>[]);
   // the quay's south end over the tunnel and the station: buildings seen from the viaduct and across the canal, not walkable (no solids; the city's walkable ground starts at the stairwell)
-  const FAR=[[22,40,175,200,30],[44,62,175,205,46],[22,40,210,240,38],[44,62,212,245,26],[22,40,250,290,52],[44,62,255,292,34],[-62,-44,175,210,30],[-62,-44,220,260,44],[-40,-22,180,215,24],[-38,-22,225,262,36],[-62,-40,268,292,28],[-36,-20,270,292,20]];
-  const CLUB=root.VoidLowQuayClub,isClub=b=>!!CLUB?.isClubBlock(b);
-  [...BLOCKS,...FAR].forEach(([x0,x1,z0,z1,h0],i)=>{const club=isClub([x0,x1,z0,z1]),h=club?h0-CLUB.H:h0,k=i%3,w=x1-x0,d=z1-z0,uv=(a,b)=>new B.Vector4(0,0,a/12,h/25.6);const m=B.MeshBuilder.CreateBox('lq-block',{width:w,height:h,depth:d,faceUV:[uv(w),uv(w),uv(d),uv(d),new B.Vector4(.01,.01,.02,.02),new B.Vector4(.01,.01,.02,.02)]},scene);m.position.set((x0+x1)/2,Y+(club?CLUB.H:0)+h/2,(z0+z1)/2);m.material=faceMats[k];bparts[k].push(m);});   // the club's block starts above its ground floor
+  const FAR=[[22,40,175,200,30],[44,62,175,205,46],[22,40,210,240,38],[44,62,212,245,26],[22,40,250,290,52],[44,62,255,292,34],[-62,-44,175,210,30],[-62,-44,220,260,44],[-40,-22,180,215,24],[-38,-22,225,262,36],[-62,-40,268,292,28],[-36,-20,270,292,20],[-34,30,456,470,24]];   // the last: the building behind the food court's north walkway
+  const CLUB=root.VoidLowQuayClub,isClub=b=>!!CLUB?.isClubBlock(b),CRT=root.VoidLowQuayCourt,isWin=b=>!!CRT&&b[0]===CRT.ALLEY.x1&&CRT.EAST_FACES.some(([a,c])=>a===b[2]&&c===b[3]);   // the alley's window blocks: their ground floor is set back for the booths
+  [...BLOCKS,...FAR].forEach(([x00,x1,z0,z1,h0],i)=>{const x0=isWin([x00,x1,z0,z1])?x00+CRT.BOOTH.depth:x00,club=isClub([x0,x1,z0,z1]),h=club?h0-CLUB.H:h0,k=i%3,w=x1-x0,d=z1-z0,uv=(a,b)=>new B.Vector4(0,0,a/12,h/25.6);const m=B.MeshBuilder.CreateBox('lq-block',{width:w,height:h,depth:d,faceUV:[uv(w),uv(w),uv(d),uv(d),new B.Vector4(.01,.01,.02,.02),new B.Vector4(.01,.01,.02,.02)]},scene);m.position.set((x0+x1)/2,Y+(club?CLUB.H:0)+h/2,(z0+z1)/2);m.material=faceMats[k];bparts[k].push(m);});   // the club's block starts above its ground floor
   bparts.forEach((list,k)=>{if(!list.length)return;const m=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);m.material=faceMats[k];m.parent=parent;m.isPickable=false;});
   // shopfronts, awnings, lamps and pipes on the alley walls: four built pieces, instanced
   const shops=['#ff9a3a','#25c9c2','#ff3fa6'].map((col,i)=>{const t=tex('shop'+i,64,64,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,col);gr.addColorStop(1,'#1a0d08');g.fillStyle=gr;g.fillRect(0,0,w,h);g.fillStyle='rgba(8,8,12,.6)';g.fillRect(6,h*.55,10,h*.45);g.fillRect(34,h*.6,9,h*.4);g.fillRect(0,0,w,5);g.fillRect(w/2-1,0,2,h);});const m=new B.StandardMaterial('lq-shop'+i,scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.specularColor=B.Color3.Black();owned.push(m);const k=K();k.plane(m,3.4,2.5,0,1.35,0);k.plane(poolOf('spill'+i,['255,150,60','40,200,195','255,70,170'][i],.32),5,3.6,0,.04,-1.5,0,Math.PI/2);return k.done('shopfront'+i);});
@@ -101,7 +101,7 @@
   const AC=K();AC.box(dark,.9,.7,.5,0,0,0);AC.box(dimTeal,.3,.04,.04,0,-.1,-.27);const ac=AC.done('unit');
   let shopIdx=0;
   for(const [x0,x1,z0,z1,h] of BLOCKS){
-   const faces=[[x0,z0,1,0,0,-1,x1-x0],[x0,z1,1,0,0,1,x1-x0],[x0,z0,0,1,-1,0,z1-z0],[x1,z0,0,1,1,0,z1-z0]].filter(f=>!(isClub([x0,x1,z0,z1])&&f[4]===-1));   // the club's doorway face carries only its own sign   // origin, along, outward normal, length
+   const faces=[[x0,z0,1,0,0,-1,x1-x0],[x0,z1,1,0,0,1,x1-x0],[x0,z0,0,1,-1,0,z1-z0],[x1,z0,0,1,1,0,z1-z0]].filter(f=>!((isClub([x0,x1,z0,z1])||isWin([x0,x1,z0,z1]))&&f[4]===-1));   // the club's doorway face carries only its own sign   // origin, along, outward normal, length
    for(const [ox,oz,ax,az,nx,nz,len] of faces){const ry=Math.atan2(-nx,-nz)+Math.PI,rot=nz>0?Math.PI:nz<0?0:nx>0?-Math.PI/2:Math.PI/2;
     for(let s=2.5;s<len-1.5;s+=6.2){if(R()<.15)continue;const px=ox+ax*s+nx*.04,pz=oz+az*s+nz*.04;place(shops[shopIdx++%3],px,Y,pz,rot);place(awning,px,Y,pz,rot);place(bracket,px+ax*3.1,Y,pz+az*3.1,rot);}
     if(R()<.7){const s=len*.5,px=ox+ax*s+nx*.05,pz=oz+az*s+nz*.05;place(pipe,px,Y,pz,rot,1,Math.min(1,h/12));}
@@ -112,11 +112,11 @@
   nm.diffuseColor=B.Color3.Black();nm.emissiveTexture=neon;nm.disableLighting=true;nm.specularColor=B.Color3.Black();nm.backFaceCulling=false;owned.push(nm);
   const blades=[];BLOCKS.forEach(([x0,x1,z0,z1,h],i)=>{if(h<30)return;const nz=i%2?1:-1,z=nz>0?z1+.05:z0-.05,cx=(x0+x1)/2;const p=B.MeshBuilder.CreatePlane('lq-blade',{width:1.4,height:4.6,frontUVs:new B.Vector4((i%4)/4,0,(i%4)/4+.25,1),backUVs:new B.Vector4((i%4)/4,0,(i%4)/4+.25,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);p.position.set(cx,Y+Math.min(h-4,10+R()*6),z);p.rotation.y=nz>0?Math.PI:0;p.material=nm;blades.push(p);});
   if(blades.length){const m=B.Mesh.MergeMeshes(blades,true,true,undefined,false,false);m.material=nm;m.parent=parent;m.isPickable=false;}
-  sg('sign-city',16,5,(g,w,h)=>{g.fillStyle='#0b0d1e';g.fillRect(0,0,w,h);g.strokeStyle='#ff3fa6';g.lineWidth=10;g.strokeRect(6,6,w-12,h-12);g.fillStyle='#ff7ac8';g.font='bold 150px sans-serif';g.textAlign='center';g.fillText('LOW QUAY',w*.5,h*.5,w-44);g.strokeStyle='#25c9c2';g.lineWidth=14;for(let k=0;k<2;k++){g.beginPath();for(let q=0;q<=80;q++){const x=w*.3+q*(w*.4/80),y=h*.72+k*28+Math.sin(q*.35)*9;q?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();}},1,Y+44,419.4,Math.PI,1.1);
+  sg('sign-city',16,5,(g,w,h)=>{g.fillStyle='#0b0d1e';g.fillRect(0,0,w,h);g.strokeStyle='#ff3fa6';g.lineWidth=10;g.strokeRect(6,6,w-12,h-12);g.fillStyle='#ff7ac8';g.font='bold 150px sans-serif';g.textAlign='center';g.fillText('LOW QUAY',w*.5,h*.5,w-44);g.strokeStyle='#25c9c2';g.lineWidth=14;for(let k=0;k<2;k++){g.beginPath();for(let q=0;q<=80;q++){const x=w*.3+q*(w*.4/80),y=h*.72+k*28+Math.sin(q*.35)*9;q?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();}},-2,Y+14,456.05,0,1.1);   // on the building north of the food court, over its walkway, facing the court
   // the city's lamps: a quay lamp post per square corner and alley mouth
   for(const [x,z] of [[-24,330],[26,330],[-12,356],[2,356],[16,356],[34,356],[-22,386],[4,386],[22,386],[42,386],[-8,418],[10,418],[30,418],[50,418],[-24,322],[26,322],[44,330]])place(lampPost,x,Y,z,x<0?0:Math.PI);
-  const clubH=CLUB?.build?CLUB.build({...c,Y}):null;
-  return {tick(time){escTex.vOffset=(time*.35)%1;clubH?.tick?.(time);}};
+  const clubH=CLUB?.build?CLUB.build({...c,Y}):null,courtH=CRT?.build?CRT.build({...c,Y}):null;
+  return {tick(time){escTex.vOffset=(time*.35)%1;clubH?.tick?.(time);courtH?.tick?.(time);}};
  };
  if(typeof module!=='undefined')module.exports=api;else root.VoidLowQuayCity=api;
 })(globalThis);
