@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 28 Nov 2026 — Apartment library model scale
+
+Apartment Editor converts the black leather cuffs at 0.02 and the master bedroom bed at 0.008 from source units to room meters. Both library catalogs use the conversion by asset ID. It applies to the visual model and placement bounds before the saved item scale, so existing designs pick it up when reopened.
+
 ## 28 Nov 2026 — Fixed universe navigation model
 
 The owner’s sketch was an example of system volumes and connecting routes. The chart gives each system, port, pad, arrival beacon and Relay T-07 a stable position. Each interstellar corridor uses the axis between system centers, with opposite headings in each direction. The departure ray meets the origin system’s boundary and the route arrives at the destination’s established beacon. The cockpit and V1 Map share the bearing and elevation calculation. Surface departures retain an 18° minimum climb, so their displayed elevation can differ from the geometric reverse. Chart placements and scales are tuning values. Existing access, travel times and save IDs still apply.
@@ -2056,7 +2060,7 @@ The documents in this table are snapshots. Do not treat them as the place to sta
 
 1. `git fetch origin main` and branch from current `main`. Do not branch from the old Codex or #196–#199 stack.
 2. Read this Start here section, then `AI_ROADMAP.md`, then `CLAUDE.md`.
-3. **Merge only when the owner says "push", "pull it", or "go ahead and pull."** That means merge the finished pull request into `main`. Opening a pull request is not merging. Silence is not approval.
+3. **Merge only when the owner says "deploy", "push", "pull it", or "go ahead and pull."** That means merge the finished pull request into `main`. Opening a pull request is not merging. Silence is not approval.
 4. **Desktop and VR headsets only.** Phones stay on the normal site and must not download the 3D game (`void-runner/device-gate.js`). Do not lift that block. The four VR areas are in-engine first-person scenes, not WebXR. No `WebXR` / `createDefaultXR` usage is in `void-runner/*.js`.
 5. **Leave the Sleeping Pod room and the music player alone** unless the owner asks, or a change cannot be made without them. If a game-wide graphics change would alter the pod, leave the pod meshes out and say so. Pod code is in `void-runner/neochinatown.js` (pod interior, `drawPodPlayer`, `drawPodLights`, `drawPodVending`) and `void-runner/pod-music.js` / `void-runner/world-integration.js`.
 6. **Licensed models stay private.** Repo: `Smartsec916/void-runner-licensed-assets`. `tools/assets/pack-model.cjs` scrambles a GLB into `.vrpak` (magic `VRPK`). That scramble is not encryption. `tools/assets/build-pages.cjs` seals `.vrpak` / `.vrtex` as **VRPE** (AES-256-GCM) at the GitHub Pages build. Never commit source models, pack keys, or `VOID_ASSET_KEY` material to this public repo. Some marketplace licences are **No AI**: do not use those files for AI training. Ordinary rendering and the authorized convert/seal path are separate.
