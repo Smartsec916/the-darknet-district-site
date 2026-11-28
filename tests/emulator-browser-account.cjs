@@ -128,8 +128,10 @@ async function main(){
     assert.equal((await fetch('http://127.0.0.1:'+hub.port+'/health')).status,200,'hub HTTP listener reachable');
     browser=await chromium.launch({args:['--no-sandbox','--no-proxy-server',...(rendered?['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']:[])]});
     async function session(){
-      const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1280,height:800},reducedMotion:'reduce'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[];
+      const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1280,height:800},reducedMotion:'reduce'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[],assetFailures=[];
       page.on('pageerror',e=>errors.push(e.message));
+      // Only local static paths/statuses, never headers, tokens or API payloads.
+      page.on('response',response=>{const u=new URL(response.url());if(u.origin===origin&&staticAllowed(u.pathname)&&response.status()>=400&&assetFailures.length<30)assetFailures.push({path:u.pathname,status:response.status()});});
       // Observe genuine HTTP responses instead of fulfilling the document
       // through Playwright. Block non-loopback HTTP(S) as defense in depth.
       await ctx.route('https://**/*',route=>route.abort());
@@ -153,7 +155,7 @@ async function main(){
       await page.goto(origin+'/');
       assert.equal(await page.evaluate(()=>location.origin),origin,'actual loopback document origin');
       await page.waitForFunction(()=>window.VoidAccount?.authStatus==='ready'&&!VoidAccount.user,{},{timeout:30000});
-      return {ctx,page,errors,apiCalls,authCalls,socketEvents};
+      return {ctx,page,errors,apiCalls,authCalls,socketEvents,assetFailures};
     }
     const A=await session(),B=await session();
     async function register(s,base){
@@ -230,6 +232,9 @@ async function main(){
       const url=origin+'/void-runner.html?multiplayer=1&hub='+encodeURIComponent(hubUrl);
       async function enter(s,who){
         const page=s.page;page.setDefaultTimeout(240000);
+        // The game deliberately ignores input in a background tab. A and B
+        // were created before navigation, so explicitly focus the active player.
+        await page.bringToFront();
         await page.evaluate(()=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:'low'})));
         const accountsBefore=s.apiCalls.length;
         await page.goto(url);
@@ -241,8 +246,17 @@ async function main(){
         const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
         await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});
         await page.evaluate(()=>{state.story.flags.appearanceOffered=true;}); // same fixture setup as multiplayer-browser.cjs; character is already stored by the real API
-        await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
-        await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});
+        await page.waitForSelector('#pod-wake:not([hidden])');
+        await page.bringToFront();
+        try{
+          await page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.camera&&podFree()&&state.story.flags.podWakePending===true,null,{timeout:15000,polling:200});
+          await page.keyboard.press('KeyE');
+          await page.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:30000,polling:200});
+          await page.waitForFunction(()=>VoidAssets.pending===0,null,{timeout:120000,polling:200});
+        }catch(e){
+          const diagnostic=await page.evaluate(()=>{const exit=walker&&walkingLocation?VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1):null;return {mode,focus:document.hasFocus(),hidden:document.hidden,input:VoidInputState.current.name,podHidden:podWake.hidden,podPending:state.story.flags.podWakePending===true,exitBlocked:exit?VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation):null,assetPending:VoidAssets.pending,assetFailedCount:VoidAssets.failed.size};});
+          throw new Error('Rendered pod exit gate failed: '+JSON.stringify({diagnostic,assetFailures:s.assetFailures,pageErrorCount:s.errors.length}),{cause:e});
+        }
       }
       await enter(A,a);await enter(B,b);
       const waitForPeer=(s,model)=>s.page.waitForFunction(model=>window.VoidRemotePlayers?.connected&&VoidRemotePlayers.peers.length===1&&VoidRemotePlayers.peers[0].drawn&&VoidRemotePlayers.peers[0].model===model,model,{timeout:120000});
@@ -255,6 +269,8 @@ async function main(){
       for(const who of [a,b])assert(hub.hub.peers.get(who.uid)?.placed,'authoritative hub must place the actual account');
       const snap=s=>s.page.evaluate(()=>({location:state.location,credits:state.credits,quest:state.quest,story:JSON.stringify(state.story),model:VoidAccount.character.model}));
       const before=await snap(A),start=await B.page.evaluate(()=>({x:walker.x,z:walker.z}));
+      await B.page.bringToFront();
+      await B.page.waitForFunction(()=>document.hasFocus()&&VoidInputState.current.movement,null,{timeout:15000,polling:200});
       await B.page.keyboard.down('KeyW');
       try{
         await A.page.waitForFunction(()=>VoidRemotePlayers.peers[0]?.seen.includes('walk'),null,{timeout:90000});
