@@ -262,21 +262,54 @@
  }
  const soundPath=/^assets\/audio\/[A-Za-z0-9_/-]+\.(ogg|mp3|wav|m4a|webm)$/;
  const importedSoundHash=src=>typeof src==='string'?/^imported:([a-f0-9]{64})$/.exec(src)?.[1]:undefined;
- function validSound(cue){
-  return !!cue&&typeof cue.src==='string'&&(soundPath.test(cue.src)||importedSoundHash(cue.src))&&['start','end'].includes(cue.when)&&
-   Number.isFinite(cue.offset)&&cue.offset>=0&&cue.offset<=3600&&Number.isFinite(cue.volume)&&cue.volume>=0&&cue.volume<=1&&
-   typeof cue.loop==='boolean'&&(!cue.loop||(['scope','encounter','seconds'].includes(cue.stop)&&
-    (cue.when==='start'||cue.stop==='seconds')&&(cue.stop!=='seconds'||(Number.isFinite(cue.seconds)&&cue.seconds>0&&cue.seconds<=3600))));
+ function soundCueProblem(cue){
+  if(typeof cue?.src!=='string'||(!soundPath.test(cue.src)&&!importedSoundHash(cue.src)))return 'Choose a packaged sound or import a local file.';
+  if(!['start','end'].includes(cue.when))return 'Choose Start or End for the cue moment.';
+  if(!Number.isFinite(cue.offset)||cue.offset<0||cue.offset>3600)return 'Set the offset to 0–3600 seconds.';
+  if(!Number.isFinite(cue.volume)||cue.volume<0||cue.volume>1)return 'Set Volume to 0–1 (1 is full volume).';
+  if(typeof cue.loop!=='boolean')return 'Choose whether to loop the sound.';
+  if(cue.loop&&(!['scope','encounter','seconds'].includes(cue.stop)||(cue.when==='end'&&cue.stop!=='seconds')))return 'Choose when the loop stops. End cues require a set duration.';
+  if(cue.loop&&cue.stop==='seconds'&&(!Number.isFinite(cue.seconds)||cue.seconds<=0||cue.seconds>3600))return 'Set a loop duration greater than 0 and at most 3600 seconds.';
+  return '';
  }
+ const validSound=cue=>!soundCueProblem(cue);
  function soundLists(graph){
   const rows=[...(Array.isArray(graph.dialogue)?graph.dialogue:[]),...(Array.isArray(graph.savedActions)?graph.savedActions.flat():[])];
   return [graph.soundCues,...Object.values(graph.sectionSounds||{}),...Object.values(graph.playlistSounds||{}),
    ...(Array.isArray(graph.nodes)?graph.nodes:[]).map(node=>node?.soundCues),
    ...rows.flatMap(row=>[row?.soundCues,...(Array.isArray(row?.branches)?row.branches:[]).map(branch=>branch?.soundCues)])].filter(list=>list!==undefined);
  }
- function soundProblems(graph){
-  return soundLists(graph||{}).some(list=>!Array.isArray(list)||list.some(cue=>!validSound(cue)))?
-   ['Choose a sound effect and valid timing for every cue.']:[];
+ function soundListProblems(list){
+  return Array.isArray(list)?list.flatMap((cue,index)=>{
+   const problem=soundCueProblem(cue);
+   const name=cue?.name||(typeof cue?.src==='string'?cue.src.split('/').at(-1):'');
+   return problem?['Sound effect '+(index+1)+(name?' ('+name+')':'')+'. '+problem]:[];
+  }):['Choose a list of sound effects.'];
+ }
+ const soundProblems=graph=>soundLists(graph||{}).flatMap(soundListProblems);
+ function previewSoundProblems(graph,key,rows,byId,target){
+  const lists=[],seen=new Set();
+  const add=cues=>{if(cues!==undefined)lists.push(cues);};
+  function visit(actions){
+   for(const row of actions){
+    if(!row||seen.has(row))continue;
+    seen.add(row);add(row.soundCues);
+    for(const branch of row.branches||[])if(branch.chance>0)visitBranch(branch);
+   }
+  }
+  function visitBranch(branch){
+   add(branch.soundCues);
+   const {before,cycle,after}=branchPlaylist(branch,byId);visit([...before,...cycle,...after]);
+  }
+  if(target?.branch)visitBranch(target.branch);
+  else{
+   if(!target)add(graph.sectionSounds?.[key]);
+   for(const segment of target?.segment?[target.segment]:playlistSegments(rows)){
+    if(segment.key)add(graph.playlistSounds?.[key+':'+segment.key]);
+    visit(segment.rows);
+   }
+  }
+  return lists.flatMap(soundListProblems);
  }
  function playSound(cue,done,draft=true){
   const studio=root.VoidSoundStudio;
@@ -383,8 +416,8 @@
    tx.onerror=tx.onabort=()=>reject(tx.error||Error('Could not access the imported GLB.'));
   });}finally{db.close();}
  }
- function validate(encounter){
-  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter),...castProblems(encounter),...soundProblems(encounter)],nodes=encounter?.nodes;
+ function validate(encounter,{sounds=true}={}){
+  const errors=[...dialogueProblems(encounter||{}),...animationSpeedProblems(encounter),...castProblems(encounter),...(sounds?soundProblems(encounter):[])],nodes=encounter?.nodes;
   const limit=encounter?.conditions?.dailyLimit;
   if(limit!==undefined&&limit!==0.5&&(!Number.isInteger(limit)||limit<0||limit>1000))
    errors.push('Use 0.5 for every other game day or a whole number from 0 to 1000.');
@@ -459,7 +492,7 @@
   if(graph?.id!=='dropped-cardkey'||graph.waitingDialogueConfigured===true||!Array.isArray(graph.dialogue)||graph.dialogue.some(l=>l.id.startsWith('lace_wait_'))||graph.dialogue.length>=100)return graph;
   return {...graph,dialogue:[...graph.dialogue,{id:'lace_wait_01',speaker:'lace',text:'Still with me? Tell me what you want to do.',tags:'',delay:12,animation:''}]};
  }
- const api={kinds,startTriggers,isVisitTrigger,validate,spokenText,lineSeconds,timing,soundLists,soundProblems,importedSoundHash,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
+ const api={kinds,startTriggers,isVisitTrigger,validate,spokenText,lineSeconds,timing,soundLists,soundProblems,previewSoundProblems,importedSoundHash,playSound,soundTimeline,withSounds,soundsFor,castLocations,matchesScene,castProblems,castAsset,validAnimationSpeed,animationSpeedProblems,createRun,withWaitingDialogue,dialogueSections,playlist,playlistSegments,runPlaylist,completionOptions,branchPlaylist,isRepeat,chooseBranch};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidChanceEncounter=api;
 })(globalThis);
