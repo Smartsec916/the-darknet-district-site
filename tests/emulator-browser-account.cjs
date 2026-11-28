@@ -4,7 +4,7 @@
    The UI shell and raw hub socket are fixtures, not a rendered gameplay test. */
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const crypto=require('node:crypto'),{spawn}=require('node:child_process'),readline=require('node:readline');
+const http=require('node:http'),crypto=require('node:crypto'),{spawn}=require('node:child_process'),readline=require('node:readline');
 const {create}=require('../tools/district-hub/emulator-providers.cjs');
 const {start}=require('../tools/district-hub/hub-server.cjs');
 const providers=create(); // refuses nonlocal endpoints and real Google credentials
@@ -30,7 +30,7 @@ const shell='<!doctype html><meta charset="utf-8"><div id="fixture"></div>'+
 const paths=new Set(['/void-runner/network.js','/void-runner/account.js','/district-identity.js']);
 const realApiPaths=new Set(['/api/void-runner/account','/api/void-runner/character']);
 // Firebase's emulator SDK uses these provider-prefixed REST paths. The browser
-// shell is a route-fulfilled fixture, so proxy these specific requests to the
+// shell is served by an actual loopback HTTP listener; proxy these requests to the
 // real loopback emulator rather than relying on cross-origin browser transport.
 const authPaths=new Set([
   '/identitytoolkit.googleapis.com/v1/accounts:signUp',
@@ -44,7 +44,7 @@ async function main(){
   const sdk=bundle.outputFiles[0].text;
   // Reuse the exact local Flask/API/Firestore bootstrap already covered by the Python suite.
   const proc=spawn('python',['-u','-c','from tests.test_character_emulator import CharacterEmulatorTests as C; import threading; C.setUpClass(); print(C.base,flush=True); threading.Event().wait()'],{cwd:root,stdio:['ignore','pipe','inherit']});
-  let browser,hub;
+  let browser,hub,fixture;
   const lines=readline.createInterface({input:proc.stdout});
   try{
     const apiBase=await new Promise((resolve,reject)=>{
@@ -54,48 +54,70 @@ async function main(){
       proc.once('exit',code=>{clearTimeout(timer);reject(new Error('local API exited '+code));});
     });
     const hubEvents=[];
-    hub=await start({identify:t=>providers.identify(t),log:(event,...args)=>{
+    hub=await start({origins:[origin],identify:t=>providers.identify(t),log:(event,...args)=>{
       // Record only transport event names and close codes, never auth tokens or account identifiers.
       if(event==='leave')hubEvents.push('leave:'+args[1]);
       else if(event==='identified')hubEvents.push('identified:'+args[0]);
       else hubEvents.push(event);
     }});
     const hubUrl='ws://127.0.0.1:'+hub.port;
-    browser=await chromium.launch({args:['--no-sandbox']});
+    // A real document origin and TCP listener are required for the Chromium
+    // WebSocket upgrade; route.fulfill alone never opened the fixture origin.
+    // CSP and the finite HTTP path allowlist keep all browser traffic local.
+    fixture=http.createServer(async(req,res)=>{
+      const send=(status,contentType,body)=>{
+        res.writeHead(status,{'content-type':contentType,'cache-control':'no-store',
+          'content-security-policy':"default-src 'none'; script-src 'self' 'unsafe-inline'; connect-src 'self' "+hubUrl+"; style-src 'self' 'unsafe-inline'; img-src 'self' data:"});
+        res.end(body);
+      };
+      try{
+        if(req.headers.host!==new URL(origin).host)return send(403,'text/plain','host refused');
+        const u=new URL(req.url,origin);
+        if(u.origin!==origin)return send(403,'text/plain','origin refused');
+        if(req.method==='GET'){
+          if(u.pathname==='/')return send(200,'text/html',shell);
+          if(u.pathname==='/firebase-auth.js')return send(200,'text/javascript',sdk);
+          if(paths.has(u.pathname))return send(200,'text/javascript',fs.readFileSync(path.join(root,u.pathname.slice(1)),'utf8'));
+        }
+        const isAuth=authPaths.has(u.pathname)&&req.method==='POST';
+        const isApi=realApiPaths.has(u.pathname)&&['GET','POST'].includes(req.method);
+        if(!isAuth&&!isApi)return send(u.pathname.startsWith('/api/')?503:404,'application/json','{}');
+        const headers={'content-type':req.headers['content-type']||'application/json'};
+        if(isApi){
+          if(!req.headers.authorization?.startsWith('Bearer '))return send(401,'application/json','{}');
+          headers.authorization=req.headers.authorization;
+        }
+        const chunks=[];let length=0;
+        for await(const chunk of req){length+=chunk.length;if(length>65536)return send(413,'application/json','{}');chunks.push(chunk);}
+        const target=isAuth?authOrigin+u.pathname+u.search:apiBase+u.pathname.slice('/api/void-runner'.length)+u.search;
+        const result=await fetch(target,{method:req.method,headers,redirect:'error',body:length?Buffer.concat(chunks):undefined});
+        return send(result.status,'application/json',await result.text());
+      }catch(e){
+        // Never log request bodies, SDK tokens or account identifiers.
+        return send(502,'application/json','{}');
+      }
+    });
+    await new Promise((resolve,reject)=>{fixture.once('error',reject);fixture.listen(5188,'127.0.0.1',resolve);});
+    assert.equal((await fetch(origin+'/')).status,200,'fixture HTTP listener reachable');
+    assert.equal((await fetch('http://127.0.0.1:'+hub.port+'/health')).status,200,'hub HTTP listener reachable');
+    browser=await chromium.launch({args:['--no-sandbox','--no-proxy-server']});
     async function session(){
       const ctx=await browser.newContext({serviceWorkers:'block'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[];
       page.on('pageerror',e=>errors.push(e.message));
-      // Do not intercept the real hub WebSocket upgrade with the HTTP fixture route.
-      // External HTTP(S) is still blocked; only the exact fixture origin is fulfilled.
+      // Observe genuine HTTP responses instead of fulfilling the document
+      // through Playwright. Block non-loopback HTTP(S) as defense in depth.
       await ctx.route('https://**/*',route=>route.abort());
       await ctx.route(/^http:\/\/(?!127\.0\.0\.1(?::\d+)?\/)/,route=>route.abort());
-      await ctx.route(origin+'/**',async route=>{
-        const req=route.request(),u=new URL(req.url());
-        if(u.origin!==origin)return route.abort();
-        if(authPaths.has(u.pathname)){
-          assert.equal(req.method(),'POST','only emulator SDK POSTs are expected');
-          const result=await fetch(authOrigin+u.pathname+u.search,{
-            method:'POST',redirect:'error',
-            headers:{'content-type':req.headers()['content-type']||'application/json'},
-            body:req.postData()||undefined
-          });
-          authCalls.push({path:u.pathname,status:result.status});
-          return route.fulfill({status:result.status,contentType:'application/json',body:await result.text()});
-        }
-        if(u.pathname==='/')return route.fulfill({contentType:'text/html',body:shell});
-        if(u.pathname==='/firebase-auth.js')return route.fulfill({contentType:'text/javascript',body:sdk});
-        if(paths.has(u.pathname))return route.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,u.pathname.slice(1)),'utf8')});
-        if(realApiPaths.has(u.pathname)){
-          const bearer=req.headers().authorization;
-          assert(bearer?.startsWith('Bearer '),'browser must supply its actual SDK token');
-          const result=await fetch(apiBase+u.pathname.slice('/api/void-runner'.length),{method:req.method(),headers:{authorization:bearer,'content-type':'application/json'},body:req.postData()||undefined});
-          apiCalls.push({path:u.pathname,method:req.method(),status:result.status});
-          return route.fulfill({status:result.status,contentType:'application/json',body:await result.text()});
-        }
-        // The handle service is deliberately out of scope; never forward to production.
-        if(u.pathname.startsWith('/api/'))return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-        return route.abort();
+      page.on('response',response=>{
+        const u=new URL(response.url());
+        if(u.origin!==origin)return;
+        if(authPaths.has(u.pathname))authCalls.push({path:u.pathname,status:response.status()});
+        if(realApiPaths.has(u.pathname))apiCalls.push({path:u.pathname,method:response.request().method(),status:response.status()});
       });
+      const cdp=await ctx.newCDPSession(page);
+      await cdp.send('Network.enable');
+      cdp.on('Network.webSocketHandshakeResponseReceived',e=>socketEvents.push('handshake HTTP '+e.response.status));
+      cdp.on('Network.webSocketFrameError',()=>socketEvents.push('frame error'));
       page.on('websocket',ws=>{
         if(ws.url()!==hubUrl&&ws.url()!==hubUrl+'/'){socketEvents.push('unexpected socket');return;}
         socketEvents.push('socket created');
@@ -103,6 +125,7 @@ async function main(){
         ws.on('close',()=>socketEvents.push('socket closed'));
       });
       await page.goto(origin+'/');
+      assert.equal(await page.evaluate(()=>location.origin),origin,'actual loopback document origin');
       await page.waitForFunction(()=>window.VoidAccount?.authStatus==='ready'&&!VoidAccount.user,{},{timeout:30000});
       return {ctx,page,errors,apiCalls,authCalls,socketEvents};
     }
@@ -173,7 +196,7 @@ async function main(){
     console.log('BROWSER_ACCOUNT_GATE_OK');
   }finally{
     try{if(browser)await browser.close();}finally{
-      try{if(hub)await hub.close();}finally{lines.close();proc.kill();}
+      try{if(hub)await hub.close();}finally{try{if(fixture?.listening)await new Promise(resolve=>fixture.close(resolve));}finally{lines.close();proc.kill();}}
     }
   }
 }
