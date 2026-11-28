@@ -1,7 +1,8 @@
 /* Browser identity/API bridge for the NPC multiplayer gate. Loads the real account.js,
    network.js and district-identity.js. Only the auth module is replaced in this
    disposable browser by the same Firebase SDK version connected to local emulators.
-   The UI shell and raw hub socket are fixtures, not a rendered gameplay test. */
+   First verify the small UI shell/raw hub socket, then (with --rendered) run
+   two real game pages with the same emulator-backed browser identities. */
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const http=require('node:http'),crypto=require('node:crypto'),{spawn}=require('node:child_process'),readline=require('node:readline');
@@ -14,6 +15,9 @@ const modules=process.env.VOID_EMULATOR_NODE_MODULES;
 assert(modules&&path.isAbsolute(modules),'set VOID_EMULATOR_NODE_MODULES to the isolated SDK installation');
 const {chromium}=require('playwright'),esbuild=require(path.join(modules,'esbuild'));
 const password='correct-horse-9';
+const rendered=process.argv.includes('--rendered'),staticOrigin='http://127.0.0.1:5187';
+const staticRoots=new Set(['/void-runner.html','/site-return.js','/void-runner-backdrop.js','/favicon.ico','/favicon-48x48.png','/favicon-96x96.png','/favicon-192x192.png','/apple-touch-icon.png']);
+const staticAllowed=p=>staticRoots.has(p)||['/void-runner/','/assets/','/static/','/vendor/'].some(prefix=>p.startsWith(prefix));
 const sdkSource=[
   "import {initializeApp} from 'firebase/app';",
   "import {getAuth,connectAuthEmulator,GoogleAuthProvider} from 'firebase/auth';",
@@ -44,7 +48,7 @@ async function main(){
   const sdk=bundle.outputFiles[0].text;
   // Reuse the exact local Flask/API/Firestore bootstrap already covered by the Python suite.
   const proc=spawn('python',['-u','-c','from tests.test_character_emulator import CharacterEmulatorTests as C; import threading; C.setUpClass(); print(C.base,flush=True); threading.Event().wait()'],{cwd:root,stdio:['ignore','pipe','inherit']});
-  let browser,hub,fixture;
+  let browser,hub,fixture,staticHost;
   const lines=readline.createInterface({input:proc.stdout});
   try{
     const apiBase=await new Promise((resolve,reject)=>{
@@ -53,6 +57,17 @@ async function main(){
       proc.once('error',e=>{clearTimeout(timer);reject(e);});
       proc.once('exit',code=>{clearTimeout(timer);reject(new Error('local API exited '+code));});
     });
+    if(rendered){
+      // Use the same static test host as the repository's real-asset smoke suite.
+      staticHost=spawn(process.execPath,['tests/serve-modern.cjs'],{cwd:root,stdio:['ignore','ignore','inherit']});
+      let ready=false,hostError=null;staticHost.once('error',error=>{hostError=error;});
+      for(let i=0;i<100&&!ready;i++){
+        if(hostError||staticHost.exitCode!==null)throw hostError||new Error('static test host exited');
+        try{ready=(await fetch(staticOrigin+'/void-runner.html',{signal:AbortSignal.timeout(1000)})).ok;}catch{}
+        if(!ready)await new Promise(resolve=>setTimeout(resolve,100));
+      }
+      assert(ready,'local gameplay asset host must start');
+    }
     const hubEvents=[];
     hub=await start({origins:[origin],identify:t=>providers.identify(t),log:(event,...args)=>{
       // Record only transport event names and close codes, never auth tokens or account identifiers.
@@ -78,6 +93,17 @@ async function main(){
           if(u.pathname==='/')return send(200,'text/html',shell);
           if(u.pathname==='/firebase-auth.js')return send(200,'text/javascript',sdk);
           if(paths.has(u.pathname))return send(200,'text/javascript',fs.readFileSync(path.join(root,u.pathname.slice(1)),'utf8'));
+          if(rendered&&staticAllowed(u.pathname)){
+            // Real same-origin HTTP for game code and assets; no auth module or
+            // API request ever falls through to the static host. Stream GLBs.
+            const upstream=http.get(staticOrigin+u.pathname+u.search,response=>{
+              res.writeHead(response.statusCode,{'content-type':response.headers['content-type']||'application/octet-stream','cache-control':'no-store'});
+              response.pipe(res);
+            });
+            upstream.on('error',()=>{if(!res.headersSent)send(502,'text/plain','static host unavailable');else res.destroy();});
+            res.on('close',()=>upstream.destroy());
+            return;
+          }
         }
         const isAuth=authPaths.has(u.pathname)&&req.method==='POST';
         const isApi=realApiPaths.has(u.pathname)&&['GET','POST'].includes(req.method);
@@ -100,9 +126,9 @@ async function main(){
     await new Promise((resolve,reject)=>{fixture.once('error',reject);fixture.listen(5188,'127.0.0.1',resolve);});
     assert.equal((await fetch(origin+'/')).status,200,'fixture HTTP listener reachable');
     assert.equal((await fetch('http://127.0.0.1:'+hub.port+'/health')).status,200,'hub HTTP listener reachable');
-    browser=await chromium.launch({args:['--no-sandbox','--no-proxy-server']});
+    browser=await chromium.launch({args:['--no-sandbox','--no-proxy-server',...(rendered?['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']:[])]});
     async function session(){
-      const ctx=await browser.newContext({serviceWorkers:'block'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[];
+      const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1280,height:800},reducedMotion:'reduce'}),page=await ctx.newPage(),errors=[],apiCalls=[],authCalls=[],socketEvents=[];
       page.on('pageerror',e=>errors.push(e.message));
       // Observe genuine HTTP responses instead of fulfilling the document
       // through Playwright. Block non-loopback HTTP(S) as defense in depth.
@@ -194,9 +220,61 @@ async function main(){
     assert.deepEqual([...A.errors,...B.errors],[]);
     assert(![...A.socketEvents,...B.socketEvents].includes('unexpected socket'),'only the local test hub may be contacted');
     console.log('BROWSER_ACCOUNT_GATE_OK');
+    if(rendered){
+      // Close the fixture socket before entering the game; the actual remote
+      // player module must open its own authenticated connection, not inherit it.
+      await B.page.evaluate(()=>fixtureHub.socket.close());
+      const end=Date.now()+10000;
+      while(hub.hub.peers.size&&Date.now()<end)await new Promise(resolve=>setTimeout(resolve,25));
+      assert.equal(hub.hub.peers.size,0,'raw fixture peers must leave before actual game startup');
+      const url=origin+'/void-runner.html?multiplayer=1&hub='+encodeURIComponent(hubUrl);
+      async function enter(s,who){
+        const page=s.page;page.setDefaultTimeout(240000);
+        await page.evaluate(()=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:'low'})));
+        const accountsBefore=s.apiCalls.length;
+        await page.goto(url);
+        await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
+        await page.waitForFunction(({uid,model})=>window.VoidAccount?.user?.uid===uid&&VoidAccount.profileReady&&VoidAccount.character?.model===model,who,{timeout:60000});
+        assert(s.apiCalls.slice(accountsBefore).some(x=>x.path==='/api/void-runner/account'&&x.status===200),'game page must restore the real account through HTTP');
+        assert.equal(await page.evaluate(()=>localStorage.getItem('tdd-dev-mp-token')),null,'no substitute hub token');
+        await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');
+        const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
+        await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});
+        await page.evaluate(()=>{state.story.flags.appearanceOffered=true;}); // same fixture setup as multiplayer-browser.cjs; character is already stored by the real API
+        await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
+        await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});
+      }
+      await enter(A,a);await enter(B,b);
+      const waitForPeer=(s,model)=>s.page.waitForFunction(model=>window.VoidRemotePlayers?.connected&&VoidRemotePlayers.peers.length===1&&VoidRemotePlayers.peers[0].drawn&&VoidRemotePlayers.peers[0].model===model,model,{timeout:120000});
+      try{await waitForPeer(A,b.model);await waitForPeer(B,a.model);}catch(e){
+        const diagnostics=[];
+        for(const s of [A,B])diagnostics.push(await s.page.evaluate(()=>({remote:window.VoidRemotePlayers?.diagnostics,mode:typeof mode==='undefined'?null:mode,pending:window.VoidAssets?.pending})));
+        throw new Error('Rendered authenticated peer gate failed: '+JSON.stringify(diagnostics),{cause:e});
+      }
+      assert.equal(hub.hub.peers.size,2);
+      for(const who of [a,b])assert(hub.hub.peers.get(who.uid)?.placed,'authoritative hub must place the actual account');
+      const snap=s=>s.page.evaluate(()=>({location:state.location,credits:state.credits,quest:state.quest,story:JSON.stringify(state.story),model:VoidAccount.character.model}));
+      const before=await snap(A),start=await B.page.evaluate(()=>({x:walker.x,z:walker.z}));
+      await B.page.keyboard.down('KeyW');
+      try{
+        await A.page.waitForFunction(()=>VoidRemotePlayers.peers[0]?.seen.includes('walk'),null,{timeout:90000});
+        await B.page.waitForFunction(p=>Math.hypot(walker.x-p.x,walker.z-p.z)>.8,start,{timeout:60000});
+      }finally{await B.page.keyboard.up('KeyW');}
+      await A.page.waitForFunction(()=>VoidRemotePlayers.peers[0]?.clip==='idle',null,{timeout:60000});
+      const target=await B.page.evaluate(()=>({x:walker.x,z:walker.z}));
+      await A.page.waitForFunction(p=>{const peer=VoidRemotePlayers.peers[0];return peer&&Math.hypot(peer.x-p.x,peer.z-p.z)<.35;},target,{timeout:60000});
+      assert.deepEqual(await snap(A),before,'other account walking must not change the observer campaign');
+      assert.deepEqual([...A.errors,...B.errors],[]);
+      // Removing one game page must remove only its peer, not the other account.
+      await B.ctx.close();
+      await A.page.waitForFunction(()=>VoidRemotePlayers.connected&&VoidRemotePlayers.peers.length===0,null,{timeout:60000});
+      assert.equal(await A.page.evaluate(()=>VoidAccount.user.uid),a.uid);
+      assert.deepEqual(await snap(A),before,'disconnect must not change the observer campaign');
+      console.log('RENDERED_ACCOUNT_GATE_OK');
+    }
   }finally{
     try{if(browser)await browser.close();}finally{
-      try{if(hub)await hub.close();}finally{try{if(fixture?.listening)await new Promise(resolve=>fixture.close(resolve));}finally{lines.close();proc.kill();}}
+      try{if(hub)await hub.close();}finally{try{if(fixture?.listening)await new Promise(resolve=>fixture.close(resolve));}finally{lines.close();proc.kill();if(staticHost)staticHost.kill();}}
     }
   }
 }

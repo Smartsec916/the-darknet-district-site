@@ -556,7 +556,11 @@ def clean_save(value):
         mission = travel.get('mission')
         if mission is not None and mission not in ['medicine','ghost','foundry',*missions,'inheritance','arrival','legal-offer','legal-run','return','illegal-offer','illegal-run','open']:
             raise ApiError('Invalid route mission.')
-        result['travel'] = {'origin':travel['origin'],'destination':travel['destination'],'progress':progress,'mission':mission,'encounter':{'type':encounter['type'],'state':encounter['state']}}
+        if encounter.get('evaded') is True and encounter['type'] == 'combat' and encounter['state'] == 'cleared':
+            encounter = {'type': 'combat', 'state': 'cleared', 'evaded': True}
+        else:
+            encounter = {'type': encounter['type'], 'state': encounter['state']}
+        result['travel'] = {'origin':travel['origin'],'destination':travel['destination'],'progress':progress,'mission':mission,'encounter':encounter}
     story = value.get('story', {})
     if not isinstance(story, dict):
         raise ApiError('Invalid story state.')

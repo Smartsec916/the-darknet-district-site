@@ -78,10 +78,11 @@ arrive=function(){if(trialGear){trialGear=null;current=null;market();announce('T
 const expansionClear=routeClear;
 routeClear=function(){return expansionClear()&&(current.kind!=='salvage'||objectiveCount>=3)&&(current.kind!=='escort'||escortHP>0);};
 const expansionHurt=hurt;
-hurt=function(amount){
+hurt=function(amount,cue){
   if(mode!=='play'||amount<=0||damageTime>0||driveTime>0)return;
+  if(VoidWarp.interrupt(flight.route,VoidInput.down('warp')))announce('WARP SPOOL CANCELED · Release and hold warp to retry.');
   const stats=VoidFlightCraft.stats();shieldDelay=stats.shieldDelay;const absorbed=VoidEquipmentProfiles.absorb(shieldHP,amount,VoidBalance.profiles[stats.shieldProfile]?.absorption);shieldHP-=absorbed;
-  if(amount>absorbed){expansionHurt(amount-absorbed);VoidCombatEffects.pulse('hull');}else {damageTime=.25;tone(320,.1);VoidCombatEffects.pulse('shield');}
+  if(amount>absorbed){expansionHurt(amount-absorbed,cue);VoidCombatEffects.pulse('hull');}else {damageTime=.25;VoidAudio.event(cue||'shield');VoidCombatEffects.pulse('shield');}
   updateEquipmentHud();
 };
 const expansionSpawn=spawnEnemy;

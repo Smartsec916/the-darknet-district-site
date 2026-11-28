@@ -212,7 +212,9 @@
   }
   function rookJobOffer(n,kind,destination){
     const j=rookJobs[kind],step=Math.min(n-1,RC.pay.steps);
-    return {...rookRunBase,id:'rook-run-'+n,number:n,kind,label:j.label,name:'Rook freight run #'+n,cargo:j.cargo[(n-1)%j.cargo.length],units:j.units,legal:j.legal,payAt:j.payAt,destination,destinationName:stations[destination]?.name||destination,payment:Math.min(RC.pay.cap,RC.pay.base+RC.pay.perRun*step)+j.bonus,enemies:4+step+j.danger,tier:1+step*.3+j.danger*.2,duration:36+step*2};
+    const region=U.threatBands[U.system(destination)]?.tier||0;
+    const heat=Math.min(3,Math.floor(step/2));
+    return {...rookRunBase,id:'rook-run-'+n,number:n,kind,label:j.label,name:'Rook freight run #'+n,cargo:j.cargo[(n-1)%j.cargo.length],units:j.units,legal:j.legal,payAt:j.payAt,destination,destinationName:stations[destination]?.name||destination,payment:Math.min(RC.pay.cap,RC.pay.base+RC.pay.perRun*step)+j.bonus,enemies:Math.min(8,1+heat+j.danger+Math.max(0,region-1)),tier:Math.max(region-1,heat*.65+j.danger*.35),duration:36+step*2};
   }
   // Free hold space (salvage aboard takes room; contract cargo is not yet aboard).
   function holdFree(s){return P.systems(s).cargo-(s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0);}
@@ -317,7 +319,7 @@
     const deflector=shield&&standard(s.loadout.shield)?shield:{capacity:ship.shield,recharge:ship.recharge,delay:ship.shieldDelay};
     const has = id => owned.includes(id) && s.loadout?.[content.gear[id].slot] === id;
     const creditHas=id=>s.creditGear?.includes(id)&&s.loadout?.utility===id;
-    return P.stats(s,{ ship, flight:ship.flight, hull: B.playerHull * ship.hull/100 + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage * laser + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/(B.laserFireRate*rate) - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+deflector.capacity+(s.upgrades.shields||0)*B.shieldPerTier, shieldProfile:has('aegis')?'aegis':'deflector',shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate*deflector.recharge/6,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay*deflector.delay/6, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 });
+    return P.stats(s,{ ship, flight:ship.flight, spool:ship.spool, hull: B.playerHull * ship.hull/100 + s.upgrades.armor * B.hullPerTier, damage: has('wraith') ? B.premiumLaserDamage : B.laserDamage * laser + s.upgrades.guns * B.laserDamagePerTier, cooldown: has('wraith') ? 1/B.premiumLaserFireRate : Math.max(1/60,1/(B.laserFireRate*rate) - s.upgrades.guns * B.laserCooldownPerTier), speed: 10 + s.upgrades.engines * 2.5, shield: has('aegis') ? B.premiumShield : B.playerShield+deflector.capacity+(s.upgrades.shields||0)*B.shieldPerTier, shieldProfile:has('aegis')?'aegis':'deflector',shieldRegen:has('aegis')?B.premiumShieldRechargeRate:B.shieldRechargeRate*deflector.recharge/6,shieldDelay:has('aegis')?B.premiumShieldRechargeDelay:B.shieldRechargeDelay*deflector.delay/6, piercing: has('wraith'), drive: has('ghost')||creditHas('vector'),driveDuration:has('ghost')?.7:.4,driveCooldown:has('ghost')?8:12, drone: has('sentinel')||creditHas('scout'),droneDamage:has('sentinel')?4:2,droneCooldown:has('sentinel')?.7:1.2 });
   }
   function unlocked(s,c) { return s.quest==='open' && (s.universe.freeTravel||s.progression.completed) && (!c.requires || s.cleared.includes(c.requires)); }
   function missionFlight(s) {
@@ -326,7 +328,7 @@
     if (s.quest === 'arrival') return { ...base, name: 'A ship of your own', destination: 'meridian' };
     if (s.quest === 'legal-run') return { ...base, name: 'An honest living', cargo: 'Water filtration parts', destination: 'kepler', enemies: 1, duration: 28, reward: 350 };
     if (s.quest === 'return') return { ...base, name: 'Back to the Dead Channel', destination: 'meridian', duration: 18 };
-    if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'rusthaven', enemies: 6, tier: 1, duration: 36, reward: 800 };
+    if (s.quest === 'illegal-run') return { ...base, name: 'No questions asked', cargo: 'Unregistered memory wafers', legal: false, destination: 'rusthaven', enemies: 3, tier: 1, duration: 36, reward: 800 };
     if(s.quest==='open'&&!s.progression.flags.missileFired&&!s.contract&&!s.universe?.freeTravel)return {...base,id:'prologue-missiles',name:'Rook / Missile qualification',destination:s.location==='meridian'?'kepler':'meridian',enemies:1,tier:0,duration:18};
     if (s.quest === 'open' && s.contract==='rook-run'){const r=rookRun(s);return {...r,destination:r.destination===s.location?'meridian':r.destination};}
     if (s.quest === 'open' && s.contract) {
@@ -355,7 +357,9 @@
     if(mission?.destination===s.destination)return mission;
     const destination=U.nextHop(s.location,s.destination);
     const policy=U.route(s.location,destination);
-    return {name:'Free transit',destination,duration:policy.seconds,enemies:policy.interdiction?3:0,tier:1,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
+    const firstRookFlight=(s.universe.missions?.['first-departure']&&!s.universe.missions['first-departure'].completed&&s.destination==='meridian');
+    const threat=firstRookFlight?{tier:0,enemies:0}:U.routeThreat(s.location,destination,s.completed+(Number(s.story.flags.localTransitCount)||0));
+    return {name:'Free transit',destination,duration:policy.seconds,...threat,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
   }
   function accept(s, id) {
     if(Missions.closed(s)&&!(rookOpen(s)&&(id==='rook-run'||String(id).startsWith('rook-job:'))))return false;   // a District campaign: only Rook's side missions, once his board is open
@@ -375,9 +379,9 @@
     // from a free transit: without this the flight never ended and the ship could never reach another place.
     if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&(s.universe?.freeTravel&&flight(s)?.kind==='transit'||s.contract==='rook-run'&&rookOpen(s))))return null;   // ... and Rook's side missions deliver
     const f = flight(s); if (!f) return null;
-    const previous = s.quest;
+    const previous = s.quest, origin = s.location;
     s.story.flags.flightCheckpoint=true;
-    if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
+    if(f.enemies>0&&!s.travel?.encounter?.evaded){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
     s.travel=null;s.destination=null;
     if(U.locations[f.destination]?.type==='arrival'){
       if(f.returnCargoToRook)s.story.flags.returnCargoToRook=true;
@@ -396,7 +400,7 @@
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);
-    if(f.kind==='transit'){s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
+    if(f.kind==='transit'){if(U.route(origin,f.destination).interdiction)s.story.flags.localTransitCount=(Number(s.story.flags.localTransitCount)||0)+1;s.story.chapter=s.quest;Story.emit(s,'arriveLocation',s.location);return {...f,repairCharged,gunReward:false};}
     if(f.id==='prologue-missiles')return {...f,repairCharged,gunReward:false};
     // Rook's runs are tracked by their Mission Log entries (completion waits for Rook's pay on some), not here.
     if(!f.faction&&f.kind!=='sealed'&&!/^rook-run-/.test(f.id||'')&&!s.universe.completedObjectives.includes(f.id||previous))s.universe.completedObjectives.push(f.id||previous);

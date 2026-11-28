@@ -68,7 +68,7 @@
       glow: .55
     }
   };
-  let engine, scene, camera, surface, loadPromise, spaceRoot, roomRoot, planet, station, sky, rockSource, cockpit, rocks = [],
+  let engine, scene, camera, surface, loadPromise, spaceRoot, roomRoot, planet, station, sky, cockpit, rocks = [],
     ships = new Map(),
     pools = {},
     poolSources = {},
@@ -459,7 +459,90 @@
     }
     return node;
   }
+  function cipherModel(allegiance,parent,opts){
+    const b=B(),node=shipModel('starter',allegiance,parent,opts);
+    node.name='cipher-hull';
+    node.metadata={...node.metadata,identity:'cipher',landed:!!opts.landed};
+    const rig=node.metadata.kestrel;
+    if(!rig)return node;
+    // The Cipher shares the Kestrel airframe and its existing gear and muzzle hardpoints.
+    const airframe=node.getChildren().find(child=>child.name.endsWith('-asset'));
+    airframe?.scaling.multiplyInPlace(new b.Vector3(1.035,1.025,1.045));
+    const own=[];
+    const copy=(mat,name)=>{
+      if(!mat)return null;
+      const result=mat.clone('cipher-'+name);
+      own.push(result);
+      return result;
+    };
+    const hull=rig.hooks.hull,canopy=rig.hooks.canopy;
+    if(hull?.material){
+      const finish=copy(hull.material,'ceramic-coat');
+      finish.albedoColor=new b.Color3(.93,.97,1);
+      finish.emissiveColor=new b.Color3(.19,.21,.23);
+      finish.roughness=.55;
+      hull.material=finish;
+    }
+    if(canopy?.material){
+      const finish=copy(canopy.material,'laminated-canopy');
+      finish.albedoColor=new b.Color3(.82,.94,1);
+      finish.roughness=.23;
+      if(finish.clearCoat)finish.clearCoat.roughness=.18;
+      canopy.material=finish;
+    }
+    const collar=new b.PBRMaterial('cipher-exhaust-collar',scene);
+    collar.albedoColor=new b.Color3(.27,.32,.33);
+    collar.emissiveColor=new b.Color3(.045,.052,.056);
+    collar.metallic=.72;
+    collar.roughness=.48;
+    own.push(collar);
+    for(const key of ['engine_left','engine_right']){
+      const hardpoint=rig.hooks[key];
+      if(!hardpoint)continue;
+      // Measure the hook in ship coordinates so this trim follows the original engine.
+      hardpoint.computeWorldMatrix(true);
+      const at=b.Vector3.TransformCoordinates(hardpoint.getAbsolutePosition(),b.Matrix.Invert(node.computeWorldMatrix(true)));
+      for(const [offset,diameter,thickness] of [[.11,.42,.031],[.18,.45,.027]]){
+        const band=b.MeshBuilder.CreateTorus('cipher-machined-collar',{diameter,thickness,tessellation:24},scene);
+        band.parent=node;
+        band.position.set(at.x,at.y,at.z+offset);
+        band.rotation.x=Math.PI/2;
+        band.material=collar;
+        band.isPickable=false;
+      }
+    }
+    if(hull?.getIndices){
+      const world=node.computeWorldMatrix(true);
+      hull.computeWorldMatrix(true);
+      const above=b.Vector3.TransformCoordinates(new b.Vector3(0,1.35,-.85),world);
+      const down=b.Vector3.TransformNormal(new b.Vector3(0,-1,0),world).normalize();
+      const surface=new b.Ray(above,down,2).intersectsMesh(hull);
+      if(surface.hit){
+        const tex=new b.DynamicTexture('cipher-registration',{width:256,height:96},scene,true);
+        const g=tex.getContext();
+        g.clearRect(0,0,256,96);
+        g.fillStyle='#252c2f';g.fillRect(14,9,228,78);
+        g.fillStyle='#a9bbb9';g.fillRect(14,9,4,78);
+        g.font='bold 36px monospace';g.fillText('CIPHER 02',27,49);
+        g.font='14px monospace';g.fillText('FLIGHT HARDWARE',27,72);
+        tex.hasAlpha=true;tex.update();
+        const stamp=new b.StandardMaterial('cipher-registration',scene);
+        stamp.diffuseTexture=tex;stamp.useAlphaFromDiffuseTexture=true;
+        stamp.emissiveColor=new b.Color3(.15,.18,.19);stamp.specularColor=b.Color3.Black();
+        const decal=b.MeshBuilder.CreateDecal('cipher-registry-plate',hull,{
+          position:surface.pickedPoint,normal:surface.getNormal(true),size:new b.Vector3(.48,.18,.13)
+        });
+        decal.setParent(node);decal.material=stamp;decal.isPickable=false;
+        stamp.zOffset=-2;own.push(stamp);
+        node.onDisposeObservable.addOnce(()=>tex.dispose());
+      }
+    }
+    node.onDisposeObservable.addOnce(()=>{for(const mat of own)mat.dispose(false,false);});
+    return node;
+  }
+
   function shipModel(name, allegiance, parent, opts = {}) {
+    if(name==='ship2')return cipherModel(allegiance,parent,opts);
     const model = VoidAssets.instance('ship:' + name, parent);
     // The Kestrel ('starter'): the Meshy model (kestrel-model.js) with its gear, engine glow and gun hooks; the code ship below stays the stand-in.
     if (model) return name==='starter'&&root.VoidKestrel?VoidKestrel.dress(model,{scene,landed:!!opts.landed,allegiance}):model;
@@ -487,16 +570,16 @@
       plate('kestrel-nose-armor',[[-.42,1.20],[.42,1.20],[.26,2.12],[-.26,2.12]],.14,.06,panel);
       for(const side of [-1,1]){
         const wing=plate('kestrel-swept-wing',[[side*.52,.20],[side*2.45,-.65],[side*2.75,-1.28],[side*1.15,-1.62]],-.13,.15,wingMat);wing.material.backFaceCulling=false;
-        
+
         const border=box('kestrel-wing-edge',[1.45,.075,.10],[side*1.7,-.04,-1.20],dark,node);border.rotation.y=side*.35;
-        
+
         box('kestrel-weapon-pylon',[.25,.18,1.18],[side*2.35,-.28,-.98],dark,node);
         const cannon=b.MeshBuilder.CreateCylinder('kestrel-laser-barrel',{height:1.25,diameter:.105,tessellation:10},scene);cannon.parent=node;cannon.rotation.x=Math.PI/2;cannon.position.set(side*2.35,-.30,-.04);cannon.material=panel;
         box('kestrel-empty-missile-rail',[.16,.08,.72],[side*1.45,-.31,-.88],dark,node);
         const intake=b.MeshBuilder.CreateCylinder('kestrel-engine-cowl',{height:1.20,diameter:.72,tessellation:12},scene);intake.parent=node;intake.rotation.x=Math.PI/2;intake.position.set(side*1.06,-.03,-1.50);intake.material=panel;
         const ring=b.MeshBuilder.CreateTorus('kestrel-exhaust-ring',{diameter:.60,thickness:.07,tessellation:16},scene);ring.parent=node;ring.position.set(side*1.06,-.03,-2.22);ring.material=armor;
-        
-        
+
+
       }
       box('kestrel-canopy-rear-frame',[.91,.06,.06],[0,.60,.14],armor,node);
       box('kestrel-canopy-front-frame',[.69,.06,.06],[0,.56,1.28],armor,node);
@@ -517,7 +600,7 @@
       if(name==='starter'){const glow=b.MeshBuilder.CreateDisc('kestrel-engine-glow',{radius:.27,tessellation:20},scene);glow.parent=node;glow.position.set(side*1.06,-.03,-2.24);glow.rotation.y=Math.PI;glow.material=material('kestrel-burn',allegiance==='hostile'?'#ed765b':'#ff9a3c',true);}
       else box('exhaust', [.38, .34, .15], [side * 1.05, 0, -2.3], light, node);
     }
-    if(name==='ship2')node.scaling.x=1.2;if(name==='ship3')node.scaling.z=1.3;
+    if(name==='ship3')node.scaling.z=1.3;
     node.metadata = {
       placeholder: true,
       reference: 'art/ships.png',
@@ -540,7 +623,7 @@
       for(const dz of [-.26,.26]){const len=Math.hypot(x1-x0,top-ground),r=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:len},scene);r.parent=ship;r.position.set((x0+x1)/2,(ground+top)/2+.3,z0+dz);r.rotation.z=Math.atan2(x1-x0,top-ground);r.material=steel;r.isPickable=false;
         const post=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:.3},scene);post.parent=ship;post.position.set(x1,ground+.15+.035,z0+dz);post.material=steel;post.isPickable=false;}
       const foot=new b.Vector3(x1+sd*.55,ground,z0),ring=b.MeshBuilder.CreateTorus('kestrel-boarding-locus',{diameter:1.5/k,thickness:.03/k,tessellation:28},scene);ring.parent=ship;ring.position.set(foot.x,ground+.03/k,foot.z);ring.material=lamp;ring.isPickable=false;
-      const t=new b.DynamicTexture('kestrel-board-sign',{width:256,height:48},scene,true),g=t.getContext();g.fillStyle='#0b1218';g.fillRect(0,0,256,48);g.fillStyle='#d4bd87';g.font='bold 26px monospace';g.textAlign='center';g.fillText('KESTREL / BOARD',128,33);t.update();
+      const t=new b.DynamicTexture('kestrel-board-sign',{width:256,height:48},scene,true),g=t.getContext();g.fillStyle='#0b1218';g.fillRect(0,0,256,48);g.fillStyle='#d4bd87';g.font='bold 26px monospace';g.textAlign='center';g.fillText((ship.metadata.identity==='cipher'?'CIPHER':'KESTREL')+' / BOARD',128,33);t.update();
       const sm=new b.StandardMaterial('kestrel-board-sign',scene);sm.diffuseTexture=t;sm.emissiveTexture=t;sm.disableLighting=true;const sign=b.MeshBuilder.CreatePlane('kestrel-board-sign',{width:1.1/k*1.4,height:.21/k*1.4},scene);sign.parent=ship;sign.position.set(x1+sd*.3,ground+1.1/k*1.6,z0+.75);sign.rotation.y=-sd*Math.PI/2;sign.material=sm;sign.onDisposeObservable.add(()=>{sm.dispose();t.dispose();});sign.isPickable=false;const back=sign.clone('kestrel-board-sign-back');back.rotation.y+=Math.PI; // readable from both sides, never mirrored
       const post=b.MeshBuilder.CreateCylinder('kestrel-board-sign-post',{diameter:.03,height:1.1/k*1.6},scene);post.parent=ship;post.position.set(x1+sd*.3,ground+.55/k*1.6,z0+.75);post.material=steel;post.isPickable=false;
       ship.metadata.boarding=true;
@@ -806,7 +889,7 @@
       ...extraModels,
       ...(id==='vesper'?Object.fromEntries(Object.entries(VoidOpening.hooks).filter(([,d])=>d.src).map(([key,d])=>['opening:'+key,d])):{}),
       ...(id==='vesper'&&root.VoidVesper?root.VoidVesper.models(quality):{}),
-      ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)).map(([key, value]) => ['ship:' + key, value])),
+      ...Object.fromEntries(Object.entries(VoidAssets.models.ships).filter(([key]) => shipTypes.includes(key)||key==='starter'&&shipTypes.includes('ship2')).map(([key, value]) => ['ship:' + key, value])),
       // Meridian's hull cladding (meridian-kitbash.js), so every scene that shows Meridian clads it.
       ...(root.VoidAnchorage?.models(id,quality)||{}),
       ...(VoidStationLayouts.meridianClass.includes(id)&&!stationKit&&globalThis.VoidMeridianKitbash?VoidMeridianKitbash.definitions('kit:'):{}),
@@ -875,27 +958,17 @@
       station=new b.TransformNode('open-space-origin',scene);station.parent=spaceRoot;
     }else station = stationModel(id, spaceRoot,true);
     station.position.set(0, 0, -100);
-    rockSource = b.MeshBuilder.CreateIcoSphere('rock-source', {
-      radius: 1,
-      subdivisions: 2,
-      flat: true
-    }, scene);
-    const positions = rockSource.getVerticesData(b.VertexBuffer.PositionKind),
-      normals = [];
-    for (let i = 0; i < positions.length; i += 3) {
-      const rough = .83 + .18 * Math.sin(positions[i] * 13 + positions[i + 1] * 9 + positions[i + 2] * 7);
-      for (let j = 0; j < 3; j++) positions[i + j] *= rough;
-    }
-    b.VertexData.ComputeNormals(positions, rockSource.getIndices(), normals);
-    rockSource.setVerticesData(b.VertexBuffer.PositionKind, positions);
-    rockSource.setVerticesData(b.VertexBuffer.NormalKind, normals);
-    rockSource.material = material('rock', '#77716a');
-    rockSource.parent = spaceRoot;
-    rockSource.isVisible = false;
-    for (let i = 0; i < presets[quality].rocks; i++) {
-      const m = rockSource.createInstance('asteroid');
-      m.parent = spaceRoot;
-      rocks.push(m);
+    const rockMaterial = new b.PBRMaterial('asteroid-basalt',scene);
+    rockMaterial.albedoColor = new b.Color3(.61,.58,.55);
+    rockMaterial.metallic = .04;
+    rockMaterial.roughness = .94;
+    spaceRoot.onDisposeObservable.addOnce(()=>rockMaterial.dispose());
+    const variants=Array.from({length:quality==='low'?4:7},(_,seed)=>asteroidSource(seed,rockMaterial));
+    for(let i=0;i<presets[quality].rocks;i++){
+      const mesh=variants[i%variants.length].createInstance('asteroid');
+      mesh.parent=spaceRoot;
+      mesh.isPickable=false;
+      rocks.push(mesh);
     }
     // Compile and fetch the current exterior before the launch clock may advance.
     try {
@@ -908,6 +981,33 @@
     diagnostics.preparations++;
     diagnostics.location = id;
     diagnostics.exteriorReady = true;
+  }
+
+  function asteroidSource(seed,material){
+    const b=B(), rock=b.MeshBuilder.CreateIcoSphere('asteroid-source-'+seed,{
+      radius:1,subdivisions:quality==='low'?5:9,flat:true
+    },scene);
+    const positions=rock.getVerticesData(b.VertexBuffer.PositionKind),normals=[],colors=[],a=seed*1.71;
+    for(let i=0;i<positions.length;i+=3){
+      const x=positions[i],y=positions[i+1],z=positions[i+2];
+      const fracture=Math.sin(7*x+4*y-3*z+a)*Math.cos(4*z-3*y+a);
+      const fold=Math.sin(23*x-17*y+12*z+a);
+      const basin=Math.max(0,x*Math.cos(a)+y*.45+z*Math.sin(a)-.60);
+      const radius=.87+.10*Math.sin(3*x+5*z+a)+.07*fracture+.024*fold-.38*basin;
+      positions[i]=x*radius;
+      positions[i+1]=y*radius*(.78+seed%3*.10);
+      positions[i+2]=z*radius*(.87+seed%2*.10);
+      const strata=.59+.16*Math.sin(14*y+4*z+a)+.10*fracture+.08*fold;
+      colors.push(strata*1.04,strata*(.94+seed%3*.05),strata*(.88+seed%4*.05),1);
+    }
+    b.VertexData.ComputeNormals(positions,rock.getIndices(),normals);
+    rock.setVerticesData(b.VertexBuffer.PositionKind,positions);
+    rock.setVerticesData(b.VertexBuffer.NormalKind,normals);
+    rock.setVerticesData(b.VertexBuffer.ColorKind,colors);
+    rock.material=material;
+    rock.parent=spaceRoot;
+    rock.isVisible=false;
+    return rock;
   }
 
   function clearSpace() {
@@ -1005,7 +1105,9 @@
       projection = b.Matrix.PerspectiveFovLH(2 * Math.atan(height / (2 * focal)), width / height, .1, 3500);
     projection.m[9] = .12;
     camera.freezeProjectionMatrix(projection);
-    cockpit??=root.VoidCockpit3D.build(scene,camera);
+    const cipher=snapshot.shipId==='ship2';
+    if(cockpit&&cockpit.cipher!==cipher){cockpit.dispose();cockpit=null;}
+    cockpit??=root.VoidCockpit3D.build(scene,camera,cipher);
     // The painted cockpit overlay replaces the box cockpit once its image has loaded.
     const painted=root.VoidCockpitOverlay?.ready===true;
     cockpit.setEnabled(!painted);
@@ -1020,8 +1122,8 @@
       if (r) {
         mesh.position.copyFrom(vector(r));
         if (i >= snapshot.rocks.length) mesh.position.x += 50;
-        mesh.scaling.set(r.size * (.7 + i % 3 * .18), r.size, r.size * .85);
-        mesh.rotation.set(r.phase, snapshot.time * .04 + r.phase, 0);
+        mesh.scaling.setAll(r.size);
+        mesh.rotation.set(r.phase+snapshot.time*.013,snapshot.time*(.026+i%5*.006)+r.phase,r.phase*.35);
       }
     });
     planet.rotation.y = snapshot.time * .008;
@@ -1218,13 +1320,13 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'vr');diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;}
     if(def.kind==='derelict'){
       if(await root.VoidStationKit?.fetchAll(task)&&quality!=='low')await root.VoidStationKit.fetchProps('interior',task); // wall plating, crates and service gear (station-kit.js); optional
-      await task.wait('assets',()=>VoidAssets.prepare(scene,kestrel,task),'derelict models');
+      await task.wait('assets',()=>VoidAssets.prepare(scene,{...kestrel,...def.actorModels},task),'derelict models');
       derelictHandle=VoidDerelictStation.build({scene,parent:roomRoot,quality,shipModel});
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    crowdLocation=def.id;root.VoidCrowd?.begin();const definitions = {...(root.VoidCrowd?.models(def.id,quality)||{}),...Object.fromEntries((def.models || []).map(m => [m.id, m])),...(root.VoidVantor?.models(def,quality)||{})};
-    const hullId=def.ship||'starter';if(VoidAssets.models.ships[hullId])definitions['ship:'+hullId]=VoidAssets.models.ships[hullId];
+    crowdLocation=def.id;root.VoidCrowd?.begin();const definitions = {...def.actorModels,...(root.VoidCrowd?.models(def.id,quality)||{}),...Object.fromEntries((def.models || []).map(m => [m.id, m])),...(root.VoidVantor?.models(def,quality)||{})};
+    const hullId=def.ship||'starter';const hullModel=hullId==='ship2'?'starter':hullId;if(VoidAssets.models.ships[hullModel])definitions['ship:'+hullModel]=VoidAssets.models.ships[hullModel];
     await task.wait('assets',()=>VoidAssets.prepare(scene, definitions,task),'room models');
     for (const defn of def.models || []) {
       const node = VoidAssets.instance(defn.id, roomRoot);
@@ -1290,15 +1392,61 @@
     diagnostics.meshCount = scene.meshes.length;
   }
 
-  // First-person Ward pistol for rooms other than Vesper (which builds its own). Same pieces, colours and poses.
+  // Shared first-person Ward silhouette for the campaign and FPS simulations.
+  function wardPistol(scene,parent,name){
+    const b=B(),node=new b.TransformNode(name,scene),batches=new Map();
+    node.parent=parent;
+    function finish(label,hex,metallic,roughness){
+      const mat=new b.PBRMaterial(name+'-'+label,scene);
+      mat.albedoColor=b.Color3.FromHexString(hex);
+      mat.metallic=metallic;
+      mat.roughness=roughness;
+      mat.emissiveColor=mat.albedoColor.scale(.10);
+      batches.set(mat,[]);
+      return mat;
+    }
+    const steel=finish('gunmetal','#555b5b',.62,.45),trim=finish('wear','#848889',.68,.48);
+    const grip=finish('polymer','#292e2f',.08,.8),inset=finish('inset','#181d20',.25,.62);
+    const amber=finish('sight','#b98e5b',.29,.47);
+    function place(mesh,position,mat,pitch){
+      mesh.position.set(...position);
+      mesh.rotation.x=pitch;
+      batches.get(mat).push(mesh);
+    }
+    const box=(label,[width,height,depth],at,mat,pitch=0)=>place(b.MeshBuilder.CreateBox(label,{width,height,depth},scene),at,mat,pitch);
+    box('slide',[.064,.054,.27],[0,.011,.003],steel);
+    box('slide-top',[.050,.010,.258],[0,.040,.005],steel);
+    box('lower-frame',[.061,.024,.24],[0,-.027,-.012],trim);
+    box('grip',[.053,.122,.068],[0,-.087,-.085],grip,.21);
+    box('floorplate',[.056,.014,.074],[0,-.147,-.099],trim,.21);
+    box('guard-sole',[.024,.010,.064],[0,-.077,-.022],steel);
+    box('guard-front',[.023,.047,.010],[0,-.055,.011],steel,-.2);
+    for(const [label,diameter,depth,z,mat] of [['collar',.035,.013,.140,trim],['recess',.022,.004,.148,inset]]){
+      place(b.MeshBuilder.CreateCylinder(label,{diameter,height:depth,tessellation:14},scene),[0,.010,z],mat,Math.PI/2);
+    }
+    box('front-sight',[.012,.013,.014],[0,.050,.109],amber);
+    for(const side of [-1,1]){
+      box('rear-sight',[.013,.012,.021],[side*.019,.050,-.104],inset);
+      for(let i=0;i<6;i++){
+        box('slide-groove',[.0015,.028,.004],[side*.032,.008,-.078-i*.008],inset,.20);
+        box('grip-texture',[.002,.004,.037],[side*.027,-.064-i*.010,-.081-i*.002],inset,.21);
+      }
+    }
+    for(const [mat,meshes] of batches){
+      const mesh=meshes.length===1?meshes[0]:b.Mesh.MergeMeshes(meshes,true,true);
+      mesh.parent=node;
+      mesh.material=mat;
+      mesh.renderingGroupId=1;
+      mesh.isPickable=false;
+    }
+    node.onDisposeObservable.addOnce(()=>{for(const mat of batches.keys())mat.dispose();});
+    return node;
+  }
   let handGun=null;
-  function handWeapon(drawn,aim=false,reloading=false){
-    const camera=scene?.activeCamera;if(!camera)return;
+  function handWeapon(drawn,aim,reloading){
+    if(!camera||!scene||openingHandle)return;
     if(handGun&&(handGun.isDisposed()||handGun.parent!==camera)){handGun.dispose();handGun=null;}
-    if(!handGun){if(!drawn)return;const b=B();handGun=new b.TransformNode('hand-ward-pistol',scene);handGun.parent=camera;
-      const steel=material('hand-pistol-steel','#464b4a'),dark=material('hand-pistol-rubber','#222b2e'),sight=material('hand-pistol-sight','#b4773a');
-      for(const [name,size,p,m] of [['pistol-slide',[.065,.085,.29],[0,0,0],steel],['pistol-grip',[.058,.14,.08],[0,-.085,-.07],dark],['pistol-front-sight',[.012,.014,.018],[0,.048,.12],sight],['pistol-rear-sight',[.06,.02,.022],[0,.05,-.105],dark]]){
-        const mesh=b.MeshBuilder.CreateBox(name,{width:size[0],height:size[1],depth:size[2]},scene);mesh.parent=handGun;mesh.position.set(...p);mesh.material=m;mesh.renderingGroupId=1;mesh.isPickable=false;}}
+    if(!handGun){if(!drawn)return;handGun=wardPistol(scene,camera,'hand-ward-pistol');}
     handGun.setEnabled(drawn);handGun.position.set(aim?0:.21,reloading?-.40:aim?-.07:-.23,aim?.5:.55);handGun.rotation.set(reloading?.65:0,0,reloading?.4:0);
   }
   function clearRoom() {
@@ -1387,6 +1535,7 @@
     resizeViewport(width,height){if(engine)resize(width,height);},
     initialize,
     handWeapon,
+    wardPistol,
     prepareSpace,
     prepareRoom,
     renderFlight,

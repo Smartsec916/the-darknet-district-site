@@ -18,7 +18,7 @@ test('all 12 chapter missions unlock in order and pay once per acceptance',()=>{
 });
 test('a forged local loadout never grants paid stats without ownership',()=>{
   const s=C.fresh();s.loadout={weapon:'wraith',shield:'aegis',utility:'ghost'};
-  assert.equal(C.stats(s).damage,1);assert.equal(C.stats(s).shield,0);assert.equal(C.stats(s).drive,false);
+  assert.equal(C.stats(s).damage,.9);assert.equal(C.stats(s).shield,0);assert.equal(C.stats(s).drive,false);
   assert.equal(C.stats(s,['wraith']).damage,3.6875);assert.equal(C.stats(s,['aegis']).shield,70);
   assert.equal(C.stats(s,['ghost','sentinel']).drone,false);assert.equal(C.stats(s,['ghost','sentinel']).drive,true);
 });
@@ -28,7 +28,7 @@ test('restore rejects invalid saves and ignores ownership claims',()=>{
 });
 test('opening campaign and earned equipment remain playable',()=>{
   const s=trained(C.fresh());C.beginJourney(s);C.complete(s);C.accept(s);C.complete(s);C.complete(s);C.accept(s);C.complete(s);
-  assert.equal(s.quest,'open');assert.equal(s.upgrades.guns,1);assert.equal(C.buy(s,'armor'),true);assert.equal(C.stats(s).hull,130);
+  assert.equal(s.quest,'open');assert.equal(s.upgrades.guns,1);assert.equal(C.buy(s,'armor'),true);assert.equal(C.stats(s).hull,112);
 });
 test('credit equipment unlocks after the first delivery, without an account',()=>{
   const s=C.fresh();s.credits=5000;assert.equal(C.buy(s,'shields'),false);assert.equal(C.buyGear(s,'scout'),false);

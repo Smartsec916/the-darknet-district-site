@@ -1,5 +1,31 @@
 # The Darknet District — current AI handoff
 
+## 28 Nov 2026 — Kestrel and Cipher flight progression
+
+Factory Kestrel, Kestrel refit, factory Cipher, and Cipher refit are four increasing performance steps. Cipher replaces the older credit hull at the stable `ship2` save ID. It uses the Kestrel’s industrial airframe and cockpit framing, with a distinct ceramic finish, machined exhaust collars, and instrument trim. The Horizon plan doubles Cipher cargo capacity and shares its equipment and flight spec. Horizon commerce is future work. See [Flight progression](FLIGHT_PROGRESSION.md) for tuning, prices, and calculations. Build `2026-11-28-cipher-airframe-2`.
+
+## 28 Nov 2026 — Hold to spool campaign warp
+
+Line up the ship with the warp marker and hold the rebindable Warp control for three seconds. The default is J on keyboard and L3 on controller. The marker stays visible during interdictions and its ring fills while spooling. Releasing the control or losing alignment resets progress. A hull or shield hit aborts the spool and requires a release before retrying. Pilots can leave ordinary interdictions with enemies present. Escort, salvage, and hazard routes still check their mission objectives. Escaping records a resolved route checkpoint without awarding credit for clearing the encounter. Build `2026-11-28-warp-spool-1`.
+
+## 27 Nov 2026 — Ward pistol, Skirmish cast and combat audio
+
+Campaign and FPS Skirmish share a PBR first-person Ward model. FPS and Three-Zone Skirmish load the existing skinned security, enforcer, mercenary and civilian looks, with separate hitboxes and a procedural fallback when a model is unavailable. The cast uses existing idle and walk clips, with aim and fire clips on models that have them. Campaign flight and Flight Skirmish use shared instanced asteroid shapes with fractured surfaces and tonal bands. Visual changes preserve sector rules and flight collision settings.
+
+Four ElevenLabs effects under `void-runner/assets/audio/combat/` cover the Ward, reload, pulse fire and hull impact. The existing Effects mixer handles playback and directional NPC reports. Ship and on-foot modes use the same audio context. Build `2026-11-27-combat-art-audio-1`.
+
+## 27 Nov 2026 — Edit assigned NPC homes
+
+Apartment Editor has an **NPC homes** mode with a resident picker that fills the address and apartment number. The private test session opens the selected residence with its assigned residents and reserves their standard approaches in the placement guide. Edits save in the existing local apartment design store. Build `2026-11-27-npc-apartment-editor-1`.
+
+## 27 Nov 2026 — Apartment Editor
+
+Dev Tools opens a private visit to an unreserved apartment from its street door. The room editor includes a VR bedroom-inspired palette, finish and light controls, a categorized GLB Asset Finder, per-room music, and red placement checks for walls, furniture, doors, interaction approaches, and standard resident routes. IndexedDB stores designs and imported files per developer account on this browser. Blender and Meshy use self-contained GLB exports. See [Editing a vacant apartment](APARTMENTS.md#editing-a-vacant-apartment). Build `2026-11-27-apartment-editor-1`.
+
+## 27 Nov 2026 — Iris chatter during hacking waits
+
+Automatic Comms remarks now play during long access-point hacks and the wait for BR-04 after Mission 009. General exploration, sneaking, spotted events, and unrelated mission waits no longer trigger Iris chatter. Approved clips remain available for preview in Dev Tools. Build `2026-11-27-iris-hacking-waits-1`.
+
 ## 27 Nov 2026 — Kade walks up to Lace
 
 In Pleasure Breach, choosing to play as Kade starts a first-person walk from the player’s position in the apartment. Kade uses the indoor route around furniture, then starts the assigned clip at its original mark. The encounter’s cancel control is available during the approach.

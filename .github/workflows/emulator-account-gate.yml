@@ -7,6 +7,8 @@ on:
       - 'tests/test_character_emulator.py'
       - 'tests/district-hub-ws.cjs'
       - 'tests/emulator-browser-account.cjs'
+      - 'tests/serve-modern.cjs'
+      - 'void-runner/remote-players.js'
       - 'void-runner/account.js'
       - 'void-runner/network.js'
       - 'district-identity.js'
@@ -62,7 +64,8 @@ jobs:
           node --test tests/district-hub-ws.cjs | tee "$RUNNER_TEMP/void-firebase/hub.log"
           grep -Eq '^# pass [1-9][0-9]*$' "$RUNNER_TEMP/void-firebase/hub.log"
           grep -qx '# skipped 0' "$RUNNER_TEMP/void-firebase/hub.log"
-          node tests/emulator-browser-account.cjs | tee "$RUNNER_TEMP/void-firebase/browser.log"
+          node tests/emulator-browser-account.cjs --rendered | tee "$RUNNER_TEMP/void-firebase/browser.log"
           grep -qx 'BROWSER_ACCOUNT_GATE_OK' "$RUNNER_TEMP/void-firebase/browser.log"
+          grep -qx 'RENDERED_ACCOUNT_GATE_OK' "$RUNNER_TEMP/void-firebase/browser.log"
           SH
           "$RUNNER_TEMP/void-firebase/node_modules/.bin/firebase" emulators:exec --only auth,firestore --project demo-darknet-local --config "$RUNNER_TEMP/void-firebase/firebase.json" 'bash "$RUNNER_TEMP/void-firebase/check.sh"'

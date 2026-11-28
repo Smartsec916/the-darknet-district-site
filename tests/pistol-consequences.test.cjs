@@ -57,17 +57,19 @@ const cases=[
  ['handler follows replaced state',{replaceState:true},2]
 ];
 for(const [name,options,count]of cases)test('pistol equivalence: '+name,()=>{
- const a=run(false,options);assert.deepEqual(a,run(true,options));assert.equal(a.saves.length,count);
+ const a=run(false,options),b=run(true,options);
+ const gameplay=result=>({...result,trace:result.trace.filter(x=>!x.name.startsWith('audio:'))});
+ assert.deepEqual(gameplay(a),gameplay(b));assert.equal(a.saves.length,count);
 });
 test('fire saves before ray processing on first tutorial mark and after can processing',()=>{
- const a=run(false,{cans:[0,1,2]});assert.deepEqual(a.trace.map(x=>x.name),['mark:fire','save','ray','can:3','animate:3','announce','save','audio:laser']);
+ const a=run(false,{cans:[0,1,2]});assert.deepEqual(a.trace.map(x=>x.name),['mark:fire','save','ray','can:3','animate:3','announce','save','audio:pistol']);
  assert.equal(a.saves[0].progression.personal.ammo,P.tuning.ground.magazine-1);assert.equal(a.saves[0].progression.opening.cans.length,3);assert.equal(a.saves[1].progression.opening.cans.length,4);
  assert.equal(a.trace[0].weapon.cooldown,P.tuning.ground.cooldown);
 });
 test('partial reload writes ammo before marking and retains both first-time saves',()=>{
  const a=run(false,{ammo:{ammo:3,reserve:2},actions:['reload',2]});assert.equal(a.state.progression.personal.ammo,5);assert.equal(a.state.progression.personal.reserve,0);
- assert.deepEqual(a.trace.map(x=>x.name),['mark:reload','save','save']);assert.equal(a.trace[0].weapon.reload,0);
+ assert.deepEqual(a.trace.map(x=>x.name),['audio:pistolReload','mark:reload','save','save']);assert.equal(a.trace[1].weapon.reload,0);
 });
 test('neutral fire and reload operate on supplied values without Campaign mutations',()=>{
- const a=run(false,{neutral:true,actions:['fire','finish']});assert.deepEqual(a.state,a.initial);assert.deepEqual(a.saves,[]);assert.deepEqual(a.ammunition,{ammo:4,reserve:0});assert.deepEqual(a.trace.map(x=>x.name),['ray','audio:laser']);
+ const a=run(false,{neutral:true,actions:['fire','finish']});assert.deepEqual(a.state,a.initial);assert.deepEqual(a.saves,[]);assert.deepEqual(a.ammunition,{ammo:4,reserve:0});assert.deepEqual(a.trace.map(x=>x.name),['ray','audio:pistol']);
 });

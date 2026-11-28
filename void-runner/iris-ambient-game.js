@@ -1,10 +1,7 @@
 /* IRIS'S AMBIENT LINES IN THE GAME (browser only; the rules and the numbers are iris-ambient.js). Twice a second this reads what is going on and asks the rules
    whether Iris says something now; a line shows as "Iris (Comms): ..." in the notice line and plays her recorded clip (voice-clips.js, speaker 'iris' + exact text)
    through the game's voice channel (VoidAudio.speak: with voice off nothing plays and only the words show, as with her other Comms lines).
-   What it reads: a hack running (apartment-integration.js VoidApartments.hacking), a sneak step in progress inside its location and the armed people there
-   (mission-mechanics-game.js, zone-integration.js), SPOTTED (mission-mechanics-game.js calls VoidIrisAmbient.spotted()), a step waiting on game time, the BR-04 gap
-   (Mission 009 done, Mission 010 not here yet), and everything that makes it busy (a conversation, a call, a banner, the V1 open, a camera feed, another voice line,
-   a notice on screen, a menu or cutscene: any mode but walking, a draft play-test, a shared VR session).
+   Automatic lines play during access-point hacks and the BR-04 wait between Missions 009 and 010.
    Switches: Settings > IRIS CHATTER (this browser: localStorage 'void-runner-iris-chatter'), Developer Tools > Test & Jump To > Iris ambient lines (this session).
    Nothing is saved with the campaign. */
 (function(root){
@@ -14,10 +11,8 @@
  const KEY='void-runner-iris-chatter';
  const st_=()=>{try{return typeof state!=='undefined'?state:null;}catch{return null;}};
  const md=()=>{try{return typeof mode!=='undefined'?mode:null;}catch{return null;}};
- const wl=()=>{try{return typeof walkingLocation!=='undefined'?walkingLocation:null;}catch{return null;}};
- const me=()=>{try{return typeof walker!=='undefined'&&walker?walker:null;}catch{return null;}};
  let playerOn=(()=>{try{return root.localStorage.getItem(KEY)!=='off';}catch{return true;}})(),devOn=true;
- let clock=0,lastT=performance.now(),hackRun=0,hackObj=null,visit=0,visitLoc=null;
+ let clock=0,lastT=performance.now(),hackRun=0,hackObj=null;
  const st=R.create(0);
  const missions=()=>(st_()?.universe?.missions)||{};
  function contact(){const s=st_();return !!(s&&s.story&&s.story.flags&&(s.story.flags.metIris===true||missions()['m001-awakening']?.completed===true));}
@@ -33,16 +28,11 @@
   return false;}
  function enemies(){try{return (root.VoidZoneRun?.enemies||[]).filter(e=>!e.dead);}catch{return [];}}
  function ctx(){
-  const s=st_(),list=(()=>{try{return root.VoidMissionMechanicsGame?.now?.()||[];}catch{return [];}})(),L=wl(),p=me(),ms=missions(),ex=enemies();
-  if(L!==visitLoc){visitLoc=L;visit++;}
+  const s=st_(),ms=missions(),ex=enemies();
   const h=root.VoidApartments?.hacking;if(h!==hackObj){hackObj=h;if(h)hackRun++;}
-  const sx=list.find(x=>x.unseen&&!x.delayed&&L&&L.apt&&L.apt.mission===x.mission);
-  let sneak=null;if(sx&&p){const near=ex.some(e=>!e.alert&&Math.hypot(e.x-p.x,e.z-p.z)<=R.TUNING.sneakNear),seen=(root.VoidMissionMechanicsGame?.run?.[sx.key+'|seen']?.t||0)>0;sneak={visit:sx.key+'#'+visit,guardNear:near,seen};}
-  const w=list.find(x=>x.kind==='wait-game'&&!x.delayed);
   const trees=(()=>{try{return !!root.VoidLiveContent?.treesOn?.();}catch{return false;}})();
-  const inMission=Object.entries(ms).some(([,r])=>r&&r.acquired&&!r.completed);
   return {enabled:playerOn&&devOn,contact:contact(),busy:busy(),combat:ex.some(e=>e.alert),hostile:(()=>{try{return root.VoidZoneRun?.current?.()?.zone==='hostile';}catch{return false;}})(),
-   mission:inMission,voice:voiceOn(),hack:h&&h.job?{key:'hack#'+hackRun,hold:Number(h.job.hold)||0,t:Number(h.t)||0}:null,sneak,wait:w?{key:w.key}:null,
+   voice:voiceOn(),hack:h&&h.job?{key:'hack#'+hackRun,hold:Number(h.job.hold)||0,t:Number(h.t)||0}:null,
    gap:trees&&!!s&&ms[R.MISSION_009]?.completed===true&&!ms[R.MISSION_010]?.acquired};}
  function say(line){const text=line.text;try{announce('Iris (Comms): '+text);try{noticeTime=Math.max(noticeTime,Math.min(9,2.5+text.length/16));}catch{}}catch{}
   if(line.speak!==false)try{if(root.VoidVoiceClips?.has?.(R.SPEAKER,text))root.VoidAudio?.speak?.(R.SPEAKER,text);}catch{}
@@ -54,7 +44,7 @@
  // ---- Settings: IRIS CHATTER on / off (this browser) ----
  function setPlayer(v){playerOn=!!v;try{root.localStorage.setItem(KEY,playerOn?'on':'off');}catch{}}
  if(typeof settingsPage==='function'){const prev=settingsPage;settingsPage=function(){const r=prev.apply(this,arguments);try{const p=screen.querySelector('.settings-panel');
-   if(p&&!p.querySelector('[data-action="iris-chatter"]'))p.insertAdjacentHTML('beforeend','<h2>Iris</h2><button data-action="iris-chatter" class="quiet" aria-pressed="'+playerOn+'">IRIS CHATTER: '+(playerOn?'ON':'OFF')+'</button><p class="fine">Now and then Iris says a short line over Comms while you work (a long hack, sneaking past a guard, a quiet walk).</p>');}catch{}return r;};}
+   if(p&&!p.querySelector('[data-action="iris-chatter"]'))p.insertAdjacentHTML('beforeend','<h2>Iris</h2><button data-action="iris-chatter" class="quiet" aria-pressed="'+playerOn+'">IRIS CHATTER: '+(playerOn?'ON':'OFF')+'</button><p class="fine">Iris can speak over Comms during long access-point hacks and while you wait for BR-04.</p>');}catch{}return r;};}
  document.addEventListener('click',e=>{const b=e.target&&e.target.closest?e.target.closest('[data-action="iris-chatter"]'):null;if(!b)return;setPlayer(!playerOn);b.textContent='IRIS CHATTER: '+(playerOn?'ON':'OFF');b.setAttribute('aria-pressed',String(playerOn));});
  // ---- Developer Tools > Test & Jump To: the switch, the numbers, the lines, a preview of each kind ----
  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -67,6 +57,6 @@
  document.addEventListener('change',e=>{if(e.target&&e.target.matches&&e.target.matches('[data-iris-dev]'))devOn=!!e.target.checked;});
  document.addEventListener('click',e=>{const b=e.target&&e.target.closest?e.target.closest('[data-iris-try]'):null;if(!b)return;const l=R.force(st,b.dataset.irisTry,{voice:voiceOn()},clock);if(!l)return;
   try{if(root.VoidVoiceClips?.has?.(R.SPEAKER,l.text))root.VoidAudio?.speak?.(R.SPEAKER,l.text);}catch{}b.title=l.text;last={...l,at:clock};});
- root.VoidIrisAmbient={spotted(){R.spotted(st,clock);},ctx,get state(){return st;},get last(){return last;},get log(){return st.log.slice();},get clock(){return clock;},set clock(v){clock=Number(v)||0;},
+ root.VoidIrisAmbient={ctx,get state(){return st;},get last(){return last;},get log(){return st.log.slice();},get clock(){return clock;},set clock(v){clock=Number(v)||0;},
   get enabled(){return playerOn&&devOn;},get player(){return playerOn;},set player(v){setPlayer(v);},get dev(){return devOn;},set dev(v){devOn=!!v;}};
 })(globalThis);

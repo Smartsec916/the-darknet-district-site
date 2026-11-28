@@ -55,10 +55,6 @@
  function toast(text,colour,ms=1800){toastEl.textContent=text;toastEl.style.setProperty('--zc',colour||'#ff9a2e');toastEl.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toastEl.hidden=true;},ms);}
  const hitEl=document.createElement('div');hitEl.id='zone-hit';document.body.append(hitEl);
  // ---------------------------------------------------------------- sound and the muzzle flash
- let ac=null;function audio(){try{ac=ac||new (root.AudioContext||root.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac;}catch{return null;}}
- function bang(dist=0){const a=audio();if(!a)return;const t=a.currentTime,len=.32,buf=a.createBuffer(1,Math.floor(a.sampleRate*len),a.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++){const k=i/d.length;d[i]=(Math.random()*2-1)*Math.pow(1-k,dist?3:4.5);}
-  const src=a.createBufferSource();src.buffer=buf;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=dist?1600:4200;const g=a.createGain();const vol=Math.max(.05,.42-dist*.012)*(Number(root.VoidAudio?.settings?.master??1)||1);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+len);
-  src.connect(lp).connect(g).connect(a.destination);src.start(t);const o=a.createOscillator(),og=a.createGain();o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(42,t+.16);og.gain.setValueAtTime(vol*.9,t);og.gain.exponentialRampToValueAtTime(.001,t+.18);o.connect(og).connect(a.destination);o.start(t);o.stop(t+.2);}
  let flashMesh=null,flashLight=null,flashOff=0;
  function muzzle(){const S=root.VoidBabylon?.scene,B=root.BABYLON;if(!S||!B)return;const gun=S.getTransformNodeByName?.('hand-ward-pistol');if(!gun)return;
   if(!flashMesh||flashMesh.isDisposed()||flashMesh.getScene()!==S){const m=new B.StandardMaterial('zone-muzzle',S);m.emissiveColor=new B.Color3(1,.78,.4);m.disableLighting=true;m.alpha=.9;flashMesh=B.MeshBuilder.CreateDisc('zone-muzzle',{radius:.07,tessellation:7},S);flashMesh.material=m;flashMesh.renderingGroupId=1;flashMesh.isPickable=false;
@@ -73,11 +69,10 @@
    if(r){const t=now(),c=cfg(),p=Z.press(safety,r.zone,t,c);
     if(p==='locked'){if(t-lastLocked>1.2){toast('Weapons are locked here.',Z.INFO.friendly.colour,1400);lastLocked=t;}return;}
     if(p==='warn'){toast('NEUTRAL AREA — firing will make people attack you. Press fire again to shoot.',Z.INFO.neutral.colour,Math.round(c.safetyWindow*1000));return;}}
-   const before=Number(state?.progression?.personal?.ammo);const A=root.VoidAudio,ev=A&&A.event;if(A&&r)A.event=function(name){if(name==='laser')return;return ev.apply(this,arguments);};   // a gun, not a laser, in the city
-   try{real.apply(this,arguments);}finally{if(A&&r)A.event=ev;}
+   const before=Number(state?.progression?.personal?.ammo);real.apply(this,arguments);
    if(Number(state?.progression?.personal?.ammo)<before){const g=Z.gun(root.VOID_BALANCE,root.VoidProgression?.tuning?.ground);try{groundState.cooldown=g.cooldown;walker.pitch=Math.max(-1.4,walker.pitch-g.recoil*(1-(root.VoidConsumableGame?.modifier('recoilReduction')||0))*Math.PI/180);}catch{}if(r)shot(r);}};}   // the shared gun (zones.js gun(), Skirmish FPS reads the same): time between shots, recoil
  function aimRay(spread=0){const B=root.BABYLON;const dir=new B.Vector3(...Z.shotDir(walker.yaw,walker.pitch,spread,!!groundState.aim));return new B.Ray(new B.Vector3(walker.x,walker.y,walker.z),dir,60);}
- function shot(r){muzzle();bang(0);const c=cfg(),t=now();stats.shots++;
+ function shot(r){muzzle();const c=cfg(),t=now();stats.shots++;
   // what the bullet meets: an armed person in this part of the location, not behind a wall
   let hitE=null;try{const S=root.VoidBabylon.scene,hit=S.pickWithRay(aimRay(Z.gun(root.VOID_BALANCE).spread*(1-(root.VoidConsumableGame?.modifier('accuracy')||0))),m=>m.isPickable&&m.metadata&&m.metadata.zoneEnemy!=null);if(hit&&hit.hit){const e=enemies.find(x=>x.e.id===hit.pickedMesh.metadata.zoneEnemy);if(e&&!e.e.dead&&Z.lineClear({x:walker.x,z:walker.z},{x:e.e.x,z:e.e.z},walkingLocation.solids))hitE=e;}}catch{}
   if(hitE){const gg=Z.gun(root.VOID_BALANCE),g=groundState.aim?gg.aimDamage:gg.damage;const killed=Z.hurt(hitE.e,g*(1+(root.VoidConsumableGame?.modifier('damageDealt')||0)));stats.hits++;hitE.flash=performance.now()+120;if(killed){deadSet.add(hitE.key);stats.kills++;toast(Z.FIGURES[hitE.e.figure].name.toUpperCase()+' DOWN',Z.INFO.hostile.colour,1100);}}
@@ -109,7 +104,7 @@
  let down=false,lastTick=performance.now(),calmSince=0,zoneTimer=0,lastBuildCheck=0,stepBusy=false;
  const solidsBlocked=(x,z)=>{try{return root.VoidExplorer.blocked(x,z,walkingLocation);}catch{return false;}};
  function hurtPlayer(dmg,from){try{groundState.health=Math.max(0,Math.round(groundState.health-dmg*(1-(root.VoidConsumableGame?.modifier('damageResist')||0))));}catch{return;}calmSince=performance.now();hitEl.classList.add('on');setTimeout(()=>hitEl.classList.remove('on'),140);
-  try{root.VoidAudio?.tone?.(90,.12,'square',.03);}catch{}if(groundState.health<=0)takenDown();}
+  try{root.VoidAudio?.event('pistolHit');}catch{}if(groundState.health<=0)takenDown();}
  function frame(){requestAnimationFrame(frame);const t=performance.now(),dt=Math.min(.1,(t-lastTick)/1000);lastTick=t;
   if(flashMesh&&t>flashOff){flashMesh.setEnabled(false);if(flashLight)flashLight.intensity=0;}
   try{if((zoneTimer-=dt)<=0){zoneTimer=.25;paint(current());dueSteps();}}catch(e){stats.error=e.message;}
@@ -123,7 +118,7 @@
    const zone=zoneOfRoom(x.mission,x.loc,x.mod,x.type),hostile=zone==='hostile'||(zone==='neutral'&&Z.hostileNow(esc,'loc:'+x.mission+'/'+x.loc,tt));
    const px=e.x,pz=e.z,o=Z.step(e,player,dt,{hostile,cfg:c,clear:(a,b)=>Z.lineClear(a,b,walkingLocation.solids),blocked:solidsBlocked});
    v.node.position.set(e.x,0,e.z);v.node.rotation.y=e.yaw;const moved=Math.hypot(e.x-px,e.z-pz)/Math.max(dt,1e-3);x.walk+=moved*dt*5;const sw=moved>.2?Math.sin(x.walk)*.45:0;v.legs[0].rotation.x=sw;v.legs[1].rotation.x=-sw;
-   if(o.shot){stats.enemyShots++;v.flash.setEnabled(true);x.flash=t+70;bang(Math.hypot(e.x-walker.x,e.z-walker.z));if(o.hit){stats.enemyHits++;hurtPlayer(o.damage,x);}}
+   if(o.shot){stats.enemyShots++;v.flash.setEnabled(true);x.flash=t+70;VoidAudio.groundShot(e,walker);if(o.hit){stats.enemyHits++;hurtPlayer(o.damage,x);}}
    if(x.flash&&t>x.flash){v.flash.setEnabled(false);x.flash=0;}}
   // health comes back slowly after 8 s without a hit
   try{

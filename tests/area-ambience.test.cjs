@@ -13,6 +13,18 @@ test('each area has its own bed, and an unknown area has none',()=>{
 test('the floor underfoot follows the area',()=>{
  assert.equal(A.surface('neochinatown'),'wet');assert.equal(A.surface('alley'),'wet');assert.equal(A.surface('district-entry'),'metal');assert.equal(A.surface('district-hall'),'concrete');assert.equal(A.surface(null),null);
 });
+test('rain fades to a quarter of street volume inside, including apartment hallways',()=>{
+ const apartments=require('../void-runner/apartments.js');
+ const street={area:'street',quarter:'oldtown'};
+ for(const location of [apartments.layout('flat','normal'),apartments.layout('hall','normal'),{apartment:true,area:'module'}]){
+  assert.equal(A.bedLevel('neochinatown','rain-street',location),A.beds('neochinatown')['rain-street']*.25);
+  assert.equal(A.bedLevel('neochinatown','city-distant',location),A.beds('neochinatown')['city-distant']);
+ }
+ assert.equal(A.bedLevel('neochinatown','rain-street',street),A.beds('neochinatown')['rain-street']);
+ assert.equal(A.bedLevel('district-terrace','rain-street',{area:'interior'}),A.beds('district-terrace')['rain-street']);
+ assert.equal(A.bedLevel('alley','rain-street',{area:'street',quarter:'underground'}),A.beds('alley')['rain-street']*.25);
+ assert.equal(A.bedLevel('district-hall','rain-street',{area:'interior'}),0);
+});
 test('a placed sound fades with distance and sits on the side it comes from',()=>{
  const near=A.heard(0,1,0,10),mid=A.heard(0,5,0,10),far=A.heard(0,10,0,10);assert.ok(near.level>mid.level&&mid.level>0);assert.equal(far.level,0);
  assert.ok(Math.abs(mid.pan)<1e-9,'straight ahead is in the middle');

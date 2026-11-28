@@ -6,6 +6,20 @@ The owner: "create me 3 apartment interiors using mostly existing assets. 1. a r
 
 Later the same day: every door is an automatic sliding door; an access point beside every apartment door and a "Hack the access point" step (with a reserved, unsold hacking device); a couch in each apartment; **no kitchen and no refrigerator** (a vending machine instead); an advertisement screen across from the couch in the rundown and normal apartments, switchable in the game, with "Screen starts On / Off" and "Lights start On / Off" in the editor.
 
+## Editing a vacant apartment
+
+Open **Dev Tools → Apartment Editor**. Pick a neighborhood, an available street entrance, and an apartment number. **Go to street door** starts a private editor session facing that door. Enter the building as usual and walk to the selected apartment. The editor opens inside.
+
+To edit an assigned residence, choose **NPC homes** under **Apartment type**, then select the resident by name. The editor fills in their street entrance and apartment number. The same private session opens the NPC’s layout, including its resident positions. These designs save in this browser.
+
+- Use **Finishes and lighting** to recolor the walls, floor, bedding, furniture finishes, and trim. The **VR bedroom-inspired palette** starts with muted finishes and warm lighting. Adjust the light color and brightness from there.
+- Use **Asset Finder** to search by name, category, or source. Select an asset and choose **Place selected asset**. Move the marker over the floor plan and click to place it. The placed asset controls let you fine-tune its position, height, rotation, scale, and tint.
+- Red areas reserve existing furniture, door clearance, interaction approaches, and routes to the standard resident positions. A red asset marker shows a placement conflict. A teal marker shows a clear placement. Use **Walk room** to check how it feels in first person.
+- To add your own asset, make it in Blender with the Higgsfield panel or make it in Meshy. Export a self-contained GLB with embedded textures. In **Import a Blender or Meshy asset**, choose its source and category, pick the GLB, and select **Add to Asset Finder**. Imported models can be reused across apartments in the same browser.
+- **Private library** lists the shared models that Pages seals from the licensed-asset repository. Local previews use matching IDs so a design keeps its placed models when the catalog is published.
+- In **Apartment music**, choose an audio file exported from Riffusion, set its volume, and preview it. The track loops in that apartment and stops when you leave.
+- **Save apartment** stores the design, placed assets, and track in this browser for the current developer account. To reopen it, select the same street entrance and apartment number. Editor sessions use a temporary campaign, and designs are stored locally.
+
 ## What the player sees
 
 - **Street doors.** About 64 apartment-building doors along The Avenue, Main Street (Old Town and Far South), the access road and the Port passage, each in the gap between two shopfronts, with its house number, a frame light and an access point (card reader, small screen, status LED). Never in a street join, at a gate, at NULL, at Milked's frontage, in front of the District or its terrace, by a taxi post or by street furniture. Odd numbers on the east and north sides.
