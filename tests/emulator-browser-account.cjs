@@ -180,6 +180,8 @@ async function main(){
     }
     const a=await register(A,'female'),b=await register(B,'male');
     assert.notEqual(a.uid,b.uid);
+    assert.equal(await providers.characterModel(a.uid),a.model,'hub provider reads A actual stored model');
+    assert.equal(await providers.characterModel(b.uid),b.model,'hub provider reads B actual stored model');
     async function connect(s,uid){
       await s.page.evaluate(async url=>{
         const token=await VoidAccount.user.getIdToken();
@@ -294,18 +296,45 @@ async function main(){
         }
       }
       await enterAndConnect(A,a,'A');await enterAndConnect(B,b,'B');
-      const waitForPeer=(s,model)=>s.page.waitForFunction(model=>{
-        const remote=window.VoidRemotePlayers,peer=remote?.peers[0];
-        if(!remote?.connected||remote.peers.length!==1||!peer?.drawn||peer.model!==model||!VoidAssets.container('crowd:'+model))return false;
-        const node=VoidBabylon.scene?.getTransformNodeByName('remote-player:'+peer.id);
+      // Inspect the actual peer contract, not just the aggregate rendered count.
+      // An assigned model, cached source asset and live visible geometry are
+      // separate facts. Report which is missing without logging account IDs.
+      const peerEvidence=({model,diagnostic=false})=>{
+        const remote=window.VoidRemotePlayers,peer=remote?.peers[0],scene=window.VoidBabylon?.scene;
+        const node=peer&&scene?.transformNodes.find(n=>n.name==='remote-player:'+peer.id&&!n.isDisposed());
         const meshes=node?.getChildMeshes()||[];
-        return meshes.some(m=>m.name!=='remote-tag'&&m.name!=='remote-fallback'&&m.isEnabled()&&m.isVisible&&m.getTotalVertices()>0)
-          &&!meshes.some(m=>m.name==='remote-fallback');
-      },model,{timeout:120000,polling:200});
-      try{await waitForPeer(A,b.model);await waitForPeer(B,a.model);}catch(e){
+        const body=meshes.filter(m=>m.name!=='remote-tag'&&m.name!=='remote-fallback'&&m.isEnabled()&&m.isVisible&&m.getTotalVertices()>0);
+        const fallback=meshes.some(m=>m.name==='remote-fallback');
+        let lo=Infinity,hi=-Infinity;
+        for(const m of body){
+          m.computeWorldMatrix(true);
+          const box=m.getBoundingInfo().boundingBox;
+          lo=Math.min(lo,box.minimumWorld.y);hi=Math.max(hi,box.maximumWorld.y);
+        }
+        const height=body.length?hi-lo:0;
+        const evidence={connected:!!remote?.connected,peerCount:remote?.peers.length||0,
+          drawn:!!peer?.drawn,expectedModel:model,actualModel:peer?.model||null,
+          assembled:!!peer?.appearance,sourceReady:!!window.VoidAssets?.container('crowd:'+model),
+          nodeFound:!!node,meshCount:meshes.length,bodyCount:body.length,
+          visibleVertices:body.reduce((n,m)=>n+m.getTotalVertices(),0),fallback,
+          height:Number.isFinite(height)?Math.round(height*100)/100:null};
+        const ready=evidence.connected&&evidence.peerCount===1&&evidence.drawn&&
+          evidence.actualModel===model&&evidence.sourceReady&&evidence.nodeFound&&
+          evidence.bodyCount>0&&!evidence.fallback&&height>0;
+        return diagnostic?{...evidence,ready}:ready;
+      };
+      const waitForPeer=(s,model)=>s.page.waitForFunction(peerEvidence,{model},{timeout:120000,polling:500});
+      try{await Promise.all([waitForPeer(A,b.model),waitForPeer(B,a.model)]);}catch(e){
         const diagnostics=[];
-        for(const s of [A,B])diagnostics.push(await connectionDiagnostic(s));
+        for(const [s,model] of [[A,b.model],[B,a.model]]){
+          diagnostics.push({...await connectionDiagnostic(s),peer:await s.page.evaluate(peerEvidence,{model,diagnostic:true})});
+        }
         throw new Error('Rendered authenticated peer gate failed: '+JSON.stringify({diagnostics,hub:hubDiagnostic(),assetFailures:[A.assetFailures,B.assetFailures]}),{cause:e});
+      }
+      for(const [s,model] of [[A,b.model],[B,a.model]]){
+        const evidence=await s.page.evaluate(peerEvidence,{model,diagnostic:true});
+        assert(evidence.ready,'real visible peer geometry must remain present: '+JSON.stringify(evidence));
+        console.log('RENDERED_PEER_EVIDENCE '+JSON.stringify(evidence));
       }
       assert.equal(hub.hub.peers.size,2);
       for(const who of [a,b])assert(hub.hub.peers.get(who.uid)?.placed,'authoritative hub must place the actual account');
