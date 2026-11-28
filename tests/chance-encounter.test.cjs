@@ -4,6 +4,26 @@ const engine=require('../void-runner/chance-encounter.js');
 const seed=require('../void-runner/chance-encounter-seed.json');
 const crossing=require('../void-runner/chance-crossing.js');
 
+test('sound validation names an imported cue with a volume above full',()=>{
+ const cue={src:'imported:'+'a'.repeat(64),name:'taxi.mp3',when:'start',offset:1,volume:2,loop:true,stop:'scope'};
+ assert.deepEqual(engine.soundProblems({soundCues:[cue]}),['Sound effect 1 (taxi.mp3). Set Volume to 0–1 (1 is full volume).']);
+ cue.volume=1;
+ assert.deepEqual(engine.soundProblems({soundCues:[cue]}),[]);
+});
+
+test('a section preview validates its action and branch cues without blocking on other sections',()=>{
+ const cue={src:'imported:'+'a'.repeat(64),name:'effect.mp3',when:'start',offset:1,volume:1,loop:true,stop:'scope'};
+ const child={id:'branch_child',soundCues:[{...cue,volume:2}]};
+ const branch={actions:[child.id],chance:10};
+ const arrival={id:'arrival',soundCues:[cue],branches:[branch]};
+ const graph={soundCues:[{...cue,src:''}],sectionSounds:{free:[{...cue,volume:2}]},dialogue:[arrival,child]};
+ const byId=new Map(graph.dialogue.map(row=>[row.id,row]));
+ assert.match(engine.previewSoundProblems(graph,'opening',[arrival],byId)[0],/Set Volume/);
+ child.soundCues[0].volume=1;
+ assert.deepEqual(engine.previewSoundProblems(graph,'opening',[arrival],byId),[]);
+ assert.equal(engine.soundProblems(graph).length,2);
+});
+
 test('encounter captions and their timing leave out delivery tags',()=>{
  const text='[whispers] Keep the lights low while we wait here [pause], and listen. [sighs]';
  const spoken='Keep the lights low while we wait here, and listen.';

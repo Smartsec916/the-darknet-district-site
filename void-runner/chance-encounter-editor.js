@@ -349,7 +349,10 @@
       const form=element('fieldset');form.className='encounter-action-fields';controls.append(form);
       form.append(element('legend','Sound effect '+(index+1)));
       const number=(label,value,min,max,change)=>{
-       const control=field(form,label,input(value,v=>{change(v);mark();},'number'));control.min=min;control.max=max;control.step='any';
+       const hint=element('small');hint.setAttribute('aria-live','polite');
+       const check=()=>{const bad=!Number.isFinite(control.valueAsNumber)||!control.validity.valid;control.setAttribute('aria-invalid',String(bad));hint.textContent=bad?'Enter a value from '+min+' to '+max+'.':'';hint.hidden=!bad;};
+       const control=field(form,label,input(value,v=>{change(v);mark();check();},'number'));control.min=min;control.max=max;control.step='any';
+       control.parentElement.append(hint);check();
       };
       const imported=api.importedSoundHash(cue.src);
       const file=field(form,'Sound file',input(imported?'':cue.src,value=>{cue.src=value.trim();delete cue.name;delete cue.type;mark();}));file.setAttribute('list',soundFiles.id);
@@ -377,7 +380,7 @@
        cue.when=when;if(when==='end'&&cue.loop)cue.stop='seconds';mark();update();
       }));
       number('Offset after cue moment (seconds)',cue.offset,0,3600,v=>{cue.offset=v;});
-      number('Volume',cue.volume,0,1,v=>{cue.volume=v;});
+      number('Volume (0–1)',cue.volume,0,1,v=>{cue.volume=v;});
       const loop=element('input');loop.type='checkbox';loop.checked=cue.loop;
       loop.onchange=()=>{cue.loop=loop.checked;cue.stop=cue.when==='start'?'scope':'seconds';cue.seconds??=1;mark();update();};
       field(form,'Loop sound effect',loop);
@@ -1118,7 +1121,8 @@
       const node=line=>section.querySelector('[data-line-id="'+line.id+'"]');
       const describe=line=>line?actionLabel(line,node(line)?.dataset.executionNumber||line.id):'end of playlist';
       try{
-       const problems=api.validate(g);
+       const problems=api.validate(g,{sounds:false});
+       if(!problems.length)problems.push(...api.previewSoundProblems(g,key,group,byId,target));
        if(problems.length)throw Error(problems[0]);
        const execute=()=>api.runPlaylist(group,byId,{
         signal,pause,previewTarget:target,play:(row,_,replay)=>{
