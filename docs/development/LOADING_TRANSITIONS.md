@@ -40,6 +40,16 @@ The veil keys off the game's own modes (it holds whenever a playable mode turns 
 - **Very slow loads** (over 6 s): the card comes back on purpose, for its status and its cancel button.
 - **Skirmish**: its own mode and screen. Changing it would touch the skirmish code (a follow-up if the owner wants it).
 
-## Low Quay (follow-ups; PR #627 is open on its files, so they were not touched)
+## Low Quay (reviewed 28 Nov 2026, after the Low Quay batches; no game code changed)
 
-- The Low Quay arrival and its scenes (`low-quay.js`, `low-quay-city.js`, `low-quay-club.js`): any non-silent `enterWalking` into them already benefits from the shared veil without touching their files. Transitions they present themselves (their own fades, the club entrance) are follow-ups to review after #627 merges.
+Every way into, out of and around Low Quay was driven in the browser (Playwright, Chromium, software GL), with the veil's own log (`VoidTransitionVeil.log`) and the mode, the player's position and the veil's opacity recorded on every frame:
+
+| Transition | What the player sees | Result |
+|---|---|---|
+| Arriving from space (normal play) | the planet landing sequence (`planet-landing.js` `low-quay`): the descent to the pad | unchanged: a sequence of its own (`landing-seq`) |
+| Dev Tools > Jump to Low Quay or to Plug & Play, and Mission Editor draft play (today the only ways in) | the previous place's picture held with no card, then a crossfade straight into the place. The test session sets 'menu' and 'preparing' in the same frame, so the veil sees play turn into 'preparing' and holds (log: hold, release). For the Plug & Play venue the player is moved to the club door before the first frame is drawn: no frame of the landing pad was shown (every frame checked) | already hidden by the veil; nothing to change (`lowquay-veil-held.jpg`, `lowquay-veil-after.jpg`) |
+| Boarding the ship at a berth (leaving) | the planet take-off sequence (lift-off from the pad, climb-out) | unchanged: a sequence of its own (`lowquay-takeoff-seq.jpg`) |
+| The high-speed rail: pad ↔ city, through the security vestibule and the tunnel | the ride itself; there is no loading. The city's small detail (shopfronts, lamps, glows), switched off while the player is on the pad, comes back on as the train enters the vestibule, out of sight inside the car | unchanged: an in-world transition (`lowquay-vestibule-ride.jpg`) |
+| Plug & Play's street door, the kitchen and backstage doors, the food court's stairs | the same scene: walking through a doorway. The light pool and fog follow the zone the player is in | nothing loads |
+
+**Known gap (not changed; the owner's call):** when a Dev Tools or draft-play jump lands the player directly inside Plug & Play, the seated diners stream in a few seconds after the room is shown and appear at once. In normal play they have loaded long before the player arrives (the train ride and the walk). A fade-in was tried and rejected: the diners' PBR materials keep their highlights when made transparent, so a fading diner shows as a pale ghost, which is more noticeable than the pop. Options: load the diners' models before the room is revealed (the arrival takes a little longer, under the held picture), or leave it (it only affects developer jumps).

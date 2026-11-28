@@ -250,6 +250,10 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 28 Nov 2026 (newest): LOW QUAY LOADING TRANSITIONS REVIEWED (branch `claude/low-quay-veil`, stacked on `claude/low-quay-grid`; docs only)
+
+Every Low Quay transition was driven in the browser against the transition veil: arrival and departure use the planet landing and take-off sequences (their own); Dev Tools / draft-play jumps into Low Quay and Plug & Play already hold the previous picture and crossfade (no card, no frame of the pad before the club); the rail ride, vestibule and tunnel are in-world and unchanged; the club's doors load nothing. No game code changed. Known gap and options (diners streaming in after a direct jump into the club): `LOADING_TRANSITIONS.md`, section Low Quay.
+
 ### 27 Nov 2026 (newest): LOW QUAY: THE OFFSET GRID OF ALLEYS (branch `claude/low-quay-grid`, build `2026-11-28-lowquay-grid-5`, stacked on PR #627)
 
 The owner: beyond the first blocks, the food court and its walkway, the city continues as a symmetrical offset grid of narrow alleys, blocks in brick bond (each row shifted half a block, mirrored about the main axis) so alleys end in T-junctions; dim, coloured light, no cars; cheap; fog so it reads as going on.
